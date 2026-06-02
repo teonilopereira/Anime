@@ -58,7 +58,7 @@ function getAllItems() {
 
     const userId = getCurrentUserIdSafe();
     if (userId !== 'Invitado') {
-        Object.keys(UserStore).forEach((key) => {
+        UserStore.keys().forEach((key) => {
             if (!key.startsWith(`u:${userId}|itemMeta:`) || !UserStore.getItem(key)) return;
             try {
                 const item = JSON.parse(UserStore.getItem(key));
@@ -242,7 +242,7 @@ function exportUserData() {
         progress: { manga: [], anime: [] }
     };
 
-    Object.keys(UserStore).forEach((key) => {
+    UserStore.keys().forEach((key) => {
         if (!key.startsWith(`u:${userId}|`) || !UserStore.getItem(key)) return;
 
         const stateMatch = key.match(/^u:([^|]+)\|item:([^|]+)\|(fav|viewed)$/);
@@ -274,7 +274,7 @@ function renderAchievements() {
     const userId = getCurrentUserIdSafe();
     const lists = { fav: 0, viewed: 0, eps: 0 };
     if (userId !== 'Invitado') {
-        Object.keys(UserStore).forEach((key) => {
+        UserStore.keys().forEach((key) => {
             if (!key.startsWith(`u:${userId}|`) || !UserStore.getItem(key)) return;
             if (key.endsWith('|fav')) lists.fav++;
             if (key.endsWith('|viewed')) lists.viewed++;
@@ -409,7 +409,7 @@ function renderActividad() {
         let hasProgress = false;
         let lastChapter = 0;
         
-        Object.keys(UserStore).forEach((key) => {
+        UserStore.keys().forEach((key) => {
             if (!key.startsWith(`u:${userId}|`)) return;
             if (key.includes(`|anime:${item.id}|ep:`)) { hasProgress = true; lastChapter = key.split('|ep:')[1]; }
             if (key.includes(`|manga:${item.id}|ch:`)) { hasProgress = true; lastChapter = key.split('|ch:')[1]; }

@@ -207,6 +207,25 @@ function toggleStatus(btn, type, itemId) {
     }
 
     updateCardProgressIndicators();
+
+    // Sincronizar con Supabase
+    if (typeof saveItemStateToSupabase === 'function') {
+        const category = card?.getAttribute('data-category') || document.body.getAttribute('data-page') || 'anime';
+        const isFav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
+        const isViewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
+        
+        let meta = {};
+        if (card) {
+            meta = {
+                id: itemId,
+                titulo: card.getAttribute('data-title') || '',
+                img: card.getAttribute('data-img') || '',
+                __category: category
+            };
+        }
+        
+        saveItemStateToSupabase(category, itemId, isFav, isViewed, meta);
+    }
 }
 
 window.toggleCardComplete = function (input, itemId) {

@@ -114,6 +114,14 @@ function syncStatesToLocalStorage(category, states, userId) {
         } else {
             UserStore.removeItem(viewedKey);
         }
+        
+        // Sincronizar metadata para la página de Mis Listas
+        const metaKey = `u:${userId}|itemMeta:${itemId}`;
+        if ((state.fav || state.viewed) && state.meta && Object.keys(state.meta).length > 0) {
+            UserStore.setItem(metaKey, JSON.stringify(state.meta));
+        } else if (!state.fav && !state.viewed) {
+            UserStore.removeItem(metaKey);
+        }
     });
 }
 

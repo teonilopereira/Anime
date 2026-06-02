@@ -494,25 +494,22 @@ function toggleStatus(btn, type, itemId) {
                 titulo: String(titulo).trim(),
                 img,
                 info,
-                __category: category
+                __category: String(category)
             }));
         } else {
             UserStore.removeItem(metaKey);
         }
-
+        
         syncItemStateToSupabase(category, itemId, fav, viewed, {
             id: String(itemId),
             titulo: String(titulo).trim(),
             img,
             info,
-            __category: category
+            __category: String(category)
         });
     }
 
     updateCardProgressIndicators();
-
-    // Si hay sesión SQL activa, sincroniza el estado (favorito/visto) al servidor.
-    // Deshabilitado temporalmente para usar solo LocalStorage
 }
 
 function syncItemStateToSupabase(category, itemId, fav, viewed, meta = {}) {
@@ -861,7 +858,7 @@ function renderContinueWatching() {
         return;
     }
 
-    const keys = Object.keys(UserStore);
+    const keys = UserStore.keys();
 
     function lastProgressFor(prefix, parseFn) {
         let best = null;
