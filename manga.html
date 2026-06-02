@@ -25,11 +25,10 @@
             </span>
         </a>
         <div class="nav-links" aria-label="Navegacion principal">
-            <a href="index.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">⌂</span><span>Inicio</span></a>
-            <a href="anime.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">♨</span><span>Anime</span></a>
-            <a href="manga.html" class="nav-btn active"><span class="nav-icon" aria-hidden="true">▣</span><span>Manga</span></a>
-            <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">▤</span><span>Novelas</span></a>
-            <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">♡</span><span>Mis Listas</span></a>
+            <a href="anime.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">🎬</span><span>Anime</span></a>
+            <a href="manga.html" class="nav-btn active" aria-current="page"><span class="nav-icon" aria-hidden="true">📚</span><span>Manga</span></a>
+            <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
+            <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
         </div>
         <div class="nav-actions">
             <div class="nav-search" role="search" aria-label="Buscar manga">
@@ -90,10 +89,16 @@
         </div>
         <div class="app-footer-bottom">© 2026 Anime Destiny</div>
     </footer>
-    <script src="js/libs/supabase.js"></script>
     <script src="js/core/config.js" defer></script>
-    
-    <script src="api/supabase-config.js"></script>
+    <script src="js/datos.js" defer></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+      }
+    }
+    </script>
+    <script type="module" src="api/supabase-config.js"></script>
     <script src="js/core/auth.js" defer></script>
     <script src="js/core/storage.js" defer></script>
     <script src="js/security/sanitizer.js" defer></script>

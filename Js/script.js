@@ -1351,9 +1351,20 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
     `;
 
     try {
-        // AQUÃ le pasamos el nÃºmero de pÃ¡gina a tu api.js
+        // AQUÍ le pasamos el número de página a tu api.js
         const listaItems = await getTopItems(page);
         const items = Array.isArray(listaItems) ? listaItems.slice(0, 40) : [];
+
+        if (!items.length) {
+            const fallbackItems = Array.isArray(window.DATOS_WEB?.[categoria])
+                ? window.DATOS_WEB[categoria].slice(0, 40)
+                : [];
+
+            if (fallbackItems.length) {
+                return renderCatalogCardsFromLocalData(categoria, mainContainer, fallbackItems);
+            }
+        }
+
         window.__catalogSearchItems = items.map((item) => ({
             item: {
                 id: item.mal_id,
@@ -1418,6 +1429,46 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
         `;
         return false;
     }
+}
+
+function renderCatalogCardsFromLocalData(categoria, mainContainer, items) {
+    const list = items.map((item) => {
+        const id = item.id || item.item_id || item.mal_id || item.itemId || 0;
+        const title = item.titulo || item.title || item.name || 'Sin título';
+        const image = item.img || item.image || item.cover_image || '';
+        const genres = String(item.info || item.synopsis || '').split('/').map((genre) => genre.trim()).filter(Boolean);
+        const genresNorm = genres.map((genre) => normalizeCatalogGenre(genre)).join('|');
+        const detailUrl = `detalle.html?cat=${encodeURIComponent(categoria)}&id=${encodeURIComponent(id)}`;
+        const searchIndex = [title, item.title_english, item.info, item.synopsis, ...genres]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+        return buildCatalogCardHtml({
+            id,
+            title,
+            image,
+            detailUrl,
+            status: item.status || '',
+            searchIndex,
+            genres: genres.join('|'),
+            genresNorm,
+            categoria,
+            progressTotal: Number(item.volumes || item.chapters || item.episodes || 0),
+            imageExtraAttrs: ` data-title="${escapeHtml(title)}" onerror="fallbackCatalogImage(this)"`
+        });
+    });
+
+    mainContainer.innerHTML = list.join('');
+    window.__catalogSearchItems = items.map((item) => ({
+        item,
+        searchIndex: buildSearchIndexForItem(categoria, item)
+    }));
+
+    cargarEstadosBotones();
+    inicializarBusquedaCatalogo();
+    inicializarGeneroWidgets();
+    return true;
 }
 
 async function inicializarPagina() {

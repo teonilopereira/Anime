@@ -16,6 +16,63 @@ function escapeHtml(value) {
         .replaceAll("'", '&#039;');
 }
 
+function normalizeDetailItem(item) {
+    if (!item || typeof item !== 'object') return null;
+    const normalized = { ...item };
+    normalized.id = normalized.id ?? normalized.mal_id ?? normalized.item_id ?? normalized.itemId ?? null;
+    normalized.titulo = normalized.titulo || normalized.title || normalized.name || normalized.nombre || '';
+    normalized.img = normalized.img || normalized.image || normalized.cover_image || normalized.portada || normalized.banner || '';
+    normalized.info = normalized.info || normalized.synopsis || normalized.descripcion || normalized.resumen || normalized.summary || '';
+    normalized.status = normalized.status || normalized.estado || '';
+    normalized.demografia = normalized.demografia || normalized.demography || normalized.demographic || '';
+    normalized.volumenes = normalized.volumenes ?? normalized.volumes ?? normalized.chapters ?? normalized.capitulos ?? null;
+    normalized.anio = normalized.anio ?? normalized.year ?? normalized.año ?? null;
+    return normalized;
+}
+
+function findLocalDetailItem(categoria, id, nombre) {
+    const lista = (typeof DATOS_WEB !== 'undefined' && DATOS_WEB && Array.isArray(DATOS_WEB[categoria]))
+        ? DATOS_WEB[categoria]
+        : [];
+    if (!lista.length) return null;
+
+    const normalizedId = String(id ?? '').trim();
+    const normalizedNombre = String(nombre ?? '').trim().toLowerCase();
+
+    let item = lista.find((entry) => {
+        const entryId = String(entry.id ?? entry.mal_id ?? entry.item_id ?? entry.itemId ?? '').trim();
+        return normalizedId && entryId === normalizedId;
+    });
+    if (item) return normalizeDetailItem(item);
+
+    if (normalizedNombre) {
+        item = lista.find((entry) => {
+            const entryTitle = String(entry.titulo || entry.title || entry.name || entry.nombre || '').trim().toLowerCase();
+            return entryTitle && entryTitle === normalizedNombre;
+        });
+        if (item) return normalizeDetailItem(item);
+    }
+
+    return null;
+}
+
+function waitForDatosWebLoaded(timeout = 5000) {
+    if (typeof DATOS_WEB !== 'undefined' && DATOS_WEB && Object.keys(DATOS_WEB).length > 0) {
+        return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+        const onLoaded = () => {
+            document.removeEventListener('datosCargados', onLoaded);
+            resolve();
+        };
+        document.addEventListener('datosCargados', onLoaded);
+        setTimeout(() => {
+            document.removeEventListener('datosCargados', onLoaded);
+            resolve();
+        }, timeout);
+    });
+}
+
 function replaceChildrenWithTextElement(parent, tagName, text, className = '') {
     if (!parent) return null;
     parent.replaceChildren();
@@ -245,10 +302,11 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     setDetailViewState('local');
 
+    item = normalizeDetailItem(item);
     if (!item) {
         const title = nombreUrl ? `No encontrado: ${nombreUrl}` : 'No encontrado';
         document.title = title;
-        const backHref = categoria === 'juegos' ? 'juegos.html' : (categoria === 'novelas' ? 'novelas.html' : 'manga.html');
+        const backHref = categoria === 'juegos' ? 'juegos.html' : (categoria === 'novelas' ? 'novelas.html' : (categoria === 'anime' ? 'anime.html' : 'manga.html'));
         localLayout.innerHTML = `
             <h1 class="detail-title">${escapeHtml(title)}</h1>
             <p class="detail-subtitle">Volvé al catálogo para elegir otro.</p>
@@ -442,7 +500,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
         `;
     }
-    let backHref = isJuego ? 'juegos.html' : (isAnime ? 'anime.html' : 'manga.html');
+    let backHref = isJuego ? 'juegos.html' : (isAnime ? 'anime.html' : (isNovela ? 'novelas.html' : 'manga.html'));
     try {
         const last = sessionStorage.getItem('lastCatalogUrl');
         if (last) backHref = last;
@@ -1154,7 +1212,7 @@ function renderApiDetalle(item, categoria) {
 
     syncDetailProfileHeader();
 
-    const backHref = categoria === 'anime' ? 'anime.html' : 'manga.html';
+    const backHref = categoria === 'anime' ? 'anime.html' : (categoria === 'novelas' ? 'novelas.html' : 'manga.html');
 
     if (!item) {
         document.title = 'Detalle no encontrado';
@@ -1259,20 +1317,15 @@ async function cargarDetalleDesdeApi(id, categoria) {
 
     try {
         const item = await getById(id);
-        renderApiDetalle(item, apiCat);
+        if (item) {
+            renderApiDetalle(item, apiCat);
+            return true;
+        }
+        return false;
     } catch (error) {
-        const backHref = apiCat === 'anime' ? 'anime.html' : 'manga.html';
-        document.title = 'Detalle — error';
-        showDetailError(
-            error.message || 'Revisá tu conexión e intentá de nuevo.',
-            backHref,
-            'Error'
-        );
-        const msg = document.getElementById('detail-error-msg');
-        if (msg) msg.textContent = 'No se pudo cargar el detalle desde la API.';
+        console.warn('Detalle API falló:', error);
+        return false;
     }
-
-    return true;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1282,11 +1335,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const categoria = cat || 'manga';
 
     if (await cargarDetalleDesdeApi(id, categoria)) return;
-
+    await waitForDatosWebLoaded();
     const item = (typeof obtenerItemCategoria === 'function')
         ? obtenerItemCategoria(categoria, id)
         : ((typeof DATOS_WEB !== 'undefined' && DATOS_WEB && DATOS_WEB[categoria]) || []).find(m => String(m.id) === String(id));
-    renderDetalle(item, nombre, categoria);
+    const localItem = item || findLocalDetailItem(categoria, id, nombre);
+    renderDetalle(localItem, nombre, categoria);
 
     // Agregar funcionalidad para cerrar modal al hacer click fuera
     const modal = document.getElementById('resumenModal');

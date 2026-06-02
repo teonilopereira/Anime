@@ -4,24 +4,25 @@
  * Expone window.AppSupabase con la API pública.
  */
 
-// ─── SDK de Supabase (desde bundle UMD cargado por el HTML) ─────────
-const createClient = (window.supabase && window.supabase.createClient)
-    ? window.supabase.createClient
-    : null;
+import { createClient } from '@supabase/supabase-js';
 
-if (!createClient) {
-    console.error("[Supabase] SDK no disponible en window.supabase. Verificá que el script CDN cargó correctamente antes de supabase-config.js.");
-    // Exponer un stub que muestre error claro, evitando que el resto de la app se rompa
+const SUPABASE_URL = window.AppConfig?.supabaseUrl
+    || process?.env?.VITE_SUPABASE_URL
+    || process?.env?.SUPABASE_URL
+    || "";
+const SUPABASE_ANON = window.AppConfig?.supabaseAnonKey
+    || process?.env?.VITE_SUPABASE_ANON_KEY
+    || process?.env?.SUPABASE_ANON_KEY
+    || "";
+
+if (!SUPABASE_URL || !SUPABASE_ANON) {
+    console.error("[Supabase] No se encontró la configuración de Supabase. Revisa AppConfig o las variables de entorno.");
     window.AppSupabase = null;
     window.AppSupabaseReady = Promise.resolve(null);
     window.dispatchEvent(new CustomEvent("supabase-auth-changed", { detail: { user: null, username: "" } }));
-    throw new Error("[Supabase] SDK no cargado – script detenido.");
+    throw new Error("[Supabase] Configuración incompleta: supabase-url o supabase-anon-key faltante.");
 }
 
-// ─── CONFIGURACIÓN ─────────────────────────────────────────────────
-const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
-// ─── Crear el cliente de Supabase ─────────────────────────────────
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
     auth: {
         persistSession:     true,
