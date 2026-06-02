@@ -177,38 +177,7 @@ function injectAfterNavbar(html) {
 }
 
 function renderUserProfileStrip() {
-    if (typeof getCurrentUserId !== 'function') return;
-    const userId = getCurrentUserId();
-    const existing = document.querySelector('.profile-strip');
-    if (existing) existing.remove();
-
-    const summary = (typeof getUserStateSummary === 'function') ? getUserStateSummary(userId) : { level: { current: 0, next: 100 } };
-    const initials = String(userId || 'A').trim().slice(0, 2).toUpperCase();
-    const levelPct = Math.min(100, Math.round((summary.level.current / summary.level.next) * 100));
-    const label = userId === 'Invitado' ? 'Invitado' : userId;
-
-    function escapeHtmlSafe(value) { return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;'); }
-
-    injectAfterNavbar(\`
-        <div class="profile-card profile-card-strip">
-            <div class="profile-avatar" aria-hidden="true">\${escapeHtmlSafe(initials)}</div>
-            <div class="profile-main">
-                <div class="profile-topline">
-                    <div>
-                        <div class="profile-label">Perfil</div>
-                        <a class="profile-name profile-name-link" href="usuario.html">\${escapeHtmlSafe(label)}</a>
-                    </div>
-                    <div class="profile-actions">
-                        <a class="profile-compare" href="usuario.html">Abrir</a>
-                        <a class="profile-config-btn" href="configuracion.html">Configuración</a>
-                    </div>
-                </div>
-                <div class="profile-track" aria-label="Progreso de nivel">
-                    <div class="profile-fill" style="width:\${levelPct}%"></div>
-                </div>
-            </div>
-        </div>
-    \`);
+    // Disabled profile strip rendering as requested
 }
 
 function enhanceFooters() {

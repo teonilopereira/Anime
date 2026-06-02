@@ -177,7 +177,7 @@ async function syncProgressFromSupabase(category, itemId) {
                 const m = pkey.match(/^vol:(\d+)$/);
                 if (!m) return;
                 const vol = Number(m[1]);
-                if (Number.isFinite(vol) && vol > 0) localStorage.setItem(volumeStorageKey(userId, itemId, vol), '1');
+                if (Number.isFinite(vol) && vol > 0) UserStore.setItem(volumeStorageKey(userId, itemId, vol), '1');
                 return;
             }
 
@@ -187,7 +187,7 @@ async function syncProgressFromSupabase(category, itemId) {
                 const sIdx = Number(m[1]);
                 const ep = Number(m[2]);
                 if (Number.isFinite(sIdx) && Number.isFinite(ep) && ep > 0) {
-                    localStorage.setItem(episodeStorageKey(userId, itemId, sIdx, ep), '1');
+                    UserStore.setItem(episodeStorageKey(userId, itemId, sIdx, ep), '1');
                 }
             }
         });
@@ -240,7 +240,7 @@ async function syncProgressFromSql(category, itemId) {
                 if (!m) return;
                 const vol = Number(m[1]);
                 if (!Number.isFinite(vol) || vol <= 0) return;
-                localStorage.setItem(volumeStorageKey(userId, itemId, vol), '1');
+                UserStore.setItem(volumeStorageKey(userId, itemId, vol), '1');
             });
             return;
         }
@@ -253,7 +253,7 @@ async function syncProgressFromSql(category, itemId) {
                 const sIdx = Number(m[1]);
                 const ep = Number(m[2]);
                 if (!Number.isFinite(sIdx) || !Number.isFinite(ep) || ep <= 0) return;
-                localStorage.setItem(episodeStorageKey(userId, itemId, sIdx, ep), '1');
+                UserStore.setItem(episodeStorageKey(userId, itemId, sIdx, ep), '1');
             });
         }
     } catch {
@@ -396,7 +396,7 @@ function renderDetalle(item, nombreUrl, categoria) {
     if (isMangaOrNovela && totalVols > 0) {
         const markedVolumes = Array.from({ length: totalVols }, (_, i) => {
             const v = i + 1;
-            return localStorage.getItem(volumeStorageKey(userId, item.id, v)) ? 1 : 0;
+            return UserStore.getItem(volumeStorageKey(userId, item.id, v)) ? 1 : 0;
         }).reduce((acc, value) => acc + value, 0);
         const pct = totalVols > 0 ? Math.round((markedVolumes / totalVols) * 100) : 0;
         progressPanelHtml = `
@@ -413,7 +413,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         `;
         const buttons = Array.from({ length: totalVols }, (_, i) => {
             const v = i + 1;
-            const active = localStorage.getItem(volumeStorageKey(userId, item.id, v)) ? ' is-active' : '';
+            const active = UserStore.getItem(volumeStorageKey(userId, item.id, v)) ? ' is-active' : '';
             return `<button class="vol-btn${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">${String(v).padStart(2, '0')}</button>`;
         }).join('');
 
@@ -456,9 +456,9 @@ function renderDetalle(item, nombreUrl, categoria) {
         const temporadasCount = temporadas.length;
         const totalEps = Number(animeStructure.capitulos) || 0;
         let watchedEpisodes = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i) || '';
-            if (key.startsWith(`u:${userId}|anime:${item.id}|s:`) && localStorage.getItem(key)) {
+        for (let i = 0; i < UserStore.length; i++) {
+            const key = UserStore.key(i) || '';
+            if (key.startsWith(`u:${userId}|anime:${item.id}|s:`) && UserStore.getItem(key)) {
                 watchedEpisodes += 1;
             }
         }
@@ -555,7 +555,7 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     function syncActionButton(button, key) {
         if (!button) return;
-        const active = !!localStorage.getItem(key);
+        const active = !!UserStore.getItem(key);
         button.classList.toggle('active', active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }
@@ -567,15 +567,15 @@ function renderDetalle(item, nombreUrl, categoria) {
         if (!button) return;
         syncActionButton(button, key);
         button.addEventListener('click', () => {
-            const enabled = !localStorage.getItem(key);
-            if (enabled) localStorage.setItem(key, '1');
-            else localStorage.removeItem(key);
+            const enabled = !UserStore.getItem(key);
+            if (enabled) UserStore.setItem(key, '1');
+            else UserStore.removeItem(key);
             syncActionButton(button, key);
             saveDetailStateToSupabase(
                 categoria,
                 item,
-                !!localStorage.getItem(actionKeys.fav),
-                !!localStorage.getItem(actionKeys.viewed)
+                !!UserStore.getItem(actionKeys.fav),
+                !!UserStore.getItem(actionKeys.viewed)
             );
         });
     });
@@ -606,7 +606,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         if (isMangaOrNovela && totalVols > 0) {
             const markedVolumes = Array.from({ length: totalVols }, (_, i) => {
                 const v = i + 1;
-                return localStorage.getItem(volumeStorageKey(userId, item.id, v)) ? 1 : 0;
+                return UserStore.getItem(volumeStorageKey(userId, item.id, v)) ? 1 : 0;
             }).reduce((acc, value) => acc + value, 0);
             const pct = totalVols > 0 ? Math.round((markedVolumes / totalVols) * 100) : 0;
             const head = panel.querySelector('.detail-progress-head strong');
@@ -622,9 +622,9 @@ function renderDetalle(item, nombreUrl, categoria) {
             const temporadas = parseTemporadas(item);
             const totalEps = temporadas.reduce((acc, t) => acc + (Number(t.episodios) || 0), 0);
             let watchedEpisodes = 0;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i) || '';
-                if (key.startsWith(`u:${userId}|anime:${item.id}|s:`) && localStorage.getItem(key)) {
+            for (let i = 0; i < UserStore.length; i++) {
+                const key = UserStore.key(i) || '';
+                if (key.startsWith(`u:${userId}|anime:${item.id}|s:`) && UserStore.getItem(key)) {
                     watchedEpisodes += 1;
                 }
             }
@@ -649,7 +649,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     const vol = Number.parseInt(btn.getAttribute('data-vol') || '', 10);
                     if (!Number.isFinite(vol) || vol <= 0) return;
                     const key = volumeStorageKey(getCurrentUserIdSafe(), item.id, vol);
-                    btn.classList.toggle('is-active', !!localStorage.getItem(key));
+                    btn.classList.toggle('is-active', !!UserStore.getItem(key));
                 });
                 renderProgressPanel();
             });
@@ -662,8 +662,8 @@ function renderDetalle(item, nombreUrl, categoria) {
 
                 const key = volumeStorageKey(getCurrentUserIdSafe(), item.id, vol);
                 const isActive = btn.classList.toggle('is-active');
-                if (isActive) localStorage.setItem(key, '1');
-                else localStorage.removeItem(key);
+                if (isActive) UserStore.setItem(key, '1');
+                else UserStore.removeItem(key);
                 saveProgressToSupabase(categoria, item.id, progressSqlKeyVolume(vol), isActive);
                 renderProgressPanel();
 
@@ -696,7 +696,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             const buttons = Array.from({ length: eps }, (_, i) => {
                 const ep = i + 1;
                 const key = episodeStorageKey(getCurrentUserIdSafe(), item.id, seasonIndex, ep);
-                const active = localStorage.getItem(key) ? ' is-active' : '';
+                const active = UserStore.getItem(key) ? ' is-active' : '';
                 return `
 <div class="cap-box ${active ? 'is-active' : ''}" data-ep="${ep}">
     <button 
@@ -753,8 +753,8 @@ function renderDetalle(item, nombreUrl, categoria) {
 
                 const key = episodeStorageKey(getCurrentUserIdSafe(), item.id, seasonIndex, ep);
                 const isActive = btn.classList.toggle('is-active');
-                if (isActive) localStorage.setItem(key, '1');
-                else localStorage.removeItem(key);
+                if (isActive) UserStore.setItem(key, '1');
+                else UserStore.removeItem(key);
                 saveProgressToSupabase('anime', item.id, progressSqlKeyEpisode(seasonIndex, ep), isActive);
                 renderProgressPanel();
 
@@ -794,7 +794,7 @@ function getApiAnimeProgress(userId, animeId, totalEpisodes) {
 
     let watched = 0;
     for (let ep = 1; ep <= totalEpisodes; ep++) {
-        if (localStorage.getItem(episodeStorageKey(userId, animeId, 0, ep))) {
+        if (UserStore.getItem(episodeStorageKey(userId, animeId, 0, ep))) {
             watched += 1;
         }
     }
@@ -855,7 +855,7 @@ function buildChapterGridHtml(total, userId, itemId, categoria) {
         const key = categoria === 'anime'
             ? episodeStorageKey(userId, itemId, 0, num)
             : volumeStorageKey(userId, itemId, num);
-        const active = localStorage.getItem(key) ? ' is-visto' : '';
+        const active = UserStore.getItem(key) ? ' is-visto' : '';
         const label = categoria === 'anime' ? 'Episodio' : 'Volumen';
         return `
             <div class="cuadrado-wrapper">
@@ -877,7 +877,7 @@ function getApiUnifiedProgress(userId, itemId, total, categoria) {
         const key = categoria === 'anime'
             ? episodeStorageKey(userId, itemId, 0, n)
             : volumeStorageKey(userId, itemId, n);
-        if (localStorage.getItem(key)) watched += 1;
+        if (UserStore.getItem(key)) watched += 1;
     }
 
     return {
@@ -978,8 +978,8 @@ function wirePremiumDetailInteractions(root, item, categoria) {
         grid.querySelectorAll('.cuadrado-item').forEach((el) => el.classList.remove('is-selected'));
         btn.classList.add('is-selected');
 
-        if (isActive) localStorage.setItem(key, '1');
-        else localStorage.removeItem(key);
+        if (isActive) UserStore.setItem(key, '1');
+        else UserStore.removeItem(key);
 
         const supabaseKey = isAnime
             ? progressSqlKeyEpisode(0, ep)
@@ -1014,7 +1014,7 @@ function wirePremiumDetailInteractions(root, item, categoria) {
 
     function syncActionButton(button, key) {
         if (!button) return;
-        const active = !!localStorage.getItem(key);
+        const active = !!UserStore.getItem(key);
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }
@@ -1024,15 +1024,15 @@ function wirePremiumDetailInteractions(root, item, categoria) {
         if (!button) return;
         syncActionButton(button, key);
         button.addEventListener('click', () => {
-            const enabled = !localStorage.getItem(key);
-            if (enabled) localStorage.setItem(key, '1');
-            else localStorage.removeItem(key);
+            const enabled = !UserStore.getItem(key);
+            if (enabled) UserStore.setItem(key, '1');
+            else UserStore.removeItem(key);
             syncActionButton(button, key);
             saveDetailStateToSupabase(
                 categoria,
                 { ...item, id: itemId },
-                !!localStorage.getItem(actionKeys.fav),
-                !!localStorage.getItem(actionKeys.viewed)
+                !!UserStore.getItem(actionKeys.fav),
+                !!UserStore.getItem(actionKeys.viewed)
             );
         });
     });
@@ -1065,7 +1065,7 @@ function wirePremiumDetailInteractions(root, item, categoria) {
                 const key = isAnime
                     ? episodeStorageKey(userId, itemId, 0, ep)
                     : volumeStorageKey(userId, itemId, ep);
-                btn.classList.toggle('is-visto', !!localStorage.getItem(key));
+                btn.classList.toggle('is-visto', !!UserStore.getItem(key));
             });
             updateProgressUi();
         });

@@ -18,9 +18,9 @@ function write(filePath, text) {
 
 function fixMisListas(text) {
   let s = text;
-  s = s.replace(/<h3>IniciÃ¡ sesiÃ³n<\/h3>/g, '<h3>Iniciá sesión</h3>');
-  s = s.replace(/UsÃ¡ el botÃ³n/g, 'Usá el botón');
-  s = s.replace(/No tenÃ©s items/g, 'No tenés items');
+  s = s.replace(/<h3>Iniciá sesión<\/h3>/g, '<h3>Iniciá sesión</h3>');
+  s = s.replace(/Usá el botón/g, 'Usá el botón');
+  s = s.replace(/No tenés items/g, 'No tenés items');
 
   // Reemplaza cualquier variante corrupta del badge (emoji roto) por emoji real.
   s = s.replace(/lists-badge fav">[^<]*Me gusta<\/span>/g, 'lists-badge fav">❤ Me gusta</span>');
@@ -30,12 +30,12 @@ function fixMisListas(text) {
 
 function fixScript(text) {
   let s = text;
-  s = s.replace(/Iniciar sesiÃ³n/g, 'Iniciar sesión');
-  s = s.replace(/ContraseÃ±a/g, 'Contraseña');
-  s = s.replace(/EscribÃ­/g, 'Escribí');
-  s = s.replace(/sesiÃ³n/g, 'sesión');
-  s = s.replace(/contraseÃ±a/g, 'contraseña');
-  s = s.replace(/â€¢/g, '•');
+  s = s.replace(/Iniciar sesión/g, 'Iniciar sesión');
+  s = s.replace(/Contraseña/g, 'Contraseña');
+  s = s.replace(/Escribí/g, 'Escribí');
+  s = s.replace(/sesión/g, 'sesión');
+  s = s.replace(/contraseña/g, 'contraseña');
+  s = s.replace(/•/g, '•');
   s = s.replace(/â¤/g, '❤');
   s = s.replace(/ðŸ‘/g, '👁');
   return s;

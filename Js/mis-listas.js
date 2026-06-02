@@ -18,7 +18,7 @@ function getCurrentUserIdSafe() {
 
 function getAuthTokenSafe() {
     if (typeof getAuthToken === 'function') return getAuthToken();
-    return localStorage.getItem('authToken') || '';
+    return UserStore.getItem('authToken') || '';
 }
 
 function statusStorageKeySafe(userId, itemId, type) {
@@ -58,10 +58,10 @@ function getAllItems() {
 
     const userId = getCurrentUserIdSafe();
     if (userId !== 'Invitado') {
-        Object.keys(localStorage).forEach((key) => {
-            if (!key.startsWith(`u:${userId}|itemMeta:`) || !localStorage.getItem(key)) return;
+        Object.keys(UserStore).forEach((key) => {
+            if (!key.startsWith(`u:${userId}|itemMeta:`) || !UserStore.getItem(key)) return;
             try {
-                const item = JSON.parse(localStorage.getItem(key));
+                const item = JSON.parse(UserStore.getItem(key));
                 if (!item?.id || byId.has(String(item.id))) return;
                 all.push({
                     ...item,
@@ -91,8 +91,8 @@ function getItemGenres(item) {
 }
 
 function getUserItemState(userId, item) {
-    const fav = !!localStorage.getItem(statusStorageKeySafe(userId, item.id, 'fav'));
-    const viewed = !!localStorage.getItem(statusStorageKeySafe(userId, item.id, 'viewed'));
+    const fav = !!UserStore.getItem(statusStorageKeySafe(userId, item.id, 'fav'));
+    const viewed = !!UserStore.getItem(statusStorageKeySafe(userId, item.id, 'viewed'));
     return { item, fav, viewed };
 }
 
@@ -115,9 +115,9 @@ function renderMediaCard({ item, fav = false, viewed = false, match = null, isRo
     const userId = getCurrentUserIdSafe();
     let currentEp = 0;
     if (item.__category === 'manga' || item.__category === 'novelas') {
-        currentEp = localStorage.getItem(`u:${userId}|manga:${item.id}|ch:1`) || 0; // fallback básico si no hay progress.js completo
+        currentEp = UserStore.getItem(`u:${userId}|manga:${item.id}|ch:1`) || 0; // fallback básico si no hay progress.js completo
     } else {
-        currentEp = localStorage.getItem(`u:${userId}|anime:${item.id}|s:1|ep:1`) || 0; // fallback
+        currentEp = UserStore.getItem(`u:${userId}|anime:${item.id}|s:1|ep:1`) || 0; // fallback
     }
 
     if (isRow) {
@@ -242,8 +242,8 @@ function exportUserData() {
         progress: { manga: [], anime: [] }
     };
 
-    Object.keys(localStorage).forEach((key) => {
-        if (!key.startsWith(`u:${userId}|`) || !localStorage.getItem(key)) return;
+    Object.keys(UserStore).forEach((key) => {
+        if (!key.startsWith(`u:${userId}|`) || !UserStore.getItem(key)) return;
 
         const stateMatch = key.match(/^u:([^|]+)\|item:([^|]+)\|(fav|viewed)$/);
         if (stateMatch) {
@@ -274,8 +274,8 @@ function renderAchievements() {
     const userId = getCurrentUserIdSafe();
     const lists = { fav: 0, viewed: 0, eps: 0 };
     if (userId !== 'Invitado') {
-        Object.keys(localStorage).forEach((key) => {
-            if (!key.startsWith(`u:${userId}|`) || !localStorage.getItem(key)) return;
+        Object.keys(UserStore).forEach((key) => {
+            if (!key.startsWith(`u:${userId}|`) || !UserStore.getItem(key)) return;
             if (key.endsWith('|fav')) lists.fav++;
             if (key.endsWith('|viewed')) lists.viewed++;
             if (key.includes('|ep:') || key.includes('|ch:') || key.includes('|vol:')) lists.eps++;
@@ -317,7 +317,7 @@ function renderPoints() {
 
     const pts = (typeof getUserPoints === 'function')
         ? getUserPoints(userId)
-        : Number(localStorage.getItem(`u:${userId}|points`) || '0');
+        : Number(UserStore.getItem(`u:${userId}|points`) || '0');
     const level = (typeof levelFromPoints === 'function')
         ? levelFromPoints(pts)
         : { level: 1, current: 0, next: 100 };
@@ -342,7 +342,7 @@ function renderProfileSummary() {
     const userId = getCurrentUserIdSafe();
     const label = userId === 'Invitado' ? 'Invitado' : userId;
     const initials = String(label || 'IN').trim().slice(0, 2).toUpperCase();
-    const pts = userId === 'Invitado' ? 0 : ((typeof getUserPoints === 'function') ? getUserPoints(userId) : Number(localStorage.getItem(`u:${userId}|points`) || '0'));
+    const pts = userId === 'Invitado' ? 0 : ((typeof getUserPoints === 'function') ? getUserPoints(userId) : Number(UserStore.getItem(`u:${userId}|points`) || '0'));
     const level = (typeof levelFromPoints === 'function') ? levelFromPoints(pts) : { level: 1, current: 0, next: 100 };
     const pct = Math.max(0, Math.min(100, Math.round((level.current / level.next) * 100)));
 
@@ -403,13 +403,13 @@ function renderActividad() {
     
     // Buscar items con vistos o fav, o que tengan capítulos guardados
     allItems.forEach(item => {
-        const fav = !!localStorage.getItem(`u:${userId}|item:${item.id}|fav`);
-        const viewed = !!localStorage.getItem(`u:${userId}|item:${item.id}|viewed`);
+        const fav = !!UserStore.getItem(`u:${userId}|item:${item.id}|fav`);
+        const viewed = !!UserStore.getItem(`u:${userId}|item:${item.id}|viewed`);
         
         let hasProgress = false;
         let lastChapter = 0;
         
-        Object.keys(localStorage).forEach((key) => {
+        Object.keys(UserStore).forEach((key) => {
             if (!key.startsWith(`u:${userId}|`)) return;
             if (key.includes(`|anime:${item.id}|ep:`)) { hasProgress = true; lastChapter = key.split('|ep:')[1]; }
             if (key.includes(`|manga:${item.id}|ch:`)) { hasProgress = true; lastChapter = key.split('|ch:')[1]; }
@@ -473,8 +473,8 @@ function updateCategoryCards() {
 
     getAllItems().forEach(item => {
         const cat = item.__category;
-        const fav = !!localStorage.getItem(`u:${user}|item:${item.id}|fav`);
-        const viewed = !!localStorage.getItem(`u:${user}|item:${item.id}|viewed`);
+        const fav = !!UserStore.getItem(`u:${user}|item:${item.id}|fav`);
+        const viewed = !!UserStore.getItem(`u:${user}|item:${item.id}|viewed`);
         if (fav || viewed) {
             catCounts[cat] = (catCounts[cat] || 0) + 1;
             if (fav)    catFav[cat]    = (catFav[cat] || 0) + 1;
@@ -498,8 +498,8 @@ function updateActividadMini() {
 
     const items = [];
     getAllItems().forEach(item => {
-        const fav = !!localStorage.getItem(`u:${user}|item:${item.id}|fav`);
-        const viewed = !!localStorage.getItem(`u:${user}|item:${item.id}|viewed`);
+        const fav = !!UserStore.getItem(`u:${user}|item:${item.id}|fav`);
+        const viewed = !!UserStore.getItem(`u:${user}|item:${item.id}|viewed`);
         if (fav || viewed) items.push({ ...item, fav, viewed });
     });
 
@@ -528,12 +528,12 @@ function renderStats() {
     getAllItems().forEach(item => {
         const cat = item.__category;
         if (!byCategory[cat]) byCategory[cat] = { fav: 0, viewed: 0 };
-        if (localStorage.getItem(`u:${user}|item:${item.id}|fav`))    { byCategory[cat].fav++; totalFav++; }
-        if (localStorage.getItem(`u:${user}|item:${item.id}|viewed`)) { byCategory[cat].viewed++; totalViewed++; }
+        if (UserStore.getItem(`u:${user}|item:${item.id}|fav`))    { byCategory[cat].fav++; totalFav++; }
+        if (UserStore.getItem(`u:${user}|item:${item.id}|viewed`)) { byCategory[cat].viewed++; totalViewed++; }
     });
     
-    const pts = Number(localStorage.getItem(`u:${user}|points`) || 0);
-    const sessions = Number(localStorage.getItem(`u:${user}|sessions`) || 0);
+    const pts = Number(UserStore.getItem(`u:${user}|points`) || 0);
+    const sessions = Number(UserStore.getItem(`u:${user}|sessions`) || 0);
 
     const statItems = [
         { label: 'Total Me gusta', value: totalFav, icon: '❤', color: '#bc13fe' },

@@ -234,6 +234,7 @@
                 console.warn("No se pudo cerrar sesión de Supabase:", err);
             }
         }
+        if (window.UserStore) window.UserStore.clear();
         await refreshUserUi();
     }
 

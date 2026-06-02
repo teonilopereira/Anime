@@ -91,7 +91,7 @@ async function loadProgressFromSupabase(category, itemId) {
 }
 
 // ==========================================
-// 5. SINCRONIZAR ESTADOS AL LOCALSTORAGE
+// 5. SINCRONIZAR ESTADOS AL USERSTORE
 // ==========================================
 function syncStatesToLocalStorage(category, states, userId) {
     if (!Array.isArray(states) || !userId) return;
@@ -104,21 +104,21 @@ function syncStatesToLocalStorage(category, states, userId) {
         const viewedKey = `u:${userId}|item:${itemId}|viewed`;
 
         if (state.fav) {
-            localStorage.setItem(favKey, '1');
+            UserStore.setItem(favKey, '1');
         } else {
-            localStorage.removeItem(favKey);
+            UserStore.removeItem(favKey);
         }
 
         if (state.viewed) {
-            localStorage.setItem(viewedKey, '1');
+            UserStore.setItem(viewedKey, '1');
         } else {
-            localStorage.removeItem(viewedKey);
+            UserStore.removeItem(viewedKey);
         }
     });
 }
 
 // ==========================================
-// 6. SINCRONIZAR PROGRESO AL LOCALSTORAGE
+// 6. SINCRONIZAR PROGRESO AL USERSTORE
 // ==========================================
 function syncProgressToLocalStorage(category, itemId, progressArray, userId) {
     if (!Array.isArray(progressArray) || !userId || !itemId) return;
@@ -126,7 +126,7 @@ function syncProgressToLocalStorage(category, itemId, progressArray, userId) {
     progressArray.forEach((p) => {
         if (p.pkey && p.value) {
             const key = `u:${userId}|${category}:${itemId}|${p.pkey}`;
-            localStorage.setItem(key, '1');
+            UserStore.setItem(key, '1');
         }
     });
 }
@@ -172,8 +172,8 @@ function applyRemoteStateToCards(cards, userId) {
         const favBtn = card.querySelector('.fav-btn');
         const viewedBtn = card.querySelector('.viewed-btn');
 
-        const isFav = !!localStorage.getItem(`u:${userId}|item:${itemId}|fav`);
-        const isViewed = !!localStorage.getItem(`u:${userId}|item:${itemId}|viewed`);
+        const isFav = !!UserStore.getItem(`u:${userId}|item:${itemId}|fav`);
+        const isViewed = !!UserStore.getItem(`u:${userId}|item:${itemId}|viewed`);
 
         if (favBtn) {
             favBtn.classList.toggle('active', isFav);

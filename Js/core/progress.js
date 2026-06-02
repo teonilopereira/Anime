@@ -8,14 +8,14 @@ function pointsKey(userId) {
 }
 
 function getUserPoints(userId) {
-    const n = Number(localStorage.getItem(pointsKey(userId)) || '0');
+    const n = Number(UserStore.getItem(pointsKey(userId)) || '0');
     return Number.isFinite(n) ? n : 0;
 }
 
 function addUserPoints(userId, delta) {
     if (!userId || userId === 'Invitado') return;
     const next = Math.max(0, getUserPoints(userId) + (Number(delta) || 0));
-    localStorage.setItem(pointsKey(userId), String(next));
+    UserStore.setItem(pointsKey(userId), String(next));
 }
 
 function levelFromPoints(points) {
@@ -35,10 +35,10 @@ function levelFromPoints(points) {
 function countKeysWithPrefix(prefix) {
     try {
         let count = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
+        for (let i = 0; i < UserStore.length; i++) {
+            const k = UserStore.key(i);
             if (!k) continue;
-            if (k.startsWith(prefix) && localStorage.getItem(k)) count++;
+            if (k.startsWith(prefix) && UserStore.getItem(k)) count++;
         }
         return count;
     } catch {
@@ -51,10 +51,10 @@ function countUserStates(userId, type) {
     let count = 0;
     const suffix = `|${type}`;
     const prefix = `u:${userId}|item:`;
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+    for (let i = 0; i < UserStore.length; i++) {
+        const key = UserStore.key(i);
         if (!key || !key.startsWith(prefix) || !key.endsWith(suffix)) continue;
-        if (localStorage.getItem(key)) count++;
+        if (UserStore.getItem(key)) count++;
     }
     return count;
 }
@@ -69,7 +69,7 @@ function getUserStateSummary(userId) {
 
 function getProgressPercentForItem(userId, category, itemId) {
     try {
-        const viewed = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+        const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
         if (viewed) return 100;
         const det = (typeof obtenerDetalleItem === 'function')
             ? obtenerDetalleItem(category, itemId)
@@ -100,9 +100,9 @@ function countAnimeEpisodesWatched(userId, animeId, totalEps) {
     let watched = 0;
     for (let ep = 1; ep <= totalEps; ep++) {
         let found = false;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i) || '';
-            if (!key.startsWith(`u:${userId}|anime:${animeId}|s:`) || !localStorage.getItem(key)) continue;
+        for (let i = 0; i < UserStore.length; i++) {
+            const key = UserStore.key(i) || '';
+            if (!key.startsWith(`u:${userId}|anime:${animeId}|s:`) || !UserStore.getItem(key)) continue;
             const m = key.match(/ep:(\d+)$/);
             if (m && Number(m[1]) === ep) {
                 found = true;
@@ -126,14 +126,14 @@ function resolveCatalogProgress(userId, category, itemId, card) {
         return { show: true, pct: legacyPct, watched: 0, total: 0, prefix, completionText: `${legacyPct}% VISTO` };
     }
 
-    const viewed = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+    const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
     let watched = 0;
     if (category === 'anime') {
         watched = countAnimeEpisodesWatched(userId, itemId, dataTotal);
     } else if (category === 'manga' || category === 'novelas') {
         for (let n = 1; n <= dataTotal; n++) {
-            if (localStorage.getItem(`u:${userId}|manga:${itemId}|ch:${n}`) ||
-                localStorage.getItem(`u:${userId}|manga:${itemId}|vol:${n}`)) {
+            if (UserStore.getItem(`u:${userId}|manga:${itemId}|ch:${n}`) ||
+                UserStore.getItem(`u:${userId}|manga:${itemId}|vol:${n}`)) {
                 watched += 1;
             }
         }
@@ -194,10 +194,10 @@ function toggleStatus(btn, type, itemId) {
     btn.classList.toggle('active');
 
     if (btn.classList.contains('active')) {
-        localStorage.setItem(storageKey, '1');
+        UserStore.setItem(storageKey, '1');
         addUserPoints(userId, type === 'viewed' ? 10 : 5);
     } else {
-        localStorage.removeItem(storageKey);
+        UserStore.removeItem(storageKey);
     }
 
     const card = btn.closest('[data-item-id]');
@@ -228,12 +228,12 @@ function cargarEstadosBotones() {
         const favBtn = card.querySelector('.fav-btn');
         const viewedBtn = card.querySelector('.viewed-btn');
 
-        if (favBtn) favBtn.classList.toggle('active', !!localStorage.getItem(statusStorageKey(userId, itemId, 'fav')));
-        if (viewedBtn) viewedBtn.classList.toggle('active', !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed')));
+        if (favBtn) favBtn.classList.toggle('active', !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav')));
+        if (viewedBtn) viewedBtn.classList.toggle('active', !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed')));
 
         const completeInput = card.querySelector('.card-complete-input');
         if (completeInput) {
-            completeInput.checked = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+            completeInput.checked = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
         }
     });
 

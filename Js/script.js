@@ -1,15 +1,15 @@
-﻿// ==========================================
-// 1. CARGA DINÃMICA DESDE EL PANEL ADMIN
+// ==========================================
+// 1. CARGA DINÁMICA DESDE EL PANEL ADMIN
 // ==========================================
 function eliminarItem(id) {
-    let listaItems = JSON.parse(localStorage.getItem('itemsTienda')) || [];
+    let listaItems = JSON.parse(UserStore.getItem('itemsTienda')) || [];
     listaItems = listaItems.filter(item => item.id !== id);
-    localStorage.setItem('itemsTienda', JSON.stringify(listaItems));
+    UserStore.setItem('itemsTienda', JSON.stringify(listaItems));
     location.reload(); 
 }
 
 // ==========================================
-// 2. ACTUALIZACIÃ“N DE PRECIOS ALEATORIOS
+// 2. ACTUALIZACIÓN DE PRECIOS ALEATORIOS
 // ==========================================
 function updatePrices() {
     const priceElements = document.querySelectorAll('.price-tag');
@@ -78,14 +78,14 @@ function pointsKey(userId) {
 }
 
 function getUserPoints(userId) {
-    const n = Number(localStorage.getItem(pointsKey(userId)) || '0');
+    const n = Number(UserStore.getItem(pointsKey(userId)) || '0');
     return Number.isFinite(n) ? n : 0;
 }
 
 function addUserPoints(userId, delta) {
     if (!userId || userId === 'Invitado') return;
     const next = Math.max(0, getUserPoints(userId) + (Number(delta) || 0));
-    localStorage.setItem(pointsKey(userId), String(next));
+    UserStore.setItem(pointsKey(userId), String(next));
 }
 
 function levelFromPoints(points) {
@@ -105,10 +105,10 @@ function levelFromPoints(points) {
 function countKeysWithPrefix(prefix) {
     try {
         let count = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
+        for (let i = 0; i < UserStore.length; i++) {
+            const k = UserStore.key(i);
             if (!k) continue;
-            if (k.startsWith(prefix) && localStorage.getItem(k)) count++;
+            if (k.startsWith(prefix) && UserStore.getItem(k)) count++;
         }
         return count;
     } catch {
@@ -121,17 +121,17 @@ function countUserStates(userId, type) {
     let count = 0;
     const suffix = `|${type}`;
     const prefix = `u:${userId}|item:`;
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+    for (let i = 0; i < UserStore.length; i++) {
+        const key = UserStore.key(i);
         if (!key || !key.startsWith(prefix) || !key.endsWith(suffix)) continue;
-        if (localStorage.getItem(key)) count++;
+        if (UserStore.getItem(key)) count++;
     }
     return count;
 }
 
 function getPreference(key, fallback = false) {
     try {
-        const value = localStorage.getItem(key);
+        const value = UserStore.getItem(key);
         if (value === null) return fallback;
         return value === 'true';
     } catch {
@@ -147,7 +147,7 @@ function applyUserPreferences() {
 
 function getPreferenceValue(key, fallback = '') {
     try {
-        const value = localStorage.getItem(key);
+        const value = UserStore.getItem(key);
         return value === null ? fallback : value;
     } catch {
         return fallback;
@@ -242,41 +242,7 @@ function injectAfterNavbar(html) {
 }
 
 function renderUserProfileStrip() {
-    if (document.body?.dataset?.noProfileStrip === 'true') {
-        const existing = document.querySelector('.profile-strip');
-        if (existing) existing.remove();
-        return;
-    }
-
-    const userId = getCurrentUserId();
-    const existing = document.querySelector('.profile-strip');
-    if (existing) existing.remove();
-
-    const summary = getUserStateSummary(userId);
-    const initials = String(userId || 'A').trim().slice(0, 2).toUpperCase();
-    const levelPct = Math.min(100, Math.round((summary.level.current / summary.level.next) * 100));
-    const label = userId === 'Invitado' ? 'Invitado' : userId;
-
-    injectAfterNavbar(`
-        <div class="profile-card profile-card-strip">
-            <div class="profile-avatar" aria-hidden="true">${escapeHtml(initials)}</div>
-            <div class="profile-main">
-                <div class="profile-topline">
-                    <div>
-                        <div class="profile-label">Perfil</div>
-                        <a class="profile-name profile-name-link" href="usuario.html">${escapeHtml(label)}</a>
-                    </div>
-                    <div class="profile-actions">
-                        <a class="profile-compare" href="usuario.html">Abrir</a>
-                        <a class="profile-config-btn" href="configuracion.html">ConfiguraciÃ³n</a>
-                    </div>
-                </div>
-                <div class="profile-track" aria-label="Progreso de nivel">
-                    <div class="profile-fill" style="width:${levelPct}%"></div>
-                </div>
-            </div>
-        </div>
-    `);
+    // Disabled profile strip rendering as requested
 }
 
 function enhanceFooters() {
@@ -288,7 +254,7 @@ function enhanceFooters() {
         summary.setAttribute('data-footer-summary', '1');
         summary.innerHTML = `
             <div class="app-footer-title">Atajos</div>
-            <p class="app-footer-text">UsÃ¡ el perfil para ver tu progreso, el comparador para revisar 2 tÃ­tulos y el buscador para filtrar por tÃ­tulo, gÃ©nero o estudio.</p>
+            <p class="app-footer-text">Usá el perfil para ver tu progreso, el comparador para revisar 2 títulos y el buscador para filtrar por título, género o estudio.</p>
         `;
         footer.appendChild(summary);
     });
@@ -296,7 +262,7 @@ function enhanceFooters() {
 
 function getProgressPercentForItem(userId, category, itemId) {
     try {
-        const viewed = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+        const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
         if (viewed) return 100;
         const det = (typeof obtenerDetalleItem === 'function')
             ? obtenerDetalleItem(category, itemId)
@@ -389,7 +355,7 @@ function buildCatalogImageCandidates(title, currentSrc = '') {
 }
 
 function createFallbackPosterDataUrl(title, subtitle = '') {
-    const safeTitle = String(title || 'Sin tÃ­tulo').slice(0, 48);
+    const safeTitle = String(title || 'Sin título').slice(0, 48);
     const safeSubtitle = String(subtitle || '').slice(0, 70);
     const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
@@ -424,7 +390,7 @@ function fallbackCatalogImage(imgEl) {
     if (imgEl.dataset.fallbackReady === '1') return;
     imgEl.dataset.fallbackReady = '1';
 
-    const title = imgEl.dataset.title || imgEl.alt || 'Sin tÃ­tulo';
+    const title = imgEl.dataset.title || imgEl.alt || 'Sin título';
     const subtitle = imgEl.dataset.subtitle || '';
     const currentSrc = imgEl.getAttribute('src') || '';
     const candidates = buildCatalogImageCandidates(title, currentSrc);
@@ -501,10 +467,10 @@ function toggleStatus(btn, type, itemId) {
     btn.classList.toggle('active');
 
     if (btn.classList.contains('active')) {
-        localStorage.setItem(storageKey, '1');
+        UserStore.setItem(storageKey, '1');
         addUserPoints(userId, type === 'viewed' ? 10 : 5);
     } else {
-        localStorage.removeItem(storageKey);
+        UserStore.removeItem(storageKey);
     }
 
     const card = btn.closest('[data-item-id]');
@@ -514,8 +480,8 @@ function toggleStatus(btn, type, itemId) {
     }
 
     if (card && userId !== 'Invitado') {
-        const fav = !!localStorage.getItem(statusStorageKey(userId, itemId, 'fav'));
-        const viewed = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+        const fav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
+        const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
         const metaKey = `u:${userId}|itemMeta:${itemId}`;
         const category = card.getAttribute('data-category') || getCategoriaActual();
         const img = card.getAttribute('data-img') || card.querySelector('img')?.getAttribute('src') || '';
@@ -523,7 +489,7 @@ function toggleStatus(btn, type, itemId) {
         const info = card.getAttribute('data-genres') || card.getAttribute('data-search-index') || '';
 
         if (fav || viewed) {
-            localStorage.setItem(metaKey, JSON.stringify({
+            UserStore.setItem(metaKey, JSON.stringify({
                 id: String(itemId),
                 titulo: String(titulo).trim(),
                 img,
@@ -531,7 +497,7 @@ function toggleStatus(btn, type, itemId) {
                 __category: category
             }));
         } else {
-            localStorage.removeItem(metaKey);
+            UserStore.removeItem(metaKey);
         }
 
         syncItemStateToSupabase(category, itemId, fav, viewed, {
@@ -545,7 +511,7 @@ function toggleStatus(btn, type, itemId) {
 
     updateCardProgressIndicators();
 
-    // Si hay sesiÃ³n SQL activa, sincroniza el estado (favorito/visto) al servidor.
+    // Si hay sesión SQL activa, sincroniza el estado (favorito/visto) al servidor.
     // Deshabilitado temporalmente para usar solo LocalStorage
 }
 
@@ -563,10 +529,10 @@ function applyRemoteStateToCards(cards, userId) {
         if (!itemId) return;
         const favBtn = card.querySelector('.fav-btn');
         const viewedBtn = card.querySelector('.viewed-btn');
-        if (favBtn) favBtn.classList.toggle('active', !!localStorage.getItem(statusStorageKey(userId, itemId, 'fav')));
-        if (viewedBtn) viewedBtn.classList.toggle('active', !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed')));
+        if (favBtn) favBtn.classList.toggle('active', !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav')));
+        if (viewedBtn) viewedBtn.classList.toggle('active', !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed')));
         const completeInput = card.querySelector('.card-complete-input');
-        if (completeInput) completeInput.checked = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+        if (completeInput) completeInput.checked = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
     });
     updateCardProgressIndicators();
 }
@@ -579,8 +545,8 @@ function syncStatesFromSupabase(category, userId, cards) {
         states.forEach((state) => {
             const key = state.item_id;
             if (!key) return;
-            if (state.fav)    localStorage.setItem(statusStorageKey(userId, key, 'fav'), '1');
-            if (state.viewed) localStorage.setItem(statusStorageKey(userId, key, 'viewed'), '1');
+            if (state.fav)    UserStore.setItem(statusStorageKey(userId, key, 'fav'), '1');
+            if (state.viewed) UserStore.setItem(statusStorageKey(userId, key, 'viewed'), '1');
         });
         applyRemoteStateToCards(cards, userId);
     }).catch((error) => {
@@ -600,15 +566,15 @@ function cargarEstadosBotones() {
         const viewedBtn = card.querySelector('.viewed-btn');
 
         if (favBtn) {
-            favBtn.classList.toggle('active', !!localStorage.getItem(statusStorageKey(userId, itemId, 'fav')));
+            favBtn.classList.toggle('active', !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav')));
         }
         if (viewedBtn) {
-            viewedBtn.classList.toggle('active', !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed')));
+            viewedBtn.classList.toggle('active', !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed')));
         }
 
         const completeInput = card.querySelector('.card-complete-input');
         if (completeInput) {
-            completeInput.checked = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+            completeInput.checked = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
         }
     });
 
@@ -619,11 +585,11 @@ function cargarEstadosBotones() {
 }
 
 // ==========================================
-// 4. ANIMACIÃ“N DE PARTÃCULAS (Solo para Index)
+// 4. ANIMACIÓN DE PARTÍCULAS (Solo para Index)
 // ==========================================
 function iniciarParticulas() {
     const canvas = document.getElementById('particleCanvas');
-    if (!canvas) return; // ProtecciÃ³n: Si la pÃ¡gina no tiene canvas, no ejecuta esto.
+    if (!canvas) return; // Protección: Si la página no tiene canvas, no ejecuta esto.
 
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -691,15 +657,15 @@ function inicializarNavbarAdaptable() {
         const toggle = document.createElement('button');
         toggle.className = 'nav-toggle';
         toggle.type = 'button';
-        toggle.setAttribute('aria-label', 'Abrir menÃº');
+        toggle.setAttribute('aria-label', 'Abrir menú');
         toggle.setAttribute('aria-expanded', 'false');
-        toggle.innerHTML = `<span class="nav-toggle-icon" aria-hidden="true"></span><span>MenÃº</span>`;
+        toggle.innerHTML = `<span class="nav-toggle-icon" aria-hidden="true"></span><span>Menú</span>`;
         navbar.insertBefore(toggle, navbar.firstElementChild);
 
         toggle.addEventListener('click', () => {
             const isOpen = navbar.classList.toggle('is-open');
             toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            toggle.setAttribute('aria-label', isOpen ? 'Cerrar menÃº' : 'Abrir menÃº');
+            toggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
         });
     }
 
@@ -716,22 +682,22 @@ function inicializarNavbarAdaptable() {
 // ==========================================
 /*
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Cargar Ã­tems del admin
+    // 1. Cargar ítems del admin
     applyUserPreferences();
     
     // 2. Restaurar favoritos
     cargarEstadosBotones();
 
-    // 2.5 Perfil y footer mÃ¡s ricos
+    // 2.5 Perfil y footer más ricos
     renderUserProfileStrip();
     enhanceFooters();
     inicializarNavbarAdaptable();
     
-    // 3. Encender partÃ­culas (si existe el canvas)
+    // 3. Encender partículas (si existe el canvas)
     iniciarParticulas();
     applyBackgroundPreference();
     
-    // 4. Iniciar precios dinÃ¡micos
+    // 4. Iniciar precios dinámicos
     updatePrices();
     setInterval(updatePrices, 8000);
 });
@@ -866,9 +832,9 @@ function renderFeaturedBanner() {
     };
 
     const blocks = [];
-    if (mode === 'all' || mode === 'anime') blocks.push(buildRow('anime', 'Animes destacados', 'Elegidos para empezar rÃ¡pido.', 10, defaultIds.anime));
-    if (mode === 'all' || mode === 'manga') blocks.push(buildRow('manga', 'Mangas destacados', 'Lo mÃ¡s buscado y recomendado.', 10, defaultIds.manga));
-    if (mode === 'all' || mode === 'juegos') blocks.push(buildRow('juegos', 'Juegos destacados', 'Franquicias y clÃ¡sicos modernos.', 10, defaultIds.juegos));
+    if (mode === 'all' || mode === 'anime') blocks.push(buildRow('anime', 'Animes destacados', 'Elegidos para empezar rápido.', 10, defaultIds.anime));
+    if (mode === 'all' || mode === 'manga') blocks.push(buildRow('manga', 'Mangas destacados', 'Lo más buscado y recomendado.', 10, defaultIds.manga));
+    if (mode === 'all' || mode === 'juegos') blocks.push(buildRow('juegos', 'Juegos destacados', 'Franquicias y clásicos modernos.', 10, defaultIds.juegos));
 
     host.innerHTML = blocks.join('');
 }
@@ -886,8 +852,8 @@ function renderContinueWatching() {
             <section class="featured-block">
                 <div class="featured-head">
                     <div>
-                        <h2 class="featured-title">ContinÃºa viendo</h2>
-                        <p class="featured-subtitle">IniciÃ¡ sesiÃ³n para ver tu progreso.</p>
+                        <h2 class="featured-title">Continúa viendo</h2>
+                        <p class="featured-subtitle">Iniciá sesión para ver tu progreso.</p>
                     </div>
                 </div>
             </section>
@@ -895,13 +861,13 @@ function renderContinueWatching() {
         return;
     }
 
-    const keys = Object.keys(localStorage);
+    const keys = Object.keys(UserStore);
 
     function lastProgressFor(prefix, parseFn) {
         let best = null;
         keys.forEach((k) => {
             if (!k.startsWith(prefix)) return;
-            const value = localStorage.getItem(k);
+            const value = UserStore.getItem(k);
             if (!value) return;
             const p = parseFn(k);
             if (!p) return;
@@ -937,8 +903,8 @@ function renderContinueWatching() {
             <section class="featured-block">
                 <div class="featured-head">
                     <div>
-                        <h2 class="featured-title">ContinÃºa viendo</h2>
-                        <p class="featured-subtitle">MarcÃ¡ capÃ­tulos/volÃºmenes en â€œDetalleâ€ para que aparezcan acÃ¡.</p>
+                        <h2 class="featured-title">Continúa viendo</h2>
+                        <p class="featured-subtitle">Marcá capítulos/volúmenes en â€œDetalleâ€ para que aparezcan acá.</p>
                     </div>
                 </div>
             </section>
@@ -970,10 +936,10 @@ function renderContinueWatching() {
     }).join('');
 
     host.innerHTML = `
-        <section class="featured-block" aria-label="ContinÃºa viendo">
+        <section class="featured-block" aria-label="Continúa viendo">
             <div class="featured-head">
                 <div>
-                    <h2 class="featured-title">ContinÃºa viendo</h2>
+                    <h2 class="featured-title">Continúa viendo</h2>
                     <p class="featured-subtitle">Tu progreso reciente (por usuario).</p>
                 </div>
             </div>
@@ -1009,7 +975,7 @@ function inicializarBusquedaCatalogo() {
         emptyMsg.innerHTML = `
             <span class="empty-state-kicker">Sin resultados</span>
             <h2>No encontramos coincidencias en ${escapeHtml(nombreCategoria)}.</h2>
-            <p>ProbÃ¡ con otro tÃ­tulo, gÃ©nero o estado.</p>
+            <p>Probá con otro título, género o estado.</p>
         `;
         mainContainer.parentElement?.appendChild(emptyMsg);
     }
@@ -1042,7 +1008,7 @@ function inicializarBusquedaCatalogo() {
             suggestionBox.innerHTML = `
                 <div class="catalog-suggestion empty">
                     <span class="catalog-suggestion-title">Sin sugerencias</span>
-                    <span class="catalog-suggestion-meta">ProbÃ¡ con menos palabras o revisÃ¡ el gÃ©nero.</span>
+                    <span class="catalog-suggestion-meta">Probá con menos palabras o revisá el género.</span>
                 </div>
             `;
             suggestionBox.classList.add('is-open');
@@ -1097,13 +1063,13 @@ function getApiPoster(item) {
         || '';
 }
 // ==========================================
-// LÃ“GICA DE PAGINACIÃ“N Y API (Modificado)
+// LÓGICA DE PAGINACIÓN Y API (Modificado)
 // ==========================================
 
-// 1. Variable global para controlar en quÃ© pÃ¡gina estamos
+// 1. Variable global para controlar en qué página estamos
 let currentPage = 1;
 
-// 2. FunciÃ³n que los botones "Anterior" y "Siguiente" van a usar
+// 2. Función que los botones "Anterior" y "Siguiente" van a usar
 window.changePage = async function(delta) {
     const mainContainer = document.getElementById("main-container");
     const categoria = document.body.getAttribute("data-page");
@@ -1111,14 +1077,14 @@ window.changePage = async function(delta) {
     // Si no estamos en anime o manga, no hacemos nada
     if (!mainContainer || (categoria !== 'anime' && categoria !== 'manga' && categoria !== 'novelas')) return;
 
-    // Sumamos o restamos, asegurando que nunca baje de la pÃ¡gina 1
+    // Sumamos o restamos, asegurando que nunca baje de la página 1
     currentPage = Math.max(1, currentPage + delta);
     
     // Actualizamos el numerito en el HTML
     const pageNum = document.getElementById('page-num');
     if (pageNum) pageNum.innerText = currentPage;
 
-    // Volvemos a pedir los datos a la API con la pÃ¡gina nueva
+    // Volvemos a pedir los datos a la API con la página nueva
     await cargarCatalogoDesdeApi(categoria, mainContainer, currentPage);
 };
 
@@ -1199,9 +1165,9 @@ function countAnimeEpisodesWatched(userId, animeId, totalEps) {
     let watched = 0;
     for (let ep = 1; ep <= totalEps; ep++) {
         let found = false;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i) || '';
-            if (!key.startsWith(`u:${userId}|anime:${animeId}|s:`) || !localStorage.getItem(key)) continue;
+        for (let i = 0; i < UserStore.length; i++) {
+            const key = UserStore.key(i) || '';
+            if (!key.startsWith(`u:${userId}|anime:${animeId}|s:`) || !UserStore.getItem(key)) continue;
             const m = key.match(/ep:(\d+)$/);
             if (m && Number(m[1]) === ep) {
                 found = true;
@@ -1231,14 +1197,14 @@ function resolveCatalogProgress(userId, category, itemId, card) {
         };
     }
 
-    const viewed = !!localStorage.getItem(statusStorageKey(userId, itemId, 'viewed'));
+    const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
     let watched = 0;
     if (category === 'anime') {
         watched = countAnimeEpisodesWatched(userId, itemId, dataTotal);
     } else if (category === 'manga' || category === 'novelas') {
         for (let n = 1; n <= dataTotal; n++) {
-            if (localStorage.getItem(`u:${userId}|manga:${itemId}|ch:${n}`) ||
-                localStorage.getItem(`u:${userId}|manga:${itemId}|vol:${n}`)) {
+            if (UserStore.getItem(`u:${userId}|manga:${itemId}|ch:${n}`) ||
+                UserStore.getItem(`u:${userId}|manga:${itemId}|vol:${n}`)) {
                 watched += 1;
             }
         }
@@ -1313,9 +1279,9 @@ function buildCatalogCardHtml(options) {
                                 <span class="card-back-toggle-switch" aria-hidden="true"></span>
                                 <span class="card-back-toggle-label">Completado</span>
                             </label>
-                            <div class="card-actions card-back-actions">
-                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" onclick="toggleStatus(this, 'fav', '${safeId}')">â¤</button>
-                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" onclick="toggleStatus(this, 'viewed', '${safeId}')">ðŸ‘</button>
+                            <div class="card-back-actions">
+                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" onclick="toggleStatus(this, 'fav', '${safeId}')">❤</button>
+                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" onclick="toggleStatus(this, 'viewed', '${safeId}')">👁</button>
                             </div>
                             ${buildCatalogBackProgressHtml(categoria, progressTotal)}
                         </div>
@@ -1323,7 +1289,7 @@ function buildCatalogCardHtml(options) {
                 </div>
                 <div class="catalog-card-bar">
                     <span class="catalog-card-title">${escapeHtml(title)}</span>
-                    <label class="catalog-card-flip-btn" for="${flipId}" aria-label="Ver informaciÃ³n de ${escapeHtml(title)}" title="Ver info">
+                    <label class="catalog-card-flip-btn" for="${flipId}" aria-label="Ver información de ${escapeHtml(title)}" title="Ver info">
                         ${CATALOG_FLIP_ICON_SVG}
                     </label>
                 </div>
@@ -1332,7 +1298,7 @@ function buildCatalogCardHtml(options) {
     </div>`;
 }
 
-// 3. Modificamos esta funciÃ³n para que reciba "page"
+// 3. Modificamos esta función para que reciba "page"
 async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
     const loaderLabel = categoria === 'anime'
         ? 'animes'
@@ -1345,7 +1311,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
 
     mainContainer.innerHTML = `
         <section class="empty-state empty-state-inline">
-            <span class="empty-state-kicker">Cargando PÃ¡gina ${page}</span>
+            <span class="empty-state-kicker">Cargando Página ${page}</span>
             <h2>Buscando los 40 ${escapeHtml(loaderLabel)} principales...</h2>
         </section>
     `;
@@ -1390,7 +1356,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
 
         mainContainer.innerHTML = items.map((item) => {
             const id = item.mal_id;
-            const title = item.title || 'Sin tÃ­tulo';
+            const title = item.title || 'Sin título';
             const image = getApiPoster(item);
             const info = getApiCatalogInfo(categoria, item);
             const genres = getApiGenresList(item);
@@ -1404,7 +1370,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
                 title,
                 image,
                 detailUrl,
-                status: item.status || 'En emisiÃ³n',
+                status: item.status || 'En emisión',
                 searchIndex,
                 genres: genres.join('|'),
                 genresNorm,
@@ -1475,10 +1441,10 @@ async function inicializarPagina() {
     const mainContainer = document.getElementById("main-container");
     if (!mainContainer) return;
 
-    // Detectar categorÃ­a segÃºn el body
+    // Detectar categoría según el body
     const categoria = document.body.getAttribute("data-page");
 
-    // Al recargar la pÃ¡gina, nos aseguramos de estar en la pÃ¡gina 1
+    // Al recargar la página, nos aseguramos de estar en la página 1
     currentPage = 1;
     const pageNum = document.getElementById('page-num');
     if (pageNum) pageNum.innerText = currentPage;
@@ -1490,7 +1456,7 @@ async function inicializarPagina() {
         return;
     }
     
-    // Obtenemos los datos desde datos.js usando una API comÃºn para todas las categorÃ­as locales (Juegos, Novelas)
+    // Obtenemos los datos desde datos.js usando una API común para todas las categorías locales (Juegos, Novelas)
     const listaItems = (typeof obtenerItemsCategoria === 'function')
         ? obtenerItemsCategoria(categoria)
         : ((typeof DATOS_WEB !== 'undefined' && DATOS_WEB && DATOS_WEB[categoria]) || []);
@@ -1499,9 +1465,9 @@ async function inicializarPagina() {
     if (listaItems.length === 0) {
         mainContainer.innerHTML = `
             <section class="empty-state">
-                <span class="empty-state-kicker">CatÃ¡logo en preparaciÃ³n</span>
-                <h2>PrÃ³ximamente mÃ¡s contenido de ${escapeHtml(categoria)}.</h2>
-                <p>Cuando cargues nuevos tÃ­tulos desde datos o el panel, van a aparecer en esta secciÃ³n.</p>
+                <span class="empty-state-kicker">Catálogo en preparación</span>
+                <h2>Próximamente más contenido de ${escapeHtml(categoria)}.</h2>
+                <p>Cuando cargues nuevos títulos desde datos o el panel, van a aparecer en esta sección.</p>
             </section>
         `;
         return;
@@ -1613,7 +1579,7 @@ function inicializarGeneroWidgets() {
     const selectedKey = `ui:selectedGenres:${categoria}`;
     const selectedGenres = (() => {
         try {
-            const raw = localStorage.getItem(selectedKey) || '[]';
+            const raw = UserStore.getItem(selectedKey) || '[]';
             const parsed = JSON.parse(raw);
             return Array.isArray(parsed) ? parsed.map(String) : [];
         } catch {
@@ -1625,7 +1591,7 @@ function inicializarGeneroWidgets() {
 
     function renderSidebar(host) {
         const openKey = `ui:genreDrawerOpen:${categoria}`;
-        const isOpen = localStorage.getItem(openKey) === '1';
+        const isOpen = UserStore.getItem(openKey) === '1';
         const topHtml = top.length
             ? `
                 <div class="genre-stats">
@@ -1649,8 +1615,8 @@ function inicializarGeneroWidgets() {
         host.innerHTML = `
             <div class="genre-sidebar-head">
                 <div>
-                    <div class="genre-sidebar-title">GÃ©neros</div>
-                    <div class="genre-sidebar-help">ElegÃ­ 1 o mÃ¡s gÃ©neros.</div>
+                    <div class="genre-sidebar-title">Géneros</div>
+                    <div class="genre-sidebar-help">Elegí 1 o más géneros.</div>
                 </div>
                 <button class="genre-collapse-btn" type="button" id="toggleGenreSidebar" aria-expanded="${isOpen ? 'true' : 'false'}">
                     ${isOpen ? 'Cerrar' : 'Abrir'}
@@ -1678,7 +1644,7 @@ function inicializarGeneroWidgets() {
             toggleBtn.addEventListener('click', () => {
                 const nextOpen = !host.classList.contains('is-open');
                 host.classList.toggle('is-open', nextOpen);
-                localStorage.setItem(openKey, nextOpen ? '1' : '0');
+                UserStore.setItem(openKey, nextOpen ? '1' : '0');
                 toggleBtn.textContent = nextOpen ? 'Cerrar' : 'Abrir';
                 toggleBtn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
                 if (drawerTab) drawerTab.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
@@ -1689,7 +1655,7 @@ function inicializarGeneroWidgets() {
             drawerTab.addEventListener('click', () => {
                 const nextOpen = !host.classList.contains('is-open');
                 host.classList.toggle('is-open', nextOpen);
-                localStorage.setItem(openKey, nextOpen ? '1' : '0');
+                UserStore.setItem(openKey, nextOpen ? '1' : '0');
                 if (toggleBtn) {
                     toggleBtn.textContent = nextOpen ? 'Cerrar' : 'Abrir';
                     toggleBtn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
@@ -1702,7 +1668,7 @@ function inicializarGeneroWidgets() {
             const clearBtn = e.target instanceof HTMLElement ? e.target.closest('button.genre-clear-btn') : null;
             if (clearBtn) {
                 window.__selectedGenres = [];
-                localStorage.setItem(selectedKey, JSON.stringify([]));
+                UserStore.setItem(selectedKey, JSON.stringify([]));
                 host.querySelectorAll('button.genre-chip').forEach((b) => {
                     const isTodos = String(b.getAttribute('data-genre') || '') === '';
                     b.classList.toggle('is-active', isTodos);
@@ -1718,7 +1684,7 @@ function inicializarGeneroWidgets() {
 
             if (!genreKey) {
                 window.__selectedGenres = [];
-                localStorage.setItem(selectedKey, JSON.stringify([]));
+                UserStore.setItem(selectedKey, JSON.stringify([]));
                 host.querySelectorAll('button.genre-chip').forEach((b) => {
                     const isTodos = String(b.getAttribute('data-genre') || '') === '';
                     b.classList.toggle('is-active', isTodos);
@@ -1734,7 +1700,7 @@ function inicializarGeneroWidgets() {
 
             const arr = [...next];
             window.__selectedGenres = arr;
-            localStorage.setItem(selectedKey, JSON.stringify(arr));
+            UserStore.setItem(selectedKey, JSON.stringify(arr));
 
             host.querySelectorAll('button.genre-chip').forEach((b) => {
                 const k = String(b.getAttribute('data-genre') || '');
