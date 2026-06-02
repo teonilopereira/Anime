@@ -1,0 +1,34 @@
+/* Theme: paleta cyberpunk y variaciones por modulo. */
+:root {
+    color-scheme: dark;
+    --theme-bg:
+        radial-gradient(circle at 15% 10%, rgba(188, 19, 254, 0.18), transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(0, 242, 255, 0.10), transparent 45%),
+        radial-gradient(circle at 35% 90%, rgba(188, 19, 254, 0.10), transparent 50%),
+        linear-gradient(180deg, #000000 0%, var(--purple-gradient) 55%, #2b0a55 100%);
+}
+
+body {
+    background: var(--theme-bg);
+    background-attachment: fixed;
+}
+
+body[data-page="manga"] {
+    --nav-accent: #22c55e;
+    --nav-accent-soft: rgba(34, 197, 94, 0.18);
+}
+
+body[data-page="anime"] {
+    --nav-accent: #00f2ff;
+    --nav-accent-soft: rgba(0, 242, 255, 0.18);
+}
+
+body[data-page="juegos"] {
+    --nav-accent: #f97316;
+    --nav-accent-soft: rgba(249, 115, 22, 0.18);
+}
+
+body[data-page="novelas"] {
+    --nav-accent: #f43f5e;
+    --nav-accent-soft: rgba(244, 63, 94, 0.18);
+}

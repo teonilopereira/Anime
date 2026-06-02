@@ -1,0 +1,765 @@
+?<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tus listas en Anime Destiny: anime, manga, novelas y actividad reciente filtrados por usuario.">
+    <meta name="keywords" content="listas, me gusta, visto, anime, manga, novelas, juegos">
+    <meta name="robots" content="noindex,follow">
+    <title>Mis Listas – Anime Destiny</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── LAYOUT LISTAS ── */
+        .lists-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* Sidebar */
+        .lists-sidebar {
+            background: rgba(5,2,15,0.9);
+            border-right: 1px solid rgba(188,19,254,0.18);
+            padding: 24px 16px;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-profile {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(188,19,254,0.2);
+            border-radius: 14px;
+            padding: 16px;
+        }
+        .lists-profile-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #bc13fe, #00f2ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 auto 10px;
+        }
+        .lists-profile-main { text-align: center; }
+        .lists-profile-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Orbitron', sans-serif;
+            display: block;
+        }
+        .lists-profile-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            color: #fff;
+            display: block;
+            margin: 4px 0 8px;
+        }
+        .lists-profile-track {
+            height: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+        .lists-profile-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            border-radius: 3px;
+        }
+        .lists-profile-meta {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .lists-profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .lists-profile-btn {
+            display: block;
+            text-align: center;
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,242,255,0.25);
+            background: rgba(0,242,255,0.06);
+            color: #00f2ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .lists-profile-btn:hover {
+            background: rgba(0,242,255,0.14);
+            border-color: rgba(0,242,255,0.5);
+        }
+        .lists-profile-btn.secondary {
+            border-color: rgba(188,19,254,0.25);
+            background: rgba(188,19,254,0.06);
+            color: #bc13fe;
+        }
+        .lists-profile-btn.secondary:hover {
+            background: rgba(188,19,254,0.14);
+            border-color: rgba(188,19,254,0.5);
+        }
+
+        /* Nav sidebar */
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.6);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border-color: rgba(255,255,255,0.08);
+        }
+        .sidebar-link.active {
+            background: rgba(188,19,254,0.12);
+            border-color: rgba(188,19,254,0.25);
+            color: #bc13fe;
+        }
+        .sidebar-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+        .sidebar-quote-box {
+            margin-top: auto;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(188,19,254,0.15);
+            background: rgba(188,19,254,0.05);
+        }
+        .quote-text {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.6);
+            font-style: italic;
+            font-family: 'Rajdhani', sans-serif;
+            line-height: 1.5;
+        }
+        .quote-author {
+            font-size: 0.75rem;
+            color: rgba(188,19,254,0.7);
+            margin-top: 6px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Main content */
+        .lists-main-content {
+            padding: 28px 28px 60px;
+            min-width: 0;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Encabezado de sección */
+        .lists-header-new {
+            margin-bottom: 24px;
+        }
+        .lists-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.3rem, 3vw, 1.8rem);
+            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 6px;
+            letter-spacing: 2px;
+        }
+        .lists-subtitle {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.88rem;
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+        }
+
+        /* Puntos / nivel */
+        .points-new { margin-bottom: 20px; }
+        .points-card {
+            background: rgba(10,5,25,0.8);
+            border: 1px solid rgba(0,242,255,0.2);
+            border-radius: 14px;
+            padding: 16px 20px;
+        }
+        .points-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .points-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #fff; }
+        .points-value { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #00f2ff; }
+        .points-track {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .points-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+        .points-sub {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Rajdhani', sans-serif;
+            margin-top: 5px;
+        }
+
+        /* Chips / filtros */
+        .lists-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .lists-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.65);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .lists-chip:hover {
+            border-color: rgba(0,242,255,0.3);
+            color: #00f2ff;
+        }
+        .lists-chip.is-active {
+            border-color: rgba(0,242,255,0.45);
+            background: rgba(0,242,255,0.1);
+            color: #00f2ff;
+        }
+        .lists-chip.export-btn { border-color: rgba(188,19,254,0.25); color: #bc13fe; }
+        .lists-chip.export-btn:hover { background: rgba(188,19,254,0.1); }
+        .chip-icon { font-size: 0.9rem; }
+
+        /* ── CARDS DE CATEGORÍA ── */
+        .category-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .category-card {
+            background: rgba(10,5,25,0.82);
+            border: 1px solid rgba(188,19,254,0.18);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+        .category-card:hover {
+            border-color: rgba(188,19,254,0.4);
+            transform: translateY(-2px);
+        }
+        .category-card.anime { border-color: rgba(0,242,255,0.2); }
+        .category-card.anime:hover { border-color: rgba(0,242,255,0.5); }
+        .category-card.manga { border-color: rgba(34,197,94,0.2); }
+        .category-card.manga:hover { border-color: rgba(34,197,94,0.5); }
+        .category-card.novelas { border-color: rgba(244,63,94,0.2); }
+        .category-card.novelas:hover { border-color: rgba(244,63,94,0.5); }
+        .category-card.actividad { border-color: rgba(188,19,254,0.2); }
+        .category-card.actividad:hover { border-color: rgba(188,19,254,0.5); }
+
+        .cat-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cat-card-title-wrap { display: flex; align-items: center; gap: 10px; }
+        .cat-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .cat-card-icon.cyan { background: rgba(0,242,255,0.15); }
+        .cat-card-icon.green { background: rgba(34,197,94,0.15); }
+        .cat-card-icon.pink { background: rgba(244,63,94,0.15); }
+        .cat-card-icon.purple { background: rgba(188,19,254,0.15); }
+        .cat-card-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            color: #fff;
+        }
+        .cat-card-count {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .cat-card-sublabel {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .cat-card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            transition: all 0.2s;
+            align-self: flex-start;
+        }
+        .cat-card-link:hover {
+            color: #fff;
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        /* Actividad mini lista en la card */
+        .cat-activity-list { display: flex; flex-direction: column; gap: 6px; }
+        .cat-activity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            font-family: 'Rajdhani', sans-serif;
+            color: rgba(255,255,255,0.75);
+        }
+        .cat-activity-item .ai-icon { font-size: 0.9rem; }
+        .cat-activity-item .ai-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cat-activity-item .ai-time { font-size: 0.7rem; color: rgba(255,255,255,0.35); white-space: nowrap; }
+
+        /* ── GRID DE RESULTADOS (filas) ── */
+        .lists-section { margin-bottom: 28px; }
+        .lists-h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.7);
+            margin: 0 0 14px;
+            text-transform: uppercase;
+        }
+
+        /* Tabs de resultados */
+        .resultados-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .res-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.55);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.62rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .res-tab:hover, .res-tab.active {
+            border-color: rgba(0,242,255,0.4);
+            background: rgba(0,242,255,0.08);
+            color: #00f2ff;
+        }
+        .tab-icon { font-size: 0.9rem; }
+
+        /* Grid rows */
+        .lists-grid-rows { display: flex; flex-direction: column; gap: 8px; }
+
+        .list-row-card {
+            display: grid;
+            grid-template-columns: 28px 60px 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+            background: rgba(10,5,25,0.8);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: border-color 0.2s, transform 0.18s;
+        }
+        .list-row-card:hover {
+            border-color: rgba(188,19,254,0.3);
+            transform: translateX(3px);
+        }
+        .row-rank {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+        }
+        .row-cover {
+            width: 42px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .row-info { min-width: 0; }
+        .row-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.82rem;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 3px;
+        }
+        .row-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .row-status {
+            text-align: right;
+            font-size: 0.78rem;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .row-eps {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.6);
+            text-align: right;
+        }
+
+        /* Vacío */
+        .lists-empty {
+            text-align: center;
+            padding: 48px 20px;
+            color: rgba(255,255,255,0.4);
+            border: 1px dashed rgba(255,255,255,0.1);
+            border-radius: 14px;
+        }
+        .lists-empty h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.55);
+            margin: 0 0 8px;
+        }
+
+        /* Recomendaciones */
+        .recommend { margin-bottom: 28px; }
+        .recommend-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .recommend-icon { font-size: 1.4rem; }
+        .recommend-grid-vertical {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        /* Ver más */
+        .btn-ver-mas {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 11px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.5);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.68rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+        .btn-ver-mas:hover {
+            border-color: rgba(0,242,255,0.3);
+            color: #00f2ff;
+            background: rgba(0,242,255,0.05);
+        }
+
+        /* Achievements */
+        .achievement-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .achievement-card.is-unlocked {
+            border-color: rgba(0,242,255,0.25);
+            background: rgba(0,242,255,0.05);
+        }
+        .achievement-card.is-locked { opacity: 0.5; }
+        .achievement-icon {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #bc13fe;
+        }
+        .achievement-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: #fff;
+        }
+        .achievement-desc {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .achievement-state {
+            font-size: 0.7rem;
+            font-family: 'Orbitron', sans-serif;
+            color: #00f2ff;
+        }
+        .achievement-card.is-locked .achievement-state { color: rgba(255,255,255,0.3); }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .lists-layout { grid-template-columns: 1fr; }
+            .lists-sidebar { position: static; height: auto; }
+            .category-cards-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 600px) {
+            .lists-main-content { padding: 16px; }
+            .category-cards-grid { grid-template-columns: 1fr; }
+            .list-row-card { grid-template-columns: 28px 1fr auto; }
+            .row-cover, .row-eps { display: none; }
+        }
+    </style>
+</head>
+<body data-page="listas" data-no-profile-strip="true">
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">Inicio</a>
+        <a href="anime.html" class="nav-btn">Anime</a>
+        <a href="manga.html" class="nav-btn">Manga</a>
+        <a href="novelas.html" class="nav-btn">Novelas</a>
+        <a href="mis-listas.html" class="nav-btn active">Mis Listas</a>
+    </nav>
+
+    <div class="lists-layout">
+        <!-- SIDEBAR -->
+        <aside class="lists-sidebar">
+            <section id="listsProfile" class="sidebar-profile" aria-label="Perfil"></section>
+
+            <nav class="sidebar-nav">
+                <a href="#mis-listas" class="sidebar-link active" data-tab="mis-listas">
+                    <span class="sidebar-icon">⭐</span> Mis Listas
+                </a>
+                <a href="#actividad" class="sidebar-link" data-tab="actividad">
+                    <span class="sidebar-icon">🕐</span> Actividad
+                </a>
+                <a href="#logros" class="sidebar-link" data-tab="logros">
+                    <span class="sidebar-icon">🏆</span> Logros
+                </a>
+                <a href="#estadisticas" class="sidebar-link" data-tab="estadisticas">
+                    <span class="sidebar-icon">📊</span> Estadísticas
+                </a>
+            </nav>
+
+            <div class="sidebar-quote-box">
+                <div class="quote-text">"Un día sin anime es un día perdido."</div>
+                <div class="quote-author">アニメ</div>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="lists-main-content">
+
+            <!-- ── MIS LISTAS ── -->
+            <div id="tab-mis-listas" class="tab-content active">
+                <header class="lists-header-new">
+                    <h1 class="lists-title">MIS LISTAS</h1>
+                    <p class="lists-subtitle">Tus "Me gusta" y "Vistos" separados por categoría.</p>
+                </header>
+
+                <section id="pointsBar" class="points-new" aria-label="Puntos y nivel"></section>
+
+                <!-- Cards de categoría -->
+                <div class="category-cards-grid" id="categoryCards">
+                    <!-- Anime card -->
+                    <div class="category-card anime">
+                        <div class="cat-card-head">
+                            <div class="cat-card-title-wrap">
+                                <div class="cat-card-icon cyan">📺</div>
+                                <div class="cat-card-label">ANIME</div>
+                            </div>
+                        </div>
+                        <div class="cat-card-count" id="countAnime">0</div>
+                        <div class="cat-card-sublabel" id="sublabelAnime">Títulos guardados</div>
+                        <a href="anime.html" class="cat-card-link">Ver catálogo ›</a>
+                    </div>
+                    <!-- Manga card -->
+                    <div class="category-card manga">
+                        <div class="cat-card-head">
+                            <div class="cat-card-title-wrap">
+                                <div class="cat-card-icon green">📖</div>
+                                <div class="cat-card-label">MANGA</div>
+                            </div>
+                        </div>
+                        <div class="cat-card-count" id="countManga">0</div>
+                        <div class="cat-card-sublabel" id="sublabelManga">Títulos guardados</div>
+                        <a href="manga.html" class="cat-card-link">Ver catálogo ›</a>
+                    </div>
+                    <!-- Novelas card -->
+                    <div class="category-card novelas">
+                        <div class="cat-card-head">
+                            <div class="cat-card-title-wrap">
+                                <div class="cat-card-icon pink">📝</div>
+                                <div class="cat-card-label">NOVELAS</div>
+                            </div>
+                        </div>
+                        <div class="cat-card-count" id="countNovelas">0</div>
+                        <div class="cat-card-sublabel" id="sublabelNovelas">Títulos guardados</div>
+                        <a href="novelas.html" class="cat-card-link">Ver catálogo ›</a>
+                    </div>
+                </div>
+
+                <!-- Actividad reciente como card separada -->
+                <div class="category-card actividad" id="actividadCard" style="margin-bottom:28px; cursor:default;">
+                    <div class="cat-card-head">
+                        <div class="cat-card-title-wrap">
+                            <div class="cat-card-icon purple">🕐</div>
+                            <div class="cat-card-label">ACTIVIDAD RECIENTE</div>
+                        </div>
+                        <a href="#" class="cat-card-link" onclick="document.querySelector('.sidebar-link[data-tab=\'actividad\']').click(); return false;">Ver todo ›</a>
+                    </div>
+                    <div class="cat-activity-list" id="actividadMini">
+                        <div style="color:rgba(255,255,255,0.35); font-size:0.82rem; font-family:'Rajdhani',sans-serif; padding:4px 0;">
+                            Sin actividad reciente.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros + resultados -->
+                <div class="lists-controls" role="toolbar" aria-label="Filtros">
+                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon">🎛</span> Todo</button>
+                    <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon">❤</span> Me gusta</button>
+                    <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon">👁</span> Vistos</button>
+                    <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon">📥</span> Exportar JSON</button>
+                </div>
+
+                <section class="lists-section">
+                    <h2 class="lists-h2">RESULTADOS</h2>
+                    <div class="resultados-tabs">
+                        <button class="res-tab active" data-cat="all"><span class="tab-icon">🎛</span> Todos</button>
+                        <button class="res-tab" data-cat="anime"><span class="tab-icon">📺</span> Anime</button>
+                        <button class="res-tab" data-cat="manga"><span class="tab-icon">📖</span> Manga</button>
+                        <button class="res-tab" data-cat="novelas"><span class="tab-icon">📝</span> Novelas</button>
+                        <button class="res-tab" data-cat="juegos"><span class="tab-icon">🎮</span> Juegos</button>
+                    </div>
+                    <div id="listsGrid" class="lists-grid-rows" aria-live="polite"></div>
+                </section>
+
+                <section class="recommend" aria-label="Recomendaciones">
+                    <div class="recommend-header">
+                        <span class="recommend-icon">👍</span>
+                        <div>
+                            <h2 class="lists-h2">RECOMENDADO PARA VOS</h2>
+                            <p class="lists-subtitle">Basado en lo que marcaste como visto.</p>
+                        </div>
+                    </div>
+                    <div id="recommendGrid" class="recommend-grid-vertical" aria-live="polite"></div>
+                </section>
+            </div>
+
+            <!-- ── ACTIVIDAD ── -->
+            <div id="tab-actividad" class="tab-content">
+                <header class="lists-header-new">
+                    <h1 class="lists-title">ACTIVIDAD RECIENTE</h1>
+                    <p class="lists-subtitle">Tus últimos animes, mangas y novelas marcados.</p>
+                </header>
+                <div class="lists-grid-rows" id="actividadGrid">
+                    <div class="lists-empty"><h3>Sin actividad</h3><p>No hay actividad reciente.</p></div>
+                </div>
+            </div>
+
+            <!-- ── LOGROS ── -->
+            <div id="tab-logros" class="tab-content">
+                <header class="lists-header-new">
+                    <h1 class="lists-title">LOGROS</h1>
+                    <p class="lists-subtitle">Desbloqueá logros marcando Me gusta, Visto y registrando progreso.</p>
+                </header>
+                <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
+            </div>
+
+            <!-- ── ESTADÍSTICAS ── -->
+            <div id="tab-estadisticas" class="tab-content">
+                <header class="lists-header-new">
+                    <h1 class="lists-title">ESTADÍSTICAS</h1>
+                    <p class="lists-subtitle">Resumen de tu actividad en la app.</p>
+                </header>
+                <div id="statsGrid" style="display:grid; grid-template-columns: repeat(2,1fr); gap:16px;"></div>
+            </div>
+
+        </main>
+    </div>
+<script src="js/libs/supabase.js"></script>
+    <script src="js/core/config.js" defer></script>
+    
+    <script src="api/supabase-config.js"></script>
+    <script src="js/core/auth.js" defer></script>
+    <script src="js/core/storage.js" defer></script>
+    <script src="js/core/progress.js" defer></script>
+    <script src="js/security/sanitizer.js" defer></script>
+    <script src="js/security/validator.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/datos.js" defer></script>
+    <script src="js/script.js" defer></script>
+    <script src="js/mis-listas.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,928 @@
+?<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Configuración de Anime Destiny. Ajustá tu experiencia, fondo, animaciones, tamaño de cards, información personal y datos locales.">
+    <meta name="keywords" content="configuración, ajustes, fondo, cards compactas, anime destiny, preferencias">
+    <meta name="robots" content="noindex,follow">
+    <title>Configuración – Anime Destiny</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        .cfg-page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+
+        /* Header */
+        .cfg-page-header {
+            text-align: center;
+            padding: 36px 0 28px;
+        }
+        .cfg-page-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 8px;
+            letter-spacing: 3px;
+        }
+        .cfg-page-header p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* Top bar de usuario */
+        .cfg-user-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(10,5,25,0.82);
+            border: 1px solid rgba(188,19,254,0.22);
+            border-radius: 14px;
+            padding: 16px 22px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .cfg-user-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .cfg-user-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #bc13fe, #00f2ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .cfg-user-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Orbitron', sans-serif;
+        }
+        .cfg-user-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: #00f2ff;
+        }
+        .cfg-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,242,255,0.3);
+            background: rgba(0,242,255,0.07);
+            color: #00f2ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.68rem;
+            text-decoration: none;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .cfg-back-btn:hover {
+            background: rgba(0,242,255,0.15);
+            border-color: rgba(0,242,255,0.6);
+        }
+
+        /* Layout de secciones */
+        .cfg-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .cfg-section-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Panel base */
+        .cfg-panel {
+            background: rgba(10,5,25,0.82);
+            border: 1px solid rgba(188,19,254,0.18);
+            border-radius: 16px;
+            padding: 22px 24px;
+            backdrop-filter: blur(10px);
+        }
+        .cfg-panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .cfg-panel-icon { color: #bc13fe; font-size: 1rem; }
+
+        /* Campo de formulario */
+        .cfg-field {
+            margin-bottom: 14px;
+        }
+        .cfg-field label {
+            display: block;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 6px;
+        }
+        .cfg-field input,
+        .cfg-field select,
+        .cfg-field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,242,255,0.18);
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .cfg-field input:focus,
+        .cfg-field select:focus,
+        .cfg-field textarea:focus {
+            border-color: rgba(0,242,255,0.5);
+            box-shadow: 0 0 0 3px rgba(0,242,255,0.08);
+        }
+        .cfg-field select option {
+            background: #0a051a;
+            color: #fff;
+        }
+        .cfg-field input[type="color"] {
+            padding: 4px;
+            height: 42px;
+            cursor: pointer;
+        }
+
+        /* Toggle switch */
+        .cfg-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            gap: 12px;
+        }
+        .cfg-toggle-row:last-child { border-bottom: none; }
+        .cfg-toggle-left { flex: 1; }
+        .cfg-toggle-label {
+            font-size: 0.9rem;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            color: #fff;
+        }
+        .cfg-toggle-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Rajdhani', sans-serif;
+            margin-top: 2px;
+        }
+        .cfg-switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .cfg-switch input { opacity: 0; width: 0; height: 0; }
+        .cfg-switch-slider {
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: background 0.25s;
+        }
+        .cfg-switch-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            top: 2px;
+            left: 2px;
+            transition: transform 0.25s, background 0.25s;
+        }
+        .cfg-switch input:checked + .cfg-switch-slider {
+            background: rgba(0,242,255,0.25);
+            border-color: rgba(0,242,255,0.4);
+        }
+        .cfg-switch input:checked + .cfg-switch-slider::before {
+            transform: translateX(22px);
+            background: #00f2ff;
+        }
+
+        /* Fondo */
+        .cfg-bg-mode-btns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .cfg-bg-mode-btn {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.6);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .cfg-bg-mode-btn.active,
+        .cfg-bg-mode-btn:hover {
+            border-color: rgba(0,242,255,0.4);
+            background: rgba(0,242,255,0.08);
+            color: #00f2ff;
+        }
+        .cfg-bg-mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+        /* Actions */
+        .cfg-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .cfg-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cfg-btn-primary {
+            background: linear-gradient(135deg, rgba(0,242,255,0.2), rgba(188,19,254,0.2));
+            border: 1px solid rgba(0,242,255,0.3);
+            color: #00f2ff;
+        }
+        .cfg-btn-primary:hover {
+            background: linear-gradient(135deg, rgba(0,242,255,0.3), rgba(188,19,254,0.3));
+            border-color: rgba(0,242,255,0.6);
+        }
+        .cfg-btn-secondary {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.7);
+        }
+        .cfg-btn-secondary:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.25);
+            color: #fff;
+        }
+        .cfg-btn-danger {
+            background: rgba(244,63,94,0.1);
+            border: 1px solid rgba(244,63,94,0.3);
+            color: #f43f5e;
+        }
+        .cfg-btn-danger:hover {
+            background: rgba(244,63,94,0.2);
+            border-color: rgba(244,63,94,0.5);
+        }
+
+        /* Toast */
+        .cfg-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(10,5,25,0.95);
+            border: 1px solid rgba(0,242,255,0.3);
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: #00f2ff;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            backdrop-filter: blur(14px);
+        }
+        .cfg-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .cfg-toast.error {
+            border-color: rgba(244,63,94,0.4);
+            color: #f43f5e;
+        }
+
+        /* Note */
+        .cfg-note {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Rajdhani', sans-serif;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        .cfg-note strong { color: rgba(255,255,255,0.65); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cfg-sections { grid-template-columns: 1fr; }
+            .cfg-section-full { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">Inicio</a>
+        <a href="anime.html" class="nav-btn">Anime</a>
+        <a href="manga.html" class="nav-btn">Manga</a>
+        <a href="novelas.html" class="nav-btn">Novelas</a>
+        <a href="mis-listas.html" class="nav-btn">Mis Listas</a>
+    </nav>
+
+    <main class="cfg-page">
+        <header class="cfg-page-header">
+            <h1>CONFIGURACIÓN</h1>
+            <p>Personalizá tu experiencia, información y preferencias de la app.</p>
+        </header>
+
+        <!-- Barra de usuario -->
+        <div class="cfg-user-bar">
+            <div class="cfg-user-info">
+                <div class="cfg-user-avatar" id="cfgAvatar">?</div>
+                <div>
+                    <div class="cfg-user-label">Usuario activo</div>
+                    <div class="cfg-user-name" id="cfgUserName">—</div>
+                </div>
+            </div>
+            <a href="usuario.html" class="cfg-back-btn">‹ Volver al perfil</a>
+        </div>
+
+        <div class="cfg-sections">
+
+            <!-- ── INFORMACIÓN PERSONAL ── -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">👤</span> INFORMACIÓN PERSONAL
+                </div>
+                <div class="cfg-field">
+                    <label for="cfgEmail">Correo electrónico</label>
+                    <input type="email" id="cfgEmail" placeholder="tucorreo@email.com" autocomplete="email">
+                </div>
+                <div class="cfg-field">
+                    <label for="cfgPais">País / Región</label>
+                    <select id="cfgPais">
+                        <option value="Argentina">Argentina 🇦🇷</option>
+                        <option value="México">México 🇲🇽</option>
+                        <option value="España">España 🇪🇸</option>
+                        <option value="Chile">Chile 🇨🇱</option>
+                        <option value="Colombia">Colombia 🇨🇴</option>
+                        <option value="Uruguay">Uruguay 🇺🇾</option>
+                        <option value="Perú">Perú 🇵🇪</option>
+                        <option value="Venezuela">Venezuela 🇻🇪</option>
+                        <option value="Ecuador">Ecuador 🇪🇨</option>
+                        <option value="Bolivia">Bolivia 🇧🇴</option>
+                        <option value="Paraguay">Paraguay 🇵🇾</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="cfg-field">
+                    <label for="cfgIdioma">Idioma</label>
+                    <select id="cfgIdioma">
+                        <option value="Español">Español</option>
+                        <option value="English">English</option>
+                        <option value="Português">Português</option>
+                        <option value="日本語">日本語</option>
+                    </select>
+                </div>
+                <div class="cfg-field">
+                    <label for="cfgZona">Zona horaria</label>
+                    <select id="cfgZona">
+                        <option value="GMT-3 (Buenos Aires)">GMT-3 (Buenos Aires)</option>
+                        <option value="GMT-5 (Lima/Bogotá)">GMT-5 (Lima/Bogotá)</option>
+                        <option value="GMT-6 (Ciudad de México)">GMT-6 (Ciudad de México)</option>
+                        <option value="GMT+1 (Madrid)">GMT+1 (Madrid)</option>
+                        <option value="GMT+9 (Tokio)">GMT+9 (Tokio)</option>
+                    </select>
+                </div>
+                <button class="cfg-btn cfg-btn-primary" id="saveInfoPersonal">💾 GUARDAR INFORMACIÓN</button>
+            </div>
+
+            <!-- ── PREFERENCIAS ── -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">⚙</span> PREFERENCIAS
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Notificaciones</div>
+                        <div class="cfg-toggle-desc">Recibir alertas y novedades de la app.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefNotif">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Contenido sugerido personalizado</div>
+                        <div class="cfg-toggle-desc">Recomendaciones basadas en tus gustos.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefContenido">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Cards compactas</div>
+                        <div class="cfg-toggle-desc">Reduce el tamaño de las cards para ver más contenido.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefCompact">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Reducir animaciones</div>
+                        <div class="cfg-toggle-desc">Menos efectos visuales para navegación más suave.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefReduceMotion">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Barra de progreso visible</div>
+                        <div class="cfg-toggle-desc">Muestra siempre el progreso en cards y detalles.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefShowProgress">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Perfil público</div>
+                        <div class="cfg-toggle-desc">Permitir que otros usuarios vean tu perfil.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefPublic">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div style="margin-top:16px">
+                    <div class="cfg-field">
+                        <label>Tema de la app</label>
+                        <select id="prefTema">
+                            <option value="oscuro">🌙 Oscuro</option>
+                            <option value="claro">☀ Claro</option>
+                            <option value="sistema">🖥 Según sistema</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="cfg-btn cfg-btn-primary" id="savePreferencias">💾 GUARDAR PREFERENCIAS</button>
+            </div>
+
+            <!-- ── FONDO ── -->
+            <div class="cfg-panel cfg-section-full">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">🖼</span> FONDO DE PANTALLA
+                </div>
+                <div class="cfg-bg-mode-btns">
+                    <button class="cfg-bg-mode-btn active" id="bgBtnDefault" data-mode="default">
+                        <span class="cfg-bg-mode-icon">🌌</span>
+                        POR DEFECTO
+                    </button>
+                    <button class="cfg-bg-mode-btn" id="bgBtnColor" data-mode="color">
+                        <span class="cfg-bg-mode-icon">🎨</span>
+                        COLOR
+                    </button>
+                    <button class="cfg-bg-mode-btn" id="bgBtnImage" data-mode="image">
+                        <span class="cfg-bg-mode-icon">📷</span>
+                        IMAGEN
+                    </button>
+                </div>
+                <div id="bgColorSection" class="cfg-field" style="display:none">
+                    <label for="cfgBgColor">Color de fondo</label>
+                    <input type="color" id="cfgBgColor" value="#2b0a55">
+                </div>
+                <div id="bgImageSection" style="display:none">
+                    <div class="cfg-field">
+                        <label for="cfgBgUrl">URL de imagen</label>
+                        <input type="url" id="cfgBgUrl" placeholder="https://...">
+                    </div>
+                    <div class="cfg-field">
+                        <label for="cfgBgFile">O subir imagen desde dispositivo</label>
+                        <input type="file" id="cfgBgFile" accept="image/*">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="cfg-btn cfg-btn-primary" id="saveFondo">💾 APLICAR FONDO</button>
+                    <button class="cfg-btn cfg-btn-secondary" id="clearFondo">↩ RESTAURAR POR DEFECTO</button>
+                </div>
+                <p class="cfg-note">Las imágenes se guardan en el navegador y se aplican en todas las páginas.</p>
+            </div>
+
+            <!-- ── APARIENCIA / CARDS ── -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">🃏</span> APARIENCIA DE CARDS
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Cards compactas</div>
+                        <div class="cfg-toggle-desc">Más títulos visibles en pantalla.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="compactCards2">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Mostrar badges de estado</div>
+                        <div class="cfg-toggle-desc">Íconos de ❤ Visto y Me gusta en las cards.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="showBadges" checked>
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Barra de progreso en cards</div>
+                        <div class="cfg-toggle-desc">Muestra el progreso de capítulos/episodios.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="showProgressBadge" checked>
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <button class="cfg-btn cfg-btn-primary" style="margin-top:14px" id="saveApariencia">💾 GUARDAR APARIENCIA</button>
+            </div>
+
+            <!-- ── PRIVACIDAD Y DATOS ── -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">🔒</span> PRIVACIDAD Y DATOS
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Perfil público</div>
+                        <div class="cfg-toggle-desc">Otros usuarios pueden ver tu perfil.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="privPublic2">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Guardar historial de actividad</div>
+                        <div class="cfg-toggle-desc">Registrar acciones para mostrar en tu perfil.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="privHistory" checked>
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div style="margin-top: 18px; display:flex; flex-direction:column; gap:8px;">
+                    <button class="cfg-btn cfg-btn-secondary" id="exportData" style="width:100%;justify-content:center;">📥 EXPORTAR MIS DATOS (JSON)</button>
+                    <button class="cfg-btn cfg-btn-danger" id="deleteUserBtn" style="width:100%;justify-content:center;">🗑 ELIMINAR USUARIO</button>
+                    <button class="cfg-btn cfg-btn-danger" id="clearAllBtn" style="width:100%;justify-content:center;">⚠ BORRAR TODO EL ALMACENAMIENTO</button>
+                </div>
+                <p class="cfg-note">
+                    <strong>Eliminar usuario</strong> borra la sesión y sus datos. 
+                    <strong>Borrar todo</strong> limpia también todas las preferencias locales.
+                </p>
+            </div>
+
+            <!-- ── ACCIONES GLOBALES ── -->
+            <div class="cfg-panel cfg-section-full" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+                <div>
+                    <div style="font-family:'Orbitron',sans-serif; font-size:0.8rem; color:#fff; margin-bottom:4px;">GUARDAR TODO</div>
+                    <div style="font-size:0.82rem; color:rgba(255,255,255,0.45); font-family:'Rajdhani',sans-serif;">Aplicá todos los cambios de una sola vez.</div>
+                </div>
+                <div class="cfg-actions">
+                    <button class="cfg-btn cfg-btn-primary" id="saveAll">✅ GUARDAR TODOS LOS CAMBIOS</button>
+                    <button class="cfg-btn cfg-btn-secondary" id="resetAll">↩ RESTABLECER TODO</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="app-footer-inner">
+            <div class="app-footer-col">
+                <div class="app-footer-title">Configuración</div>
+                <p class="app-footer-text">Tus cambios se guardan localmente en este navegador.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Consejo</div>
+                <p class="app-footer-text">Activá cards compactas si querés ver más títulos sin hacer tanto scroll.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Seguridad</div>
+                <p class="app-footer-text">Si eliminás el usuario, se borra su sesión y progreso local.</p>
+            </div>
+        </div>
+        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
+    </footer>
+
+    <!-- Toast -->
+    <div class="cfg-toast" id="cfgToast"></div>
+
+    <script src="js/libs/supabase.js"></script>
+    <script src="api/supabase-config.js"></script>
+    <script src="js/core/auth.js" defer></script>
+
+    <script>
+        /* ── Helpers ── */
+        function r(key, def = '') { try { return localStorage.getItem(key) || def; } catch { return def; } }
+        function w(key, val) { try { localStorage.setItem(key, String(val)); } catch {} }
+        function rb(key, def = false) { const v = r(key, null); return v === null ? def : v === 'true'; }
+
+        function toast(msg, isError = false) {
+            const t = document.getElementById('cfgToast');
+            t.textContent = msg;
+            t.className = 'cfg-toast' + (isError ? ' error' : '');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        function applyBgToPage() {
+            const mode = r('pref:bgMode', 'default');
+            const body = document.body;
+            ['background','background-image','background-color','background-repeat','background-size','background-position','background-attachment']
+                .forEach(p => body.style.removeProperty(p));
+            if (mode === 'color') {
+                const color = r('pref:bgColor', '#2b0a55');
+                body.style.background = `linear-gradient(180deg, #000000 0%, ${color} 100%)`;
+                body.style.backgroundAttachment = 'fixed';
+            } else if (mode === 'image') {
+                const url = r('pref:bgImage', '');
+                if (url) {
+                    body.style.backgroundImage = `linear-gradient(rgba(0,0,0,.62),rgba(0,0,0,.76)),url("${url.replaceAll('"','\\"')}")`;
+                    body.style.backgroundSize = 'cover';
+                    body.style.backgroundPosition = 'center';
+                    body.style.backgroundRepeat = 'no-repeat';
+                    body.style.backgroundAttachment = 'fixed';
+                }
+            }
+        }
+
+        /* ── Sync UI con localStorage ── */
+        function syncUI() {
+            const user = r('currentUser', 'Invitado');
+            document.getElementById('cfgUserName').textContent = user;
+            document.getElementById('cfgAvatar').textContent = user.slice(0, 2).toUpperCase();
+
+            // Info personal
+            document.getElementById('cfgEmail').value = r(`u:${user}|email`, '');
+            document.getElementById('cfgPais').value = r('pref:pais', 'Argentina');
+            document.getElementById('cfgIdioma').value = r('pref:idioma', 'Español');
+            document.getElementById('cfgZona').value = r('pref:zona', 'GMT-3 (Buenos Aires)');
+
+            // Preferencias
+            document.getElementById('prefNotif').checked = rb('pref:notif', false) || r('pref:notif', 'off') === 'on';
+            document.getElementById('prefContenido').checked = r('pref:contenido', 'personalizado') === 'personalizado';
+            document.getElementById('prefCompact').checked = rb('pref:compactCards', false);
+            document.getElementById('prefReduceMotion').checked = rb('pref:reduceMotion', false);
+            document.getElementById('prefShowProgress').checked = rb('pref:showProgress', true);
+            document.getElementById('prefPublic').checked = r('pref:privacidad', 'publica') === 'publica';
+            document.getElementById('prefTema').value = r('pref:tema', 'oscuro');
+
+            // Apariencia
+            document.getElementById('compactCards2').checked = rb('pref:compactCards', false);
+            document.getElementById('showBadges').checked = rb('pref:showBadges', true);
+            document.getElementById('showProgressBadge').checked = rb('pref:showProgress', true);
+
+            // Privacidad
+            document.getElementById('privPublic2').checked = r('pref:privacidad', 'publica') === 'publica';
+            document.getElementById('privHistory').checked = rb('pref:history', true);
+
+            // Fondo
+            const bgMode = r('pref:bgMode', 'default');
+            document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById('bgBtn' + bgMode.charAt(0).toUpperCase() + bgMode.slice(1));
+            if (activeBtn) activeBtn.classList.add('active');
+            document.getElementById('cfgBgColor').value = r('pref:bgColor', '#2b0a55');
+            document.getElementById('cfgBgUrl').value = r('pref:bgImage', '').startsWith('data:') ? '' : r('pref:bgImage', '');
+            updateBgSections(bgMode);
+        }
+
+        function updateBgSections(mode) {
+            document.getElementById('bgColorSection').style.display = mode === 'color' ? 'block' : 'none';
+            document.getElementById('bgImageSection').style.display = mode === 'image' ? 'block' : 'none';
+        }
+
+        /* ── Eventos de fondo ── */
+        let currentBgMode = r('pref:bgMode', 'default');
+        document.querySelectorAll('.cfg-bg-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentBgMode = btn.dataset.mode;
+                updateBgSections(currentBgMode);
+            });
+        });
+
+        document.getElementById('cfgBgColor').addEventListener('input', () => {
+            if (currentBgMode === 'color') {
+                w('pref:bgColor', document.getElementById('cfgBgColor').value);
+                applyBgToPage();
+            }
+        });
+
+        document.getElementById('cfgBgUrl').addEventListener('input', () => {
+            if (currentBgMode === 'image') {
+                w('pref:bgImage', document.getElementById('cfgBgUrl').value.trim());
+                applyBgToPage();
+            }
+        });
+
+        document.getElementById('cfgBgFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                currentBgMode = 'image';
+                document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('bgBtnImage').classList.add('active');
+                updateBgSections('image');
+                w('pref:bgMode', 'image');
+                w('pref:bgImage', reader.result);
+                applyBgToPage();
+                toast('✅ Imagen de fondo aplicada');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('saveFondo').addEventListener('click', () => {
+            w('pref:bgMode', currentBgMode);
+            if (currentBgMode === 'color') w('pref:bgColor', document.getElementById('cfgBgColor').value);
+            if (currentBgMode === 'image') w('pref:bgImage', document.getElementById('cfgBgUrl').value.trim());
+            applyBgToPage();
+            toast('✅ Fondo guardado correctamente');
+        });
+
+        document.getElementById('clearFondo').addEventListener('click', () => {
+            currentBgMode = 'default';
+            document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('bgBtnDefault').classList.add('active');
+            updateBgSections('default');
+            w('pref:bgMode', 'default');
+            localStorage.removeItem('pref:bgColor');
+            localStorage.removeItem('pref:bgImage');
+            applyBgToPage();
+            toast('✅ Fondo restaurado al predeterminado');
+        });
+
+        /* ── Guardar información personal ── */
+        document.getElementById('saveInfoPersonal').addEventListener('click', () => {
+            const user = r('currentUser', 'Invitado');
+            w(`u:${user}|email`, document.getElementById('cfgEmail').value.trim());
+            w('pref:pais', document.getElementById('cfgPais').value);
+            w('pref:idioma', document.getElementById('cfgIdioma').value);
+            w('pref:zona', document.getElementById('cfgZona').value);
+            toast('✅ Información personal guardada');
+        });
+
+        /* ── Guardar preferencias ── */
+        document.getElementById('savePreferencias').addEventListener('click', () => {
+            w('pref:notif', document.getElementById('prefNotif').checked ? 'on' : 'off');
+            w('pref:contenido', document.getElementById('prefContenido').checked ? 'personalizado' : 'general');
+            w('pref:compactCards', document.getElementById('prefCompact').checked);
+            w('pref:reduceMotion', document.getElementById('prefReduceMotion').checked);
+            w('pref:showProgress', document.getElementById('prefShowProgress').checked);
+            w('pref:privacidad', document.getElementById('prefPublic').checked ? 'publica' : 'privada');
+            w('pref:tema', document.getElementById('prefTema').value);
+            toast('✅ Preferencias guardadas');
+        });
+
+        /* ── Guardar apariencia ── */
+        document.getElementById('saveApariencia').addEventListener('click', () => {
+            w('pref:compactCards', document.getElementById('compactCards2').checked);
+            w('pref:showBadges', document.getElementById('showBadges').checked);
+            w('pref:showProgress', document.getElementById('showProgressBadge').checked);
+            // sincronizar con el otro checkbox
+            document.getElementById('prefCompact').checked = document.getElementById('compactCards2').checked;
+            toast('✅ Apariencia guardada');
+        });
+
+        /* ── Guardar privacidad ── */
+        document.getElementById('privPublic2').addEventListener('change', () => {
+            document.getElementById('prefPublic').checked = document.getElementById('privPublic2').checked;
+        });
+
+        /* ── Exportar datos ── */
+        document.getElementById('exportData').addEventListener('click', () => {
+            const user = r('currentUser', 'Invitado');
+            if (user === 'Invitado') { toast('Iniciá sesión primero', true); return; }
+            const data = { user, exportedAt: new Date().toISOString(), prefs: {}, lists: {} };
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith(`u:${user}|`) || k.startsWith('pref:')))
+                    data.prefs[k] = localStorage.getItem(k);
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `anime-destiny-${user}.json`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            toast('✅ Datos exportados');
+        });
+
+        /* ── Eliminar usuario ── */
+        document.getElementById('deleteUserBtn').addEventListener('click', () => {
+            const user = r('currentUser', 'Invitado');
+            if (user === 'Invitado') { toast('No hay usuario activo', true); return; }
+            if (!confirm(`¿Eliminar el usuario "${user}" y todos sus datos locales?`)) return;
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith(`u:${user}|`)) keys.push(k);
+            }
+            keys.forEach(k => localStorage.removeItem(k));
+            try {
+                const db = JSON.parse(localStorage.getItem('usersDb') || '{}');
+                delete db[user];
+                localStorage.setItem('usersDb', JSON.stringify(db));
+            } catch {}
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('authToken');
+            toast('✅ Usuario eliminado');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        });
+
+        /* ── Borrar todo ── */
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            if (!confirm('¿Borrar TODOS los datos locales del navegador? Esta acción es irreversible.')) return;
+            localStorage.clear();
+            toast('✅ Datos borrados');
+            setTimeout(() => window.location.href = 'index.html', 1000);
+        });
+
+        /* ── Guardar todo ── */
+        document.getElementById('saveAll').addEventListener('click', () => {
+            document.getElementById('saveInfoPersonal').click();
+            document.getElementById('savePreferencias').click();
+            document.getElementById('saveApariencia').click();
+            document.getElementById('saveFondo').click();
+            toast('✅ Todos los cambios guardados');
+        });
+
+        /* ── Restablecer todo ── */
+        document.getElementById('resetAll').addEventListener('click', () => {
+            if (!confirm('¿Restablecer todas las preferencias a los valores por defecto?')) return;
+            ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
+             'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
+             'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => localStorage.removeItem(k));
+            syncUI();
+            applyBgToPage();
+            toast('✅ Preferencias restablecidas');
+        });
+
+        /* ── Init ── */
+        applyBgToPage();
+        syncUI();
+    </script>
+</body>
+</html>

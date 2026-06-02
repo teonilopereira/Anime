@@ -1,0 +1,87 @@
+?<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Anime Destiny: catálogo de animes, mangas y juegos. Guardá vistos, me gusta y progreso de capítulos/volúmenes.">
+    <meta name="keywords" content="anime, manga, juegos, catálogo, detalle, temporadas, capítulos, volúmenes, franquicias">
+    <meta name="robots" content="index,follow">
+    <title>Anime Destiny - Menú Principal</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body class="menu-page">
+    <header class="hero-menu">
+        <h1 class="glitch-text">ANIME DESTINY</h1>
+        <p>Seleccioná tu destino en la base de datos</p>
+    </header>
+
+    <nav class="menu-container" aria-label="Menú principal">
+        <a href="anime.html" class="menu-item">
+            <span class="icon">🛰️</span>
+            <h2>ANIME</h2>
+            <span class="border-glow"></span>
+        </a>
+
+        <a href="manga.html" class="menu-item">
+            <span class="icon">📖</span>
+            <h2>MANGA</h2>
+            <span class="border-glow"></span>
+        </a>
+
+        <a href="novelas.html" class="menu-item">
+            <span class="icon">✒️</span>
+            <h2>NOVELAS</h2>
+            <span class="border-glow"></span>
+        </a>
+
+        <a href="Admin.html" class="menu-item admin-btn">
+            <span class="icon">⚙️</span>
+            <h2>ADMIN</h2>
+            <span class="border-glow"></span>
+        </a>
+    </nav>
+
+    <section class="featured" id="featuredBanner" data-featured="all"></section>
+
+    <section class="featured" id="continueWatching" aria-label="Continúa viendo"></section>
+
+    <footer class="app-footer">
+        <div class="app-footer-inner">
+            <div class="app-footer-col">
+                <div class="app-footer-title">Anime Destiny</div>
+                <p class="app-footer-text">Catálogo de anime, manga y juegos con detalle, progreso y listas por usuario.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Contacto</div>
+                <p class="app-footer-text">Soporte: contacto@animedestiny.local</p>
+                <p class="app-footer-text">Buenos Aires, AR</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Redes</div>
+                <div class="app-footer-social">
+                    <a class="app-footer-icon" href="#" aria-label="X">𝕏</a>
+                    <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
+                    <a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
+                </div>
+            </div>
+        </div>
+        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
+    </footer>
+    <script src="js/core/config.js" defer></script>
+    <script src="js/libs/supabase.js"></script>
+    <script src="api/supabase-config.js"></script>
+    <script src="js/core/auth.js" defer></script>
+    <script src="js/core/storage.js" defer></script>
+    <script src="js/security/sanitizer.js" defer></script>
+    <script src="js/security/validator.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/datos.js" defer></script>
+    <script src="js/script.js" defer></script>
+    <canvas id="particleCanvas"></canvas>
+</body>
+</html>
+

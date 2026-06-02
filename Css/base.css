@@ -1,0 +1,51 @@
+/* Base: reset minimo, tipografias globales y variables compartidas. */
+:root {
+    --primary-purple: #6a0dad;
+    --dark-bg: #050505;
+    --purple-gradient: #1a0b2e;
+    --neon-purple: #bc13fe;
+    --accent-cyan: #00f2ff;
+    --nav-accent: var(--accent-cyan);
+    --nav-accent-soft: rgba(0, 242, 255, 0.18);
+    --surface-dark: rgba(5, 5, 10, 0.86);
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.72);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    font-family: "Rajdhani", sans-serif;
+    line-height: 1.5;
+    color: var(--text-main);
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+h1,
+h2,
+h3,
+.nav-btn {
+    font-family: "Orbitron", sans-serif;
+}

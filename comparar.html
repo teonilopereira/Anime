@@ -1,0 +1,97 @@
+?<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compará 2 items lado a lado: anime, manga o juegos.">
+    <meta name="keywords" content="comparar, anime, manga, juegos, detalle">
+    <meta name="robots" content="noindex,follow">
+    <title>Comparar</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">Inicio</a>
+        <a href="anime.html" class="nav-btn">Anime</a>
+        <a href="manga.html" class="nav-btn">Manga</a>
+        <a href="novelas.html" class="nav-btn">Novelas</a>
+        <a href="mis-listas.html" class="nav-btn">Mis Listas</a>
+    </nav>
+
+    <header class="page-header">
+        <h1 class="page-title">COMPARAR</h1>
+        <p class="page-subtitle">Elegí 2 items para verlos lado a lado.</p>
+    </header>
+
+    <main class="compare-page">
+        <div class="compare-controls" role="form" aria-label="Seleccionar items">
+            <div class="compare-picker">
+                <label class="compare-label" for="cat1">Categoría 1</label>
+                <select id="cat1" class="compare-select">
+                    <option value="anime">Anime</option>
+                    <option value="manga">Manga</option>
+                    <option value="juegos">Juegos</option>
+                </select>
+                <label class="compare-label" for="id1">Item 1</label>
+                <select id="id1" class="compare-select"></select>
+            </div>
+
+            <div class="compare-picker">
+                <label class="compare-label" for="cat2">Categoría 2</label>
+                <select id="cat2" class="compare-select">
+                    <option value="anime">Anime</option>
+                    <option value="manga">Manga</option>
+                    <option value="juegos">Juegos</option>
+                </select>
+                <label class="compare-label" for="id2">Item 2</label>
+                <select id="id2" class="compare-select"></select>
+            </div>
+
+            <button class="compare-btn" id="doCompare" type="button">Comparar</button>
+        </div>
+
+        <section class="compare-grid" aria-label="Resultado comparación">
+            <div class="compare-card" id="compareA"></div>
+            <div class="compare-card" id="compareB"></div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="app-footer-inner">
+            <div class="app-footer-col">
+                <div class="app-footer-title">Tip</div>
+                <p class="app-footer-text">Podés comparar títulos de distintas categorías.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Detalle</div>
+                <p class="app-footer-text">Desde la comparación podés abrir el detalle de cada uno.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Redes</div>
+                <div class="app-footer-social">
+                    <a class="app-footer-icon" href="#" aria-label="X">𝕏</a>
+                    <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
+                    <a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
+                </div>
+            </div>
+        </div>
+        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
+    </footer>
+    <script src="js/core/config.js" defer></script>
+    <script src="js/libs/supabase.js"></script>
+    <script src="api/supabase-config.js"></script>
+    <script src="js/core/auth.js" defer></script>
+    <script src="js/core/storage.js" defer></script>
+    <script src="js/security/sanitizer.js" defer></script>
+    <script src="js/security/validator.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/datos.js" defer></script>
+    <script src="js/script.js" defer></script>
+    <script src="js/comparar.js" defer></script>
+</body>
+</html>
+

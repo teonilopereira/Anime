@@ -1,0 +1,74 @@
+?<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Catálogo de juegos: explorá franquicias, marcá visto/me gusta y guardá tu progreso.">
+    <meta name="keywords" content="juegos, catálogo, franquicias, visto, me gusta, rpg, acción">
+    <meta name="robots" content="index,follow">
+    <title>Catálogo - Juegos</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="juegos">
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">Inicio</a>
+        <a href="anime.html" class="nav-btn">Anime</a>
+        <a href="manga.html" class="nav-btn">Manga</a>
+        <a href="novelas.html" class="nav-btn">Novelas</a>
+        <a href="mis-listas.html" class="nav-btn">Mis Listas</a>
+        <div class="nav-search" role="search" aria-label="Buscar juegos">
+            <input id="catalogSearch" class="nav-search-input" type="search" placeholder="Buscar juegos..." autocomplete="off">
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <h1 class="page-title">CATÁLOGO DE JUEGOS</h1>
+        <p class="page-subtitle">Buscá y marcá ❤ o 👁 con tu cuenta.</p>
+    </header>
+
+    <section class="featured" id="featuredBanner" data-featured="juegos"></section>
+
+    <button class="genre-drawer-tab" id="genreDrawerTab" type="button" aria-controls="genreSidebar" aria-expanded="false">
+        Géneros
+    </button>
+    <aside class="genre-sidebar genre-drawer" id="genreSidebar" aria-label="Géneros"></aside>
+
+    <main class="gallery" id="main-container"></main>
+
+    <footer class="app-footer">
+        <div class="app-footer-inner">
+            <div class="app-footer-col">
+                <div class="app-footer-title">Tips</div>
+                <p class="app-footer-text">En “Detalle” vas a ver juegos de la franquicia como botones.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Cuenta</div>
+                <p class="app-footer-text">Iniciá sesión para guardar tus “Me gusta” y “Vistos”.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Redes</div>
+                <div class="app-footer-social">
+                    <a class="app-footer-icon" href="#" aria-label="X">X</a>
+                    <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
+                    <a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
+                </div>
+            </div>
+        </div>
+        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
+    </footer>
+    <script src="js/core/config.js" defer></script>
+    <script src="js/libs/supabase.js"></script>
+    <script src="api/supabase-config.js"></script>
+    <script src="js/core/auth.js" defer></script>
+    <script src="js/core/storage.js" defer></script>
+    <script src="js/security/sanitizer.js" defer></script>
+    <script src="js/security/validator.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/datos.js" defer></script>
+    <script src="js/script.js" defer></script>
+</body>
+</html>

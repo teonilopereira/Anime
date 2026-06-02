@@ -1,0 +1,91 @@
+?<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Catálogo de anime: buscá series y películas, marcá visto/me gusta y guardá progreso de capítulos por temporada.">
+    <meta name="keywords" content="anime, catálogo, temporadas, capítulos, visto, me gusta">
+    <meta name="robots" content="index,follow">
+    <title>Catálogo - Anime</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="anime">
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">Inicio</a>
+        <a href="anime.html" class="nav-btn active">Anime</a>
+        <a href="manga.html" class="nav-btn">Manga</a>
+        <a href="novelas.html" class="nav-btn">Novelas</a>
+        <a href="mis-listas.html" class="nav-btn">Mis Listas</a>
+        <div class="nav-search" role="search" aria-label="Buscar anime">
+            <input id="catalogSearch" class="nav-search-input" type="search" placeholder="Buscar anime..." autocomplete="off">
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <h1 class="page-title">CATÁLOGO DE ANIME</h1>
+        <p class="page-subtitle">Buscá y marcá ❤ o 👁 con tu cuenta.</p>
+    </header>
+
+    <section class="featured" id="featuredBanner" data-featured="anime"></section>
+
+    <button class="genre-drawer-tab" id="genreDrawerTab" type="button" aria-controls="genreSidebar" aria-expanded="false">
+        Géneros
+    </button>
+    <aside class="genre-sidebar genre-drawer" id="genreSidebar" aria-label="Géneros"></aside>
+
+    <main class="gallery" id="main-container"></main>
+    <div class="modern-pagination">
+        <button class="pag-btn prev-btn" onclick="changePage(-1)" id="pagPrevBtn" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pag-icon"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <span>Anterior</span>
+        </button>
+        <div class="pag-indicator">
+            <span class="pag-label">PÁGINA</span>
+            <span id="page-num" class="pag-current">1</span>
+            <span class="pag-total" id="page-total">de 250</span>
+        </div>
+        <button class="pag-btn next-btn" onclick="changePage(1)" id="pagNextBtn">
+            <span>Siguiente</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pag-icon"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+    </div>
+
+    <footer class="app-footer">
+        <div class="app-footer-inner">
+            <div class="app-footer-col">
+                <div class="app-footer-title">Tips</div>
+                <p class="app-footer-text">Usá la búsqueda para filtrar rápido y abrí "Detalle" para marcar capítulos.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Cuenta</div>
+                <p class="app-footer-text">Entrá desde el botón <strong>Cuenta</strong> para guardar tus listas.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">Redes</div>
+                <div class="app-footer-social">
+                    <a class="app-footer-icon" href="#" aria-label="X">𝕏</a>
+                    <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
+                    <a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
+                </div>
+            </div>
+        </div>
+        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
+    </footer>
+    <script src="js/libs/supabase.js"></script>
+    <script src="js/core/config.js" defer></script>
+    
+    <script src="api/supabase-config.js"></script>
+    <script src="js/core/auth.js" defer></script>
+    <script src="js/core/storage.js" defer></script>
+    <script src="js/security/sanitizer.js" defer></script>
+    <script src="js/security/validator.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/core/api.js" defer></script>
+    <script src="js/script.js" defer></script>
+</body>
+</html>

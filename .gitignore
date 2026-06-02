@@ -1,0 +1,41 @@
+# =========================================================================
+# .gitignore personalizado para Anime Destiny
+# =========================================================================
+
+# ─── CONFIGURACIÓN SENSIBLE Y ENTORNOS ──────────────────────────────────
+# NUNCA subas tus credenciales o claves privadas a Git.
+.env
+.env.local
+.env.*.local
+
+# ─── DEPENDENCIAS DE NODE ────────────────────────────────────────────────
+# Las dependencias se regeneran con 'npm install' o 'yarn install'.
+# Nota: SÍ subimos package-lock.json y yarn.lock para congelar versiones.
+node_modules/
+
+# ─── COMPILACIÓN Y PRODUCCIÓN ───────────────────────────────────────────
+# Carpetas generadas por empaquetadores como Vite, Webpack o Parcel.
+dist/
+build/
+.cache/
+
+# ─── ARCHIVOS DE SISTEMA OPERATIVO Y LOGS ────────────────────────────────
+# Basura que generan automáticamente Windows y macOS.
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── EDITORES DE CÓDIGO E IDEs ───────────────────────────────────────────
+# Configuraciones locales de tu editor que no afectan al proyecto real.
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo

@@ -1,0 +1,192 @@
+?<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Detalle de contenido en Anime Destiny: información completa, géneros y progreso por capítulos/volúmenes.">
+    <meta name="keywords" content="detalle, anime, manga, juegos, capítulos, volúmenes, franquicia">
+    <meta name="robots" content="index,follow">
+    <title>Detalle</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="detalle">
+    <nav class="navbar">
+        <a href="index.html" class="nav-btn">Inicio</a>
+        <a href="anime.html" class="nav-btn" data-nav-cat="anime">Anime</a>
+        <a href="manga.html" class="nav-btn" data-nav-cat="manga">Manga</a>
+        <a href="novelas.html" class="nav-btn" data-nav-cat="novelas">Novelas</a>
+        <a href="mis-listas.html" class="nav-btn">Mis Listas</a>
+    </nav>
+
+    <main class="detail-page detail-premium">
+        <header class="header-perfil">
+            <div class="perfil-usuario">
+                <div class="avatar-in" id="detailAvatar">IN</div>
+                <div class="perfil-info">
+                    <span class="label-perfil">PERFIL</span>
+                    <span class="nombre-usuario" id="detailUserName">Invitado</span>
+                </div>
+            </div>
+            <div class="header-acciones">
+                <a class="btn-header" href="usuario.html">ABRIR</a>
+                <a class="btn-header btn-config" href="configuracion.html">CONFIGURACIÓN</a>
+            </div>
+        </header>
+
+        <div id="manga-detail" class="detail-premium-root" aria-live="polite">
+            <!-- Estado: cargando -->
+            <section id="detail-loading" class="empty-state empty-state-inline">
+                <span class="empty-state-kicker">Cargando</span>
+                <h2>Buscando detalle en la API...</h2>
+            </section>
+
+            <!-- Estado: error / no encontrado -->
+            <section id="detail-error" class="empty-state empty-state-inline" hidden>
+                <span class="empty-state-kicker" id="detail-error-kicker">No encontrado</span>
+                <h2 id="detail-error-title">No se encontró este título.</h2>
+                <p id="detail-error-msg"></p>
+                <a class="detail-back" id="detail-error-back" href="manga.html">Volver al catálogo</a>
+            </section>
+
+            <!-- Layout premium (datos desde API) -->
+            <div id="detail-api-layout" class="page-container" hidden>
+                <section class="hero-section" id="hero-section">
+                    <div class="hero-overlay"></div>
+                    <div class="hero-content">
+                        <div class="portada-contenedor">
+                            <img src="" alt="" class="portada-img" id="detail-portada" loading="lazy">
+                        </div>
+                        <div class="obra-detalles-principales">
+                            <span class="tipo-obra" id="detail-tipo">📖 —</span>
+                            <h1 class="titulo-obra" id="detail-titulo">—</h1>
+                            <span class="estado-obra-badge" id="detail-estado-badge">✓ —</span>
+                            <div class="datos-clave-grid">
+                                <div class="dato-item">
+                                    <span class="dato-icono" aria-hidden="true">📖</span>
+                                    <span class="dato-label" id="detail-stat-1-label">Capítulos</span>
+                                    <span class="dato-valor" id="detail-stat-1-valor">—</span>
+                                </div>
+                                <div class="dato-item">
+                                    <span class="dato-icono" aria-hidden="true">📦</span>
+                                    <span class="dato-label">Volúmenes</span>
+                                    <span class="dato-valor" id="detail-volumenes">—</span>
+                                </div>
+                                <div class="dato-item">
+                                    <span class="dato-icono" aria-hidden="true">✓</span>
+                                    <span class="dato-label">Estado</span>
+                                    <span class="dato-valor" id="detail-estado">—</span>
+                                </div>
+                                <div class="dato-item">
+                                    <span class="dato-icono" aria-hidden="true">⭐</span>
+                                    <span class="dato-label">Puntaje</span>
+                                    <span class="dato-valor" id="detail-puntaje">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="contenido-texto-section">
+                    <div class="sinopsis-bloque">
+                        <h3>SINOPSIS</h3>
+                        <p class="sinopsis-texto" id="detail-sinopsis">—</p>
+                        <a href="#" class="btn-ver-mas" id="detail-ver-mas">Ver más</a>
+                    </div>
+                    <div class="generos-bloque">
+                        <h3>GÉNEROS</h3>
+                        <div class="tags-container" id="detail-generos"></div>
+                    </div>
+                </section>
+
+                <section class="capitulos-section">
+                    <div class="capitulos-header">
+                        <h3 id="detail-capitulos-titulo">CAPÍTULOS</h3>
+                        <span class="contador-progreso" id="contador-vistos">
+                            <span class="dot-ok" aria-hidden="true"></span>
+                            <span id="contador-vistos-texto">0/0 completados</span>
+                        </span>
+                    </div>
+                    <div class="cuadrados-grid" id="detail-capitulos-grid"></div>
+                    <p class="capitulos-empty" id="detail-capitulos-empty" hidden>Sin capítulos especificados en la API.</p>
+                </section>
+
+                <section class="progreso-general-section">
+                    <div class="progreso-izq">
+                        <h3 id="progreso-general-titulo">CAPÍTULOS GENERAL</h3>
+                        <div class="barra-progreso-track">
+                            <div class="barra-progreso-fill" id="barra-progreso-fill-total" style="width:0%;"></div>
+                        </div>
+                        <div class="progreso-labels">
+                            <span id="label-capitulos-progreso">CAP 0/0</span>
+                            <span id="label-porcentaje-progreso">0%</span>
+                        </div>
+                    </div>
+                    <div class="acciones-der">
+                        <button class="btn-circular btn-compartir" type="button" aria-label="Compartir con conocidos o amigos" title="Compartir">🔗</button>
+                        <button class="btn-circular btn-favorito" type="button" aria-label="Agregar a favoritos">❤</button>
+                        <button class="btn-circular btn-visto-completo" type="button" aria-label="Marcar como visto">👁</button>
+                    </div>
+                </section>
+
+                <div class="detail-premium-back">
+                    <a class="detail-back" id="detail-back-link" href="manga.html">Volver al catálogo</a>
+                </div>
+            </div>
+
+            <!-- Contenedor legacy (datos locales: juegos, novelas, etc.) -->
+            <div id="detail-local-layout" hidden></div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="app-footer-inner">
+            <div class="app-footer-col">
+                <div class="app-footer-title">PROGRESO</div>
+                <p class="app-footer-text">Tocá los cuadrados (volúmenes/capítulos) para marcarlos en verde.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">LISTAS</div>
+                <p class="app-footer-text">Usá ❤ y 👁 en las cards para armar tus listas.</p>
+            </div>
+            <div class="app-footer-col">
+                <div class="app-footer-title">REDES</div>
+                <div class="app-footer-social">
+                    <a class="app-footer-icon" href="#" aria-label="X">𝕏</a>
+                    <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
+                    <a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
+                </div>
+            </div>
+        </div>
+        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
+    </footer>
+<div id="resumenModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Información</h3>
+            <button class="modal-close-btn" type="button" onclick="document.getElementById('resumenModal').style.display='none'" aria-label="Cerrar modal">✕</button>
+        </div>
+        <div id="modalBody" class="modal-body">Aquí aparecerá el resumen.</div>
+        <div class="modal-footer">
+            <button class="modal-close-btn-footer" type="button" onclick="document.getElementById('resumenModal').style.display='none'">Cerrar</button>
+        </div>
+    </div>
+</div>
+<script src="js/libs/supabase.js"></script>
+    <script src="js/core/config.js" defer></script>
+    
+    <script src="api/supabase-config.js"></script>
+    <script src="js/core/auth.js" defer></script>
+    <script src="js/core/storage.js" defer></script>
+    <script src="js/security/sanitizer.js" defer></script>
+    <script src="js/security/validator.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/datos.js" defer></script>
+    <script src="js/core/api.js" defer></script>
+    <script src="js/script.js" defer></script>
+    <script src="js/detalle.js" defer></script>
+</body>
+</html>
