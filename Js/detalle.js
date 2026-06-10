@@ -208,18 +208,31 @@ function saveDetailStateToSupabase(category, item, fav, viewed) {
     const client = window.AppSupabase;
     if (!client?.saveItemState) return;
 
+    const itemId = String(item?.id || item?.mal_id || '');
+    const meta = {
+        id: itemId,
+        titulo: String(item?.titulo || item?.title || ''),
+        img: String(item?.img || item?.images?.webp?.large_image_url || item?.images?.jpg?.large_image_url || ''),
+        info: String(item?.info || item?.synopsis || ''),
+        __category: category
+    };
+
+    const userId = getCurrentUserIdSafe();
+    if (userId !== 'Invitado') {
+        const metaKey = `u:${userId}|itemMeta:${itemId}`;
+        if (fav || viewed) {
+            UserStore.setItem(metaKey, JSON.stringify(meta));
+        } else {
+            UserStore.removeItem(metaKey);
+        }
+    }
+
     client.saveItemState({
         category,
-        itemId: String(item?.id || item?.mal_id || ''),
+        itemId,
         fav,
         viewed,
-        meta: {
-            id: String(item?.id || item?.mal_id || ''),
-            titulo: String(item?.titulo || item?.title || ''),
-            img: String(item?.img || item?.images?.webp?.large_image_url || item?.images?.jpg?.large_image_url || ''),
-            info: String(item?.info || item?.synopsis || ''),
-            __category: category
-        }
+        meta
     }).catch((error) => {
         console.warn('No se pudo guardar estado en Supabase:', error);
     });
