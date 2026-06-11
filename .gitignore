@@ -8,6 +8,11 @@
 .env.local
 .env.*.local
 
+# Archivo de config generado desde .env (contiene las credenciales reales).
+# Regeneralo con: node tools/generate-config.js
+js/core/config.js
+
+
 # ─── DEPENDENCIAS DE NODE ────────────────────────────────────────────────
 # Las dependencias se regeneran con 'npm install' o 'yarn install'.
 # Nota: SÍ subimos package-lock.json y yarn.lock para congelar versiones.

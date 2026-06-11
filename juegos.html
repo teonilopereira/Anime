@@ -12,6 +12,73 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/destiny-navbar.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Botón login en navbar ── */
+        .nav-login-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 18px;
+            min-height: 40px;
+            border: 1.5px solid rgba(168, 85, 247, 0.7);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(91, 33, 182, 0.35), rgba(168, 85, 247, 0.18));
+            color: #e2d9f3;
+            font-family: "Rajdhani", sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.22s ease;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+            flex-shrink: 0;
+        }
+        .nav-login-btn:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.35));
+            border-color: #c084fc;
+            color: #fff;
+            box-shadow: 0 0 22px rgba(168, 85, 247, 0.45);
+            transform: translateY(-1px);
+        }
+        .nav-login-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(192, 132, 252, 0.7);
+            object-fit: cover;
+            background: linear-gradient(145deg, #1c1032, #7c3aed);
+            display: block;
+            flex-shrink: 0;
+        }
+        .nav-login-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.9;
+        }
+        /* ── Círculo invitado (modo sin sesión) ── */
+        .nav-guest-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1.5px dashed rgba(148, 163, 184, 0.6);
+            background: rgba(30, 20, 50, 0.6);
+            color: rgba(148, 163, 184, 0.85);
+            font-family: "Rajdhani", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.22s, color 0.22s;
+        }
+        .nav-login-btn:hover .nav-guest-avatar {
+            border-color: rgba(192, 132, 252, 0.7);
+            color: #c084fc;
+        }
+    </style>
 </head>
 <body data-page="juegos">
     <nav class="navbar destiny-navbar">
@@ -29,7 +96,22 @@
             <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
             <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
         </div>
-        <div class="nav-actions"></div>
+        <div class="nav-actions">
+            <!-- Botón login / avatar -->
+            <a id="nav-login-btn" href="Login.html" class="nav-login-btn" aria-label="Iniciar sesión">
+                <img id="nav-login-avatar" class="nav-login-avatar" src="" alt="" aria-hidden="true"
+                     style="display:none"
+                     onerror="this.style.display='none'; document.getElementById('nav-login-icon').style.display='block'">
+                <svg id="nav-login-icon" class="nav-login-icon" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+                <span id="nav-guest-avatar" class="nav-guest-avatar" aria-hidden="true">G</span>
+                <span id="nav-login-label">Ingresar</span>
+            </a>
+        </div>
     </nav>
 
     <header class="page-header">
@@ -76,14 +158,79 @@
     }
     </script>
     <script type="module" src="api/supabase-config.js"></script>
-    <script src="Js/core/user-store.js" defer></script>
+    <script src="js/core/user-store.js" defer></script>
     <script src="js/core/auth.js" defer></script>
+    <script src="js/controllers/AuthController.js" defer></script>
+    <script src="js/controllers/UserController.js" defer></script>
     <script src="js/core/storage.js" defer></script>
     <script src="js/security/sanitizer.js" defer></script>
     <script src="js/security/validator.js" defer></script>
     <script src="js/utils.js" defer></script>
     <script src="js/ui.js" defer></script>
     <script src="js/datos.js" defer></script>
+    <script src="js/catalog/cards.js" defer></script>
+    <script src="js/catalog/search.js" defer></script>
     <script src="js/script.js" defer></script>
+    <script defer>
+        // ── Botón login: actualizar según estado de sesión ──
+        document.addEventListener('DOMContentLoaded', function () {
+            function updateLoginBtn(user) {
+                const btn    = document.getElementById('nav-login-btn');
+                const avatar = document.getElementById('nav-login-avatar');
+                const icon   = document.getElementById('nav-login-icon');
+                const label  = document.getElementById('nav-login-label');
+                const guest  = document.getElementById('nav-guest-avatar');
+                if (!btn) return;
+
+                if (user) {
+                    const name = user.user_metadata?.username
+                        || user.user_metadata?.name
+                        || user.user_metadata?.full_name
+                        || (user.email ? user.email.split('@')[0] : '')
+                        || 'Usuario';
+                    const photoUrl = user.user_metadata?.avatar_url
+                        || user.user_metadata?.picture
+                        || '';
+
+                    label.textContent = name;
+                    btn.href = 'usuario.html';
+                    btn.setAttribute('aria-label', 'Ver perfil de ' + name);
+                    if (guest) guest.style.display = 'none';
+
+                    if (photoUrl) {
+                        avatar.src = photoUrl;
+                        avatar.alt = name;
+                        avatar.style.display = 'block';
+                        icon.style.display   = 'none';
+                    } else {
+                        avatar.style.display = 'none';
+                        icon.style.display   = 'block';
+                    }
+                } else {
+                    label.textContent = 'Ingresar';
+                    btn.href = 'Login.html';
+                    btn.setAttribute('aria-label', 'Iniciar sesión');
+                    avatar.style.display = 'none';
+                    icon.style.display   = 'none';
+                    if (guest) guest.style.display = 'flex';
+                }
+            }
+
+            function tryGetUser(retries) {
+                if (window.AppSupabase?.getCurrentUser) {
+                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
+                } else if (retries > 0) {
+                    setTimeout(function () { tryGetUser(retries - 1); }, 300);
+                }
+            }
+            tryGetUser(12);
+
+            window.addEventListener('supabase-auth-changed', function () {
+                if (window.AppSupabase?.getCurrentUser) {
+                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

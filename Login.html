@@ -257,8 +257,10 @@
     }
     </script>
     <script type="module" src="api/supabase-config.js"></script>
-    <script src="Js/core/user-store.js" defer></script>
+    <script src="js/core/user-store.js" defer></script>
     <script src="js/core/auth.js" defer></script>
+    <script src="js/controllers/AuthController.js" defer></script>
+    <script src="js/controllers/UserController.js" defer></script>
     <script>
         (function () {
             "use strict";
@@ -295,9 +297,18 @@
             }
 
             async function getClient() {
+                // Esperar hasta 8s a que AppSupabase esté disponible
                 if (window.AppSupabase) return window.AppSupabase;
-                if (window.AppSupabaseReady) return window.AppSupabaseReady;
-                return null;
+                if (window.AppSupabaseReady) return await window.AppSupabaseReady;
+                return new Promise((resolve) => {
+                    let waited = 0;
+                    const t = setInterval(() => {
+                        waited += 100;
+                        if (window.AppSupabase) { clearInterval(t); resolve(window.AppSupabase); return; }
+                        if (window.AppSupabaseReady) { clearInterval(t); window.AppSupabaseReady.then(resolve); return; }
+                        if (waited >= 8000) { clearInterval(t); resolve(null); }
+                    }, 100);
+                });
             }
 
             function saveLocalUser(user, fallbackName) {
@@ -306,9 +317,21 @@
             }
 
             function goHomeSoon() {
-                window.setTimeout(() => {
+                // Esperar el evento de sesión confirmada o redirigir después de 1.5s
+                let redirected = false;
+                function doRedirect() {
+                    if (redirected) return;
+                    redirected = true;
                     window.location.href = "index.html";
-                }, 700);
+                }
+                window.addEventListener("supabase-auth-changed", function handler(e) {
+                    if (e.detail?.user) {
+                        window.removeEventListener("supabase-auth-changed", handler);
+                        setTimeout(doRedirect, 200);
+                    }
+                });
+                // Fallback si el evento no llega
+                setTimeout(doRedirect, 1500);
             }
 
             tabLogin.addEventListener("click", () => setMode("login"));

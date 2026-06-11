@@ -1,0 +1,123 @@
+═══════════════════════════════════════════════════════════════════
+   ANIME DESTINY - SESIÓN PERSISTENTE ACTUALIZADA ✅
+═══════════════════════════════════════════════════════════════════
+
+CAMBIOS REALIZADOS EN ESTE ZIP:
+════════════════════════════════════════════════════════════════════
+
+✅ Nuevo archivo: js/core/supabase-init.js
+   - Inicializa Supabase automáticamente
+   - Persiste la sesión en localStorage
+   - Carga en TODOS los HTMLs
+
+✅ Nuevo archivo: js/mis-listas-mejorado.js
+   - Reemplaza a mis-listas.js
+   - Muestra perfil, nivel y listas del usuario
+
+✅ Nuevo archivo: config.js (en la RAÍZ del proyecto)
+   - ⭐ Archivo centralizado de configuración
+   - Aquí SE CONFIGURA UNA SOLA VEZ
+   - Todos los HTMLs lo cargan automáticamente
+   - MÁS SEGURO y sin duplicaciones
+
+✅ Actualizado: TODOS los HTMLs
+   - Ahora cargan <script src="config.js"></script>
+   - Sin configuración embebida en cada archivo
+   - Más limpio y fácil de mantener
+
+═══════════════════════════════════════════════════════════════════
+
+⭐ FORMA MÁS SEGURA DE CONFIGURAR:
+════════════════════════════════════════════════════════════════════
+
+En lugar de repetir las credenciales en cada HTML,
+ahora hay un ÚNICO archivo: config.js
+
+INSTRUCCIONES:
+──────────────
+
+1. Abre el archivo: config.js (está en la raíz del proyecto)
+
+2. Busca estas líneas:
+   
+   window.AppConfig = {
+       supabaseUrl: "TU_SUPABASE_URL",
+       supabaseAnonKey: "TU_SUPABASE_ANON_KEY"
+   };
+
+3. Reemplaza:
+   - TU_SUPABASE_URL → Tu URL real de Supabase
+   - TU_SUPABASE_ANON_KEY → Tu clave anónima real
+
+4. Guarda el archivo
+
+5. ¡LISTO! Se cargan automáticamente en TODAS las páginas
+
+═══════════════════════════════════════════════════════════════════
+
+🔒 POR QUÉ ES MÁS SEGURO:
+════════════════════════════════════════════════════════════════════
+
+✅ Las credenciales están en UN SOLO ARCHIVO
+✅ No se repiten en 10+ HTMLs diferentes
+✅ Más fácil de cambiar/actualizar
+✅ Menos riesgo de olvidos
+✅ Más limpio y profesional
+✅ Patrón usado en proyectos reales
+
+═══════════════════════════════════════════════════════════════════
+
+📝 ESTRUCTURA:
+════════════════════════════════════════════════════════════════════
+
+Anime-main/
+├── config.js ⭐ EDITA SOLO ESTE
+├── index.html
+├── anime.html
+├── manga.html
+├── novelas.html
+├── Login.html
+├── mis-listas.html
+├── ... otros HTMLs
+└── js/
+    ├── core/
+    │   ├── supabase-init.js (NUEVO)
+    │   └── auth.js
+    └── mis-listas-mejorado.js (NUEVO)
+
+═══════════════════════════════════════════════════════════════════
+
+✨ CARACTERÍSTICAS:
+════════════════════════════════════════════════════════════════════
+
+✅ Usuario permanece logueado al navegar entre páginas
+✅ Se muestra el nombre del usuario en la navbar
+✅ Se visualiza el nivel y experiencia en Mis Listas
+✅ Los items "me gusta" se muestran en la lista
+✅ Los items "visto" se muestran en la lista
+✅ Todo se sincroniza automáticamente con Supabase
+
+═══════════════════════════════════════════════════════════════════
+
+
+📖 DOCUMENTACIÓN ADICIONAL:
+════════════════════════════════════════════════════════════════════
+
+Si necesitas más información, revisa estos archivos en outputs/:
+  • README_SOLUCION.md - Documentación técnica completa
+  • GUIA_INSTALACION.md - Pasos detallados
+  • EJEMPLO_mis-listas.html - Ejemplo de HTML
+
+═══════════════════════════════════════════════════════════════════
+
+¿PREGUNTAS O PROBLEMAS?
+════════════════════════════════════════════════════════════════════
+
+1. Asegúrate de haber reemplazado las credenciales de Supabase
+2. Abre la consola del navegador (F12) y busca errores
+3. Verifica que localStorage esté habilitado
+4. Comprueba que Supabase tenga las tablas correctas:
+   - profiles (id, username, level, exp, ...)
+   - item_states (user_id, category, item_id, fav, viewed, ...)
+
+═══════════════════════════════════════════════════════════════════

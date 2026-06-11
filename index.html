@@ -7,12 +7,232 @@
     <meta name="keywords" content="anime, manga, juegos, catálogo, detalle, temporadas, capítulos, volúmenes, franquicias">
     <meta name="robots" content="index,follow">
     <title>Anime Destiny - Menú Principal</title>
+
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/components.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/destiny-navbar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ── Botón login en navbar ── */
+        .nav-login-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 18px;
+            min-height: 40px;
+            border: 1.5px solid rgba(168, 85, 247, 0.7);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(91, 33, 182, 0.35), rgba(168, 85, 247, 0.18));
+            color: #e2d9f3;
+            font-family: "Rajdhani", sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.22s ease;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+            flex-shrink: 0;
+        }
+        .nav-login-btn:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.35));
+            border-color: #c084fc;
+            color: #fff;
+            box-shadow: 0 0 22px rgba(168, 85, 247, 0.45);
+            transform: translateY(-1px);
+        }
+        .nav-login-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(192, 132, 252, 0.7);
+            object-fit: cover;
+            background: linear-gradient(145deg, #1c1032, #7c3aed);
+            display: block;
+            flex-shrink: 0;
+        }
+        /* Icono SVG persona cuando no hay imagen */
+        .nav-login-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.9;
+        }
+        /* ── Círculo invitado (modo sin sesión) ── */
+        .nav-guest-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1.5px dashed rgba(148, 163, 184, 0.6);
+            background: rgba(30, 20, 50, 0.6);
+            color: rgba(148, 163, 184, 0.85);
+            font-family: "Rajdhani", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.22s, color 0.22s;
+        }
+        .nav-login-btn:hover .nav-guest-avatar {
+            border-color: rgba(192, 132, 252, 0.7);
+            color: #c084fc;
+        }
+
+        /* ── Hero mejorado ── */
+        .hero-menu {
+            text-align: center;
+            padding: 64px 20px 20px;
+            margin: 0;
+            position: relative;
+        }
+        .hero-menu::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(168, 85, 247, 0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .hero-eyebrow {
+            display: inline-block;
+            margin: 0 0 14px;
+            padding: 4px 16px;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 999px;
+            background: rgba(168, 85, 247, 0.1);
+            color: #c084fc;
+            font-family: "Rajdhani", sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        .hero-menu .glitch-text {
+            font-size: clamp(2.4rem, 7vw, 5rem);
+            color: #00f2ff;
+            text-shadow: 0 0 28px rgba(0, 242, 255, 0.45), 0 0 6px rgba(0,242,255,0.3);
+            letter-spacing: 6px;
+            margin: 0 0 12px;
+            line-height: 1.05;
+        }
+        .hero-subtitle {
+            margin: 0 auto 40px;
+            max-width: 480px;
+            color: rgba(255,255,255,0.65);
+            font-size: 1rem;
+            font-family: "Rajdhani", sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── Cards de menú mejoradas ── */
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            width: calc(100% - 40px);
+            margin: 0 auto;
+            padding: 0 0 48px;
+        }
+        .menu-item {
+            position: relative;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(188, 19, 254, 0.28);
+            border-radius: 16px;
+            padding: 40px 20px 36px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            overflow: hidden;
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        box-shadow 0.35s ease,
+                        border-color 0.35s ease,
+                        background 0.35s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(6px);
+        }
+        .menu-item::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(188,19,254,0.12), transparent 65%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+        .menu-item:hover::before { opacity: 1; }
+        .menu-item:hover {
+            transform: translateY(-8px);
+            background: rgba(188, 19, 254, 0.08);
+            border-color: var(--neon-purple);
+            box-shadow: 0 12px 40px rgba(188, 19, 254, 0.35), 0 0 0 1px rgba(188,19,254,0.3);
+        }
+        .menu-item .icon {
+            font-size: 3rem;
+            margin-bottom: 14px;
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 0 10px rgba(188,19,254,0.3));
+        }
+        .menu-item:hover .icon { transform: scale(1.18) rotate(4deg); }
+        .menu-item h2 {
+            font-size: 1.05rem;
+            margin: 0 0 6px;
+            letter-spacing: 2.5px;
+        }
+        .menu-item-desc {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            font-family: "Rajdhani", sans-serif;
+            margin: 0;
+            letter-spacing: 0.04em;
+        }
+        .border-glow {
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            box-shadow: inset 0 0 0 rgba(188, 19, 254, 0);
+            transition: box-shadow 0.35s ease;
+            pointer-events: none;
+        }
+        .menu-item:hover .border-glow { box-shadow: inset 0 0 20px rgba(188, 19, 254, 0.45); }
+
+        /* ── Divisor de secciones ── */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            max-width: 900px;
+            width: calc(100% - 40px);
+            margin: 8px auto 24px;
+        }
+        .section-divider span {
+            font-family: "Orbitron", sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            color: rgba(168,85,247,0.8);
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .section-divider::before,
+        .section-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(168,85,247,0.4), transparent);
+        }
+
+        /* ── Secciones featured ── */
+        .featured { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+    </style>
 </head>
 <body class="menu-page">
+
     <nav class="navbar destiny-navbar">
         <a class="nav-brand" href="index.html" aria-label="Anime Destiny">
             <span class="nav-brand-mark"><img src="images/Logo.png" alt="Anime Destiny logo" aria-hidden="true"></span>
@@ -22,52 +242,78 @@
                 <span class="nav-brand-jp">&gt; アニメの運命 &lt;</span>
             </span>
         </a>
+
         <div class="nav-links" aria-label="Navegación principal">
-            <a href="anime.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">🎬</span><span>Anime</span></a>
-            <a href="manga.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📚</span><span>Manga</span></a>
-            <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
+            <a href="anime.html"      class="nav-btn active"><span class="nav-icon" aria-hidden="true">🎬</span><span>Anime</span></a>
+            <a href="manga.html"      class="nav-btn"><span class="nav-icon" aria-hidden="true">📚</span><span>Manga</span></a>
+            <a href="novelas.html"    class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
             <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
         </div>
+
         <div class="nav-actions">
             <div class="nav-search" role="search" aria-label="Buscar...">
                 <span class="nav-search-icon" aria-hidden="true">⌕</span>
                 <input id="catalogSearch" class="nav-search-input" type="search" placeholder="Buscar..." autocomplete="off">
             </div>
+
+            <!-- Botón login / avatar -->
+            <a id="nav-login-btn" href="Login.html" class="nav-login-btn" aria-label="Iniciar sesión">
+                <img id="nav-login-avatar" class="nav-login-avatar" src="" alt="" aria-hidden="true"
+                     style="display:none"
+                     onerror="this.style.display='none'; document.getElementById('nav-login-icon').style.display='block'">
+                <svg id="nav-login-icon" class="nav-login-icon" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+                <span id="nav-guest-avatar" class="nav-guest-avatar" aria-hidden="true">G</span>
+                <span id="nav-login-label">Ingresar</span>
+            </a>
         </div>
     </nav>
+
+    <!-- Hero -->
     <header class="hero-menu">
+        <p class="hero-eyebrow">Base de datos · v2026</p>
         <h1 class="glitch-text">ANIME DESTINY</h1>
-        <p>Seleccioná tu destino en la base de datos</p>
+        <p class="hero-subtitle">Explorá el catálogo, guardá tu progreso y construí tus listas.</p>
     </header>
 
+    <!-- Cards de navegación -->
     <nav class="menu-container" aria-label="Menú principal">
         <a href="anime.html" class="menu-item">
             <span class="icon">🛰️</span>
             <h2>ANIME</h2>
+            <p class="menu-item-desc">Series y películas</p>
             <span class="border-glow"></span>
         </a>
-
         <a href="manga.html" class="menu-item">
             <span class="icon">📖</span>
             <h2>MANGA</h2>
+            <p class="menu-item-desc">Cómics y tankōbon</p>
             <span class="border-glow"></span>
         </a>
-
         <a href="novelas.html" class="menu-item">
             <span class="icon">✒️</span>
             <h2>NOVELAS</h2>
+            <p class="menu-item-desc">Light novels y más</p>
             <span class="border-glow"></span>
         </a>
-
-        <a href="Admin.html" class="menu-item admin-btn">
-            <span class="icon">⚙️</span>
-            <h2>ADMIN</h2>
+        <a href="mis-listas.html" class="menu-item">
+            <span class="icon">💖</span>
+            <h2>MIS LISTAS</h2>
+            <p class="menu-item-desc">Favoritos y vistos</p>
             <span class="border-glow"></span>
         </a>
     </nav>
 
+    <!-- Destacados -->
+    <div class="section-divider"><span>Destacados</span></div>
     <section class="featured" id="featuredBanner" data-featured="all"></section>
 
+    <!-- Continuar viendo -->
+    <div class="section-divider" id="continueWatchingDivider" style="display:none"><span>Continuar viendo</span></div>
     <section class="featured" id="continueWatching" aria-label="Continúa viendo"></section>
 
     <footer class="app-footer">
@@ -92,25 +338,95 @@
         </div>
         <div class="app-footer-bottom">© 2026 Anime Destiny</div>
     </footer>
-    <script src="js/core/config.js" defer></script>
-    <script type="importmap">
-    {
-      "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      }
-    }
-    </script>
-    <script type="module" src="api/supabase-config.js"></script>
-    <script src="Js/core/user-store.js" defer></script>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <script src="js/core/config.js"></script>
     <script src="js/core/auth.js" defer></script>
+    <script src="js/controllers/AuthController.js" defer></script>
+    <script src="js/controllers/UserController.js" defer></script>
+    <script src="js/core/user-store.js" defer></script>
     <script src="js/core/storage.js" defer></script>
     <script src="js/security/sanitizer.js" defer></script>
     <script src="js/security/validator.js" defer></script>
     <script src="js/utils.js" defer></script>
     <script src="js/ui.js" defer></script>
     <script src="js/datos.js" defer></script>
+    <script src="js/catalog/cards.js" defer></script>
+    <script src="js/catalog/search.js" defer></script>
     <script src="js/script.js" defer></script>
-    <canvas id="particleCanvas"></canvas>
+
+    <script defer>
+        // ── Botón login: actualizar según estado de sesión ──
+        document.addEventListener('DOMContentLoaded', function () {
+            function updateLoginBtn(user) {
+                const btn    = document.getElementById('nav-login-btn');
+                const avatar = document.getElementById('nav-login-avatar');
+                const icon   = document.getElementById('nav-login-icon');
+                const label  = document.getElementById('nav-login-label');
+                const guest  = document.getElementById('nav-guest-avatar');
+                if (!btn) return;
+
+                if (user) {
+                    const name = user.user_metadata?.username
+                        || user.user_metadata?.name
+                        || user.user_metadata?.full_name
+                        || (user.email ? user.email.split('@')[0] : '')
+                        || 'Usuario';
+                    const photoUrl = user.user_metadata?.avatar_url
+                        || user.user_metadata?.picture
+                        || '';
+
+                    label.textContent = name;
+                    btn.href = 'usuario.html';
+                    btn.setAttribute('aria-label', 'Ver perfil de ' + name);
+                    if (guest) guest.style.display = 'none';
+
+                    if (photoUrl) {
+                        avatar.src = photoUrl;
+                        avatar.alt = name;
+                        avatar.style.display = 'block';
+                        icon.style.display   = 'none';
+                    } else {
+                        avatar.style.display = 'none';
+                        icon.style.display   = 'block';
+                    }
+                } else {
+                    label.textContent = 'Ingresar';
+                    btn.href = 'Login.html';
+                    btn.setAttribute('aria-label', 'Iniciar sesión');
+                    avatar.style.display = 'none';
+                    icon.style.display   = 'none';
+                    if (guest) guest.style.display = 'flex';
+                }
+            }
+
+            // Esperar a que AppSupabase esté listo
+            function tryGetUser(retries) {
+                if (window.AppSupabase?.getCurrentUser) {
+                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
+                } else if (retries > 0) {
+                    setTimeout(function () { tryGetUser(retries - 1); }, 300);
+                }
+            }
+            tryGetUser(12);
+
+            // Reaccionar a cambios de sesión
+            window.addEventListener('supabase-auth-changed', function () {
+                if (window.AppSupabase?.getCurrentUser) {
+                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
+                }
+            });
+
+            // Mostrar divisor de "Continuar viendo" solo si hay contenido
+            const observer = new MutationObserver(function () {
+                const cw  = document.getElementById('continueWatching');
+                const div = document.getElementById('continueWatchingDivider');
+                if (cw && div) div.style.display = cw.children.length > 0 ? 'flex' : 'none';
+            });
+            const cw = document.getElementById('continueWatching');
+            if (cw) observer.observe(cw, { childList: true });
+        });
+    </script>
 </body>
 </html>
-

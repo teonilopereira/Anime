@@ -11,14 +11,34 @@ const CATEGORY_LABELS = Object.freeze({
     novelas: 'Novelas'
 });
 
+// Sesión local: se setea desde getSession() directamente para evitar
+// problemas de timing con _currentUser interno de supabase-config.js
+let _sessionUser = null;
+
+
 function getCurrentUserIdSafe() {
     if (typeof getCurrentUserId === 'function') return getCurrentUserId();
-    return localStorage.getItem('currentUser') || 'Invitado';
+    // Usar _sessionUser o getCurrentUserSync (síncrono) para no recibir una Promise
+    const user = _sessionUser
+              || window.AppSupabase?.getCurrentUserSync?.()
+              || null;
+    if (!user) return 'Invitado';
+    return (
+        user.user_metadata?.username ||
+        user.user_metadata?.name ||
+        user.user_metadata?.full_name ||
+        (user.email ? user.email.split('@')[0] : '') ||
+        user.id ||
+        'Invitado'
+    );
 }
 
 function getAuthTokenSafe() {
     if (typeof getAuthToken === 'function') return getAuthToken();
-    return UserStore.getItem('authToken') || '';
+    // Obtener el token directamente desde el cliente de Supabase, no desde UserStore
+    return window.AppSupabase?.client?.auth?.session?.()?.access_token
+        || window.AppSupabase?.getCurrentSession?.()?.access_token
+        || '';
 }
 
 function statusStorageKeySafe(userId, itemId, type) {
@@ -111,13 +131,15 @@ function renderMediaCard({ item, fav = false, viewed = false, match = null, isRo
         match ? `<span style="color:#00f2ff;">${escapeHtml(match)} match</span>` : ''
     ].filter(Boolean).join(' ');
     
-    // Obtenemos los capítulos leídos de local storage para mostrar en la card de lista
+    // Obtenemos los capítulos leídos de UserStore para mostrar en la card de lista
     const userId = getCurrentUserIdSafe();
     let currentEp = 0;
     if (item.__category === 'manga' || item.__category === 'novelas') {
-        currentEp = UserStore.getItem(`u:${userId}|manga:${item.id}|ch:1`) || 0; // fallback básico si no hay progress.js completo
+        // Manga/novelas usan volumeStorageKey: u:userId|manga:id|vol:N
+        currentEp = UserStore.getItem(`u:${userId}|manga:${item.id}|vol:1`) || 0;
     } else {
-        currentEp = UserStore.getItem(`u:${userId}|anime:${item.id}|s:1|ep:1`) || 0; // fallback
+        // Anime usa episodeStorageKey: u:userId|anime:id|s:0|ep:N
+        currentEp = UserStore.getItem(`u:${userId}|anime:${item.id}|s:0|ep:1`) || 0;
     }
 
     if (isRow) {
@@ -340,17 +362,58 @@ function renderProfileSummary() {
     if (!host) return;
 
     const userId = getCurrentUserIdSafe();
-    const label = userId === 'Invitado' ? 'Invitado' : userId;
-    const initials = String(label || 'IN').trim().slice(0, 2).toUpperCase();
-    const pts = userId === 'Invitado' ? 0 : ((typeof getUserPoints === 'function') ? getUserPoints(userId) : Number(UserStore.getItem(`u:${userId}|points`) || '0'));
+
+    // ── Invitado: mostrar botón de login prominente ──
+    if (userId === 'Invitado') {
+        host.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 12px;text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;border:2px solid rgba(168,85,247,0.5);display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#1c1032,#7c3aed);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(192,132,252,0.8)" stroke-width="1.5" style="width:32px;height:32px;">
+                        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                    </svg>
+                </div>
+                <div>
+                    <p style="color:rgba(255,255,255,0.5);font-size:0.8rem;font-family:'Rajdhani',sans-serif;margin:0 0 4px;">No has iniciado sesión</p>
+                    <p style="color:rgba(255,255,255,0.35);font-size:0.72rem;margin:0;">Iniciá sesión para guardar tus listas</p>
+                </div>
+                <a href="Login.html" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border:1.5px solid rgba(168,85,247,0.7);border-radius:999px;background:linear-gradient(135deg,rgba(91,33,182,0.4),rgba(168,85,247,0.2));color:#e2d9f3;font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:700;text-decoration:none;letter-spacing:0.04em;transition:all 0.2s;box-shadow:0 0 14px rgba(168,85,247,0.25);"
+                   onmouseover="this.style.background='linear-gradient(135deg,rgba(124,58,237,0.6),rgba(168,85,247,0.4))';this.style.color='#fff';"
+                   onmouseout="this.style.background='linear-gradient(135deg,rgba(91,33,182,0.4),rgba(168,85,247,0.2))';this.style.color='#e2d9f3';">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    Ingresar
+                </a>
+            </div>
+        `;
+        return;
+    }
+
+    // ── Usuario logueado: mostrar avatar y stats ──
+    const user = _sessionUser;
+    const photoUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || '';
+    const displayName = user?.user_metadata?.username
+        || user?.user_metadata?.name
+        || user?.user_metadata?.full_name
+        || (user?.email ? user.email.split('@')[0] : userId);
+    const initials = String(displayName || 'US').trim().slice(0, 2).toUpperCase();
+
+    const pts = (typeof getUserPoints === 'function') ? getUserPoints(userId) : Number(UserStore.getItem(`u:${userId}|points`) || '0');
     const level = (typeof levelFromPoints === 'function') ? levelFromPoints(pts) : { level: 1, current: 0, next: 100 };
     const pct = Math.max(0, Math.min(100, Math.round((level.current / level.next) * 100)));
 
+    const avatarHtml = photoUrl
+        ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(displayName)}"
+               style="width:64px;height:64px;border-radius:50%;border:2px solid rgba(192,132,252,0.7);object-fit:cover;display:block;"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+           <div class="lists-profile-avatar" style="display:none;" aria-hidden="true">${escapeHtml(initials)}</div>`
+        : `<div class="lists-profile-avatar" aria-hidden="true">${escapeHtml(initials)}</div>`;
+
     host.innerHTML = `
-        <div class="lists-profile-avatar" aria-hidden="true">${escapeHtml(initials)}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px;">
+            ${avatarHtml}
+        </div>
         <div class="lists-profile-main">
             <span class="lists-profile-label">Perfil</span>
-            <strong class="lists-profile-name">${escapeHtml(label)}</strong>
+            <strong class="lists-profile-name">${escapeHtml(displayName)}</strong>
             <div class="lists-profile-track" aria-label="Progreso de nivel">
                 <div class="lists-profile-fill" style="width:${pct}%"></div>
             </div>
@@ -358,7 +421,7 @@ function renderProfileSummary() {
         </div>
         <div class="lists-profile-actions">
             <a class="lists-profile-btn" href="usuario.html">Editar perfil</a>
-            <a class="lists-profile-btn secondary" href="configuracion.html">Configuracion</a>
+            <a class="lists-profile-btn secondary" href="configuracion.html">Configuración</a>
         </div>
     `;
 }
@@ -411,9 +474,24 @@ function renderActividad() {
         
         UserStore.keys().forEach((key) => {
             if (!key.startsWith(`u:${userId}|`)) return;
-            if (key.includes(`|anime:${item.id}|ep:`)) { hasProgress = true; lastChapter = key.split('|ep:')[1]; }
-            if (key.includes(`|manga:${item.id}|ch:`)) { hasProgress = true; lastChapter = key.split('|ch:')[1]; }
-            if (key.includes(`|novelas:${item.id}|ch:`)) { hasProgress = true; lastChapter = key.split('|ch:')[1]; }
+            // anime: u:userId|anime:id|s:0|ep:1  (siempre tiene |s:N| antes de |ep:)
+            if (key.includes(`|anime:${item.id}|s:`) && key.includes('|ep:')) {
+                hasProgress = true;
+                const epPart = key.split('|ep:')[1];
+                lastChapter = epPart ? `EP ${epPart}` : lastChapter;
+            }
+            // manga: u:userId|manga:id|vol:1
+            if (key.includes(`|manga:${item.id}|vol:`)) {
+                hasProgress = true;
+                const volPart = key.split('|vol:')[1];
+                lastChapter = volPart ? `Vol ${volPart}` : lastChapter;
+            }
+            // novelas también usan volumeStorageKey (manga prefix internamente)
+            if (key.includes(`|manga:${item.id}|vol:`) && item.__category === 'novelas') {
+                hasProgress = true;
+                const volPart = key.split('|vol:')[1];
+                lastChapter = volPart ? `Vol ${volPart}` : lastChapter;
+            }
         });
 
         if (fav || viewed || hasProgress) {
@@ -533,7 +611,9 @@ function renderStats() {
     });
     
     const pts = Number(UserStore.getItem(`u:${user}|points`) || 0);
-    const sessions = Number(UserStore.getItem(`u:${user}|sessions`) || 0);
+    // 'sessions' requiere persistencia en Supabase (tabla profiles/user_stats).
+    // Por ahora se muestra 0 para no leer datos fantasma de memoria volátil.
+    const sessions = 0;
 
     const statItems = [
         { label: 'Total Me gusta', value: totalFav, icon: '❤', color: '#bc13fe' },
@@ -570,6 +650,57 @@ function renderRecommendations() {
     }
 }
 
+// ─── Carga todos los estados del usuario desde Supabase al UserStore ───────────
+async function cargarEstadosDesdeSupabase() {
+    const client = window.AppSupabase;
+    if (!client?.loadItemStates) return;
+
+    // Usar _sessionUser directamente para no depender de isSignedIn()
+    const user = _sessionUser || client?.getCurrentUserSync?.() || null;
+    if (!user) return;
+
+    const userId = getCurrentUserIdSafe();
+    if (!userId || userId === 'Invitado') return;
+
+    try {
+        const categorias = ['anime', 'manga', 'novelas', 'juegos'];
+        const resultados = await Promise.all(categorias.map(cat => client.loadItemStates(cat)));
+
+        resultados.forEach((states, i) => {
+            const cat = categorias[i];
+            if (!Array.isArray(states)) return;
+            states.forEach((state) => {
+                const itemId = state.item_id;
+                if (!itemId) return;
+                const favKey    = `u:${userId}|item:${itemId}|fav`;
+                const viewedKey = `u:${userId}|item:${itemId}|viewed`;
+                const metaKey   = `u:${userId}|itemMeta:${itemId}`;
+
+                if (state.fav)    UserStore.setItem(favKey, '1');
+                else              UserStore.removeItem(favKey);
+
+                if (state.viewed) UserStore.setItem(viewedKey, '1');
+                else              UserStore.removeItem(viewedKey);
+
+                // Guardar meta si el item tiene fav o viewed.
+                // Aunque meta llegue vacío desde Supabase, lo guardamos igual
+                // para que getAllItems() pueda encontrar items que no estén en DATOS_WEB
+                // (ej: animes cargados desde la API de Jikan).
+                if (state.fav || state.viewed) {
+                    const metaToStore = (state.meta && Object.keys(state.meta).length > 0)
+                        ? { ...state.meta, __category: cat }
+                        : { id: state.item_id, __category: cat };
+                    UserStore.setItem(metaKey, JSON.stringify(metaToStore));
+                } else {
+                    UserStore.removeItem(metaKey);
+                }
+            });
+        });
+    } catch (err) {
+        console.warn('[mis-listas] Error cargando estados desde Supabase:', err);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const renderCurrentFilter = bindControls();
 
@@ -585,12 +716,57 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStats();
     }
 
-    if (window.DATOS_WEB && Object.keys(window.DATOS_WEB).some((key) => Array.isArray(window.DATOS_WEB[key]) && window.DATOS_WEB[key].length)) {
+    async function initConSupabase() {
+        // 1) Esperar a que AppSupabase esté listo usando la Promise garantizada,
+        //    en lugar del while-loop que no garantiza que _currentUser ya esté seteado.
+        if (window.AppSupabaseReady) {
+            await window.AppSupabaseReady;
+        } else {
+            // Fallback: esperar hasta 6s si el módulo cargó tarde
+            let elapsed = 0;
+            while (!window.AppSupabase && elapsed < 6000) {
+                await new Promise(r => setTimeout(r, 100));
+                elapsed += 100;
+            }
+        }
+
+        // 2) Leer la sesión directamente — esto también garantiza que
+        //    _currentUser en supabase-config.js ya esté seteado antes de
+        //    llamar a loadItemStates (que internamente lee _currentUser).
+        if (window.AppSupabase?.client) {
+            try {
+                const { data: { session } } = await window.AppSupabase.client.auth.getSession();
+                _sessionUser = session?.user ?? null;
+            } catch (e) {
+                console.warn('[mis-listas] No se pudo leer la sesion:', e);
+            }
+        }
+
+        await cargarEstadosDesdeSupabase();
         renderAll();
-    } else {
-        document.addEventListener('datosCargados', renderAll, { once: true });
-        setTimeout(renderAll, 2000);
     }
+
+    if (window.DATOS_WEB && Object.keys(window.DATOS_WEB).some((key) => Array.isArray(window.DATOS_WEB[key]) && window.DATOS_WEB[key].length)) {
+        initConSupabase();
+    } else {
+        document.addEventListener('datosCargados', () => initConSupabase(), { once: true });
+        setTimeout(() => initConSupabase(), 2000);
+    }
+
+    window.addEventListener('supabase-auth-changed', async (e) => {
+        // Actualizar _sessionUser con el usuario del evento o desde getSession()
+        const evtUser = e?.detail?.user ?? null;
+        if (evtUser !== undefined) {
+            _sessionUser = evtUser;
+        } else if (window.AppSupabase?.client) {
+            try {
+                const { data: { session } } = await window.AppSupabase.client.auth.getSession();
+                _sessionUser = session?.user ?? null;
+            } catch (_) {}
+        }
+        await cargarEstadosDesdeSupabase();
+        renderAll();
+    });
 
     // Sidebar tab logic
     document.querySelectorAll('.sidebar-link').forEach(link => {

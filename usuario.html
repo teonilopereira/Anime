@@ -658,6 +658,73 @@
             .perfil-summary-cards { grid-template-columns: 1fr 1fr; }
         }
     </style>
+    <style>
+        /* ── Botón login en navbar ── */
+        .nav-login-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 18px;
+            min-height: 40px;
+            border: 1.5px solid rgba(168, 85, 247, 0.7);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(91, 33, 182, 0.35), rgba(168, 85, 247, 0.18));
+            color: #e2d9f3;
+            font-family: "Rajdhani", sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all 0.22s ease;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+            flex-shrink: 0;
+        }
+        .nav-login-btn:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.35));
+            border-color: #c084fc;
+            color: #fff;
+            box-shadow: 0 0 22px rgba(168, 85, 247, 0.45);
+            transform: translateY(-1px);
+        }
+        .nav-login-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(192, 132, 252, 0.7);
+            object-fit: cover;
+            background: linear-gradient(145deg, #1c1032, #7c3aed);
+            display: block;
+            flex-shrink: 0;
+        }
+        .nav-login-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.9;
+        }
+        /* ── Círculo invitado (modo sin sesión) ── */
+        .nav-guest-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1.5px dashed rgba(148, 163, 184, 0.6);
+            background: rgba(30, 20, 50, 0.6);
+            color: rgba(148, 163, 184, 0.85);
+            font-family: "Rajdhani", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.22s, color 0.22s;
+        }
+        .nav-login-btn:hover .nav-guest-avatar {
+            border-color: rgba(192, 132, 252, 0.7);
+            color: #c084fc;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar destiny-navbar">
@@ -675,7 +742,22 @@
             <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
             <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
         </div>
-        <div class="nav-actions"></div>
+        <div class="nav-actions">
+            <!-- Botón login / avatar -->
+            <a id="nav-login-btn" href="Login.html" class="nav-login-btn" aria-label="Iniciar sesión">
+                <img id="nav-login-avatar" class="nav-login-avatar" src="" alt="" aria-hidden="true"
+                     style="display:none"
+                     onerror="this.style.display='none'; document.getElementById('nav-login-icon').style.display='block'">
+                <svg id="nav-login-icon" class="nav-login-icon" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+                <span id="nav-guest-avatar" class="nav-guest-avatar" aria-hidden="true">G</span>
+                <span id="nav-login-label">Ingresar</span>
+            </a>
+        </div>
     </nav>
 
     <main class="perfil-page">
@@ -940,8 +1022,11 @@
     }
     </script>
     <script type="module" src="api/supabase-config.js"></script>
-    <script src="Js/core/user-store.js" defer></script>
+    <script src="js/core/user-store.js" defer></script>
+    <script src="js/core/supabase-sync.js" defer></script>
     <script src="js/core/auth.js" defer></script>
+    <script src="js/controllers/AuthController.js" defer></script>
+    <script src="js/controllers/UserController.js" defer></script>
 
     <script>
         /* ── Helpers ── */
@@ -979,25 +1064,20 @@
         }
 
         function countState(user, type) {
-            let n = 0;
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith(`u:${user}|item:`) && k.endsWith(`|${type}`) && localStorage.getItem(k)) n++;
-                }
-            } catch {}
-            return n;
+            // Leer del UserStore (in-memory, poblado desde Supabase)
+            if (typeof UserStore !== 'undefined') {
+                return UserStore.keys().filter(k =>
+                    k.startsWith(`u:${user}|item:`) && k.endsWith(`|${type}`) && UserStore.getItem(k)
+                ).length;
+            }
+            return 0;
         }
 
         function countKeys(prefix) {
-            let n = 0;
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith(prefix) && localStorage.getItem(k)) n++;
-                }
-            } catch {}
-            return n;
+            if (typeof UserStore !== 'undefined') {
+                return UserStore.keys().filter(k => k.startsWith(prefix) && UserStore.getItem(k)).length;
+            }
+            return 0;
         }
 
         function levelFromPoints(pts) {
@@ -1032,27 +1112,77 @@
         /* ── Init ── */
         applyBackgroundPreference();
 
-        const user = read('currentUser', 'Invitado');
-        const points = Number(read(`u:${user}|points`, '0')) || 0;
+        // Cargar estados desde Supabase antes de mostrar stats
+        async function cargarYRenderizar() {
+            // Esperar Supabase (máx 5s)
+            let elapsed = 0;
+            while (!window.AppSupabase && elapsed < 5000) {
+                await new Promise(r => setTimeout(r, 100));
+                elapsed += 100;
+            }
+
+            if (window.AppSupabase?.isSignedIn?.() && window.AppSupabase?.loadItemStates) {
+                const userId = getSupabaseUserId();
+                if (userId && userId !== 'Invitado') {
+                    try {
+                        const categorias = ['anime', 'manga', 'novelas', 'juegos'];
+                        const resultados = await Promise.all(
+                            categorias.map(cat => window.AppSupabase.loadItemStates(cat))
+                        );
+                        resultados.forEach((states) => {
+                            if (!Array.isArray(states)) return;
+                            states.forEach((state) => {
+                                const itemId = state.item_id;
+                                if (!itemId) return;
+                                if (state.fav)    UserStore.setItem(`u:${userId}|item:${itemId}|fav`, '1');
+                                else              UserStore.removeItem(`u:${userId}|item:${itemId}|fav`);
+                                if (state.viewed) UserStore.setItem(`u:${userId}|item:${itemId}|viewed`, '1');
+                                else              UserStore.removeItem(`u:${userId}|item:${itemId}|viewed`);
+                            });
+                        });
+                    } catch (e) {
+                        console.warn('[usuario] Error cargando estados:', e);
+                    }
+                }
+            }
+            renderStats();
+        }
+
+        function getSupabaseUserId() {
+            const u = window.AppSupabase?.getCurrentUser?.();
+            if (!u) return 'Invitado';
+            return (
+                u.user_metadata?.username ||
+                u.user_metadata?.name ||
+                u.user_metadata?.full_name ||
+                (u.email ? u.email.split('@')[0] : '') ||
+                u.id || 'Invitado'
+            );
+        }
+
+        function renderStats() {
+        const user = getSupabaseUserId();
+        const points = typeof UserStore !== 'undefined' ? Number(UserStore.getItem(`u:${user}|points`) || '0') : 0;
         const lv = levelFromPoints(points);
         const favorites = countState(user, 'fav');
         const viewed = countState(user, 'viewed');
         const levelPct = Math.min(100, Math.round((lv.current / lv.next) * 100));
 
         /* Estadísticas */
-        const sessions = Number(read(`u:${user}|sessions`, '0')) || 1;
-        const totalMinutes = Number(read(`u:${user}|totalMinutes`, '0')) || 0;
+        const sessions = typeof UserStore !== 'undefined' ? Number(UserStore.getItem(`u:${user}|sessions`) || '0') || 1 : 1;
+        const totalMinutes = typeof UserStore !== 'undefined' ? Number(UserStore.getItem(`u:${user}|totalMinutes`) || '0') : 0;
         const explored = countKeys(`u:${user}|item:`);
         const avgMin = sessions > 0 ? Math.round(totalMinutes / sessions) : 0;
 
         /* Fecha de registro */
-        const regDate = read(`u:${user}|registeredAt`, '') || read('registeredAt', '');
+        const regDate = (typeof UserStore !== 'undefined' ? UserStore.getItem(`u:${user}|registeredAt`) : null) || '';
 
         /* ── Poblar DOM ── */
         document.getElementById('avatarInitials').textContent = user.slice(0, 2).toUpperCase();
         document.getElementById('userName').textContent = user;
         document.getElementById('memberSince').textContent = regDate ? formatDate(regDate) : 'Mayo 2024';
-        document.getElementById('infoEmail').textContent = read(`u:${user}|email`, user + '@email.com');
+        const emailDisplay = window.AppSupabase?.getCurrentUser?.()?.email || '';
+        document.getElementById('infoEmail').textContent = emailDisplay || (user + '@email.com');
 
         document.getElementById('cardLevel').textContent = lv.level;
         document.getElementById('cardLevelLabel').textContent = levelName(lv.level);
@@ -1077,7 +1207,7 @@
         /* Actividad reciente */
         const rawActivity = [];
         try {
-            const stored = read(`u:${user}|activity`, '');
+            const stored = UserStore.getItem(`u:${user}|activity`) || '';
             if (stored) rawActivity.push(...JSON.parse(stored));
         } catch {}
 
@@ -1100,13 +1230,21 @@
                 <div class="perfil-activity-arrow">›</div>
             </div>
         `).join('');
+        } // end renderStats()
+
+        // Llamar al init con carga de Supabase
+        cargarYRenderizar();
+
+        // Re-renderizar al cambiar sesión
+        window.addEventListener('supabase-auth-changed', () => cargarYRenderizar());
 
         /* ── Cambio de avatar ── */
         const avatarInput = document.getElementById('avatarInput');
         const avatarInner = document.getElementById('avatarInner');
 
         function loadSavedAvatar() {
-            const savedAvatar = read(`u:${user}|avatar`, '');
+            const avatarUser = getSupabaseUserId();
+            const savedAvatar = (typeof UserStore !== 'undefined' && UserStore.getItem(`u:${avatarUser}|avatar`)) || '';
             if (savedAvatar) {
                 const img = document.createElement('img');
                 img.src = savedAvatar;
@@ -1127,7 +1265,8 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const dataUrl = e.target.result;
-                write(`u:${user}|avatar`, dataUrl);
+                const avatarUser = getSupabaseUserId();
+                UserStore.setItem(`u:${avatarUser}|avatar`, dataUrl);
                 const oldImg = avatarInner.querySelector('img');
                 if (oldImg) oldImg.remove();
                 const initials = avatarInner.querySelector('#avatarInitials');
@@ -1141,14 +1280,78 @@
         });
 
         /* Registrar sesión */
-        const currentSessions = Number(read(`u:${user}|sessions`, '0')) || 0;
-        const lastSession = read(`u:${user}|lastSession`, '');
-        const now = new Date().toISOString();
-        const today = now.slice(0, 10);
-        if (lastSession.slice(0, 10) !== today) {
-            write(`u:${user}|sessions`, currentSessions + 1);
-            write(`u:${user}|lastSession`, now);
-        }
+        (function() {
+            const sessionUser = getSupabaseUserId();
+            const currentSessions = Number(UserStore.getItem(`u:${sessionUser}|sessions`) || '0') || 0;
+            const lastSession = UserStore.getItem(`u:${sessionUser}|lastSession`) || '';
+            const now = new Date().toISOString();
+            const today = now.slice(0, 10);
+            if (lastSession.slice(0, 10) !== today) {
+                UserStore.setItem(`u:${sessionUser}|sessions`, String(currentSessions + 1));
+                UserStore.setItem(`u:${sessionUser}|lastSession`, now);
+            }
+        })();
+    </script>
+    <script defer>
+        // ── Botón login: actualizar según estado de sesión ──
+        document.addEventListener('DOMContentLoaded', function () {
+            function updateLoginBtn(user) {
+                const btn    = document.getElementById('nav-login-btn');
+                const avatar = document.getElementById('nav-login-avatar');
+                const icon   = document.getElementById('nav-login-icon');
+                const label  = document.getElementById('nav-login-label');
+                const guest  = document.getElementById('nav-guest-avatar');
+                if (!btn) return;
+
+                if (user) {
+                    const name = user.user_metadata?.username
+                        || user.user_metadata?.name
+                        || user.user_metadata?.full_name
+                        || (user.email ? user.email.split('@')[0] : '')
+                        || 'Usuario';
+                    const photoUrl = user.user_metadata?.avatar_url
+                        || user.user_metadata?.picture
+                        || '';
+
+                    label.textContent = name;
+                    btn.href = 'usuario.html';
+                    btn.setAttribute('aria-label', 'Ver perfil de ' + name);
+                    if (guest) guest.style.display = 'none';
+
+                    if (photoUrl) {
+                        avatar.src = photoUrl;
+                        avatar.alt = name;
+                        avatar.style.display = 'block';
+                        icon.style.display   = 'none';
+                    } else {
+                        avatar.style.display = 'none';
+                        icon.style.display   = 'block';
+                    }
+                } else {
+                    label.textContent = 'Ingresar';
+                    btn.href = 'Login.html';
+                    btn.setAttribute('aria-label', 'Iniciar sesión');
+                    avatar.style.display = 'none';
+                    icon.style.display   = 'none';
+                    if (guest) guest.style.display = 'flex';
+                }
+            }
+
+            function tryGetUser(retries) {
+                if (window.AppSupabase?.getCurrentUser) {
+                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
+                } else if (retries > 0) {
+                    setTimeout(function () { tryGetUser(retries - 1); }, 300);
+                }
+            }
+            tryGetUser(12);
+
+            window.addEventListener('supabase-auth-changed', function () {
+                if (window.AppSupabase?.getCurrentUser) {
+                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
+                }
+            });
+        });
     </script>
 </body>
 </html>

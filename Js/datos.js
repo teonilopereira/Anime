@@ -68,15 +68,17 @@ async function cargarDatosEstaticos() {
         if (supabaseCatalog) {
             window.DATOS_WEB = supabaseCatalog;
         } else {
-            const res = await fetch('api/datos.json');
-            if (!res.ok) throw new Error('Error al cargar datos.json');
-            window.DATOS_WEB = await res.json();
+            // Supabase es la única fuente de verdad. Si falla, el catálogo queda vacío.
+            console.warn('datos.js: No se pudo cargar el catálogo desde Supabase. Catálogo vacío.');
+            window.DATOS_WEB = { manga: [], anime: [], juegos: [], novelas: [] };
         }
 
         const event = new CustomEvent('datosCargados');
         document.dispatchEvent(event);
     } catch (error) {
-        console.error('No se pudo cargar el catálogo estático JSON:', error);
+        console.error('datos.js: Error inesperado al cargar el catálogo:', error);
+        window.DATOS_WEB = { manga: [], anime: [], juegos: [], novelas: [] };
+        document.dispatchEvent(new CustomEvent('datosCargados'));
     }
 }
 

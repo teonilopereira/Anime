@@ -8,7 +8,7 @@
     // No se usa localStorage para tokens ni usuarios.
     // ─────────────────────────────────────────────
 
-    async function waitForSupabase() {
+async function waitForSupabase() {
         if (window.AppSupabase) return window.AppSupabase;
         return new Promise((resolve) => {
             let elapsed = 0;
@@ -24,28 +24,25 @@
             }, 100);
         });
     }
-
-    // Obtiene el usuario activo directamente desde el SDK de Supabase.
-    // Nunca leer localStorage manualmente para esto.
     async function getCurrentUser() {
         const client = await waitForSupabase();
         if (!client?.client) return null;
+
+        // getUser() verifica de forma segura la sesión persistida en el almacenamiento
         const { data } = await client.client.auth.getUser();
         return data?.user ?? null;
     }
 
-    // Nombre visible: metadata del usuario de Supabase, sin fallback local.
+    // Nombre visible basado en la metadata de Supabase
     function displayNameFromUser(user) {
         if (!user) return "Invitado";
         return (
             user.user_metadata?.username ||
             user.user_metadata?.name ||
-            user.user_metadata?.full_name ||
-            user.email?.split("@")[0] ||
+            user.email?.split("@")[0] || 
             "Usuario"
         );
     }
-
     // ─────────────────────────────────────────────
     // UI
     // ─────────────────────────────────────────────
@@ -55,25 +52,21 @@
         if (msg) msg.textContent = text || "";
     }
 
-    async function refreshUserUi() {
+  async function refreshUserUi() {
         const user = await getCurrentUser();
-        const name = displayNameFromUser(user);
-        const photoUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || "";
-
-        const label = document.getElementById("navUserName");
-        if (label) label.textContent = name;
-
-        const avatar = document.getElementById("navUserAvatar");
-        if (avatar) {
-            avatar.style.backgroundImage = photoUrl ? `url("${photoUrl.replaceAll('"', '\\"')}")` : "";
-            avatar.classList.toggle("has-image", !!photoUrl);
+        const username = displayNameFromUser(user);
+        
+        const userBtn = document.getElementById("auth-user-btn") || document.getElementById("userBtn") || document.getElementById("user-profile");
+        if (userBtn) {
+            if (user) {
+                userBtn.textContent = username;
+                userBtn.classList.add("logged-in");
+            } else {
+                userBtn.textContent = "Cuenta"; // O "Invitado" según prefieras para deslogueados
+                userBtn.classList.remove("logged-in");
+            }
         }
-
-        if (typeof window.renderUserProfileStrip === "function") window.renderUserProfileStrip();
-        if (typeof window.cargarEstadosBotones === "function") window.cargarEstadosBotones();
-        if (typeof window.updateCardProgressIndicators === "function") window.updateCardProgressIndicators();
     }
-
     function openUserModal() {
         const modal = document.getElementById("userModal");
         const input = document.getElementById("userNameInput");
@@ -332,85 +325,12 @@
         }
     }
 
-    function ensureUserUi() {
-        ensureDestinyNavbar();
-        const navbar  = document.querySelector(".navbar");
-        const actions = document.querySelector(".nav-actions");
-        const host    = actions || navbar || document.body;
-        if (navbar) navbar.style.position = "sticky";
-
-        if (!document.querySelector(".nav-user")) {
-            const wrapper = document.createElement("div");
-            wrapper.className = navbar ? "nav-user" : "nav-user nav-user-fixed";
-            wrapper.innerHTML = `
-                <span class="nav-user-avatar" id="navUserAvatar" aria-hidden="true"></span>
-                <span class="nav-user-name"   id="navUserName"></span>
-                <a class="nav-user-btn" id="accountLoginLink" href="Login.html">Cuenta</a>
-            `;
-            host.appendChild(wrapper);
+   function ensureUserUi() {
+        const userBtn = document.getElementById("auth-user-btn") || document.getElementById("userBtn") || document.getElementById("user-profile");
+        if (userBtn && !userBtn.dataset.authInitialized) {
+            userBtn.textContent = "..."; // Estado de carga temporal seguro
+            userBtn.dataset.authInitialized = "true";
         }
-
-        if (document.body?.dataset.page === "login") { refreshUserUi(); return; }
-
-        if (!document.getElementById("userModal")) {
-            const modal = document.createElement("div");
-            modal.className = "user-modal";
-            modal.id = "userModal";
-            modal.innerHTML = `
-                <div class="user-modal-card" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
-                    <h2 class="user-modal-title" id="userModalTitle">Cuenta</h2>
-                    <div class="user-modal-toggle" role="group" aria-label="Modo de cuenta">
-                        <button class="user-modal-tab is-active" id="userTabLogin"  type="button">Iniciar sesión</button>
-                        <button class="user-modal-tab"            id="userTabCreate" type="button">Crear cuenta</button>
-                    </div>
-                    <div class="user-modal-row">
-                        <label for="userNameInput">Usuario</label>
-                        <input id="userNameInput" type="text" placeholder="Ej: NarutoFan" autocomplete="nickname">
-                    </div>
-                    <div class="user-modal-row is-hidden" id="emailRow">
-                        <label for="userEmailInput">Gmail</label>
-                        <input id="userEmailInput" type="email" placeholder="Ej: tuusuario@gmail.com" autocomplete="email">
-                    </div>
-                    <div class="user-modal-row">
-                        <label for="userPassInput">Contraseña</label>
-                        <input id="userPassInput" type="password" placeholder="********" autocomplete="current-password">
-                    </div>
-                    <p class="user-modal-msg" id="userModalMsg" aria-live="polite"></p>
-                    <div class="user-modal-actions">
-                        <button class="user-modal-btn google-btn" id="googleLoginBtn" type="button">Continuar con Google</button>
-                    </div>
-                    <div class="user-modal-actions">
-                        <button class="user-modal-btn danger"  id="logoutBtn"      type="button">Salir</button>
-                        <button class="user-modal-btn"         id="closeUserModal" type="button">Cerrar</button>
-                        <button class="user-modal-btn primary" id="saveUserBtn"    type="button">Continuar</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            modal.addEventListener("click", (e) => { if (e.target === modal) closeUserModal(); });
-        }
-
-        let mode = "login";
-        const setMode = (next) => {
-            mode = next;
-            document.getElementById("userTabLogin")?.classList.toggle("is-active",  mode === "login");
-            document.getElementById("userTabCreate")?.classList.toggle("is-active", mode === "create");
-            document.getElementById("emailRow")?.classList.toggle("is-hidden",      mode === "login");
-            const pass = document.getElementById("userPassInput");
-            if (pass) pass.autocomplete = mode === "create" ? "new-password" : "current-password";
-            setMsg("");
-        };
-
-        document.getElementById("openUserModal")?.addEventListener("click", openUserModal);
-        document.getElementById("closeUserModal")?.addEventListener("click", closeUserModal);
-        document.getElementById("userTabLogin")?.addEventListener("click",  () => setMode("login"));
-        document.getElementById("userTabCreate")?.addEventListener("click", () => setMode("create"));
-        document.getElementById("googleLoginBtn")?.addEventListener("click", signInWithGoogle);
-        document.getElementById("saveUserBtn")?.addEventListener("click",   () => loginWithPassword(mode));
-        document.getElementById("logoutBtn")?.addEventListener("click",     () => logoutUser().finally(closeUserModal));
-
-        setMode("login");
-        refreshUserUi();
     }
 
     // ─────────────────────────────────────────────
@@ -418,21 +338,24 @@
     // ─────────────────────────────────────────────
 
     // Evento disparado por supabase-config.js
-    window.addEventListener("supabase-auth-changed", () => refreshUserUi());
+window.addEventListener("supabase-auth-changed", () => refreshUserUi());
 
     waitForSupabase().then((client) => {
-        if (client) client.onAuthChange?.(() => refreshUserUi());
+        if (client && typeof client.onAuthChange === "function") {
+            client.onAuthChange(() => refreshUserUi());
+        }
     }).catch((err) => console.error("Error al registrar onAuthChange:", err));
-
     // ─────────────────────────────────────────────
     // API pública mínima — solo lo que otros módulos necesitan
     // ─────────────────────────────────────────────
-    window.getCurrentUser     = getCurrentUser;       // async → { user } de Supabase
-    window.isValidGmailAddress = isValidGmailAddress;
-    window.ensureUserUi       = ensureUserUi;
-    window.refreshUserUi      = refreshUserUi;
-    window.closeUserModal     = closeUserModal;
+window.getCurrentUser      = getCurrentUser;
+    window.ensureUserUi        = ensureUserUi;
+    window.refreshUserUi       = refreshUserUi;
 
-    document.addEventListener("DOMContentLoaded", ensureUserUi);
+    // Ejecución segura al cargar el DOM
+    document.addEventListener('DOMContentLoaded', async () => {
+        ensureUserUi();       // Crea el estado de carga neutro (...)
+        await refreshUserUi(); // Espera a Supabase y pinta el usuario correcto o el botón de cuenta
+    });
 
 })(window, document);

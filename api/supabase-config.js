@@ -218,7 +218,17 @@ async function loadItemStates(category = "") {
         meta:    row.meta   || {}
     }));
 }
-
+ 
+async function addExperience(delta) {
+    const user = await getCurrentUserAsync();
+    if (!user) return;
+    const { data } = await supabase
+        .from('profiles').select('exp').eq('id', user.id).single();
+    const newExp = (data?.exp || 0) + delta;
+    await supabase.from('profiles')
+        .update({ exp: newExp, level: calcLevel(newExp) })
+        .eq('id', user.id);
+}
 // ─── Progreso (episodios / capítulos) ─────────────────────────────
 async function setProgress({ category, itemId, key, value }) {
     const user = await getCurrentUserAsync();
@@ -298,12 +308,6 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     }
 });
 
-// Leer la sesión al cargar (detecta el token del redirect de Google)
-supabase.auth.getSession().then(({ data: { session } }) => {
-    _currentUser  = session?.user ?? null;
-    _sessionReady = true;
-});
-
 // ─── API pública ──────────────────────────────────────────────────
 const AppSupabase = Object.freeze({
     client: supabase,
@@ -311,14 +315,16 @@ const AppSupabase = Object.freeze({
     db:     supabase,
 
     supabaseUserName: supabaseUserName,
-    getCurrentUser:   () => _currentUser,
-    isSignedIn:       () => !!_currentUser,
+    getCurrentUser:     () => getCurrentUserAsync(),
+    getCurrentUserSync: () => _currentUser,
+    isSignedIn:         () => !!_currentUser,
 
     loadItemStates,
     loadProgress,
     saveItemState,
     saveUserProfile,
     setProgress,
+    addExperience,
 
     signInWithGoogle,
     signOutGoogle,
@@ -338,63 +344,10 @@ const AppSupabase = Object.freeze({
 // ==================================================================
 // ─── EXPOSICIÓN GLOBAL ULTRA SEGURA ───────────────────────────────
 // ==================================================================
-
-// 1. Registramos a Supabase en el objeto global WINDOW inmediatamente
 window.AppSupabase = AppSupabase;
-window.AppSupabaseReady = Promise.resolve(AppSupabase);
-
-// 2. Disparamos el evento para avisarle a auth.js que ya despertamos
-// (Por si auth.js cargó antes y se quedó esperando)
-window.dispatchEvent(new CustomEvent("supabase-auth-changed", {
-    detail: { user: _currentUser, username: supabaseUserName(_currentUser) }
-}));
-
-// 3. Conectamos la lógica de tus botones una vez asegurado el entorno
-window.AppSupabaseReady.then((AppSupabase) => {
-    if (!AppSupabase) return;
-
-    // ─── BOTÓN DE GOOGLE ───
-    const googleBtn = document.getElementById("btn-google");
-    if (googleBtn) {
-        googleBtn.addEventListener("click", () => {
-            AppSupabase.signInWithGoogle();
-        });
-    }
-
-    // ─── FORMULARIO DE REGISTRO MANUAL (Email y Contraseña) ───
-    const registrarBtn = document.getElementById("btn-registrarse") || document.getElementById("btn-register");
-    
-    if (registrarBtn) {
-        registrarBtn.addEventListener("click", async (e) => {
-            e.preventDefault(); // Evita que la página se recargue sola
-
-            // Capturamos las casillas del formulario HTML
-            const emailInput = document.getElementById("reg-email") || document.getElementById("auth-email");
-            const passwordInput = document.getElementById("reg-password") || document.getElementById("auth-password");
-
-            if (!emailInput || !passwordInput) {
-                console.error("No se encontraron los inputs de Email o Contraseña en el HTML. Verificá sus IDs.");
-                return;
-            }
-
-            const email = emailInput.value.trim();
-            const password = passwordInput.value;
-
-            if (!email || password.length < 6) {
-                alert("Por favor, ingresá un mail válido y una contraseña de al menos 6 caracteres.");
-                return;
-            }
-
-            try {
-                await AppSupabase.signUpWithEmail(email, password);
-                alert("¡Registro iniciado con éxito! Se envió un correo de verificación. Revisá tu casilla (y la carpeta Spam).");
-                
-                if (typeof window.closeUserModal === "function") {
-                    window.closeUserModal();
-                }
-            } catch (error) {
-                alert("Error de Supabase al registrarse: " + error.message);
-            }
-        });
-    }
+supabase.auth.getSession().then(({ data: { session } }) => {
+    _currentUser = session?.user ?? null;
+    _sessionReady = true;
+    window.AppSupabaseReady = Promise.resolve(AppSupabase);
+    window.dispatchEvent(new CustomEvent("supabase-auth-changed", { detail: { user: _currentUser, username: supabaseUserName(_currentUser) } }));
 });

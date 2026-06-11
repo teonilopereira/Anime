@@ -1,18 +1,19 @@
+/**
+ * storage.js
+ * AppStorage — wrapper en memoria sobre UserStore.
+ * No persiste nada en localStorage; Supabase es la única fuente de verdad.
+ */
 (function (window) {
     "use strict";
 
     function read(key, fallback = null) {
-        try {
-            const value = localStorage.getItem(key);
-            return value === null ? fallback : value;
-        } catch {
-            return fallback;
-        }
+        const value = window.UserStore?.getItem(key) ?? null;
+        return value === null ? fallback : value;
     }
 
     function write(key, value) {
         try {
-            localStorage.setItem(key, String(value));
+            window.UserStore?.setItem(key, String(value));
             return true;
         } catch {
             return false;
@@ -20,9 +21,10 @@
     }
 
     function readJson(key, fallback = null) {
+        const value = window.UserStore?.getItem(key) ?? null;
+        if (value === null) return fallback;
         try {
-            const value = localStorage.getItem(key);
-            return value === null ? fallback : JSON.parse(value);
+            return JSON.parse(value);
         } catch {
             return fallback;
         }
@@ -30,7 +32,7 @@
 
     function writeJson(key, value) {
         try {
-            localStorage.setItem(key, JSON.stringify(value));
+            window.UserStore?.setItem(key, JSON.stringify(value));
             return true;
         } catch {
             return false;
@@ -39,7 +41,7 @@
 
     function remove(key) {
         try {
-            localStorage.removeItem(key);
+            window.UserStore?.removeItem(key);
             return true;
         } catch {
             return false;

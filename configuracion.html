@@ -688,8 +688,10 @@
     }
     </script>
     <script type="module" src="api/supabase-config.js"></script>
-    <script src="Js/core/user-store.js" defer></script>
+    <script src="js/core/user-store.js" defer></script>
     <script src="js/core/auth.js" defer></script>
+    <script src="js/controllers/AuthController.js" defer></script>
+    <script src="js/controllers/UserController.js" defer></script>
 
     <script>
         /* ── Helpers ── */
@@ -871,51 +873,72 @@
         });
 
         /* ── Exportar datos ── */
-        document.getElementById('exportData').addEventListener('click', () => {
-            const user = r('currentUser', 'Invitado');
-            if (user === 'Invitado') { toast('Iniciá sesión primero', true); return; }
-            const data = { user, exportedAt: new Date().toISOString(), prefs: {}, lists: {} };
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && (k.startsWith(`u:${user}|`) || k.startsWith('pref:')))
-                    data.prefs[k] = localStorage.getItem(k);
-            }
+        document.getElementById('exportData').addEventListener('click', async () => {
+            const supaUser = window.AppSupabase?.getCurrentUser?.();
+            if (!supaUser) { toast('Iniciá sesión primero', true); return; }
+            const username = supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || supaUser.id;
+            const data = { user: username, exportedAt: new Date().toISOString(), prefs: {}, lists: {} };
+
+            // Exportar prefs de UI desde localStorage (son solo de visualización, no datos de usuario)
+            ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
+             'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
+             'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => {
+                const v = localStorage.getItem(k);
+                if (v !== null) data.prefs[k] = v;
+            });
+
+            // Exportar datos de usuario desde Supabase
+            try {
+                const client = window.AppSupabase;
+                if (client?.loadItemStates) {
+                    const categorias = ['anime', 'manga', 'novelas', 'juegos'];
+                    const all = await Promise.all(categorias.map(cat =>
+                        client.loadItemStates(cat).then(states => ({ cat, states }))
+                    ));
+                    all.forEach(({ cat, states }) => {
+                        if (!Array.isArray(states)) return;
+                        states.forEach(s => {
+                            if (!data.lists[cat]) data.lists[cat] = [];
+                            data.lists[cat].push({ id: s.item_id, fav: s.fav, viewed: s.viewed });
+                        });
+                    });
+                }
+            } catch (e) { console.warn('Error exportando desde Supabase:', e); }
+
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = `anime-destiny-${user}.json`;
+            a.href = url; a.download = `anime-destiny-${username}.json`;
             document.body.appendChild(a); a.click(); a.remove();
             URL.revokeObjectURL(url);
-            toast('✅ Datos exportados');
+            toast('✅ Datos exportados desde Supabase');
         });
 
-        /* ── Eliminar usuario ── */
-        document.getElementById('deleteUserBtn').addEventListener('click', () => {
-            const user = r('currentUser', 'Invitado');
-            if (user === 'Invitado') { toast('No hay usuario activo', true); return; }
-            if (!confirm(`¿Eliminar el usuario "${user}" y todos sus datos locales?`)) return;
-            const keys = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const k = localStorage.key(i);
-                if (k && k.startsWith(`u:${user}|`)) keys.push(k);
-            }
-            keys.forEach(k => localStorage.removeItem(k));
+        /* ── Cerrar sesión / Eliminar usuario ── */
+        document.getElementById('deleteUserBtn').addEventListener('click', async () => {
+            const supaUser = window.AppSupabase?.getCurrentUser?.();
+            if (!supaUser) { toast('No hay usuario activo', true); return; }
+            const username = supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || 'usuario';
+            if (!confirm(`¿Cerrar sesión de "${username}"? Los datos están guardados en Supabase.`)) return;
             try {
-                const db = JSON.parse(localStorage.getItem('usersDb') || '{}');
-                delete db[user];
-                localStorage.setItem('usersDb', JSON.stringify(db));
-            } catch {}
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('authToken');
-            toast('✅ Usuario eliminado');
-            setTimeout(() => window.location.href = 'index.html', 1000);
+                await window.AppSupabase?.signOutGoogle?.();
+                if (typeof UserStore !== 'undefined') UserStore.clear();
+                toast('✅ Sesión cerrada');
+                setTimeout(() => window.location.href = 'index.html', 1000);
+            } catch (e) {
+                toast('Error al cerrar sesión: ' + e.message, true);
+            }
         });
 
-        /* ── Borrar todo ── */
+        /* ── Borrar preferencias de UI ── */
         document.getElementById('clearAllBtn').addEventListener('click', () => {
-            if (!confirm('¿Borrar TODOS los datos locales del navegador? Esta acción es irreversible.')) return;
-            localStorage.clear();
-            toast('✅ Datos borrados');
+            if (!confirm('¿Borrar las preferencias de visualización? Los datos de progreso están seguros en Supabase.')) return;
+            // Solo borrar prefs de UI - los datos de usuario están en Supabase
+            ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
+             'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
+             'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => localStorage.removeItem(k));
+            if (typeof UserStore !== 'undefined') UserStore.clear();
+            toast('✅ Preferencias borradas');
             setTimeout(() => window.location.href = 'index.html', 1000);
         });
 
