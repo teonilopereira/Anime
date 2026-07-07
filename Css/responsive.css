@@ -240,29 +240,6 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
         linear-gradient(180deg, #050812 0%, #07020f 100%);
 }
 
-body[data-page="manga"] .genre-drawer-tab,
-body[data-page="anime"] .genre-drawer-tab,
-body[data-page="novelas"] .genre-drawer-tab {
-    top: 205px;
-    left: 12px;
-    min-width: 184px;
-    min-height: 70px;
-    border-radius: 22px;
-    border: 3px solid rgba(255, 255, 255, 0.95);
-    background: rgba(13, 18, 48, 0.92);
-    color: #fff;
-    font-size: 1.32rem;
-    letter-spacing: 0.04em;
-    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.26), 0 14px 34px rgba(0, 0, 0, 0.35);
-}
-
-body[data-page="manga"] .genre-drawer-tab:hover,
-body[data-page="anime"] .genre-drawer-tab:hover,
-body[data-page="novelas"] .genre-drawer-tab:hover {
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 22px rgba(0, 242, 255, 0.35), 0 14px 34px rgba(0, 0, 0, 0.35);
-}
-
 body[data-page="manga"] .genre-drawer,
 body[data-page="anime"] .genre-drawer,
 body[data-page="novelas"] .genre-drawer {
@@ -288,14 +265,6 @@ body[data-page="novelas"] .genre-drawer {
         gap: 20px;
     }
 
-    body[data-page="manga"] .genre-drawer-tab,
-    body[data-page="anime"] .genre-drawer-tab,
-    body[data-page="novelas"] .genre-drawer-tab {
-        top: 118px;
-        min-width: 132px;
-        min-height: 52px;
-        font-size: 0.95rem;
-    }
 }
 
 @media (max-width: 520px) {

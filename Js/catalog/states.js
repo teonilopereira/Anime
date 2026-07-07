@@ -568,5 +568,8 @@
     window.applyUserPreferences = applyUserPreferences;
     window.applyBackgroundPreference = applyBackgroundPreference;
     window.updateCardProgressIndicators = updateCardProgressIndicators;
+    window.getUserPoints = getUserPoints;
+    window.levelFromPoints = levelFromPoints;
+    window.pointsKey = pointsKey;
 
 })(window);

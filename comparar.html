@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -38,7 +38,7 @@
         <p class="page-subtitle">Elegí 2 items para verlos lado a lado.</p>
     </header>
 
-    <main class="compare-page">
+    <main class="compare-page" id="main-content">
         <div class="compare-controls" role="form" aria-label="Seleccionar items">
             <div class="compare-picker">
                 <label class="compare-label" for="cat1">Categoría 1</label>
@@ -65,7 +65,7 @@
             <button class="compare-btn" id="doCompare" type="button">Comparar</button>
         </div>
 
-        <section class="compare-grid" aria-label="Resultado comparación">
+        <section class="compare-grid" aria-label="Resultado comparaci�n">
             <div class="compare-card" id="compareA"></div>
             <div class="compare-card" id="compareB"></div>
         </section>
@@ -74,7 +74,7 @@
     <div id="footer-container"></div>
     <script src="js/core/config.js"></script>
     <script src="js/core/namespace.js"></script>
-    <script type="module" src="api/supabase-config.js"></script>
+    <script type="module" src="api/supabase-config.js" async></script>
     <script src="js/core-bundle.js" defer></script>
     <script src="js/pages/script.js" defer></script>
     <script src="js/pages/comparar.js" defer></script>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -38,7 +38,7 @@
         </div>
     </nav>
 
-    <main class="perfil-page">
+    <main class="perfil-page" id="main-content">
         <!-- Encabezado de página -->
         <header class="perfil-page-header">
             <h1>MI PERFIL</h1>
@@ -63,33 +63,33 @@
                     </div>
                     <div class="perfil-online-badge">
                         <div class="perfil-online-dot"></div>
-                        EN LÍNEA
+                        EN L�NEA
                     </div>
                     <div class="perfil-cambiar-img-label">Subir desde dispositivo</div>
                     <input type="file" id="avatarInput" accept="image/*" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none;">
                 </div>
 
-                <!-- Info y métricas -->
+                <!-- Info y m�tricas -->
                 <div class="perfil-info-col">
                     <div class="perfil-info-top">
                         <div>
                             <div class="perfil-user-label">USUARIO</div>
                             <div class="perfil-user-name">
-                                <span id="userName"></span>
+                                <span id="userName">?</span>
                                 <span class="perfil-edit-icon" title="Editar nombre">??</span>
                             </div>
-                            <div class="perfil-since">Miembro desde <strong id="memberSince"></strong></div>
-                            <a href="#" class="perfil-btn-edit" id="editProfileBtn">? EDITAR PERFIL</a>
+                            <div class="perfil-since">Miembro desde <strong id="memberSince">?</strong></div>
+                            <a href="#" class="perfil-btn-edit" id="editProfileBtn">?? EDITAR PERFIL</a>
                         </div>
                         <div class="perfil-action-btns">
-                            <a href="javascript:void(0)" class="perfil-btn-back" id="backBtn"> VOLVER</a>
-                            <a href="configuracion.html" class="perfil-btn-config">? Configuración</a>
+                            <a href="javascript:void(0)" class="perfil-btn-back" id="backBtn">? VOLVER</a>
+                            <a href="configuracion.html" class="perfil-btn-config">? Configuraci�n</a>
                         </div>
                     </div>
 
                     <!-- Tarjetas de resumen -->
                     <div class="perfil-summary-cards">
-                        <div class="perfil-summary-card">
+            <div class="perfil-summary-card">
                             <div class="perfil-card-label">NIVEL</div>
                             <div class="perfil-card-value-row">
                                 <span class="perfil-card-icon">?</span>
@@ -114,7 +114,7 @@
                         <div class="perfil-summary-card">
                             <div class="perfil-card-label">FAVORITOS</div>
                             <div class="perfil-card-value-row">
-                                <span class="perfil-card-icon">??</span>
+                                <span class="perfil-card-icon">?</span>
                                 <span id="cardFavs">0</span>
                             </div>
                             <div class="perfil-card-sublabel">Guardados</div>
@@ -122,7 +122,7 @@
                         <div class="perfil-summary-card">
                             <div class="perfil-card-label">VISTOS</div>
                             <div class="perfil-card-value-row">
-                                <span class="perfil-card-icon">???</span>
+                                <span class="perfil-card-icon">??</span>
                                 <span id="cardViewed">0</span>
                             </div>
                             <div class="perfil-card-sublabel">Videos vistos</div>
@@ -131,7 +131,7 @@
                 </div>
             </section>
 
-            <!-- Grid inferior: Info personal | Estadísticas | Preferencias -->
+            <!-- Grid inferior: Info personal | Estad�sticas | Preferencias -->
             <div class="perfil-grid-bottom">
 
                 <!-- INFORMACIÓN PERSONAL -->
@@ -141,13 +141,13 @@
                     </div>
                     <div class="perfil-info-row">
                         <div class="perfil-info-row-left">
-                            <span class="pir-icon">?</span> Correo electrónico
+                            <span class="pir-icon">??</span> Correo electrónico
                         </div>
-                        <div class="perfil-info-row-val" id="infoEmail"></div>
+                        <div class="perfil-info-row-val" id="infoEmail">?</div>
                     </div>
                     <div class="perfil-info-row">
                         <div class="perfil-info-row-left">
-                            <span class="pir-icon">??</span> País / Región
+                            <span class="pir-icon">??</span> País / Regi�n
                         </div>
                         <div class="perfil-info-row-val" id="infoPais">Argentina ????</div>
                     </div>
@@ -164,7 +164,7 @@
                         <div class="perfil-info-row-val" id="infoZona">GMT-3 (Buenos Aires)</div>
                     </div>
                     <div class="perfil-panel-footer">
-                        <button class="perfil-panel-btn" id="cambiarInfoBtn">? CAMBIAR INFORMACIÓN</button>
+                        <button class="perfil-panel-btn" id="cambiarInfoBtn">?? CAMBIAR INFORMACIÓN</button>
                     </div>
                 </div>
 
@@ -173,7 +173,7 @@
                     <div class="perfil-panel-title">
                         <span class="pp-icon">??</span> ESTADÍSTICAS
                     </div>
-                    <div class="perfil-stat-row">
+            <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
                             <div class="perfil-stat-icon-wrap">?</div>
                             <div>
@@ -181,7 +181,7 @@
                                 <div class="perfil-stat-sublabel">Total de uso</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statTiempo"></div>
+                        <div class="perfil-stat-val" id="statTiempo">?</div>
                     </div>
                     <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
@@ -191,17 +191,17 @@
                                 <div class="perfil-stat-sublabel">Sesiones iniciadas</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statSesiones"></div>
+                        <div class="perfil-stat-val" id="statSesiones">?</div>
                     </div>
                     <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
-                            <div class="perfil-stat-icon-wrap">?</div>
+                            <div class="perfil-stat-icon-wrap">??</div>
                             <div>
                                 <div class="perfil-stat-label">Contenido explorado</div>
                                 <div class="perfil-stat-sublabel">Elementos vistos</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statExplorado"></div>
+                        <div class="perfil-stat-val" id="statExplorado">?</div>
                     </div>
                     <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
@@ -211,7 +211,7 @@
                                 <div class="perfil-stat-sublabel">Minutos por sesión</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statPromedio"></div>
+                        <div class="perfil-stat-val" id="statPromedio">?</div>
                     </div>
                     <div class="perfil-panel-footer">
                         <button class="perfil-panel-btn">?? VER ESTADÍSTICAS DETALLADAS</button>
@@ -225,27 +225,27 @@
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-                            <span class="perfil-pref-icon">??</span> Tema de la app
+<span class="perfil-pref-icon">??</span> Tema de la app
                         </div>
                         <div class="perfil-pref-val" id="prefTema">Oscuro ??</div>
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-                            <span class="perfil-pref-icon">??</span> Notificaciones
+<span class="perfil-pref-icon">??</span> Notificaciones
                         </div>
                         <div class="perfil-pref-val" id="prefNotif">Activadas ??</div>
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-                            <span class="perfil-pref-icon">?</span> Contenido sugerido
+<span class="perfil-pref-icon">?</span> Contenido sugerido
                         </div>
-                        <div class="perfil-pref-val" id="prefContenido">Personalizado ?</div>
+                        <div class="perfil-pref-val" id="prefContenido">Personalizado ⚙️</div>
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-                            <span class="perfil-pref-icon">??</span> Privacidad
+<span class="perfil-pref-icon">??</span> Privacidad
                         </div>
-                        <div class="perfil-pref-val" id="prefPrivacidad">Pública ??</div>
+                        <div class="perfil-pref-val" id="prefPrivacidad">P�blica ??</div>
                     </div>
                     <div class="perfil-panel-footer">
                         <a href="configuracion.html" class="perfil-panel-btn purple">? ADMINISTRAR PREFERENCIAS</a>
@@ -257,9 +257,9 @@
             <section class="perfil-activity-section">
                 <div class="perfil-activity-head">
                     <div class="perfil-activity-head-title">
-                        <span class="pp-icon">??</span> ACTIVIDAD RECIENTE
+                        <span class="pp-icon">?</span> ACTIVIDAD RECIENTE
                     </div>
-                    <a href="#" class="perfil-activity-link">VER TODA LA ACTIVIDAD </a>
+                    <a href="#" class="perfil-activity-link">VER TODA LA ACTIVIDAD ?</a>
                 </div>
                 <div class="perfil-activity-cards" id="activityCards">
                     <!-- Generado por JS -->
@@ -273,7 +273,7 @@
                         <span class="perfil-import-icon">??</span> IMPORTAR DESDE MyAnimeList
                     </div>
                     <div class="perfil-import-body">
-                        <p class="perfil-import-desc">Subí tu archivo XML exportado desde MyAnimeList para importar tu progreso (favoritos y vistos).</p>
+                        <p class="perfil-import-desc">Sub� tu archivo XML exportado desde MyAnimeList para importar tu progreso (favoritos y vistos).</p>
                         <div class="perfil-import-upload">
                             <input type="file" id="malFileInput" accept=".xml">
                             <button class="perfil-btn-import-preview" id="previewMalBtn">?? VISTA PREVIA</button>
@@ -287,7 +287,7 @@
 
             <div class="perfil-footer-info">
                 <div class="perfil-footer-dot"></div>
-                Interfaz diseñada para ofrecer una experiencia intuitiva, moderna y personalizada.
+                Interfaz dise�ada para ofrecer una experiencia intuitiva, moderna y personalizada.
                 <div class="perfil-footer-dot"></div>
             </div>
         </div><!-- /perfilContent -->
@@ -299,7 +299,7 @@
 
     <script src="js/core/constants.js"></script>
     <script src="js/core/namespace.js"></script>
-    <script type="module" src="api/supabase-config.js"></script>
+    <script type="module" src="api/supabase-config.js" async></script>
     <script src="js/core/user-store.js" defer></script>
     <script src="js/core/data-sync.js" defer></script>
     <script src="js/core/auth.js" defer></script>

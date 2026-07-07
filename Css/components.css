@@ -493,23 +493,6 @@ main { padding-bottom: 24px; }
 .genre-sidebar.is-collapsed .genre-filters { display: none; }
 
 /* Drawer (lengüeta) */
-.genre-drawer-tab {
-    position: fixed;
-    left: 10px;
-    top: 140px;
-    z-index: 1200;
-    cursor: pointer;
-    padding: 10px 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(0, 242, 255, 0.22);
-    background: rgba(0, 242, 255, 0.10);
-    color: white;
-    font-family: 'Orbitron', sans-serif;
-    letter-spacing: 0.7px;
-    text-transform: uppercase;
-    box-shadow: 0 0 18px rgba(0, 242, 255, 0.10);
-}
-
 .genre-drawer {
     position: fixed;
     left: 12px;
@@ -1453,10 +1436,6 @@ main { padding-bottom: 24px; }
         top: auto;
     }
 
-    .genre-drawer-tab {
-        top: 118px;
-    }
-
     .compare-controls {
         grid-template-columns: 1fr;
     }
@@ -2082,7 +2061,9 @@ main { padding-bottom: 24px; }
     left: 16px;
     color: rgba(255, 255, 255, 0.5);
     font-size: 1.1rem;
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 1;
 }
 
 .catalog-search-input {

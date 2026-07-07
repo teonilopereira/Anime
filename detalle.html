@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -38,7 +38,7 @@
         </div>
     </nav>
 
-    <main class="detail-page detail-premium">
+    <main class="detail-page detail-premium" id="main-content">
         <header class="header-perfil">
             <div class="perfil-usuario">
                 <div class="avatar-in" id="detailAvatar">IN</div>
@@ -77,29 +77,29 @@
                             <img src="" alt="" class="portada-img" id="detail-portada" loading="lazy">
                         </div>
                         <div class="obra-detalles-principales">
-                            <span class="tipo-obra" id="detail-tipo">?? </span>
-                            <h1 class="titulo-obra" id="detail-titulo"></h1>
-                            <span class="estado-obra-badge" id="detail-estado-badge">? </span>
+                            <span class="tipo-obra" id="detail-tipo">?? �</span>
+                            <h1 class="titulo-obra" id="detail-titulo">?</h1>
+                            <span class="estado-obra-badge" id="detail-estado-badge">? �</span>
                             <div class="datos-clave-grid">
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">??</span>
-                                    <span class="dato-label" id="detail-stat-1-label">Capítulos</span>
-                                    <span class="dato-valor" id="detail-stat-1-valor"></span>
+    <span class="dato-icono" aria-hidden="true">?</span>
+                                    <span class="dato-label" id="detail-stat-1-label">Cap�tulos</span>
+                                    <span class="dato-valor" id="detail-stat-1-valor">?</span>
                                 </div>
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">??</span>
-                                    <span class="dato-label">Volúmenes</span>
-                                    <span class="dato-valor" id="detail-volumenes"></span>
+    <span class="dato-icono" aria-hidden="true">??</span>
+                                    <span class="dato-label">Vol�menes</span>
+                                    <span class="dato-valor" id="detail-volumenes">?</span>
                                 </div>
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">?</span>
+    <span class="dato-icono" aria-hidden="true">??</span>
                                     <span class="dato-label">Estado</span>
-                                    <span class="dato-valor" id="detail-estado"></span>
+                                    <span class="dato-valor" id="detail-estado">?</span>
                                 </div>
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">?</span>
+    <span class="dato-icono" aria-hidden="true">?</span>
                                     <span class="dato-label">Puntaje</span>
-                                    <span class="dato-valor" id="detail-puntaje"></span>
+                                    <span class="dato-valor" id="detail-puntaje">?</span>
                                 </div>
                             </div>
                         </div>
@@ -109,7 +109,7 @@
                 <section class="contenido-texto-section">
                     <div class="sinopsis-bloque">
                         <h3>SINOPSIS</h3>
-                        <p class="sinopsis-texto" id="detail-sinopsis"></p>
+                        <p class="sinopsis-texto" id="detail-sinopsis">?</p>
                         <a href="#" class="btn-ver-mas" id="detail-ver-mas">Ver más</a>
                     </div>
                     <div class="generos-bloque">
@@ -120,7 +120,7 @@
 
                 <section class="capitulos-section">
                     <div class="capitulos-header">
-                        <h3 id="detail-capitulos-titulo">CAPÍTULOS</h3>
+                        <h3 id="detail-capitulos-titulo">CAP�TULOS</h3>
                         <span class="contador-progreso" id="contador-vistos">
                             <span class="dot-ok" aria-hidden="true"></span>
                             <span id="contador-vistos-texto">0/0 completados</span>
@@ -133,7 +133,7 @@
 
                 <section class="progreso-general-section">
                     <div class="progreso-izq">
-                        <h3 id="progreso-general-titulo">CAPÍTULOS GENERAL</h3>
+                        <h3 id="progreso-general-titulo">CAP�TULOS GENERAL</h3>
                         <div class="barra-progreso-track">
                             <div class="barra-progreso-fill" id="barra-progreso-fill-total" style="width:0%;"></div>
                         </div>
@@ -143,9 +143,9 @@
                         </div>
                     </div>
                     <div class="acciones-der">
-                        <button class="btn-circular btn-compartir" type="button" aria-label="Compartir con conocidos o amigos" title="Compartir">??</button>
+                        <button class="btn-circular btn-compartir" type="button" aria-label="Compartir con conocidos o amigos" title="Compartir">🔗</button>
                         <button class="btn-circular btn-favorito" type="button" aria-label="Agregar a favoritos">?</button>
-                        <button class="btn-circular btn-visto-completo" type="button" aria-label="Marcar como visto">??</button>
+                        <button class="btn-circular btn-visto-completo" type="button" aria-label="Marcar como visto">?</button>
                     </div>
                 </section>
 
@@ -166,7 +166,7 @@
             <h3 id="modalTitle">Información</h3>
             <button class="modal-close-btn" type="button" data-close-modal="resumen" aria-label="Cerrar modal">?</button>
         </div>
-        <div id="modalBody" class="modal-body">Aquí aparecerá el resumen.</div>
+        <div id="modalBody" class="modal-body">Aqu� aparecerá el resumen.</div>
         <div class="modal-footer">
             <button class="modal-close-btn-footer" type="button" data-close-modal="resumen">Cerrar</button>
         </div>
@@ -174,7 +174,7 @@
 </div>
     <script src="js/core/config.js"></script>
     <script src="js/core/namespace.js"></script>
-    <script type="module" src="api/supabase-config.js"></script>
+    <script type="module" src="api/supabase-config.js" async></script>
     <script src="js/core-bundle.js" defer></script>
     <script src="js/core/mangadex-api.js" defer></script>
     <script src="js/detalle/data.js" defer></script>

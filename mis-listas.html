@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -25,7 +25,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        /*  LAYOUT LISTAS  */
+        /* ? LAYOUT LISTAS ? */
         .lists-layout {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -391,7 +391,7 @@
         .lists-chip.export-btn:hover { background: rgba(188,19,254,0.1); }
         .chip-icon { font-size: 0.9rem; }
 
-        /*  CARDS DE CATEGORÍA  */
+        /* ? CARDS DE CATEGORÍA ? */
         .category-cards-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -525,7 +525,7 @@
         .cat-activity-item .ai-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .cat-activity-item .ai-time { font-size: 0.7rem; color: rgba(255,255,255,0.35); white-space: nowrap; }
 
-        /*  GRID DE RESULTADOS (filas)  */
+        /* ? GRID DE RESULTADOS (filas) ? */
         .lists-section { margin-bottom: 28px; }
         .lists-h2 {
             font-family: 'Orbitron', sans-serif;
@@ -832,7 +832,7 @@
 
             <nav class="sidebar-nav">
                 <a href="#mis-listas" class="sidebar-link active" data-tab="mis-listas">
-                    <span class="sidebar-icon">?</span> Mis Listas
+                    <span class="sidebar-icon">??</span> Mis Listas
                 </a>
                 <a href="#actividad" class="sidebar-link" data-tab="actividad">
                     <span class="sidebar-icon">??</span> Actividad
@@ -841,24 +841,24 @@
                     <span class="sidebar-icon">??</span> Logros
                 </a>
                 <a href="#estadisticas" class="sidebar-link" data-tab="estadisticas">
-                    <span class="sidebar-icon">??</span> Estadísticas
+                    <span class="sidebar-icon">??</span> Estad�sticas
                 </a>
             </nav>
 
             <div class="sidebar-quote-box">
-                <div class="quote-text">"Un día sin anime es un día perdido."</div>
-                <div class="quote-author">???</div>
+                <div class="quote-text">"Un d�a sin anime es un d�a perdido."</div>
+                <div class="quote-author">??</div>
             </div>
         </aside>
 
         <!-- CONTENIDO PRINCIPAL -->
-        <main class="lists-main-content">
+        <main class="lists-main-content" id="main-content">
 
             <div class="app-loader" id="listsLoader">
                 <span class="app-loader-text">Cargando tus listas...</span>
             </div>
 
-            <!--  MIS LISTAS  -->
+            <!-- ? MIS LISTAS ? -->
             <div id="tab-mis-listas" class="tab-content active">
                 <header class="lists-header-new">
                     <h1 class="lists-title">MIS LISTAS</h1>
@@ -879,7 +879,7 @@
                         </div>
                         <div class="cat-card-count" id="countAnime">0</div>
                         <div class="cat-card-sublabel" id="sublabelAnime">Títulos guardados</div>
-                        <a href="anime.html" class="cat-card-link">Ver catálogo </a>
+                        <a href="anime.html" class="cat-card-link">Ver catálogo ?</a>
                     </div>
                     <!-- Manga card -->
                     <div class="category-card manga">
@@ -891,7 +891,7 @@
                         </div>
                         <div class="cat-card-count" id="countManga">0</div>
                         <div class="cat-card-sublabel" id="sublabelManga">Títulos guardados</div>
-                        <a href="manga.html" class="cat-card-link">Ver catálogo </a>
+                        <a href="manga.html" class="cat-card-link">Ver catálogo ?</a>
                     </div>
                     <!-- Novelas card -->
                     <div class="category-card novelas">
@@ -903,7 +903,7 @@
                         </div>
                         <div class="cat-card-count" id="countNovelas">0</div>
                         <div class="cat-card-sublabel" id="sublabelNovelas">Títulos guardados</div>
-                        <a href="novelas.html" class="cat-card-link">Ver catálogo </a>
+                        <a href="novelas.html" class="cat-card-link">Ver catálogo ?</a>
                     </div>
                 </div>
 
@@ -911,10 +911,10 @@
                 <div class="category-card actividad" id="actividadCard" style="margin-bottom:28px; cursor:default;">
                     <div class="cat-card-head">
                         <div class="cat-card-title-wrap">
-                            <div class="cat-card-icon purple">??</div>
+                            <div class="cat-card-icon purple">?</div>
                             <div class="cat-card-label">ACTIVIDAD RECIENTE</div>
                         </div>
-                        <a href="#" class="cat-card-link" data-open-tab="actividad">Ver todo </a>
+                        <a href="#" class="cat-card-link" data-open-tab="actividad">Ver todo ?</a>
                     </div>
                     <div class="cat-activity-list" id="actividadMini">
                         <div style="color:rgba(255,255,255,0.35); font-size:0.82rem; font-family:'Rajdhani',sans-serif; padding:4px 0;">
@@ -925,7 +925,7 @@
 
                 <!-- Filtros + resultados -->
                 <div class="lists-controls" role="toolbar" aria-label="Filtros">
-                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon">??</span> Todo</button>
+                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon">?</span> Todo</button>
                     <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon">?</span> Me gusta</button>
                     <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon">??</span> Vistos</button>
                     <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon">??</span> Exportar JSON</button>
@@ -934,7 +934,7 @@
                 <section class="lists-section">
                     <h2 class="lists-h2">RESULTADOS</h2>
                     <div class="resultados-tabs">
-                        <button class="res-tab active" data-cat="all"><span class="tab-icon">??</span> Todos</button>
+                        <button class="res-tab active" data-cat="all"><span class="tab-icon">?</span> Todos</button>
                         <button class="res-tab" data-cat="anime"><span class="tab-icon">??</span> Anime</button>
                         <button class="res-tab" data-cat="manga"><span class="tab-icon">??</span> Manga</button>
                         <button class="res-tab" data-cat="novelas"><span class="tab-icon">??</span> Novelas</button>
@@ -944,7 +944,7 @@
 
                 <section class="recommend" aria-label="Recomendaciones">
                     <div class="recommend-header">
-                        <span class="recommend-icon">??</span>
+                        <span class="recommend-icon">💡</span>
                         <div>
                             <h2 class="lists-h2">RECOMENDADO PARA VOS</h2>
                             <p class="lists-subtitle">Basado en lo que marcaste como visto.</p>
@@ -954,7 +954,7 @@
                 </section>
             </div>
 
-            <!--  ACTIVIDAD  -->
+            <!-- ? ACTIVIDAD ? -->
             <div id="tab-actividad" class="tab-content">
                 <header class="lists-header-new">
                     <h1 class="lists-title">ACTIVIDAD RECIENTE</h1>
@@ -965,7 +965,7 @@
                 </div>
             </div>
 
-            <!--  LOGROS  -->
+            <!-- ? LOGROS ? -->
             <div id="tab-logros" class="tab-content">
                 <header class="lists-header-new">
                     <h1 class="lists-title">LOGROS</h1>
@@ -974,7 +974,7 @@
                 <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
             </div>
 
-            <!--  ESTADÍSTICAS  -->
+            <!-- ? ESTADÍSTICAS ? -->
             <div id="tab-estadisticas" class="tab-content">
                 <header class="lists-header-new">
                     <h1 class="lists-title">ESTADÍSTICAS</h1>
@@ -987,7 +987,7 @@
     </div>
     <script src="js/core/config.js"></script>
     <script src="js/core/namespace.js"></script>
-    <script type="module" src="api/supabase-config.js"></script>
+    <script type="module" src="api/supabase-config.js" async></script>
     <script src="js/core-bundle.js" defer></script>
     <script src="js/pages/mis-listas.js" defer></script>
 </body>

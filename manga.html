@@ -1,16 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
-    <meta name="description" content="Explorá mangas, marcá volúmenes leídos y guardá tu progreso.">
+    <meta name="description" content="Explorá mangas, marcá volúmenes le�dos y guardá tu progreso.">
     <meta name="keywords" content="manga, catálogo, volúmenes, visto, me gusta, seinen, shounen">
     <meta name="robots" content="index,follow">
     <meta property="og:title" content="Anime Destiny | Manga">
-    <meta property="og:description" content="Explorá mangas, marcá volúmenes leídos y guardá tu progreso.">
+    <meta property="og:description" content="Explorá mangas, marcá volúmenes le�dos y guardá tu progreso.">
     <meta name="twitter:title" content="Anime Destiny | Manga">
-    <meta name="twitter:description" content="Explorá mangas, marcá volúmenes leídos y guardá tu progreso.">
+    <meta name="twitter:description" content="Explorá mangas, marcá volúmenes le�dos y guardá tu progreso.">
     <title>Anime Destiny | Manga</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="images/icon-192.png">
@@ -45,7 +45,7 @@
         <div class="catalog-search-filter-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 15px; max-width: 800px; margin: 0 auto;">
             <div class="catalog-search-wrap" style="width: 100%; display: flex; gap: 10px;">
                 <div style="position:relative; flex:1;">
-                    <span class="catalog-search-icon">??</span>
+                    <span class="catalog-search-icon">🎬</span>
                     <input id="catalogSearch" class="catalog-search-input" type="search" placeholder="Buscar manga..." autocomplete="off">
                 </div>
                 <button id="mainFilterToggle" type="button" class="advanced-filter-toggle" aria-label="Abrir filtros">
@@ -93,16 +93,21 @@
         </div>
     </header>
 
-    <section class="featured" id="featuredBanner" data-featured="manga"></section>
+    <div id="genreDrawer" class="genre-drawer"></div>
 
-    <main class="gallery" id="main-container"></main>
-
-    <div id="scroll-sentinel" class="scroll-sentinel"></div>
+    <div class="catalog-layout">
+        <div id="genreSidebar" class="genre-sidebar"></div>
+        <div class="catalog-content" id="main-content">
+            <section class="featured" id="featuredBanner" data-featured="manga"></section>
+            <main class="gallery" id="main-container"></main>
+            <div id="scroll-sentinel" class="scroll-sentinel"></div>
+        </div>
+    </div>
 
     <div id="footer-container"></div>
     <script src="js/core/config.js"></script>
     <script src="js/core/namespace.js"></script>
-    <script type="module" src="api/supabase-config.js"></script>
+    <script type="module" src="api/supabase-config.js" async></script>
     <script src="js/core-bundle.js" defer></script>
     <script src="js/core/mangadex-api.js" defer></script>
     <script src="js/pages/script.js" defer></script>

@@ -70,7 +70,12 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 supabase.auth.getUser().then(({ data: { user } }) => {
     _currentUser  = user ?? null;
     _sessionReady = true;
-    if (_currentUser) queueMicrotask(() => ensureCurrentUserProfile(_currentUser, "getUser"));
+    if (_currentUser) {
+        queueMicrotask(() => ensureCurrentUserProfile(_currentUser, "getUser"));
+        window.dispatchEvent(new CustomEvent("supabase-auth-changed", {
+            detail: { user: _currentUser, username: supabaseUserName(_currentUser) }
+        }));
+    }
 }).catch(() => {
     _sessionReady = true;
 });

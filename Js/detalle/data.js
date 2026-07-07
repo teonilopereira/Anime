@@ -94,6 +94,20 @@ function replaceChildrenWithTextElement(parent, tag, text) {
 
 function saveDetailStateToSupabase(category, item, fav, viewed) {
     if (!window.AppSupabase?.saveItemState) return;
+    var genreStr = '';
+    if (Array.isArray(item.genres)) {
+        genreStr = item.genres.map(function (g) {
+            return typeof g === 'object' && g !== null ? (g.name || '') : g;
+        }).filter(Boolean).join('|');
+    } else if (Array.isArray(item.generos)) {
+        genreStr = item.generos.map(function (g) {
+            return typeof g === 'object' && g !== null ? (g.name || '') : g;
+        }).filter(Boolean).join('|');
+    } else if (typeof item.genres === 'string') {
+        genreStr = item.genres;
+    } else if (typeof item.generos === 'string') {
+        genreStr = item.generos;
+    }
     window.AppSupabase.saveItemState({
         category: category,
         itemId: String(item.id || item.mal_id || ''),
@@ -102,7 +116,7 @@ function saveDetailStateToSupabase(category, item, fav, viewed) {
         meta: {
             titulo: item.titulo || item.title || '',
             img: item.img || item.image || '',
-            info: item.info || item.synopsis || ''
+            info: genreStr || item.info || item.synopsis || ''
         }
     }).catch(function (err) {
         console.warn('saveDetailStateToSupabase error:', err);
@@ -119,8 +133,16 @@ function mergeDetalles(item) {
 
 function parseGeneros(item) {
     if (!item) return [];
-    if (Array.isArray(item.generos)) return item.generos;
-    if (Array.isArray(item.genres)) return item.genres;
+    if (Array.isArray(item.generos)) {
+        return item.generos.map(function (g) {
+            return typeof g === 'object' && g !== null ? (g.name || '') : g;
+        }).filter(Boolean);
+    }
+    if (Array.isArray(item.genres)) {
+        return item.genres.map(function (g) {
+            return typeof g === 'object' && g !== null ? (g.name || '') : g;
+        }).filter(Boolean);
+    }
     if (typeof item.generos === 'string') return item.generos.split(',').map(function (g) { return g.trim(); }).filter(Boolean);
     if (typeof item.genres === 'string') return item.genres.split(',').map(function (g) { return g.trim(); }).filter(Boolean);
     if (typeof item.info === 'string') {

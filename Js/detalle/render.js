@@ -290,6 +290,39 @@ function renderDetalle(item, nombreUrl, categoria) {
         });
     });
 
+    function loadFavViewedFromSupabase() {
+        var client = window.AppSupabase;
+        if (!client || !client.loadItemStates || !client.isSignedIn || !client.isSignedIn()) return;
+        var uId = getCurrentUserIdSafe();
+        if (uId === 'Invitado') return;
+        client.loadItemStates(categoria).then(function (states) {
+            if (!Array.isArray(states)) return;
+            var match = states.find(function (s) {
+                return String(s.item_id) === String(item.id);
+            });
+            if (!match) return;
+            var favKey = detailStatusStorageKey(uId, item.id, 'fav');
+            var viewedKey = detailStatusStorageKey(uId, item.id, 'viewed');
+            var changed = false;
+            if (match.fav && !UserStore.getItem(favKey)) {
+                UserStore.setItem(favKey, '1');
+                changed = true;
+            }
+            if (match.viewed && !UserStore.getItem(viewedKey)) {
+                UserStore.setItem(viewedKey, '1');
+                changed = true;
+            }
+            if (changed) {
+                syncActionButton(favBtn, 'fav');
+                syncActionButton(viewedBtn, 'viewed');
+            }
+        }).catch(function (err) {
+            console.warn('No se pudo cargar estados de ítem desde Supabase:', err);
+        });
+    }
+    loadFavViewedFromSupabase();
+    window.addEventListener("supabase-auth-changed", loadFavViewedFromSupabase);
+
  
     if (shareBtn) {
         shareBtn.addEventListener('click', () => {

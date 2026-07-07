@@ -378,6 +378,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             });
         }).join('');
 
+        mainContainer.querySelector('.empty-state')?.remove();
         if (append) {
             mainContainer.insertAdjacentHTML('beforeend', cardsHtml);
         } else {

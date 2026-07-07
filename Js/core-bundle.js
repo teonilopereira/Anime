@@ -2324,6 +2324,9 @@ window.getCurrentUser      = getCurrentUser;
     window.applyUserPreferences = applyUserPreferences;
     window.applyBackgroundPreference = applyBackgroundPreference;
     window.updateCardProgressIndicators = updateCardProgressIndicators;
+    window.getUserPoints = getUserPoints;
+    window.levelFromPoints = levelFromPoints;
+    window.pointsKey = pointsKey;
 
 })(window);
 
@@ -2712,6 +2715,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             });
         }).join('');
 
+        mainContainer.querySelector('.empty-state')?.remove();
         if (append) {
             mainContainer.insertAdjacentHTML('beforeend', cardsHtml);
         } else {
@@ -2811,11 +2815,12 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
 window.__activeStateFilter = AnimeDestiny.internals.__activeStateFilter = 'all';
 window.__catalogFilters = { search: '', genres: [], isAdult: false };
 var _genreWidgetsListenersAdded = false;
+var _searchListenersAdded = false;
 
 
 function inicializarBusquedaCatalogo() {
     const categoria = document.body.getAttribute('data-page');
-    const input = document.getElementById('catalogSearch') || document.getElementById('mangaSearch');
+    const input = document.getElementById('catalogSearch');
     const mainContainer = document.getElementById('main-container');
     if (!input || !mainContainer) return;
 
@@ -3070,18 +3075,23 @@ function inicializarBusquedaCatalogo() {
     }
     window.__reloadCatalog = reloadCatalog;
 
-    // ── Debounced search → server ──
-    let searchReloadTimer = null;
-    input.addEventListener('input', () => {
-        // Always do local filter for instant feedback
+    // ── Guard: prevent duplicate listeners on repeated calls ──
+    if (_searchListenersAdded) {
         applyFilter();
-        // Also do suggestion dropdown
+        return;
+    }
+    _searchListenersAdded = true;
+
+    // ── Input: local filter + API suggestions ──
+    input.addEventListener('input', () => {
+        applyFilter();
         debouncedApiSearch();
-        // Debounced server reload
-        if (searchReloadTimer) clearTimeout(searchReloadTimer);
-        searchReloadTimer = setTimeout(() => {
+    });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
             reloadCatalog();
-        }, 600);
+        }
     });
     input.addEventListener('focus', () => renderSuggestions(input.value));
     input.addEventListener('blur', () => {
@@ -3090,8 +3100,16 @@ function inicializarBusquedaCatalogo() {
         }, 180);
     });
 
+    var searchIcon = inputWrap?.querySelector('.catalog-search-icon');
+    if (searchIcon) {
+        searchIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            reloadCatalog();
+        });
+    }
+
     // ── Filter block ──
-    const filterToggle = document.getElementById('filterToggle');
+    const filterToggle = document.getElementById('mainFilterToggle');
     const filterDropdown = document.getElementById('filterDropdown');
 
     if (filterToggle && filterDropdown) {
@@ -3149,7 +3167,6 @@ function inicializarBusquedaCatalogo() {
 function inicializarGeneroWidgets() {
     const categoria = document.body.getAttribute('data-page');
     const sidebarHost = document.getElementById('genreSidebar');
-    const drawerTab = document.getElementById('genreDrawerTab');
     const mainContainer = document.getElementById('main-container');
     if (!categoria || !mainContainer) return;
 
@@ -3322,7 +3339,6 @@ function inicializarGeneroWidgets() {
         `;
 
         host.classList.toggle('is-open', isOpen);
-        if (drawerTab) drawerTab.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 
         const toggleBtn = host.querySelector('#toggleGenreSidebar');
         if (toggleBtn) {
@@ -3332,20 +3348,6 @@ function inicializarGeneroWidgets() {
                 UserStore.setItem(openKey, nextOpen ? '1' : '0');
                 toggleBtn.textContent = nextOpen ? 'Cerrar' : 'Abrir';
                 toggleBtn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-                if (drawerTab) drawerTab.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-            });
-        }
-
-        if (drawerTab) {
-            drawerTab.addEventListener('click', () => {
-                const nextOpen = !host.classList.contains('is-open');
-                host.classList.toggle('is-open', nextOpen);
-                UserStore.setItem(openKey, nextOpen ? '1' : '0');
-                if (toggleBtn) {
-                    toggleBtn.textContent = nextOpen ? 'Cerrar' : 'Abrir';
-                    toggleBtn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-                }
-                drawerTab.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
             });
         }
 
@@ -3437,16 +3439,7 @@ function inicializarGeneroWidgets() {
     }
     _genreWidgetsListenersAdded = true;
 
-    const toggleBtn = document.getElementById('mainFilterToggle');
-    const dropdownDiv = document.getElementById('filterDropdown');
     const clearBtn = document.getElementById('clearFiltersBtn');
-
-    if (toggleBtn && dropdownDiv) {
-        toggleBtn.addEventListener('click', () => {
-            const isHidden = dropdownDiv.style.display === 'none' || dropdownDiv.style.display === '';
-            dropdownDiv.style.display = isHidden ? 'block' : 'none';
-        });
-    }
 
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
