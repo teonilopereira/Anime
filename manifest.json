@@ -1,0 +1,21 @@
+{
+    "name": "Anime Destiny",
+    "short_name": "AnimeDestiny",
+    "description": "Catálogo de anime, manga y novelas con detalle, progreso y listas por usuario.",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#0a0519",
+    "theme_color": "#bc13fe",
+    "icons": [
+        {
+            "src": "images/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "images/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

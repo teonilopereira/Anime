@@ -1,7 +1,7 @@
 (function (window) {
     "use strict";
 
-    const CATEGORY_SET = new Set(["anime", "manga", "juegos", "novelas", "detalle"]);
+    const CATEGORY_SET = new Set(["anime", "manga", "novelas", "detalle"]);
 
     function isValidCategory(value) {
         return CATEGORY_SET.has(String(value || "").toLowerCase());

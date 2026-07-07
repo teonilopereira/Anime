@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Términos de servicio de Anime Destiny.">
+    <meta name="keywords" content="términos, condiciones, servicio, legal, anime destiny">
+    <meta name="robots" content="index,follow">
+    <meta property="og:title" content="Anime Destiny | Términos de Servicio">
+    <meta property="og:description" content="Términos de servicio de Anime Destiny.">
+    <meta name="twitter:title" content="Anime Destiny | Términos de Servicio">
+    <meta name="twitter:description" content="Términos de servicio de Anime Destiny.">
+    <title>Anime Destiny | Términos de Servicio</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://animedestiny.netlify.app/terminos.html">
+    <meta property="og:site_name" content="Anime Destiny">
+    <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
+    <meta name="twitter:card" content="summary">
+
+        <link rel="stylesheet" href="css/bundle.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        .legal-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 24px;
+            background: rgba(10, 5, 25, 0.8);
+            border: 1px solid rgba(188, 19, 254, 0.2);
+            border-radius: 12px;
+            font-family: 'Rajdhani', sans-serif;
+            color: #e2d9f3;
+            line-height: 1.6;
+        }
+        .legal-container h1, .legal-container h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00f2ff;
+        }
+        .legal-container h1 {
+            border-bottom: 2px solid #bc13fe;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .legal-container h2 {
+            margin-top: 30px;
+            font-size: 1.3rem;
+        }
+        .legal-container p, .legal-container li {
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body class="menu-page">
+    <nav class="navbar destiny-navbar">
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
+        <div class="nav-actions">
+            <div id="nav-login-container"></div>
+        </div>
+    </nav>
+
+    <main class="legal-container">
+        <h1>Términos de Servicio</h1>
+        <p>Última actualización: Julio 2026</p>
+
+        <p>Bienvenido a Anime Destiny. Al acceder y utilizar este sitio web, aceptas cumplir con los siguientes términos y condiciones de uso.</p>
+
+        <h2>1. Uso de la Plataforma</h2>
+        <p>Anime Destiny es un catálogo informativo de anime, manga y novelas ligeras que permite a los usuarios registrar de forma personal su progreso e interactuar con listas. Queda prohibido cualquier uso indebido del sitio, como intentos de vulnerar los sistemas de seguridad de la base de datos o el uso de bots para alterar el ranking de experiencia (XP).</p>
+
+        <h2>2. Propiedad Intelectual e Información de Terceros</h2>
+        <p>Las portadas, sinopsis y datos de los títulos provienen de APIs públicas de terceros (principalmente AniList y MangaDex). Anime Destiny no se adjudica la propiedad de dichos materiales y reconoce los derechos de autor de las respectivas productoras y creadores. Los datos del sitio se proveen únicamente con fines educativos y de entretenimiento personal.</p>
+
+        <h2>3. Limitación de Responsabilidad</h2>
+        <p>La plataforma se proporciona "tal cual" y "según disponibilidad". No garantizamos que el servicio sea ininterrumpido o libre de errores. Anime Destiny no será responsable por la pérdida temporal de datos de progreso que pueda ocurrir debido a problemas de conexión o fallos en las APIs externas.</p>
+
+        <h2>4. Cuentas de Usuario y Modificaciones</h2>
+        <p>Nos reservamos el derecho de dar de baja o suspender cuentas de usuario que realicen prácticas abusivas o fraudulentas en el sistema. Asimismo, nos reservamos el derecho de modificar estos términos de servicio en cualquier momento, informando de los cambios en esta página.</p>
+
+        <h2>5. Legislación Aplicable</h2>
+        <p>Estos términos se regirán e interpretarán de acuerdo con las leyes vigentes del territorio desde donde se hostea la aplicación principal.</p>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="js/core/config.js"></script>
+    <script src="js/core/i18n.js"></script>
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/namespace.js"></script>
+    <script src="js/datos.js" defer></script>
+    <script type="module" src="api/supabase-config.js"></script>
+
+    <script src="js/core/common-ui.js" defer></script>
+</body>
+</html>
+
+

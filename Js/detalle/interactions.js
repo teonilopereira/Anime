@@ -1,10 +1,10 @@
-function wirePremiumDetailInteractions(root, item, categoria) {
-    const itemId = String(item.mal_id || item.id || '');
+function wirePremiumDetailInteractions(root, item, categoria, seasons) {
+    const itemId = String(item.id || item.mal_id || '');
     const total = getApiChapterTotal(item, categoria);
-    const userId = getCurrentUserIdSafe();
     const isAnime = categoria === 'anime';
     const progressLabel = isAnime ? 'EP' : 'VOL';
     const progressHeading = isAnime ? 'EPISODIOS GENERAL' : 'VOLÚMENES GENERAL';
+    const hasSeasons = isAnime && Array.isArray(seasons) && seasons.length > 0;
 
     const fill = root.querySelector('#barra-progreso-fill-total');
     const counterText = root.querySelector('#contador-vistos-texto');
@@ -20,11 +20,21 @@ function wirePremiumDetailInteractions(root, item, categoria) {
 
     if (progressHeadingEl) progressHeadingEl.textContent = progressHeading;
 
+    function getTotalCapitulos() {
+        if (hasSeasons) {
+            return seasons.reduce(function (acc, s) { return acc + (Number(s.episodes) || 0); }, 0);
+        }
+        return total;
+    }
+
     function updateProgressUi() {
-        const next = getApiUnifiedProgress(userId, itemId, total, categoria);
+        const uId = getCurrentUserIdSafe();
+        const progressArg = hasSeasons ? seasons : total;
+        const next = getApiUnifiedProgress(uId, itemId, progressArg, categoria);
+        const totalCap = getTotalCapitulos();
         if (fill) fill.style.width = `${next.pct}%`;
-        if (counterText) counterText.textContent = `${next.watched}/${total || 0} completados`;
-        if (labelProgress) labelProgress.textContent = `${progressLabel} ${next.watched}/${total || 0}`;
+        if (counterText) counterText.textContent = `${next.watched}/${totalCap || 0} completados`;
+        if (labelProgress) labelProgress.textContent = `${progressLabel} ${next.watched}/${totalCap || 0}`;
         if (labelPct) labelPct.textContent = `${next.pct}%`;
     }
 
@@ -37,9 +47,11 @@ function wirePremiumDetailInteractions(root, item, categoria) {
         const ep = Number.parseInt(btn.getAttribute('data-ep') || '', 10);
         if (!Number.isFinite(ep) || ep <= 0) return;
 
+        const seasonIdx = Number.parseInt(btn.getAttribute('data-season') || '0', 10);
+        const uId = getCurrentUserIdSafe();
         const key = isAnime
-            ? episodeStorageKey(userId, itemId, 0, ep)
-            : volumeStorageKey(userId, itemId, ep);
+            ? episodeStorageKey(uId, itemId, seasonIdx, ep)
+            : volumeStorageKey(uId, itemId, ep, categoria);
         const isActive = btn.classList.toggle('is-visto');
 
         grid.querySelectorAll('.cuadrado-item').forEach((el) => el.classList.remove('is-selected'));
@@ -49,21 +61,11 @@ function wirePremiumDetailInteractions(root, item, categoria) {
         else UserStore.removeItem(key);
 
         const supabaseKey = isAnime
-            ? progressSqlKeyEpisode(0, ep)
+            ? progressSqlKeyEpisode(seasonIdx, ep)
             : progressSqlKeyVolume(ep);
         saveProgressToSupabase(categoria, itemId, supabaseKey, isActive);
 
         updateProgressUi();
-
-        if (hasSqlSession() && typeof apiRequest === 'function') {
-            const sqlKey = isAnime
-                ? progressSqlKeyEpisode(0, ep)
-                : progressSqlKeyVolume(ep);
-            apiRequest('/api/progress/toggle', {
-                method: 'POST',
-                body: JSON.stringify({ category: categoria, itemId, key: sqlKey })
-            }).catch(() => { });
-        }
     });
 
     if (seeMore && synopsis) {
@@ -74,34 +76,79 @@ function wirePremiumDetailInteractions(root, item, categoria) {
         });
     }
 
-    const actionKeys = {
-        fav: detailStatusStorageKey(userId, itemId, 'fav'),
-        viewed: detailStatusStorageKey(userId, itemId, 'viewed')
-    };
-
-    function syncActionButton(button, key) {
+    function syncActionButton(button, type) {
         if (!button) return;
+        const uId = getCurrentUserIdSafe();
+        const key = detailStatusStorageKey(uId, itemId, type);
         const active = !!UserStore.getItem(key);
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }
 
-    [favBtn, viewedBtn].forEach((button, index) => {
-        const key = index === 0 ? actionKeys.fav : actionKeys.viewed;
+    [
+        { button: favBtn, type: 'fav' },
+        { button: viewedBtn, type: 'viewed' }
+    ].forEach(({ button, type }) => {
         if (!button) return;
-        syncActionButton(button, key);
+        syncActionButton(button, type);
         button.addEventListener('click', () => {
+            const uId = getCurrentUserIdSafe();
+
+            // Bug 2 fix: redirigir a login si el usuario es invitado
+            if (uId === 'Invitado') {
+                window.location.href = 'Login.html';
+                return;
+            }
+
+            const key = detailStatusStorageKey(uId, itemId, type);
             const enabled = !UserStore.getItem(key);
-            if (enabled) UserStore.setItem(key, '1');
-            else UserStore.removeItem(key);
-            syncActionButton(button, key);
+            if (enabled) {
+                UserStore.setItem(key, '1');
+                // Bug 1 fix: dar XP igual que toggleStatus() en catálogo
+                if (typeof addUserPoints === 'function') {
+                    const xp = type === 'viewed'
+                        ? (AnimeDestiny.Constants.XP_VIEWED || 10)
+                        : (AnimeDestiny.Constants.XP_FAV || 5);
+                    addUserPoints(uId, xp);
+                }
+            } else {
+                UserStore.removeItem(key);
+            }
+            syncActionButton(button, type);
+
+            if (window.Toast) {
+                if (enabled) {
+                    if (type === 'fav') window.Toast.success("¡Agregado a Favoritos! ❤️");
+                    if (type === 'viewed') window.Toast.success("¡Marcado como Visto! 👁️ (+" + (AnimeDestiny.Constants.XP_VIEWED || 10) + " EXP)");
+                } else {
+                    if (type === 'fav') window.Toast.info("Quitado de Favoritos");
+                    if (type === 'viewed') window.Toast.info("Marcado como no visto");
+                }
+            }
+            
+            const favKey = detailStatusStorageKey(uId, itemId, 'fav');
+            const viewedKey = detailStatusStorageKey(uId, itemId, 'viewed');
             saveDetailStateToSupabase(
                 categoria,
                 { ...item, id: itemId },
-                !!UserStore.getItem(actionKeys.fav),
-                !!UserStore.getItem(actionKeys.viewed)
+                !!UserStore.getItem(favKey),
+                !!UserStore.getItem(viewedKey)
             );
         });
+    });
+
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted) {
+            syncActionButton(favBtn, 'fav');
+            syncActionButton(viewedBtn, 'viewed');
+        }
+    });
+
+    window.addEventListener('storage', (e) => {
+        if (e.key && e.key.startsWith('u:')) {
+            syncActionButton(favBtn, 'fav');
+            syncActionButton(viewedBtn, 'viewed');
+        }
     });
 
     if (shareBtn) {
@@ -125,13 +172,15 @@ function wirePremiumDetailInteractions(root, item, categoria) {
     }
 
     if (window.AppSupabase || hasSqlSession()) {
-        syncProgressFromSql(categoria, itemId).then(() => {
+        syncProgressFromSupabase(categoria, itemId).then(() => {
+            const uId = getCurrentUserIdSafe();
             grid?.querySelectorAll('button.cuadrado-item').forEach((btn) => {
                 const ep = Number.parseInt(btn.getAttribute('data-ep') || '', 10);
                 if (!Number.isFinite(ep)) return;
+                const seasonIdx = Number.parseInt(btn.getAttribute('data-season') || '0', 10);
                 const key = isAnime
-                    ? episodeStorageKey(userId, itemId, 0, ep)
-                    : volumeStorageKey(userId, itemId, ep);
+                    ? episodeStorageKey(uId, itemId, seasonIdx, ep)
+                    : volumeStorageKey(uId, itemId, ep, categoria);
                 btn.classList.toggle('is-visto', !!UserStore.getItem(key));
             });
             updateProgressUi();
@@ -143,12 +192,14 @@ function wirePremiumDetailInteractions(root, item, categoria) {
         const infoBtn = event.target instanceof HTMLElement ? event.target.closest('button.btn-info-ep, button.btn-resumen') : null;
         if (!infoBtn) return;
 
-        const epNum = Number.parseInt(infoBtn.getAttribute('data-ep') || '', 10);
+        const rawNumber = infoBtn.getAttribute('data-vol') || infoBtn.getAttribute('data-ep') || '';
+        const epNum = Number.parseInt(rawNumber, 10);
         if (!Number.isFinite(epNum) || epNum <= 0) return;
 
         showEpisodeInfoModal(item, epNum, isAnime, categoria);
     });
 }
+
 async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
     const modal = document.getElementById('resumenModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -193,36 +244,14 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
                 synopsis = `Este episodio está disponible para ver oficialmente en ${site}. Podés reproducirlo haciendo clic en el enlace de streaming abajo.`;
             }
 
-            // --- Petición silenciosa a Jikan para obtener si el episodio es Canon o Relleno ---
-            let fillerLabel = 'No especificado (Canon probable)';
-            try {
-                const jRes = await fetch(`https://api.jikan.moe/v4/anime/${item.id}/episodes/${epNum}`);
-                if (jRes.ok) {
-                    const jPayload = await jRes.json();
-                    if (jPayload && jPayload.data) {
-                        const filler = jPayload.data.filler;
-                        fillerLabel = filler ? 'Relleno (Filler)' : 'Canon (Manga Adaptado)';
-                        
-                        // Si Jikan tiene una mejor sinopsis o título oficial, los usamos
-                        if (jPayload.data.title) {
-                            title = jPayload.data.title;
-                        }
-                        if (jPayload.data.synopsis) {
-                            synopsis = jPayload.data.synopsis;
-                        }
-                    }
-                }
-            } catch (err) {
-                console.warn("Fallo al verificar canon/relleno en Jikan:", err);
-            }
-
-            const fillerColor = fillerLabel.includes('Relleno') ? '#ff4757' : '#22c55e';
+            const fillerLabel = 'No especificado (Canon probable)';
+            const fillerColor = '#22c55e';
 
             html = `
                 <div class="modal-episode-info" style="display: flex; flex-direction: column; gap: 15px;">
                     ${thumbnail ? `
                         <div class="modal-episode-thumb" style="width: 100%; max-height: 220px; overflow: hidden; border-radius: 8px; border: 1px solid var(--accent-cyan); box-shadow: 0 4px 15px rgba(0, 242, 255, 0.25);">
-                            <img src="${escapeHtml(thumbnail)}" alt="${escapeHtml(title)}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="${safeUrl(thumbnail)}" alt="${escapeHtml(title)}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                     ` : ''}
                     <h3 style="color: var(--accent-cyan); margin: 0; font-size: 1.4rem; font-family: 'Orbitron', sans-serif;">${escapeHtml(title)}</h3>
@@ -236,21 +265,47 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
                         <p style="margin: 0; color: #ccc; line-height: 1.5; font-size: 0.95rem;">${escapeHtml(synopsis)}</p>
                     </div>
                     ${url ? `
-                        <a href="${escapeHtml(url)}" target="_blank" class="details-btn" style="text-align: center; margin-top: 10px; display: block; background: linear-gradient(90deg, #bc13fe, #00f2ff); border: none; color: white; padding: 12px; border-radius: 6px; font-weight: bold; text-decoration: none; box-shadow: 0 0 15px rgba(0, 242, 255, 0.35); text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease-in-out;">
+                        <a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer" class="details-btn" style="text-align: center; margin-top: 10px; display: block; background: linear-gradient(90deg, #bc13fe, #00f2ff); border: none; color: white; padding: 12px; border-radius: 6px; font-weight: bold; text-decoration: none; box-shadow: 0 0 15px rgba(0, 242, 255, 0.35); text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease-in-out;">
                             Reproducir en ${escapeHtml(site)} ↗
                         </a>
                     ` : ''}
                 </div>
             `;
         } else {
-            // Para mangas/novelas
-            const title = `${item.titulo || item.title || 'Manga'} - Volumen ${epNum}`;
+            const fallbackLabel = categoria === 'novelas' ? 'Novela' : 'Manga';
+            const fallbackArticle = categoria === 'novelas' ? 'esta novela' : 'este manga';
+            const title = `${item.titulo || item.title || fallbackLabel} - Volumen ${epNum}`;
             const chapters = item.chapters || 'No especificado';
             const typeLabel = categoria === 'novelas' ? 'Canon (Novela Original)' : 'Canon (Manga Original)';
-            const synopsis = `Contenido correspondiente al Volumen ${epNum} de ${item.titulo || item.title || 'este manga'}. Registrá tu lectura marcándolo en la cuadrícula principal.`;
+            const synopsis = `Contenido correspondiente al Volumen ${epNum} de ${item.titulo || item.title || fallbackArticle}. Registrá tu lectura marcándolo en la cuadrícula principal.`;
+
+            const isMangaDexUuid = (value) => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+            const hasMangaDexSource = isMangaDexUuid(item?.id) || isMangaDexUuid(item?.mangadex_id) || isMangaDexUuid(item?.mangaDexId);
+
+            let coverHtml = `
+                <div class="modal-volume-cover modal-volume-cover--empty" aria-hidden="true">
+                    <span>Portada del volumen no disponible</span>
+                </div>
+            `;
+
+            if (hasMangaDexSource && typeof window.resolveMangaDexCoverForVolume === 'function') {
+                try {
+                    const coverUrl = await window.resolveMangaDexCoverForVolume(item, epNum);
+                    if (coverUrl) {
+                        coverHtml = `
+                            <div class="modal-volume-cover">
+                                <img src="${safeUrl(coverUrl)}" alt="Portada Volumen ${epNum}">
+                            </div>
+                        `;
+                    }
+                } catch (cErr) {
+                    console.warn("No se pudo cargar la portada del volumen en MangaDex:", cErr);
+                }
+            }
 
             html = `
                 <div class="modal-volume-info" style="display: flex; flex-direction: column; gap: 15px;">
+                    ${coverHtml}
                     <h3 style="color: var(--accent-purple); margin: 0; font-size: 1.4rem; font-family: 'Orbitron', sans-serif;">${escapeHtml(title)}</h3>
                     <div class="modal-meta" style="font-size: 0.9rem; color: #aaa;">
                         <p style="margin: 4px 0;"><strong>Volumen:</strong> ${epNum}</p>
@@ -271,25 +326,68 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
         replaceChildrenWithTextElement(modalBody, 'p', 'Error al cargar la información. Intentá de nuevo.');
     }
 }
-async function cargarDetalleDesdeApi(id, categoria) {
-    const isNumericId = /^\d+$/.test(String(id || ''));
-    const apiCat = categoria === 'anime' ? 'anime' : 'manga';
-    if (!isNumericId || (categoria !== 'manga' && categoria !== 'anime' && categoria !== 'novelas')) return false;
-    const getById = apiCat === 'anime' ? window.getAnimeById : window.getMangaById;
+async function renderApiResult(item, apiCat) {
+    if (item) {
+        renderApiDetalle(item, apiCat);
+        return true;
+    }
+    return false;
+}
 
-    if (typeof getById !== 'function') return false;
+async function cargarDetalleDesdeApi(id, categoria) {
+    if (categoria !== 'manga' && categoria !== 'anime' && categoria !== 'novelas') return false;
 
     setDetailViewState('loading');
 
-    try {
-        const item = await getById(id);
-        if (item) {
-            renderApiDetalle(item, apiCat);
-            return true;
+    // Fase 1: AniList por ID numérico
+    const numId = Number(id);
+    if (Number.isFinite(numId)) {
+        const apiCat = categoria === 'anime' ? 'anime' : 'manga';
+        const getById = apiCat === 'anime' ? window.getAnimeById : window.getMangaById;
+        if (typeof getById === 'function') {
+            try {
+                const found = await getById(id);
+                if (found) return renderApiResult(found, categoria);
+            } catch (e) {
+                AnimeDestiny.reportError('anilist', 'Error al obtener detalle por ID', { id, categoria, error: String(e?.message ?? e) });
+            }
         }
-        return false;
-    } catch (error) {
-        console.warn('Detalle API falló:', error);
-        return false;
     }
+
+    // Fase 2: MangaDex por UUID (solo manga/novelas)
+    if ((categoria === 'manga' || categoria === 'novelas') && typeof window.getMangaDexById === 'function') {
+        try {
+            const found = await window.getMangaDexById(id);
+            if (found) return renderApiResult(found, categoria);
+        } catch (e) {
+            AnimeDestiny.reportError('mangadex', 'Error inesperado en getMangaDexById', { id, categoria, error: String(e?.message ?? e) });
+        }
+    }
+
+    return false;
 }
+
+function renderApiDetalle(item, apiCat) {
+    renderDetalle(item, item.title || item.titulo || '', apiCat);
+}
+
+(function initDetallePage() {
+    var params = getParams();
+    if (!params.id || !params.cat) {
+        setDetailViewState('error', 'Faltan par\u00E1metros', 'Us\u00E1 el cat\u00E1logo para elegir un t\u00EDtulo.');
+        return;
+    }
+
+    var localItem = findLocalDetailItem();
+    if (localItem) {
+        renderDetalle(localItem, params.nombre || '', params.cat);
+        return;
+    }
+
+    cargarDetalleDesdeApi(params.id, params.cat).then(function (found) {
+        if (!found) {
+            setDetailViewState('error', 'No encontrado', 'No se pudo encontrar el t\u00EDtulo en las APIs.');
+        }
+    });
+})();
+

@@ -2,12 +2,13 @@
     "use strict";
 
     function escapeHtml(value) {
-        return String(value ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
+        if (value == null) return "";
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     function stripTags(value) {
@@ -20,13 +21,34 @@
         return escapeHtml(stripTags(value)).trim();
     }
 
+    function safeUrl(value) {
+        if (!value) return "";
+        var url = String(value).trim();
+        // Permitir rutas relativas locales y data URIs de imagen usadas como fallback.
+        if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
+            return url;
+        }
+        try {
+            var parsed = new URL(url);
+            if (
+                parsed.protocol === "http:" ||
+                parsed.protocol === "https:" ||
+                (parsed.protocol === "data:" && /^data:image\//i.test(url))
+            ) {
+                return url;
+            }
+        } catch (_) { }
+        return "";
+    }
+
     window.AppSanitizer = Object.freeze({
         escapeHtml,
         stripTags,
-        sanitizeText
+        sanitizeText,
+        safeUrl
     });
 
-    if (typeof window.escapeHtml !== "function") {
-        window.escapeHtml = escapeHtml;
-    }
+    window.escapeHtml = escapeHtml;
+    window.safeUrl = safeUrl;
 })(window);
+

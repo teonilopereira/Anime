@@ -3,6 +3,27 @@
 // Render de tarjetas, progreso y carga de catálogo desde API
 // ==========================================
 
+const CATALOG_FLIP_ICON_SVG = '<svg class="catalog-flip-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>';
+
+var SKELETON_COUNT = AnimeDestiny.Constants.SKELETON_COUNT || 40;
+
+function renderSkeletonCards(container, count) {
+    if (!container) return;
+    const skeletonHTML = `
+        <div class="skeleton-card">
+            <div class="skeleton-card-shell">
+                <div class="skeleton-card-inner">
+                    <div class="skeleton-card-poster"></div>
+                    <div class="skeleton-card-bar">
+                        <div class="skeleton-card-bar-line"></div>
+                        <div class="skeleton-card-bar-icon"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    container.innerHTML = skeletonHTML.repeat(count);
+}
+
 function getApiPoster(item) {
     return item?.images?.webp?.large_image_url
         || item?.images?.jpg?.large_image_url
@@ -10,25 +31,6 @@ function getApiPoster(item) {
         || item?.images?.webp?.image_url
         || '';
 }
-
-
-window.changePage = async function(delta) {
-    const mainContainer = document.getElementById("main-container");
-    const categoria = document.body.getAttribute("data-page");
-    
-    // Si no estamos en anime o manga, no hacemos nada
-    if (!mainContainer || (categoria !== 'anime' && categoria !== 'manga' && categoria !== 'novelas')) return;
-
-    // Sumamos o restamos, asegurando que nunca baje de la página 1
-    currentPage = Math.max(1, currentPage + delta);
-    
-    // Actualizamos el numerito en el HTML
-    const pageNum = document.getElementById('page-num');
-    if (pageNum) pageNum.innerText = currentPage;
-
-    // Volvemos a pedir los datos a la API con la página nueva
-    await cargarCatalogoDesdeApi(categoria, mainContainer, currentPage);
-};
 
 
 function getApiCatalogInfo(categoria, item) {
@@ -63,10 +65,20 @@ function getApiGenresList(item) {
         ? item.themes.map((theme) => typeof theme === 'string' ? theme : theme?.name)
         : [];
 
+    if (item?.type) {
+        genres.push(item.type);
+    }
+
+    const seen = new Set();
     return [...genres, ...themes]
         .map((value) => String(value || '').trim())
         .filter(Boolean)
-        .filter((value, index, arr) => arr.findIndex((x) => normalizeCatalogGenre(x) === normalizeCatalogGenre(value)) === index);
+        .filter((value) => {
+            const norm = normalizeCatalogGenre(value);
+            if (seen.has(norm)) return false;
+            seen.add(norm);
+            return true;
+        });
 }
 
 
@@ -82,61 +94,99 @@ function getCatalogProgressPrefix(categoria) {
 
 function buildCatalogBackProgressHtml(categoria, total) {
     const prefix = getCatalogProgressPrefix(categoria);
+    const label = categoria === 'anime' ? 'capítulos' : 'volúmenes';
     const safeTotal = Number(total) > 0 ? Number(total) : 0;
     return `
-        <div class="card-back-progress-box" data-progress data-total="${safeTotal}" data-prefix="${prefix}" style="display:none">
-            <div class="card-back-progress-top" data-progress-label>${prefix} 0/${safeTotal}</div>
-            <div class="card-back-progress-row">
-                <div class="card-back-progress-track">
-                    <div class="card-progress-fill card-back-progress-fill" style="width:0%"></div>
+        <div class="card-back-progress-wrapper" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}" style="display:none">
+            <div class="card-back-progress-card">
+                <div class="card-back-progress-head" data-meta-text>
+                    ${prefix} 0/${safeTotal}
                 </div>
-                <span class="card-back-progress-pct" data-progress-pct>0%</span>
+                <div class="card-back-progress-row">
+                    <div class="card-back-progress-track">
+                        <div class="card-progress-fill card-back-progress-fill" style="width:0%"></div>
+                    </div>
+                    <div class="card-back-progress-pct" data-pct-only>0%</div>
+                </div>
             </div>
-        </div>
-        <div class="card-back-completion" data-completion-footer style="display:none">
-            <span class="card-back-hud-line" aria-hidden="true"></span>
-            <span class="card-back-completion-text" data-completion-text>0% VISTO</span>
-            <span class="card-back-hud-line" aria-hidden="true"></span>
+            <div class="card-back-footer-status">
+                <div class="footer-line"></div>
+                <span data-pct-text>0% VISTO</span>
+                <div class="footer-line"></div>
+            </div>
         </div>`;
 }
 
 
-function countAnimeEpisodesWatched(userId, animeId, totalEps) {
-    if (!totalEps) return 0;
-    let watched = 0;
-    for (let ep = 1; ep <= totalEps; ep++) {
-        let found = false;
-        for (let i = 0; i < UserStore.length; i++) {
-            const key = UserStore.key(i) || '';
-            if (!key.startsWith(`u:${userId}|anime:${animeId}|s:`) || !UserStore.getItem(key)) continue;
-            const m = key.match(/ep:(\d+)$/);
-            if (m && Number(m[1]) === ep) {
-                found = true;
-                break;
+// ─── In-memory progress index (built once per render, cleared on state change) ──
+// Maps "userId|prefix" → Map<itemId, Set<episodeNums>>
+var _progressIndex = null;
+var _progressIndexUser = null;
+
+function _buildProgressIndex(userId) {
+    if (_progressIndex && _progressIndexUser === userId) return _progressIndex;
+    // Scan UserStore once, partition by item type
+    var index = { anime: new Map(), manga: new Map(), novelas: new Map() };
+    try {
+        var keys = UserStore.keys();
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            if (!k || !k.startsWith('u:' + userId + '|')) continue;
+            if (!UserStore.getItem(k)) continue;
+
+            // Anime episodes: u:{uid}|anime:{id}|s:{s}|ep:{ep}
+            var aM = k.match(/\|anime:(\d+)\|s:\d+\|ep:(\d+)$/);
+            if (aM) {
+                var animeId = aM[1], ep = Number(aM[2]);
+                if (!index.anime.has(animeId)) index.anime.set(animeId, new Set());
+                index.anime.get(animeId).add(ep);
+                continue;
+            }
+            // Manga chapters/vols: u:{uid}|manga:{id}|ch:{n} or |vol:{n}
+            var mgM = k.match(/\|manga:(\d+)\|(?:ch|vol):(\d+)$/);
+            if (mgM) {
+                var mId = mgM[1], num = Number(mgM[2]);
+                if (!index.manga.has(mId)) index.manga.set(mId, new Set());
+                index.manga.get(mId).add(num);
+                continue;
+            }
+            // Novels: u:{uid}|novela:{id}|vol:{n}
+            var nvM = k.match(/\|novela:(\d+)\|vol:(\d+)$/);
+            if (nvM) {
+                var nvId = nvM[1], nvNum = Number(nvM[2]);
+                if (!index.novelas.has(nvId)) index.novelas.set(nvId, new Set());
+                index.novelas.get(nvId).add(nvNum);
             }
         }
-        if (found) watched += 1;
-    }
-    return watched;
+    } catch (_) {}
+    _progressIndex = index;
+    _progressIndexUser = userId;
+    return index;
+}
+
+// Invalidate index whenever a state changes
+window._invalidateProgressIndex = function() { _progressIndex = null; };
+
+function countAnimeEpisodesWatched(userId, animeId, totalEps) {
+    if (!totalEps) return 0;
+    var index = _buildProgressIndex(userId);
+    var eps = index.anime.get(String(animeId));
+    if (!eps) return 0;
+    var count = 0;
+    eps.forEach(function(ep) { if (ep <= totalEps) count++; });
+    return count;
 }
 
 
 function resolveCatalogProgress(userId, category, itemId, card) {
     const box = card.querySelector('[data-progress]');
     const dataTotal = Number(box?.getAttribute('data-total') || 0);
-    const prefix = box?.getAttribute('data-prefix') || getCatalogProgressPrefix(category);
+    const label = box?.getAttribute('data-label') || (category === 'anime' ? 'capítulos' : 'volúmenes');
 
     if (!dataTotal) {
         const legacyPct = getProgressPercentForItem(userId, category, itemId);
         if (legacyPct === null) return { show: false };
-        return {
-            show: true,
-            pct: legacyPct,
-            watched: 0,
-            total: 0,
-            prefix,
-            completionText: `${legacyPct}% VISTO`
-        };
+        return { show: true, pct: legacyPct, watched: 0, total: 0, label };
     }
 
     const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
@@ -144,25 +194,17 @@ function resolveCatalogProgress(userId, category, itemId, card) {
     if (category === 'anime') {
         watched = countAnimeEpisodesWatched(userId, itemId, dataTotal);
     } else if (category === 'manga' || category === 'novelas') {
-        for (let n = 1; n <= dataTotal; n++) {
-            if (UserStore.getItem(`u:${userId}|manga:${itemId}|ch:${n}`) ||
-                UserStore.getItem(`u:${userId}|manga:${itemId}|vol:${n}`)) {
-                watched += 1;
-            }
+        var index = _buildProgressIndex(userId);
+        var items = index[category]?.get(String(itemId));
+        if (items) {
+            items.forEach(function(num) { if (num <= dataTotal) watched++; });
         }
     }
 
     const pct = viewed ? 100 : Math.min(100, Math.round((watched / dataTotal) * 100));
     if (viewed) watched = dataTotal;
 
-    return {
-        show: true,
-        pct,
-        watched,
-        total: dataTotal,
-        prefix,
-        completionText: `${pct}% VISTO`
-    };
+    return { show: true, pct, watched, total: dataTotal, label };
 }
 
 
@@ -194,16 +236,18 @@ function buildCatalogCardHtml(options) {
     const flipId = `flip-${id}`;
     const safeId = escapeHtml(String(id));
     const detailBtn = showDetail
-        ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" onclick="rememberCatalogPosition()">DETALLE</a>`
+        ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">DETALLE</a>`
         : '';
     const statusHtml = status
         ? `<span class="card-back-status-badge">${escapeHtml(status)}</span>`
         : '';
     const genresAttr = genres ? ` data-genres="${escapeHtml(genres)}"` : '';
     const genresNormAttr = genresNorm ? ` data-genres-norm="${escapeHtml(genresNorm)}"` : '';
+    const totalAttr = progressTotal > 0 ? ` data-total="${progressTotal}"` : '';
 
+    var safeImg = safeUrl(image);
     return `
-    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(image)}" data-search-index="${escapeHtml(searchIndex)}"${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="catalog-card-shell">
             <div class="catalog-card-inner">
@@ -211,21 +255,18 @@ function buildCatalogCardHtml(options) {
                     <div class="card-inner">
                         <div class="card-front">
                             <div class="catalog-card-poster">
-                                <img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
+                                <img src="${escapeHtml(safeImg)}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
                             </div>
                         </div>
                         <div class="card-back card-back-neon">
                             <h2 class="card-back-title">${escapeHtml(title)}</h2>
-                            ${detailBtn}
-                            ${statusHtml}
-                            <label class="card-back-complete">
-                                <input class="card-complete-input" type="checkbox" onchange="toggleCardComplete(this, '${safeId}')">
-                                <span class="card-back-toggle-switch" aria-hidden="true"></span>
-                                <span class="card-back-toggle-label">Completado</span>
-                            </label>
+                            <div class="card-back-buttons-stack">
+                                ${detailBtn}
+                                ${statusHtml}
+                            </div>
                             <div class="card-back-actions">
-                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" onclick="toggleStatus(this, 'fav', '${safeId}')">❤</button>
-                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" onclick="toggleStatus(this, 'viewed', '${safeId}')">👁</button>
+                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">❤</button>
+                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">👁</button>
                             </div>
                             ${buildCatalogBackProgressHtml(categoria, progressTotal)}
                         </div>
@@ -243,7 +284,7 @@ function buildCatalogCardHtml(options) {
 }
 
 
-async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
+async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append = false) {
     const loaderLabel = categoria === 'anime'
         ? 'animes'
         : (categoria === 'novelas' ? 'novelas' : 'mangas');
@@ -253,132 +294,172 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1) {
 
     if (typeof getTopItems !== 'function') return false;
 
-    mainContainer.innerHTML = `
-        <section class="empty-state empty-state-inline">
-            <span class="empty-state-kicker">Cargando Página ${page}</span>
-            <h2>Buscando los 40 ${escapeHtml(loaderLabel)} principales...</h2>
-        </section>
-    `;
+    if (!append) {
+        renderSkeletonCards(mainContainer, SKELETON_COUNT);
+    }
+
+    // Read global filter state
+    const filters = window.__catalogFilters || {};
 
     try {
-        // AQUÍ le pasamos el número de página a tu api.js
-        const listaItems = await getTopItems(page);
-        const items = Array.isArray(listaItems) ? listaItems.slice(0, 40) : [];
+        const timeoutPromise = new Promise(function (_, reject) {
+            setTimeout(function () { reject(new Error('Timeout')); }, AnimeDestiny.Constants.API_TIMEOUT_MS || 15000);
+        });
+        const listaItems = await Promise.race([getTopItems(page, filters), timeoutPromise]);
+        const items = Array.isArray(listaItems) ? listaItems.slice(0, AnimeDestiny.Constants.PER_PAGE || 40) : [];
 
-        if (!items.length) {
-            const fallbackItems = Array.isArray(window.DATOS_WEB?.[categoria])
-                ? window.DATOS_WEB[categoria].slice(0, 40)
-                : [];
-
-            if (fallbackItems.length) {
-                return renderCatalogCardsFromLocalData(categoria, mainContainer, fallbackItems);
-            }
+        if (!append) {
+            window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = items.map((item) => ({
+                item: {
+                    id: item.id ?? item.mal_id,
+                    titulo: item.title,
+                    info: getApiCatalogInfo(categoria, item)
+                },
+                searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase()
+            }));
+        } else {
+            const existing = window.__catalogSearchItems || [];
+            const existingIds = new Set(existing.map(function (e) { return String(e.item.id); }));
+            const newItems = items.filter(function (item) { return !existingIds.has(String(item.id ?? item.mal_id)); });
+            newItems.forEach(function (item) {
+                existing.push({
+                    item: {
+                        id: item.id ?? item.mal_id,
+                        titulo: item.title,
+                        info: getApiCatalogInfo(categoria, item)
+                    },
+                    searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
+                        .filter(Boolean)
+                        .join(' ')
+                        .toLowerCase()
+                });
+            });
         }
 
-        window.__catalogSearchItems = items.map((item) => ({
-            item: {
-                id: item.mal_id,
-                titulo: item.title,
-                info: getApiCatalogInfo(categoria, item)
-            },
-            searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
-                .filter(Boolean)
-                .join(' ')
-                .toLowerCase()
-        }));
-
         if (!items.length) {
-            mainContainer.innerHTML = `
-                <section class="empty-state">
-                    <span class="empty-state-kicker">Sin resultados</span>
-                    <h2>La API no devolvio ${escapeHtml(loaderLabel)} para esta pagina.</h2>
-                    <p>Proba con otra pagina o usa el buscador.</p>
-                </section>
-            `;
+            if (!append) {
+                mainContainer.innerHTML = `
+                    <section class="empty-state">
+                        <span class="empty-state-kicker">Sin resultados</span>
+                        <h2>La API no devolvió ${escapeHtml(loaderLabel)} para esta página.</h2>
+                        <p>Posible límite de velocidad (rate limit). Esperá unos segundos y recargá.</p>
+                    </section>
+                `;
+            }
             return false;
         }
 
-        mainContainer.innerHTML = items.map((item) => {
-            const id = item.mal_id;
-            const title = item.title || 'Sin título';
+        var cardsHtml = items.map((item) => {
+            const id = item.id ?? item.mal_id;
+            const title = item.title || 'Sin t\u00EDtulo';
             const image = getApiPoster(item);
             const info = getApiCatalogInfo(categoria, item);
             const genres = getApiGenresList(item);
             const genresNorm = genres.map((genre) => normalizeCatalogGenre(genre)).join('|');
             const detailCat = categoria === 'novelas' ? 'novelas' : categoria;
-            const detailUrl = `detalle.html?cat=${encodeURIComponent(detailCat)}&id=${encodeURIComponent(id)}`;
-            const searchIndex = [title, item.title_english, info, item.synopsis, item.type, ...genres].filter(Boolean).join(' ').toLowerCase();
+            const detailUrl = 'detalle.html?cat=' + encodeURIComponent(detailCat) + '&id=' + encodeURIComponent(id);
+            const searchIndex = [title, item.title_english, info, item.synopsis, item.type].concat(genres).filter(Boolean).join(' ').toLowerCase();
 
             return buildCatalogCardHtml({
-                id,
-                title,
-                image,
-                detailUrl,
-                status: item.status || 'En emisión',
-                searchIndex,
+                id: id,
+                title: title,
+                image: image,
+                detailUrl: detailUrl,
+                status: item.status || 'En emisi\u00F3n',
+                searchIndex: searchIndex,
                 genres: genres.join('|'),
-                genresNorm,
+                genresNorm: genresNorm,
                 categoria: detailCat,
                 progressTotal: categoria === 'anime' ? (item.episodes || 0) : (item.volumes || item.chapters || 0),
-                imageExtraAttrs: ` data-title="${escapeHtml(title)}" onerror="fallbackCatalogImage(this)"`
+                imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
             });
         }).join('');
 
+        if (append) {
+            mainContainer.insertAdjacentHTML('beforeend', cardsHtml);
+        } else {
+            mainContainer.innerHTML = cardsHtml;
+        }
+
         cargarEstadosBotones();
-        inicializarBusquedaCatalogo();
-        inicializarGeneroWidgets();
-        return true;
-    } catch (error) {
+        if (!append) {
+            inicializarBusquedaCatalogo();
+            inicializarGeneroWidgets();
+        } else if (typeof window.__renderDropdownGenres === 'function') {
+            window.__renderDropdownGenres();
+        }
+        return items.length > 0;
+        } catch (error) {
         console.warn('Error cargando API:', error);
-        mainContainer.innerHTML = `
-            <section class="empty-state">
-                <span class="empty-state-kicker">API no disponible</span>
-                <h2>No se pudo cargar el catalogo de ${escapeHtml(loaderLabel)}.</h2>
-                <p>Revisa tu conexion y recarga la pagina.</p>
-            </section>
-        `;
+        if (!append) {
+            mainContainer.innerHTML = `
+                <section class="empty-state">
+                    <span class="empty-state-kicker">API no disponible</span>
+                    <h2>No se pudo cargar el catálogo de ${escapeHtml(loaderLabel)}.</h2>
+                    <p>Revisá tu conexión, esperá unos segundos y recargá la página.</p>
+                </section>
+            `;
+        }
         return false;
     }
 }
 
 
-function renderCatalogCardsFromLocalData(categoria, mainContainer, items) {
-    const list = items.map((item) => {
-        const id = item.id || item.item_id || item.mal_id || item.itemId || 0;
-        const title = item.titulo || item.title || item.name || 'Sin título';
-        const image = item.img || item.image || item.cover_image || '';
-        const genres = String(item.info || item.synopsis || '').split('/').map((genre) => genre.trim()).filter(Boolean);
-        const genresNorm = genres.map((genre) => normalizeCatalogGenre(genre)).join('|');
-        const detailUrl = `detalle.html?cat=${encodeURIComponent(categoria)}&id=${encodeURIComponent(id)}`;
-        const searchIndex = [title, item.title_english, item.info, item.synopsis, ...genres]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase();
-
-        return buildCatalogCardHtml({
-            id,
-            title,
-            image,
-            detailUrl,
-            status: item.status || '',
-            searchIndex,
-            genres: genres.join('|'),
-            genresNorm,
-            categoria,
-            progressTotal: Number(item.volumes || item.chapters || item.episodes || 0),
-            imageExtraAttrs: ` data-title="${escapeHtml(title)}" onerror="fallbackCatalogImage(this)"`
+function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append) {
+    var existingIds;
+    if (append) {
+        existingIds = new Set();
+        document.querySelectorAll('.catalog-neon-card[data-item-id]').forEach(function (el) {
+            existingIds.add(el.getAttribute('data-item-id'));
         });
+    }
+
+    var list = [];
+    items.forEach(function (item) {
+        var id = String(item.id || item.item_id || item.mal_id || item.itemId || 0);
+        if (append && existingIds.has(id)) return;
+        var title = item.titulo || item.title || item.name || 'Sin t\u00EDtulo';
+        var image = item.img || item.image || item.cover_image || '';
+        var genres = String(item.info || item.synopsis || '').split('/').map(function (g) { return g.trim(); }).filter(Boolean);
+        var genresNorm = genres.map(function (g) { return normalizeCatalogGenre(g); }).join('|');
+        var detailUrl = 'detalle.html?cat=' + encodeURIComponent(categoria) + '&id=' + encodeURIComponent(id);
+        var searchIndex = [title, item.title_english, item.info, item.synopsis].concat(genres).filter(Boolean).join(' ').toLowerCase();
+        list.push(buildCatalogCardHtml({
+            id: id,
+            title: title,
+            image: image,
+            detailUrl: detailUrl,
+            status: item.status || '',
+            searchIndex: searchIndex,
+            genres: genres.join('|'),
+            genresNorm: genresNorm,
+            categoria: categoria,
+            progressTotal: Number(item.volumes || item.chapters || item.episodes || 0),
+            imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
+        }));
     });
 
-    mainContainer.innerHTML = list.join('');
-    window.__catalogSearchItems = items.map((item) => ({
-        item,
-        searchIndex: buildSearchIndexForItem(categoria, item)
-    }));
+    if (append) {
+        mainContainer.insertAdjacentHTML('beforeend', list.join(''));
+    } else {
+        mainContainer.innerHTML = list.join('');
+        window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = items.map(function (item) {
+            return { item: item, searchIndex: buildSearchIndexForItem(categoria, item) };
+        });
+    }
 
     cargarEstadosBotones();
-    inicializarBusquedaCatalogo();
-    inicializarGeneroWidgets();
+    if (!append) {
+        inicializarBusquedaCatalogo();
+        inicializarGeneroWidgets();
+    } else if (typeof window.__renderDropdownGenres === 'function') {
+        window.__renderDropdownGenres();
+    }
     return true;
 }
+
+
 

@@ -1,116 +1,40 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Detalle de contenido en Anime Destiny: información completa, géneros y progreso por capítulos/volúmenes.">
-    <meta name="keywords" content="detalle, anime, manga, juegos, capítulos, volúmenes, franquicia">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Detalle de anime, manga o novela con progreso y resumen por capítulo o volumen.">
+    <meta name="keywords" content="detalle, anime, manga, novelas, capítulos, volúmenes, franquicia">
     <meta name="robots" content="index,follow">
-    <title>Detalle</title>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/destiny-navbar.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* ── Botón login en navbar ── */
-        .nav-login-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 18px;
-            min-height: 40px;
-            border: 1.5px solid rgba(168, 85, 247, 0.7);
-            border-radius: 999px;
-            background: linear-gradient(135deg, rgba(91, 33, 182, 0.35), rgba(168, 85, 247, 0.18));
-            color: #e2d9f3;
-            font-family: "Rajdhani", sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-decoration: none;
-            white-space: nowrap;
-            transition: all 0.22s ease;
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
-            flex-shrink: 0;
-        }
-        .nav-login-btn:hover {
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.35));
-            border-color: #c084fc;
-            color: #fff;
-            box-shadow: 0 0 22px rgba(168, 85, 247, 0.45);
-            transform: translateY(-1px);
-        }
-        .nav-login-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1.5px solid rgba(192, 132, 252, 0.7);
-            object-fit: cover;
-            background: linear-gradient(145deg, #1c1032, #7c3aed);
-            display: block;
-            flex-shrink: 0;
-        }
-        .nav-login-icon {
-            width: 18px;
-            height: 18px;
-            opacity: 0.9;
-        }
-        /* ── Círculo invitado (modo sin sesión) ── */
-        .nav-guest-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1.5px dashed rgba(148, 163, 184, 0.6);
-            background: rgba(30, 20, 50, 0.6);
-            color: rgba(148, 163, 184, 0.85);
-            font-family: "Rajdhani", sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: border-color 0.22s, color 0.22s;
-        }
-        .nav-login-btn:hover .nav-guest-avatar {
-            border-color: rgba(192, 132, 252, 0.7);
-            color: #c084fc;
-        }
-    </style>
+    <meta property="og:title" content="Anime Destiny | Detalle">
+    <meta property="og:description" content="Detalle de anime, manga o novela con progreso y resumen por capítulo o volumen.">
+    <meta name="twitter:title" content="Anime Destiny | Detalle">
+    <meta name="twitter:description" content="Detalle de anime, manga o novela con progreso y resumen por capítulo o volumen.">
+    <title>Anime Destiny | Detalle</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://animedestiny.netlify.app/detalle.html">
+    <meta property="og:site_name" content="Anime Destiny">
+    <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
+    <meta name="twitter:card" content="summary">
+
+        <link rel="stylesheet" href="css/bundle.css">
+
+    <link rel="stylesheet" href="css/detalle.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+
 </head>
 <body data-page="detalle">
     <nav class="navbar destiny-navbar">
-        <a class="nav-brand" href="index.html" aria-label="Anime Destiny">
-            <span class="nav-brand-mark"><img src="images/Logo.png" alt="Anime Destiny logo" aria-hidden="true"></span>
-            <span class="nav-brand-copy">
-                <span class="nav-brand-anime">Anime</span>
-                <span class="nav-brand-destiny">Destiny</span>
-                <span class="nav-brand-jp">&gt; アニメの運命 &lt;</span>
-            </span>
-        </a>
-        <div class="nav-links" aria-label="Navegación principal">
-            <a href="anime.html" class="nav-btn" data-nav-cat="anime"><span class="nav-icon" aria-hidden="true">🎬</span><span>Anime</span></a>
-            <a href="manga.html" class="nav-btn" data-nav-cat="manga"><span class="nav-icon" aria-hidden="true">📚</span><span>Manga</span></a>
-            <a href="novelas.html" class="nav-btn" data-nav-cat="novelas"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
-            <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
-        </div>
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
         <div class="nav-actions">
-            <!-- Botón login / avatar -->
-            <a id="nav-login-btn" href="Login.html" class="nav-login-btn" aria-label="Iniciar sesión">
-                <img id="nav-login-avatar" class="nav-login-avatar" src="" alt="" aria-hidden="true"
-                     style="display:none"
-                     onerror="this.style.display='none'; document.getElementById('nav-login-icon').style.display='block'">
-                <svg id="nav-login-icon" class="nav-login-icon" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-                <span id="nav-guest-avatar" class="nav-guest-avatar" aria-hidden="true">G</span>
-                <span id="nav-login-label">Ingresar</span>
-            </a>
+            <div id="nav-login-container"></div>
         </div>
     </nav>
 
@@ -153,29 +77,29 @@
                             <img src="" alt="" class="portada-img" id="detail-portada" loading="lazy">
                         </div>
                         <div class="obra-detalles-principales">
-                            <span class="tipo-obra" id="detail-tipo">📖 —</span>
-                            <h1 class="titulo-obra" id="detail-titulo">—</h1>
-                            <span class="estado-obra-badge" id="detail-estado-badge">✓ —</span>
+                            <span class="tipo-obra" id="detail-tipo">?? </span>
+                            <h1 class="titulo-obra" id="detail-titulo"></h1>
+                            <span class="estado-obra-badge" id="detail-estado-badge">? </span>
                             <div class="datos-clave-grid">
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">📖</span>
+                                    <span class="dato-icono" aria-hidden="true">??</span>
                                     <span class="dato-label" id="detail-stat-1-label">Capítulos</span>
-                                    <span class="dato-valor" id="detail-stat-1-valor">—</span>
+                                    <span class="dato-valor" id="detail-stat-1-valor"></span>
                                 </div>
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">📦</span>
+                                    <span class="dato-icono" aria-hidden="true">??</span>
                                     <span class="dato-label">Volúmenes</span>
-                                    <span class="dato-valor" id="detail-volumenes">—</span>
+                                    <span class="dato-valor" id="detail-volumenes"></span>
                                 </div>
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">✓</span>
+                                    <span class="dato-icono" aria-hidden="true">?</span>
                                     <span class="dato-label">Estado</span>
-                                    <span class="dato-valor" id="detail-estado">—</span>
+                                    <span class="dato-valor" id="detail-estado"></span>
                                 </div>
                                 <div class="dato-item">
-                                    <span class="dato-icono" aria-hidden="true">⭐</span>
+                                    <span class="dato-icono" aria-hidden="true">?</span>
                                     <span class="dato-label">Puntaje</span>
-                                    <span class="dato-valor" id="detail-puntaje">—</span>
+                                    <span class="dato-valor" id="detail-puntaje"></span>
                                 </div>
                             </div>
                         </div>
@@ -185,7 +109,7 @@
                 <section class="contenido-texto-section">
                     <div class="sinopsis-bloque">
                         <h3>SINOPSIS</h3>
-                        <p class="sinopsis-texto" id="detail-sinopsis">—</p>
+                        <p class="sinopsis-texto" id="detail-sinopsis"></p>
                         <a href="#" class="btn-ver-mas" id="detail-ver-mas">Ver más</a>
                     </div>
                     <div class="generos-bloque">
@@ -202,6 +126,7 @@
                             <span id="contador-vistos-texto">0/0 completados</span>
                         </span>
                     </div>
+                    <div class="season-tabs season-tabs-api" id="detail-season-tabs" hidden></div>
                     <div class="cuadrados-grid" id="detail-capitulos-grid"></div>
                     <p class="capitulos-empty" id="detail-capitulos-empty" hidden>Sin capítulos especificados en la API.</p>
                 </section>
@@ -218,9 +143,9 @@
                         </div>
                     </div>
                     <div class="acciones-der">
-                        <button class="btn-circular btn-compartir" type="button" aria-label="Compartir con conocidos o amigos" title="Compartir">🔗</button>
-                        <button class="btn-circular btn-favorito" type="button" aria-label="Agregar a favoritos">❤</button>
-                        <button class="btn-circular btn-visto-completo" type="button" aria-label="Marcar como visto">👁</button>
+                        <button class="btn-circular btn-compartir" type="button" aria-label="Compartir con conocidos o amigos" title="Compartir">??</button>
+                        <button class="btn-circular btn-favorito" type="button" aria-label="Agregar a favoritos">?</button>
+                        <button class="btn-circular btn-visto-completo" type="button" aria-label="Marcar como visto">??</button>
                     </div>
                 </section>
 
@@ -229,133 +154,35 @@
                 </div>
             </div>
 
-            <!-- Contenedor legacy (datos locales: juegos, novelas, etc.) -->
+            <!-- Contenedor legacy (datos locales: novelas, etc.) -->
             <div id="detail-local-layout" hidden></div>
         </div>
     </main>
 
-    <footer class="app-footer">
-        <div class="app-footer-inner">
-            <div class="app-footer-col">
-                <div class="app-footer-title">PROGRESO</div>
-                <p class="app-footer-text">Tocá los cuadrados (volúmenes/capítulos) para marcarlos en verde.</p>
-            </div>
-            <div class="app-footer-col">
-                <div class="app-footer-title">LISTAS</div>
-                <p class="app-footer-text">Usá ❤ y 👁 en las cards para armar tus listas.</p>
-            </div>
-            <div class="app-footer-col">
-                <div class="app-footer-title">REDES</div>
-                <div class="app-footer-social">
-                    <a class="app-footer-icon" href="#" aria-label="X">𝕏</a>
-                    <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
-                    <a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
-                </div>
-            </div>
-        </div>
-        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
-    </footer>
+    <div id="footer-container"></div>
 <div id="resumenModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="modalTitle">Información</h3>
-            <button class="modal-close-btn" type="button" onclick="document.getElementById('resumenModal').style.display='none'" aria-label="Cerrar modal">✕</button>
+            <button class="modal-close-btn" type="button" data-close-modal="resumen" aria-label="Cerrar modal">?</button>
         </div>
         <div id="modalBody" class="modal-body">Aquí aparecerá el resumen.</div>
         <div class="modal-footer">
-            <button class="modal-close-btn-footer" type="button" onclick="document.getElementById('resumenModal').style.display='none'">Cerrar</button>
+            <button class="modal-close-btn-footer" type="button" data-close-modal="resumen">Cerrar</button>
         </div>
     </div>
 </div>
     <script src="js/core/config.js"></script>
-    <script type="importmap">
-    {
-      "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      }
-    }
-    </script>
+    <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js"></script>
-    <script src="js/core/user-store.js" defer></script>
-    <script src="js/core/supabase-sync.js" defer></script>
-    <script src="js/core/auth.js" defer></script>
-    <script src="js/controllers/AuthController.js" defer></script>
-    <script src="js/controllers/UserController.js" defer></script>
-    <script src="js/core/storage.js" defer></script>
-    <script src="js/security/sanitizer.js" defer></script>
-    <script src="js/security/validator.js" defer></script>
-    <script src="js/utils.js" defer></script>
-    <script src="js/ui.js" defer></script>
-    <script src="js/datos.js" defer></script>
-    <script src="js/core/api.js" defer></script>
-    <script src="js/catalog/cards.js" defer></script>
-    <script src="js/catalog/search.js" defer></script>
-    <script src="js/script.js" defer></script>
-    <script src="js/detalle.js" defer></script>
+    <script src="js/core-bundle.js" defer></script>
+    <script src="js/core/mangadex-api.js" defer></script>
     <script src="js/detalle/data.js" defer></script>
     <script src="js/detalle/progress.js" defer></script>
     <script src="js/detalle/render.js" defer></script>
     <script src="js/detalle/interactions.js" defer></script>
-    <script defer>
-        // ── Botón login: actualizar según estado de sesión ──
-        document.addEventListener('DOMContentLoaded', function () {
-            function updateLoginBtn(user) {
-                const btn    = document.getElementById('nav-login-btn');
-                const avatar = document.getElementById('nav-login-avatar');
-                const icon   = document.getElementById('nav-login-icon');
-                const label  = document.getElementById('nav-login-label');
-                const guest  = document.getElementById('nav-guest-avatar');
-                if (!btn) return;
-
-                if (user) {
-                    const name = user.user_metadata?.username
-                        || user.user_metadata?.name
-                        || user.user_metadata?.full_name
-                        || (user.email ? user.email.split('@')[0] : '')
-                        || 'Usuario';
-                    const photoUrl = user.user_metadata?.avatar_url
-                        || user.user_metadata?.picture
-                        || '';
-
-                    label.textContent = name;
-                    btn.href = 'usuario.html';
-                    btn.setAttribute('aria-label', 'Ver perfil de ' + name);
-                    if (guest) guest.style.display = 'none';
-
-                    if (photoUrl) {
-                        avatar.src = photoUrl;
-                        avatar.alt = name;
-                        avatar.style.display = 'block';
-                        icon.style.display   = 'none';
-                    } else {
-                        avatar.style.display = 'none';
-                        icon.style.display   = 'block';
-                    }
-                } else {
-                    label.textContent = 'Ingresar';
-                    btn.href = 'Login.html';
-                    btn.setAttribute('aria-label', 'Iniciar sesión');
-                    avatar.style.display = 'none';
-                    icon.style.display   = 'none';
-                    if (guest) guest.style.display = 'flex';
-                }
-            }
-
-            function tryGetUser(retries) {
-                if (window.AppSupabase?.getCurrentUser) {
-                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
-                } else if (retries > 0) {
-                    setTimeout(function () { tryGetUser(retries - 1); }, 300);
-                }
-            }
-            tryGetUser(12);
-
-            window.addEventListener('supabase-auth-changed', function () {
-                if (window.AppSupabase?.getCurrentUser) {
-                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
-                }
-            });
-        });
-    </script>
 </body>
 </html>
+
+
+

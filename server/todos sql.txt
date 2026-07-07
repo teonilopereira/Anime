@@ -1,0 +1,1552 @@
+
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id           UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username     TEXT        NOT NULL,
+  display_name TEXT,
+  email        TEXT,
+  photo_url    TEXT,
+  provider     TEXT        NOT NULL DEFAULT 'google',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trg_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "profiles: read own"
+  ON public.profiles FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "profiles: upsert own"
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "profiles: update own"
+  ON public.profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+CREATE TABLE IF NOT EXISTS public.item_states (
+  user_id    UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category   TEXT        NOT NULL,   -- 'anime' | 'manga' | 'novelas' | 'juegos'
+  item_id    TEXT        NOT NULL,
+  fav        BOOLEAN     NOT NULL DEFAULT FALSE,
+  viewed     BOOLEAN     NOT NULL DEFAULT FALSE,
+  meta       JSONB       NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, category, item_id)
+);
+
+CREATE OR REPLACE TRIGGER trg_item_states_updated_at
+  BEFORE UPDATE ON public.item_states
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+ALTER TABLE public.item_states ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "item_states: read own"
+  ON public.item_states FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "item_states: insert own"
+  ON public.item_states FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "item_states: update own"
+  ON public.item_states FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "item_states: delete own"
+  ON public.item_states FOR DELETE
+  USING (auth.uid() = user_id);
+
+CREATE TABLE IF NOT EXISTS public.progress_keys (
+  user_id    UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category   TEXT        NOT NULL,
+  item_id    TEXT        NOT NULL,
+  pkey       TEXT        NOT NULL,
+  value      BOOLEAN     NOT NULL DEFAULT FALSE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, category, item_id, pkey)
+);
+
+CREATE OR REPLACE TRIGGER trg_progress_keys_updated_at
+  BEFORE UPDATE ON public.progress_keys
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+ALTER TABLE public.progress_keys ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "progress_keys: read own"
+  ON public.progress_keys FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "progress_keys: insert own"
+  ON public.progress_keys FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "progress_keys: update own"
+  ON public.progress_keys FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "progress_keys: delete own"
+  ON public.progress_keys FOR DELETE
+  USING (auth.uid() = user_id);
+-- 1. Crear la función que copiará los datos del usuario nuevo a profiles
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, display_name, provider, updated_at)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    coalesce(new.raw_app_meta_data->>'provider', 'email'),
+    now()
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- 2. Crear el Trigger que se activa CADA VEZ que se crea alguien en Authentication
+create or replace trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+-- 1. Limpiamos el trigger anterior para que no devuelva error
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.handle_new_user();
+
+-- 2. Creamos la función incluyendo ABSOLUTAMENTE TODAS las columnas de tu código
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, username, display_name, email, photo_url, provider, updated_at)
+  values (
+    new.id,
+    split_part(new.email, '@', 1), -- Genera el username automáticamente con el mail (Ej: "juan" de "juan@gmail.com")
+    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''),
+    coalesce(new.email, ''),
+    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture', ''),
+    coalesce(new.raw_app_meta_data->>'provider', 'email'),
+    now()
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- 3. Volvemos a activar el Trigger automático
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+-- ================================================================
+-- schema-supabase.sql
+-- Tablas necesarias en Supabase (PostgreSQL) para el proyecto
+-- Ejecutar en el SQL Editor de tu proyecto en supabase.com
+-- ================================================================
+-- ────────────────────────────────────────────────────────────────
+-- 1. PROFILES
+--    Almacena los datos del usuario sincronizados con auth.users.
+--    Se crea automáticamente al iniciar sesión con Google.
+-- ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id           UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username     TEXT        NOT NULL,
+  display_name TEXT,
+  email        TEXT,
+  photo_url    TEXT,
+  provider     TEXT        NOT NULL DEFAULT 'google',
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+-- Actualizar updated_at automáticamente
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+CREATE OR REPLACE TRIGGER trg_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+-- Row Level Security: cada usuario sólo accede a su propio perfil
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "profiles: read own"
+  ON public.profiles FOR SELECT
+  USING (auth.uid() = id);
+CREATE POLICY "profiles: upsert own"
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+CREATE POLICY "profiles: update own"
+  ON public.profiles FOR UPDATE
+  USING (auth.uid() = id);
+-- ────────────────────────────────────────────────────────────────
+-- 2. ITEM_STATES
+--    Guarda si un ítem (anime, manga, novela, juego) está marcado
+--    como favorito o como visto por el usuario.
+-- ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.item_states (
+  user_id    UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category   TEXT        NOT NULL,   -- 'anime' | 'manga' | 'novelas' | 'juegos'
+  item_id    TEXT        NOT NULL,
+  fav        BOOLEAN     NOT NULL DEFAULT FALSE,
+  viewed     BOOLEAN     NOT NULL DEFAULT FALSE,
+  meta       JSONB       NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, category, item_id)
+);
+-- Evitar que usuarios malintencionados saturen la base de datos con JSON gigantes
+ALTER TABLE public.item_states ADD CONSTRAINT meta_size_limit CHECK (octet_length(meta::text) < 5000);
+CREATE OR REPLACE TRIGGER trg_item_states_updated_at
+  BEFORE UPDATE ON public.item_states
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+ALTER TABLE public.item_states ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "item_states: read own"
+  ON public.item_states FOR SELECT
+  USING (auth.uid() = user_id);
+CREATE POLICY "item_states: insert own"
+  ON public.item_states FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "item_states: update own"
+  ON public.item_states FOR UPDATE
+  USING (auth.uid() = user_id);
+CREATE POLICY "item_states: delete own"
+  ON public.item_states FOR DELETE
+  USING (auth.uid() = user_id);
+-- ────────────────────────────────────────────────────────────────
+-- 3. PROGRESS_KEYS
+--    Registra el progreso a nivel de episodio o capítulo.
+--    Cada fila representa una "clave de progreso" marcada como
+--    vista (value = true) o no vista (se elimina la fila).
+--
+--    Formato de pkey (ejemplos):
+--      's:1|ep:3'   → Temporada 1, Episodio 3 (anime)
+--      'ch:12'      → Capítulo 12 (manga)
+--      'vol:2'      → Volumen 2 (manga)
+-- ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.progress_keys (
+  user_id    UUID        NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category   TEXT        NOT NULL,
+  item_id    TEXT        NOT NULL,
+  pkey       TEXT        NOT NULL,
+  value      BOOLEAN     NOT NULL DEFAULT FALSE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, category, item_id, pkey)
+);
+CREATE OR REPLACE TRIGGER trg_progress_keys_updated_at
+  BEFORE UPDATE ON public.progress_keys
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+ALTER TABLE public.progress_keys ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "progress_keys: read own"
+  ON public.progress_keys FOR SELECT
+  USING (auth.uid() = user_id);
+CREATE POLICY "progress_keys: insert own"
+  ON public.progress_keys FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "progress_keys: update own"
+  ON public.progress_keys FOR UPDATE
+  USING (auth.uid() = user_id);
+CREATE POLICY "progress_keys: delete own"
+  ON public.progress_keys FOR DELETE
+  USING (auth.uid() = user_id);
+-- ────────────────────────────────────────────────────────────────
+-- 4. AUTOMATIC PROFILE CREATION TRIGGER
+--    Crea automáticamente un perfil en public.profiles cuando un
+--    usuario se registra en auth.users (vía Email o Google).
+--    Ejecutar esto en el SQL Editor de Supabase.
+-- ────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+  username_val TEXT;
+  display_name_val TEXT;
+  provider_val TEXT;
+  photo_url_val TEXT;
+BEGIN
+  -- Obtener el nombre de usuario desde los metadatos o fallback a email
+  username_val := COALESCE(
+    NEW.raw_user_meta_data->>'username',
+    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'name',
+    split_part(NEW.email, '@', 1)
+  );
+  display_name_val := COALESCE(
+    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'name',
+    username_val
+  );
+  photo_url_val := COALESCE(
+    NEW.raw_user_meta_data->>'avatar_url',
+    NEW.raw_user_meta_data->>'picture',
+    ''
+  );
+  -- Determinar el proveedor
+  IF NEW.raw_app_meta_data->>'provider' IS NOT NULL THEN
+    provider_val := NEW.raw_app_meta_data->>'provider';
+  ELSE
+    provider_val := 'email';
+  END IF;
+  INSERT INTO public.profiles (id, username, display_name, email, photo_url, provider)
+  VALUES (
+    NEW.id,
+    username_val,
+    display_name_val,
+    NEW.email,
+    photo_url_val,
+    provider_val
+  )
+  ON CONFLICT (id) DO UPDATE
+  SET
+    username = EXCLUDED.username,
+    display_name = EXCLUDED.display_name,
+    email = EXCLUDED.email,
+    photo_url = EXCLUDED.photo_url,
+    provider = EXCLUDED.provider,
+    updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Trigger asociado
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+-- Solo esto necesitas ejecutar en Supabase
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS level INT DEFAULT 1,
+ADD COLUMN IF NOT EXISTS exp INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_likes INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_viewed INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS updated_stats_at TIMESTAMP DEFAULT NOW();
+
+-- Trigger para contar me gusta automáticamente
+CREATE OR REPLACE FUNCTION update_user_stats_on_item_change()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_total_likes INT;
+  v_total_viewed INT;
+BEGIN
+  SELECT COUNT(*) INTO v_total_likes
+  FROM item_states
+  WHERE user_id = NEW.user_id AND fav = true;
+
+  SELECT COUNT(*) INTO v_total_viewed
+  FROM item_states
+  WHERE user_id = NEW.user_id AND viewed = true;
+
+  UPDATE profiles
+  SET total_likes = v_total_likes, total_viewed = v_total_viewed, updated_stats_at = NOW()
+  WHERE id = NEW.user_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_user_stats_trigger
+AFTER INSERT OR UPDATE ON item_states
+FOR EACH ROW
+EXECUTE FUNCTION update_user_stats_on_item_change();
+-- ============================================================
+-- MIGRATION: Agregar estadísticas de usuario y tabla de progreso
+-- ============================================================
+-- Esta migración combina:
+-- 1. Campos en 'profiles' para nivel, exp, likes, vistos
+-- 2. Tabla 'user_progress' para estadísticas consolidadas
+-- 3. Triggers automáticos para sincronizar progress_keys con user_progress
+
+-- ────────────────────────────────────────────────────────────
+-- 1. ACTUALIZAR tabla 'profiles' con campos de estadísticas
+-- ────────────────────────────────────────────────────────────
+-- ────────────────────────────────────────────────────────────
+-- 2. CREAR tabla 'user_progress' para progreso consolidado
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS user_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    category TEXT NOT NULL CHECK (category IN ('anime', 'manga', 'novelas', 'juegos')),
+    item_id TEXT NOT NULL,
+    episodes_viewed INT DEFAULT 0,
+    chapters_viewed INT DEFAULT 0,
+    volumes_viewed INT DEFAULT 0,
+    total_episodes INT,
+    total_chapters INT,
+    total_volumes INT,
+    progress_percentage FLOAT DEFAULT 0 CHECK (progress_percentage >= 0 AND progress_percentage <= 100),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, category, item_id)
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 3. CREAR tabla 'user_activity_log' para auditoría
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS user_activity_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    category TEXT,
+    item_id TEXT,
+    value INT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 4. CREAR índices para mejor performance
+-- ────────────────────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_category ON user_progress(user_id, category);
+CREATE INDEX IF NOT EXISTS idx_user_activity_user_id ON user_activity_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_activity_created_at ON user_activity_log(created_at DESC);
+
+-- ────────────────────────────────────────────────────────────
+-- 5. HABILITAR RLS en las nuevas tablas
+-- ────────────────────────────────────────────────────────────
+ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_activity_log ENABLE ROW LEVEL SECURITY;
+
+-- ────────────────────────────────────────────────────────────
+-- 6. CREAR políticas RLS para 'user_progress'
+-- ────────────────────────────────────────────────────────────
+CREATE POLICY "Users can view their own progress"
+  ON user_progress FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own progress"
+  ON user_progress FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own progress"
+  ON user_progress FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own progress"
+  ON user_progress FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- ────────────────────────────────────────────────────────────
+-- 7. CREAR políticas RLS para 'user_activity_log'
+-- ────────────────────────────────────────────────────────────
+CREATE POLICY "Users can view their own activity"
+  ON user_activity_log FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own activity"
+  ON user_activity_log FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- ────────────────────────────────────────────────────────────
+-- 8. FUNCIÓN: Actualizar timestamp en 'profiles'
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION update_profiles_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_profiles_timestamp_trigger ON profiles;
+CREATE TRIGGER update_profiles_timestamp_trigger
+BEFORE UPDATE ON profiles
+FOR EACH ROW
+EXECUTE FUNCTION update_profiles_timestamp();
+
+-- ────────────────────────────────────────────────────────────
+-- 9. FUNCIÓN: Actualizar contadores en 'profiles' desde 'item_states'
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION update_user_stats_on_item_change()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_total_likes INT;
+  v_total_viewed INT;
+BEGIN
+  -- Contar me gusta
+  SELECT COUNT(*) INTO v_total_likes
+  FROM item_states
+  WHERE user_id = NEW.user_id AND fav = true;
+
+  -- Contar vistos
+  SELECT COUNT(*) INTO v_total_viewed
+  FROM item_states
+  WHERE user_id = NEW.user_id AND viewed = true;
+
+  -- Actualizar profiles
+  UPDATE profiles
+  SET total_likes = v_total_likes, total_viewed = v_total_viewed, updated_stats_at = NOW()
+  WHERE id = NEW.user_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_user_stats_trigger ON item_states;
+CREATE TRIGGER update_user_stats_trigger
+AFTER INSERT OR UPDATE ON item_states
+FOR EACH ROW
+EXECUTE FUNCTION update_user_stats_on_item_change();
+
+-- ────────────────────────────────────────────────────────────
+-- 10. FUNCIÓN: Sincronizar progress_keys con user_progress
+-- ────────────────────────────────────────────────────────────
+-- Esta función se ejecuta cada vez que se actualiza progress_keys
+-- y actualiza automáticamente user_progress con el resumen
+CREATE OR REPLACE FUNCTION sync_progress_keys_to_user_progress()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_count INT;
+  v_total INT;
+  v_percentage FLOAT;
+BEGIN
+  -- Contar cuántos pkey=true hay
+  SELECT COUNT(*) INTO v_count
+  FROM progress_keys
+  WHERE user_id = NEW.user_id 
+    AND category = NEW.category 
+    AND item_id = NEW.item_id 
+    AND value = true;
+
+  -- Determinar el total basado en la categoría
+  -- (Esto es aproximado, idealmente obtendrías esto de la API)
+  v_total := v_count;
+  
+  -- Si no hay registros completados, asignar 0%
+  IF v_count = 0 THEN
+    v_percentage := 0;
+  ELSE
+    -- Calcular porcentaje (asumiendo que contamos los completados)
+    v_percentage := (v_count::FLOAT / NULLIF(v_total, 0)) * 100;
+  END IF;
+
+  -- Upsert en user_progress
+  INSERT INTO user_progress (
+    user_id, category, item_id, 
+    episodes_viewed, progress_percentage, updated_at
+  )
+  VALUES (
+    NEW.user_id, NEW.category, NEW.item_id,
+    v_count, v_percentage, NOW()
+  )
+  ON CONFLICT (user_id, category, item_id) 
+  DO UPDATE SET 
+    episodes_viewed = v_count,
+    progress_percentage = v_percentage,
+    updated_at = NOW();
+
+  -- Registrar en activity log
+  INSERT INTO user_activity_log (user_id, action, category, item_id, value, created_at)
+  VALUES (NEW.user_id, 'progress_updated', NEW.category, NEW.item_id, v_count, NOW());
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS sync_progress_keys_trigger ON progress_keys;
+CREATE TRIGGER sync_progress_keys_trigger
+AFTER INSERT OR UPDATE ON progress_keys
+FOR EACH ROW
+EXECUTE FUNCTION sync_progress_keys_to_user_progress();
+
+-- ────────────────────────────────────────────────────────────
+-- 11. FUNCIÓN: Sincronizar item_states con activity log
+-- ────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION log_item_state_activity()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Registrar cambios en item_states
+  INSERT INTO user_activity_log (user_id, action, category, item_id, created_at)
+  VALUES (
+    NEW.user_id,
+    CASE 
+      WHEN NEW.fav = true THEN 'liked'
+      WHEN NEW.viewed = true THEN 'viewed'
+      ELSE 'item_state_changed'
+    END,
+    NEW.category,
+    NEW.item_id,
+    NOW()
+  );
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS log_item_state_activity_trigger ON item_states;
+CREATE TRIGGER log_item_state_activity_trigger
+AFTER INSERT OR UPDATE ON item_states
+FOR EACH ROW
+EXECUTE FUNCTION log_item_state_activity();
+
+-- ────────────────────────────────────────────────────────────
+-- 12. COMENTARIOS DOCUMENTALES
+-- ────────────────────────────────────────────────────────────
+COMMENT ON TABLE user_progress IS 'Consolidado de progreso: episodios/capítulos/volúmenes vistos por item';
+COMMENT ON TABLE user_activity_log IS 'Log de auditoría de actividades (me gusta, visto, progreso)';
+COMMENT ON COLUMN profiles.level IS 'Nivel del usuario (1-100)';
+COMMENT ON COLUMN profiles.exp IS 'Experiencia acumulada del usuario';
+COMMENT ON COLUMN profiles.total_likes IS 'Total de ítems marcados como me gusta';
+COMMENT ON COLUMN profiles.total_viewed IS 'Total de ítems marcados como visto';
+COMMENT ON COLUMN user_progress.progress_percentage IS 'Porcentaje de progreso (0-100)';
+
+-- ════════════════════════════════════════════════════════════
+-- FIN DE LA MIGRACIÓN
+-- ════════════════════════════════════════════════════════════
+-- ============================================================
+-- FIX: separar progreso consolidado por episodios/capitulos/volumenes
+-- ============================================================
+-- Ejecutar en el SQL Editor de Supabase despues de crear las tablas base.
+-- Corrige el trigger anterior para que progress_keys actualice user_progress
+-- usando la columna correcta segun category y pkey.
+
+ALTER TABLE public.user_progress
+ADD COLUMN IF NOT EXISTS episodes_viewed INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS chapters_viewed INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS volumes_viewed INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_episodes INT,
+ADD COLUMN IF NOT EXISTS total_chapters INT,
+ADD COLUMN IF NOT EXISTS total_volumes INT,
+ADD COLUMN IF NOT EXISTS progress_percentage FLOAT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+
+CREATE OR REPLACE FUNCTION public.rebuild_user_progress_row(
+  p_user_id UUID,
+  p_category TEXT,
+  p_item_id TEXT
+)
+RETURNS VOID AS $$
+DECLARE
+  v_episodes INT := 0;
+  v_chapters INT := 0;
+  v_volumes INT := 0;
+  v_total_episodes INT;
+  v_total_chapters INT;
+  v_total_volumes INT;
+  v_total INT := 0;
+  v_done INT := 0;
+  v_percentage FLOAT := 0;
+BEGIN
+  SELECT COUNT(*) INTO v_episodes
+  FROM public.progress_keys
+  WHERE user_id = p_user_id
+    AND category = p_category
+    AND item_id = p_item_id
+    AND value = true
+    AND pkey ~ '^s:[0-9]+\|ep:[0-9]+$';
+
+  SELECT COUNT(*) INTO v_chapters
+  FROM public.progress_keys
+  WHERE user_id = p_user_id
+    AND category = p_category
+    AND item_id = p_item_id
+    AND value = true
+    AND pkey ~ '^ch:[0-9]+$';
+
+  SELECT COUNT(*) INTO v_volumes
+  FROM public.progress_keys
+  WHERE user_id = p_user_id
+    AND category = p_category
+    AND item_id = p_item_id
+    AND value = true
+    AND pkey ~ '^vol:[0-9]+$';
+
+  SELECT total_episodes, total_chapters, total_volumes
+  INTO v_total_episodes, v_total_chapters, v_total_volumes
+  FROM public.user_progress
+  WHERE user_id = p_user_id
+    AND category = p_category
+    AND item_id = p_item_id;
+
+  IF p_category = 'anime' THEN
+    v_done := v_episodes;
+    v_total := COALESCE(v_total_episodes, 0);
+  ELSIF p_category IN ('manga', 'novelas') THEN
+    IF v_volumes > 0 THEN
+      v_done := v_volumes;
+      v_total := COALESCE(v_total_volumes, 0);
+    ELSE
+      v_done := v_chapters;
+      v_total := COALESCE(v_total_chapters, 0);
+    END IF;
+  ELSE
+    v_done := GREATEST(v_episodes, v_chapters, v_volumes);
+    v_total := 0;
+  END IF;
+
+  IF v_total > 0 THEN
+    v_percentage := LEAST(100, ROUND(((v_done::NUMERIC / v_total::NUMERIC) * 100), 2)::FLOAT);
+  ELSE
+    v_percentage := 0;
+  END IF;
+
+  IF v_episodes = 0 AND v_chapters = 0 AND v_volumes = 0 THEN
+    DELETE FROM public.user_progress
+    WHERE user_id = p_user_id
+      AND category = p_category
+      AND item_id = p_item_id;
+    RETURN;
+  END IF;
+
+  INSERT INTO public.user_progress (
+    user_id,
+    category,
+    item_id,
+    episodes_viewed,
+    chapters_viewed,
+    volumes_viewed,
+    total_episodes,
+    total_chapters,
+    total_volumes,
+    progress_percentage,
+    updated_at
+  )
+  VALUES (
+    p_user_id,
+    p_category,
+    p_item_id,
+    v_episodes,
+    v_chapters,
+    v_volumes,
+    v_total_episodes,
+    v_total_chapters,
+    v_total_volumes,
+    v_percentage,
+    NOW()
+  )
+  ON CONFLICT (user_id, category, item_id)
+  DO UPDATE SET
+    episodes_viewed = EXCLUDED.episodes_viewed,
+    chapters_viewed = EXCLUDED.chapters_viewed,
+    volumes_viewed = EXCLUDED.volumes_viewed,
+    total_episodes = COALESCE(public.user_progress.total_episodes, EXCLUDED.total_episodes),
+    total_chapters = COALESCE(public.user_progress.total_chapters, EXCLUDED.total_chapters),
+    total_volumes = COALESCE(public.user_progress.total_volumes, EXCLUDED.total_volumes),
+    progress_percentage = EXCLUDED.progress_percentage,
+    updated_at = NOW();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.sync_progress_keys_to_user_progress()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id UUID;
+  v_category TEXT;
+  v_item_id TEXT;
+  v_value INT;
+BEGIN
+  v_user_id := COALESCE(NEW.user_id, OLD.user_id);
+  v_category := COALESCE(NEW.category, OLD.category);
+  v_item_id := COALESCE(NEW.item_id, OLD.item_id);
+
+  PERFORM public.rebuild_user_progress_row(v_user_id, v_category, v_item_id);
+
+  SELECT COALESCE(
+    CASE
+      WHEN v_category = 'anime' THEN episodes_viewed
+      WHEN v_category IN ('manga', 'novelas') THEN GREATEST(chapters_viewed, volumes_viewed)
+      ELSE GREATEST(episodes_viewed, chapters_viewed, volumes_viewed)
+    END,
+    0
+  )
+  INTO v_value
+  FROM public.user_progress
+  WHERE user_id = v_user_id
+    AND category = v_category
+    AND item_id = v_item_id;
+
+  INSERT INTO public.user_activity_log (user_id, action, category, item_id, value, created_at)
+  VALUES (v_user_id, 'progress_updated', v_category, v_item_id, COALESCE(v_value, 0), NOW());
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS sync_progress_keys_trigger ON public.progress_keys;
+CREATE TRIGGER sync_progress_keys_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.progress_keys
+FOR EACH ROW
+EXECUTE FUNCTION public.sync_progress_keys_to_user_progress();
+
+-- Backfill: recalcula user_progress para lo que ya existe en progress_keys.
+WITH distinct_progress AS (
+  SELECT DISTINCT user_id, category, item_id
+  FROM public.progress_keys
+)
+SELECT public.rebuild_user_progress_row(user_id, category, item_id)
+FROM distinct_progress;
+ALTER TABLE public.item_states ADD CONSTRAINT meta_size_limit CHECK (octet_length(meta::text) < 5000);
+CREATE TRIGGER update_user_stats_trigger
+AFTER INSERT OR UPDATE ON item_states
+-- 1. Ampliamos el límite del JSON para que no rechace animes con sinopsis largas
+ALTER TABLE public.item_states DROP CONSTRAINT IF EXISTS meta_size_limit;
+ALTER TABLE public.item_states ADD CONSTRAINT meta_size_limit CHECK (octet_length(meta::text) < 15000);
+
+-- 2. Arreglamos el Trigger de estadísticas para que reste al hacer DELETE
+CREATE OR REPLACE FUNCTION update_user_stats_on_item_change()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_total_likes INT;
+  v_total_viewed INT;
+  v_user_id UUID;
+BEGIN
+  -- Usamos COALESCE para soportar tanto INSERT como DELETE
+  v_user_id := COALESCE(NEW.user_id, OLD.user_id);
+
+  SELECT COUNT(*) INTO v_total_likes
+  FROM item_states
+  WHERE user_id = v_user_id AND fav = true;
+
+  SELECT COUNT(*) INTO v_total_viewed
+  FROM item_states
+  WHERE user_id = v_user_id AND viewed = true;
+
+  UPDATE profiles
+  SET total_likes = v_total_likes, total_viewed = v_total_viewed, updated_stats_at = NOW()
+  WHERE id = v_user_id;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_user_stats_trigger ON item_states;
+CREATE TRIGGER update_user_stats_trigger
+AFTER INSERT OR UPDATE OR DELETE ON item_states
+FOR EACH ROW
+EXECUTE FUNCTION update_user_stats_on_item_change();
+
+-- 3. Arreglamos el Trigger de actividad para registrar cuando se quita un item
+CREATE OR REPLACE FUNCTION log_item_state_activity()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id UUID;
+  v_category TEXT;
+  v_item_id TEXT;
+  v_action TEXT;
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    v_user_id := OLD.user_id;
+    v_category := OLD.category;
+    v_item_id := OLD.item_id;
+    v_action := 'removed';
+  ELSE
+    v_user_id := NEW.user_id;
+    v_category := NEW.category;
+    v_item_id := NEW.item_id;
+    v_action := CASE 
+      WHEN NEW.fav = true THEN 'liked'
+      WHEN NEW.viewed = true THEN 'viewed'
+      ELSE 'item_state_changed'
+    END;
+  END IF;
+
+  INSERT INTO user_activity_log (user_id, action, category, item_id, created_at)
+  VALUES (v_user_id, v_action, v_category, v_item_id, NOW());
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS log_item_state_activity_trigger ON item_states;
+CREATE TRIGGER log_item_state_activity_trigger
+AFTER INSERT OR UPDATE OR DELETE ON item_states
+FOR EACH ROW
+EXECUTE FUNCTION log_item_state_activity();
+-- 1. Política de lectura pública en profiles
+CREATE POLICY "profiles: read public"
+  ON profiles FOR SELECT USING (true);
+
+-- 2. Función para sumar XP (la llama el JS)
+CREATE OR REPLACE FUNCTION add_user_exp(p_user_id UUID, p_delta INT)
+RETURNS void AS $$
+DECLARE
+  v_new_exp INT;
+  v_new_level INT;
+BEGIN
+  UPDATE profiles
+  SET exp = GREATEST(0, exp + p_delta)
+  WHERE id = p_user_id
+  RETURNING exp INTO v_new_exp;
+
+  -- Calcular nivel (misma lógica que el JS)
+  v_new_level := 1;
+  DECLARE need INT := 100; remaining INT := v_new_exp;
+  WHILE remaining >= need AND v_new_level < 50 LOOP
+    remaining := remaining - need;
+    v_new_level := v_new_level + 1;
+    need := FLOOR(need * 1.2);
+  END LOOP;
+
+  UPDATE profiles SET level = v_new_level WHERE id = p_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 3. Loguear fav/viewed en activity_log
+CREATE OR REPLACE FUNCTION log_item_state_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.fav AND (TG_OP = 'INSERT' OR NOT OLD.fav) THEN
+    INSERT INTO user_activity_log(user_id, action, category, item_id)
+    VALUES (NEW.user_id, 'fav_added', NEW.category, NEW.item_id);
+  END IF;
+  IF NEW.viewed AND (TG_OP = 'INSERT' OR NOT OLD.viewed) THEN
+    INSERT INTO user_activity_log(user_id, action, category, item_id)
+    VALUES (NEW.user_id, 'viewed_added', NEW.category, NEW.item_id);
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_log_item_states
+  AFTER INSERT OR UPDATE ON item_states
+  FOR EACH ROW EXECUTE FUNCTION log_item_state_change();
+-- ================================================================
+-- schema-supabase-fix.sql
+-- Script de limpieza y corrección COMPLETO para Anime Destiny
+--
+-- INSTRUCCIONES:
+--   1. Abrí el SQL Editor en supabase.com → tu proyecto
+--   2. Pegá TODO este script de una sola vez
+--   3. Ejecutá (Run)
+--   No hace falta borrar datos — solo corrige funciones,
+--   triggers y constraints sin tocar las filas existentes.
+-- ================================================================
+
+
+-- ================================================================
+-- PASO 1: LIMPIAR TODOS LOS TRIGGERS DUPLICADOS
+-- Eliminamos todo lo que puede estar pisado antes de recrearlo.
+-- ================================================================
+
+DROP TRIGGER IF EXISTS trg_profiles_updated_at          ON public.profiles;
+DROP TRIGGER IF EXISTS update_profiles_timestamp_trigger ON public.profiles;
+DROP TRIGGER IF EXISTS on_auth_user_created              ON auth.users;
+
+DROP TRIGGER IF EXISTS trg_item_states_updated_at        ON public.item_states;
+DROP TRIGGER IF EXISTS update_user_stats_trigger         ON public.item_states;
+DROP TRIGGER IF EXISTS log_item_state_activity_trigger   ON public.item_states;
+DROP TRIGGER IF EXISTS log_item_state_change             ON public.item_states; -- nombre viejo
+DROP TRIGGER IF EXISTS trg_log_item_states               ON public.item_states;
+
+DROP TRIGGER IF EXISTS trg_progress_keys_updated_at      ON public.progress_keys;
+DROP TRIGGER IF EXISTS sync_progress_keys_trigger        ON public.progress_keys;
+
+
+-- ================================================================
+-- PASO 2: LIMPIAR TODAS LAS FUNCIONES DUPLICADAS
+-- ================================================================
+
+DROP FUNCTION IF EXISTS public.set_updated_at()                       CASCADE;
+DROP FUNCTION IF EXISTS public.update_profiles_timestamp()            CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_user()                      CASCADE;
+DROP FUNCTION IF EXISTS public.update_user_stats_on_item_change()     CASCADE;
+DROP FUNCTION IF EXISTS public.log_item_state_activity()              CASCADE;
+DROP FUNCTION IF EXISTS public.log_item_state_change()                CASCADE;
+DROP FUNCTION IF EXISTS public.sync_progress_keys_to_user_progress()  CASCADE;
+DROP FUNCTION IF EXISTS public.rebuild_user_progress_row(UUID, TEXT, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS public.add_user_exp(UUID, INT)                CASCADE;
+
+
+-- ================================================================
+-- PASO 3: CORREGIR CONSTRAINT DE TAMAÑO EN item_states
+-- Aseguramos que quede en 15000 bytes (soporta sinopsis largas de Jikan).
+-- ================================================================
+
+ALTER TABLE public.item_states DROP CONSTRAINT IF EXISTS meta_size_limit;
+ALTER TABLE public.item_states
+  ADD CONSTRAINT meta_size_limit
+  CHECK (octet_length(meta::text) < 15000);
+
+
+-- ================================================================
+-- PASO 4: AGREGAR COLUMNAS FALTANTES EN profiles (si no existen)
+-- ================================================================
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS level            INT         NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS exp              INT         NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_likes      INT         NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_viewed     INT         NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS updated_stats_at TIMESTAMPTZ          DEFAULT NOW();
+
+
+-- ================================================================
+-- PASO 5: RECREAR FUNCIÓN set_updated_at (una sola, limpia)
+-- Usada por todos los triggers de timestamp.
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+-- ================================================================
+-- PASO 6: RECREAR TRIGGERS DE updated_at EN LAS TRES TABLAS
+-- ================================================================
+
+CREATE TRIGGER trg_profiles_updated_at
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_item_states_updated_at
+  BEFORE UPDATE ON public.item_states
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+CREATE TRIGGER trg_progress_keys_updated_at
+  BEFORE UPDATE ON public.progress_keys
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+
+-- ================================================================
+-- PASO 7: RECREAR handle_new_user (versión definitiva)
+-- Crea el perfil cuando alguien se registra en Auth.
+-- Usa ON CONFLICT DO UPDATE para que nunca falle en duplicados.
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_username     TEXT;
+  v_display_name TEXT;
+  v_photo_url    TEXT;
+  v_provider     TEXT;
+BEGIN
+  v_username := COALESCE(
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'username'),     ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'),    ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'name'),         ''),
+    split_part(NEW.email, '@', 1)
+  );
+
+  v_display_name := COALESCE(
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'name'),      ''),
+    v_username
+  );
+
+  v_photo_url := COALESCE(
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'avatar_url'), ''),
+    NULLIF(TRIM(NEW.raw_user_meta_data->>'picture'),    ''),
+    ''
+  );
+
+  v_provider := COALESCE(
+    NULLIF(TRIM(NEW.raw_app_meta_data->>'provider'), ''),
+    'email'
+  );
+
+  INSERT INTO public.profiles (id, username, display_name, email, photo_url, provider)
+  VALUES (NEW.id, v_username, v_display_name, COALESCE(NEW.email, ''), v_photo_url, v_provider)
+  ON CONFLICT (id) DO UPDATE SET
+    username     = EXCLUDED.username,
+    display_name = EXCLUDED.display_name,
+    email        = EXCLUDED.email,
+    photo_url    = EXCLUDED.photo_url,
+    provider     = EXCLUDED.provider,
+    updated_at   = NOW();
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
+-- ================================================================
+-- PASO 8: FUNCIÓN update_user_stats_on_item_change (versión definitiva)
+--
+-- Corrige: soporta DELETE (usaba COALESCE(NEW, OLD) pero NEW es NULL
+-- en DELETE). Ahora lee v_user_id desde COALESCE(NEW.user_id, OLD.user_id).
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.update_user_stats_on_item_change()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id     UUID;
+  v_total_likes INT;
+  v_total_viewed INT;
+BEGIN
+  v_user_id := COALESCE(NEW.user_id, OLD.user_id);
+
+  SELECT COUNT(*) INTO v_total_likes
+  FROM public.item_states
+  WHERE user_id = v_user_id AND fav = true;
+
+  SELECT COUNT(*) INTO v_total_viewed
+  FROM public.item_states
+  WHERE user_id = v_user_id AND viewed = true;
+
+  UPDATE public.profiles
+  SET
+    total_likes      = v_total_likes,
+    total_viewed     = v_total_viewed,
+    updated_stats_at = NOW()
+  WHERE id = v_user_id;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER update_user_stats_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON public.item_states
+  FOR EACH ROW EXECUTE FUNCTION public.update_user_stats_on_item_change();
+
+
+-- ================================================================
+-- PASO 9: FUNCIÓN log_item_state_change (versión definitiva, nombre limpio)
+--
+-- Corrige:
+--   - Nombre único (no más duplicados log_item_state_activity / log_item_state_change)
+--   - Registra fav_added Y viewed_added en la MISMA operación si ambos son true
+--   - Registra fav_removed / viewed_removed cuando se quita uno solo
+--   - Registra item_removed cuando se hace DELETE completo
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.log_item_state_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- ── DELETE completo del item ──────────────────────────────────
+  IF TG_OP = 'DELETE' THEN
+    INSERT INTO public.user_activity_log (user_id, action, category, item_id, created_at)
+    VALUES (OLD.user_id, 'item_removed', OLD.category, OLD.item_id, NOW());
+    RETURN OLD;
+  END IF;
+
+  -- ── INSERT: registrar lo que se activó ────────────────────────
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.fav THEN
+      INSERT INTO public.user_activity_log (user_id, action, category, item_id, created_at)
+      VALUES (NEW.user_id, 'fav_added', NEW.category, NEW.item_id, NOW());
+    END IF;
+    IF NEW.viewed THEN
+      INSERT INTO public.user_activity_log (user_id, action, category, item_id, created_at)
+      VALUES (NEW.user_id, 'viewed_added', NEW.category, NEW.item_id, NOW());
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  -- ── UPDATE: registrar solo los cambios reales ─────────────────
+  IF TG_OP = 'UPDATE' THEN
+    IF NEW.fav AND NOT OLD.fav THEN
+      INSERT INTO public.user_activity_log (user_id, action, category, item_id, created_at)
+      VALUES (NEW.user_id, 'fav_added', NEW.category, NEW.item_id, NOW());
+    ELSIF NOT NEW.fav AND OLD.fav THEN
+      INSERT INTO public.user_activity_log (user_id, action, category, item_id, created_at)
+      VALUES (NEW.user_id, 'fav_removed', NEW.category, NEW.item_id, NOW());
+    END IF;
+
+    IF NEW.viewed AND NOT OLD.viewed THEN
+      INSERT INTO public.user_activity_log (user_id, action, category, item_id, created_at)
+      VALUES (NEW.user_id, 'viewed_added', NEW.category, NEW.item_id, NOW());
+    ELSIF NOT NEW.viewed AND OLD.viewed THEN
+      INSERT INTO public.user_activity_log (user_id, action, category, item_id, created_at)
+      VALUES (NEW.user_id, 'viewed_removed', NEW.category, NEW.item_id, NOW());
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER trg_log_item_states
+  AFTER INSERT OR UPDATE OR DELETE ON public.item_states
+  FOR EACH ROW EXECUTE FUNCTION public.log_item_state_change();
+
+
+-- ================================================================
+-- PASO 10: FUNCIÓN rebuild_user_progress_row (versión definitiva)
+--
+-- Recalcula user_progress para un (user, category, item) dado.
+-- Si no hay ninguna progress_key marcada como true, borra la fila
+-- de user_progress para no dejar basura.
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.rebuild_user_progress_row(
+  p_user_id  UUID,
+  p_category TEXT,
+  p_item_id  TEXT
+)
+RETURNS VOID AS $$
+DECLARE
+  v_episodes   INT := 0;
+  v_chapters   INT := 0;
+  v_volumes    INT := 0;
+  v_total_eps  INT;
+  v_total_ch   INT;
+  v_total_vol  INT;
+  v_done       INT := 0;
+  v_total      INT := 0;
+  v_percentage FLOAT := 0;
+BEGIN
+  -- Contar por tipo de pkey
+  SELECT COUNT(*) INTO v_episodes
+  FROM public.progress_keys
+  WHERE user_id = p_user_id AND category = p_category AND item_id = p_item_id
+    AND value = true AND pkey ~ '^s:[0-9]+\|ep:[0-9]+$';
+
+  SELECT COUNT(*) INTO v_chapters
+  FROM public.progress_keys
+  WHERE user_id = p_user_id AND category = p_category AND item_id = p_item_id
+    AND value = true AND pkey ~ '^ch:[0-9]+$';
+
+  SELECT COUNT(*) INTO v_volumes
+  FROM public.progress_keys
+  WHERE user_id = p_user_id AND category = p_category AND item_id = p_item_id
+    AND value = true AND pkey ~ '^vol:[0-9]+$';
+
+  -- Si no hay nada marcado, limpiar la fila y salir
+  IF v_episodes = 0 AND v_chapters = 0 AND v_volumes = 0 THEN
+    DELETE FROM public.user_progress
+    WHERE user_id = p_user_id AND category = p_category AND item_id = p_item_id;
+    RETURN;
+  END IF;
+
+  -- Leer totales existentes (el JS los puede haber seteado previamente)
+  SELECT total_episodes, total_chapters, total_volumes
+  INTO   v_total_eps, v_total_ch, v_total_vol
+  FROM   public.user_progress
+  WHERE  user_id = p_user_id AND category = p_category AND item_id = p_item_id;
+
+  -- Determinar qué contar según categoría
+  IF p_category = 'anime' THEN
+    v_done  := v_episodes;
+    v_total := COALESCE(v_total_eps, 0);
+  ELSIF p_category IN ('manga', 'novelas') THEN
+    IF v_volumes > 0 THEN
+      v_done  := v_volumes;
+      v_total := COALESCE(v_total_vol, 0);
+    ELSE
+      v_done  := v_chapters;
+      v_total := COALESCE(v_total_ch, 0);
+    END IF;
+  ELSE
+    v_done  := GREATEST(v_episodes, v_chapters, v_volumes);
+    v_total := 0;
+  END IF;
+
+  -- Calcular porcentaje solo si el total es conocido
+  IF v_total > 0 THEN
+    v_percentage := LEAST(100.0, ROUND(((v_done::NUMERIC / v_total::NUMERIC) * 100), 2)::FLOAT);
+  ELSE
+    v_percentage := 0;
+  END IF;
+
+  INSERT INTO public.user_progress (
+    user_id, category, item_id,
+    episodes_viewed, chapters_viewed, volumes_viewed,
+    total_episodes,  total_chapters,  total_volumes,
+    progress_percentage, updated_at
+  )
+  VALUES (
+    p_user_id, p_category, p_item_id,
+    v_episodes, v_chapters, v_volumes,
+    v_total_eps, v_total_ch, v_total_vol,
+    v_percentage, NOW()
+  )
+  ON CONFLICT (user_id, category, item_id) DO UPDATE SET
+    episodes_viewed     = EXCLUDED.episodes_viewed,
+    chapters_viewed     = EXCLUDED.chapters_viewed,
+    volumes_viewed      = EXCLUDED.volumes_viewed,
+    -- NO pisamos los totales si ya existían (el JS los pone al abrir el detalle)
+    total_episodes      = COALESCE(public.user_progress.total_episodes,  EXCLUDED.total_episodes),
+    total_chapters      = COALESCE(public.user_progress.total_chapters,  EXCLUDED.total_chapters),
+    total_volumes       = COALESCE(public.user_progress.total_volumes,   EXCLUDED.total_volumes),
+    progress_percentage = EXCLUDED.progress_percentage,
+    updated_at          = NOW();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ================================================================
+-- PASO 11: FUNCIÓN sync_progress_keys_to_user_progress (versión definitiva)
+--
+-- Corrige: soporta DELETE (TG_OP = 'DELETE' → usa OLD).
+-- También loguea en user_activity_log con el valor real.
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.sync_progress_keys_to_user_progress()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_user_id  UUID;
+  v_category TEXT;
+  v_item_id  TEXT;
+  v_value    INT := 0;
+BEGIN
+  v_user_id  := COALESCE(NEW.user_id,  OLD.user_id);
+  v_category := COALESCE(NEW.category, OLD.category);
+  v_item_id  := COALESCE(NEW.item_id,  OLD.item_id);
+
+  PERFORM public.rebuild_user_progress_row(v_user_id, v_category, v_item_id);
+
+  -- Leer el conteo actualizado para el log
+  SELECT COALESCE(
+    CASE v_category
+      WHEN 'anime'   THEN episodes_viewed
+      WHEN 'manga'   THEN GREATEST(chapters_viewed, volumes_viewed)
+      WHEN 'novelas' THEN GREATEST(chapters_viewed, volumes_viewed)
+      ELSE GREATEST(episodes_viewed, chapters_viewed, volumes_viewed)
+    END, 0)
+  INTO v_value
+  FROM public.user_progress
+  WHERE user_id = v_user_id AND category = v_category AND item_id = v_item_id;
+
+  INSERT INTO public.user_activity_log (user_id, action, category, item_id, value, created_at)
+  VALUES (v_user_id, 'progress_updated', v_category, v_item_id, COALESCE(v_value, 0), NOW());
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER sync_progress_keys_trigger
+  AFTER INSERT OR UPDATE OR DELETE ON public.progress_keys
+  FOR EACH ROW EXECUTE FUNCTION public.sync_progress_keys_to_user_progress();
+
+
+-- ================================================================
+-- PASO 12: FUNCIÓN add_user_exp (helper para sumar XP desde el JS)
+--
+-- Misma lógica de niveles que progress.js:
+--   nivel 1 → necesita 100 pts
+--   nivel N → necesita FLOOR(100 * 1.2^(N-1)) pts
+--   máximo nivel 50
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.add_user_exp(p_user_id UUID, p_delta INT)
+RETURNS VOID AS $$
+DECLARE
+  v_new_exp   INT;
+  v_level     INT := 1;
+  v_need      INT := 100;
+  v_remaining INT;
+BEGIN
+  UPDATE public.profiles
+  SET exp = GREATEST(0, exp + p_delta)
+  WHERE id = p_user_id
+  RETURNING exp INTO v_new_exp;
+
+  IF v_new_exp IS NULL THEN
+    RETURN; -- usuario no existe, no hacer nada
+  END IF;
+
+  v_remaining := v_new_exp;
+
+  WHILE v_remaining >= v_need AND v_level < 50 LOOP
+    v_remaining := v_remaining - v_need;
+    v_level     := v_level + 1;
+    v_need      := FLOOR(v_need * 1.2);
+  END LOOP;
+
+  UPDATE public.profiles SET level = v_level WHERE id = p_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ================================================================
+-- PASO 13: POLÍTICAS RLS — asegurar que profiles tiene política
+-- de lectura pública (necesaria para mostrar nombre/avatar en navbar)
+-- ================================================================
+
+-- Eliminar si ya existía para evitar error de duplicado
+DROP POLICY IF EXISTS "profiles: read public" ON public.profiles;
+
+CREATE POLICY "profiles: read public"
+  ON public.profiles FOR SELECT USING (true);
+
+
+-- ================================================================
+-- PASO 14: BACKFILL — recalcular user_progress con los datos que ya existen
+-- Esto corrige filas que quedaron mal calculadas con el trigger viejo.
+-- ================================================================
+
+WITH rows_to_fix AS (
+  SELECT DISTINCT user_id, category, item_id
+  FROM public.progress_keys
+  WHERE value = true
+)
+SELECT public.rebuild_user_progress_row(user_id, category, item_id)
+FROM rows_to_fix;
+
+
+-- ================================================================
+-- VERIFICACIÓN FINAL
+-- Ejecutá esto por separado si querés confirmar que quedó limpio.
+-- ================================================================
+/*
+SELECT trigger_name, event_object_table, event_manipulation, action_timing
+FROM information_schema.triggers
+WHERE trigger_schema = 'public'
+ORDER BY event_object_table, trigger_name;
+*/
+
+-- ================================================================
+-- FIN DEL SCRIPT
+-- ================================================================
+-- ================================================================
+-- 11_clean_duplicate_triggers.sql
+-- Elimina triggers duplicados en item_states y deja solo
+-- una versión limpia de cada uno.
+-- ================================================================
+
+-- ────────────────────────────────────────────────────────────────
+-- 1. ELIMINAR TRIGGERS DUPLICADOS EXISTENTES
+-- ────────────────────────────────────────────────────────────────
+DROP TRIGGER IF EXISTS log_item_state_activity_trigger ON public.item_states;
+DROP TRIGGER IF EXISTS trg_log_item_states ON public.item_states;
+DROP TRIGGER IF EXISTS trg_log_item_states_clean ON public.item_states;
+
+-- ────────────────────────────────────────────────────────────────
+-- 2. ELIMINAR FUNCIONES VIEJAS (si sobran)
+-- ────────────────────────────────────────────────────────────────
+DROP FUNCTION IF EXISTS public.log_item_state_activity();
+DROP FUNCTION IF EXISTS public.log_item_state_change();
+
+-- ────────────────────────────────────────────────────────────────
+-- 3. FUNCIÓN ÚNICA: Actualizar contadores en profiles
+--    Se activa con INSERT / UPDATE / DELETE en item_states
+-- ────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.update_user_stats_on_item_change()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_total_likes INT;
+  v_total_viewed INT;
+  v_user_id UUID;
+BEGIN
+  v_user_id := COALESCE(NEW.user_id, OLD.user_id);
+
+  SELECT COUNT(*) INTO v_total_likes
+  FROM public.item_states
+  WHERE user_id = v_user_id AND fav = true;
+
+  SELECT COUNT(*) INTO v_total_viewed
+  FROM public.item_states
+  WHERE user_id = v_user_id AND viewed = true;
+
+  UPDATE public.profiles
+  SET total_likes = v_total_likes,
+      total_viewed = v_total_viewed,
+      updated_stats_at = NOW()
+  WHERE id = v_user_id;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_user_stats_trigger ON public.item_states;
+CREATE TRIGGER update_user_stats_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.item_states
+FOR EACH ROW
+EXECUTE FUNCTION public.update_user_stats_on_item_change();
+
+-- ────────────────────────────────────────────────────────────────
+-- 4. FUNCIÓN ÚNICA: Loguear cambios en activity_log
+--    Solo registra cuando el valor cambió realmente
+-- ────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.log_item_state_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    INSERT INTO public.user_activity_log(user_id, action, category, item_id)
+    VALUES (OLD.user_id, 'item_removed', OLD.category, OLD.item_id);
+    RETURN OLD;
+  END IF;
+
+  IF NEW.fav IS DISTINCT FROM OLD.fav THEN
+    INSERT INTO public.user_activity_log(user_id, action, category, item_id)
+    VALUES (NEW.user_id, CASE WHEN NEW.fav THEN 'fav_added' ELSE 'fav_removed' END, NEW.category, NEW.item_id);
+  END IF;
+
+  IF NEW.viewed IS DISTINCT FROM OLD.viewed THEN
+    INSERT INTO public.user_activity_log(user_id, action, category, item_id)
+    VALUES (NEW.user_id, CASE WHEN NEW.viewed THEN 'viewed_added' ELSE 'viewed_removed' END, NEW.category, NEW.item_id);
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_log_item_states ON public.item_states;
+CREATE TRIGGER trg_log_item_states
+AFTER INSERT OR UPDATE OR DELETE ON public.item_states
+FOR EACH ROW
+EXECUTE FUNCTION public.log_item_state_change();
+
+-- ────────────────────────────────────────────────────────────────
+-- 5. VERIFICACIÓN: Limpiar activity_log de entradas duplicadas
+-- ────────────────────────────────────────────────────────────────
+-- Elimina duplicados exactos dejando solo 1 por combinación
+DELETE FROM public.user_activity_log a
+USING public.user_activity_log b
+WHERE a.created_at = b.created_at
+  AND a.user_id = b.user_id
+  AND a.action = b.action
+  AND a.category = b.category
+  AND a.item_id = b.item_id
+  AND a.id > b.id;
+-- ══════════════════════════════════════════════--- ════════════════════════════════════════════════════════════
+-- 12_fix_user_progress_rls.sql
+-- Agrega políticas RLS faltantes en user_progress
+-- ════════════════════════════════════════════════════════════
+
+-- NOTA: Usamos DO $$ ... EXCEPTION para evitar errores si la política ya existe
+-- (CREATE POLICY IF NOT EXISTS requiere PostgreSQL 15+)
+
+DO $$ BEGIN
+  CREATE POLICY "Users can view their own progress"
+    ON public.user_progress FOR SELECT
+    USING (auth.uid() = user_id);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can insert their own progress"
+    ON public.user_progress FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can update their own progress"
+    ON public.user_progress FOR UPDATE
+    USING (auth.uid() = user_id);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can delete their own progress"
+    ON public.user_progress FOR DELETE
+    USING (auth.uid() = user_id);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;

@@ -28,14 +28,11 @@
     "use strict";
 
     const config = {
-        anilistEndpoint: "https://graphql.anilist.co",
-        apiBaseUrl:      "",
         supabaseUrl:     "",   // ← Completar via .env + tools/generate-config.js
         supabaseAnonKey: "",   // ← Completar via .env + tools/generate-config.js
         defaultPageSize: 40,
         maxCatalogItems: 40,
-        debug:           false,
-        cachePrefix:     "animeDestiny"
+        debug:           false
     };
 
     window.AppConfig = Object.freeze(config);

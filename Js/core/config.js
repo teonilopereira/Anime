@@ -7,8 +7,6 @@
     "use strict";
 
     const config = {
-        anilistEndpoint: "https://graphql.anilist.co",
-        apiBaseUrl:      "",
         supabaseUrl:     "https://llytokoztnjuczuppzgs.supabase.co",
         supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxseXRva296dG5qdWN6dXBwemdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMTE2MTcsImV4cCI6MjA5NTU4NzYxN30.jKU5ZoweR3v5TPyn_4TNs6W01Cns3xEZOkleZGg1UNg",
         defaultPageSize: 40,

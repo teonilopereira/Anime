@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Página no encontrada en Anime Destiny.">
+    <title>Anime Destiny | 404 - No Encontrado</title>
+        <link rel="stylesheet" href="css/bundle.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        .error-container {
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 40px 24px;
+            background: rgba(10, 5, 25, 0.86);
+            border: 2px solid rgba(188, 19, 254, 0.35);
+            box-shadow: 0 0 25px rgba(188, 19, 254, 0.15);
+            border-radius: 16px;
+            text-align: center;
+            font-family: 'Rajdhani', sans-serif;
+            color: #e2d9f3;
+        }
+        .error-code {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 6rem;
+            color: #00f2ff;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+            margin: 0;
+            line-height: 1;
+        }
+        .error-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            color: #fff;
+            margin: 20px 0 10px;
+        }
+        .error-text {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 30px;
+        }
+        .error-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-decoration: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 242, 255, 0.25);
+            transition: all 0.2s ease-in-out;
+        }
+        .error-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(188, 19, 254, 0.4);
+        }
+    </style>
+</head>
+<body class="menu-page">
+    <nav class="navbar destiny-navbar">
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
+        <div class="nav-actions">
+            <div id="nav-login-container"></div>
+        </div>
+    </nav>
+
+    <main class="error-container">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Ruta perdida en la Red</h1>
+        <p class="error-text">El enlace que ingresaste no existe, fue movido o se cayó temporalmente.</p>
+        <a href="index.html" class="error-btn">Volver al Inicio</a>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="js/core/config.js"></script>
+    <script src="js/core/i18n.js"></script>
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/namespace.js"></script>
+    <script src="js/datos.js" defer></script>
+    <script type="module" src="api/supabase-config.js"></script>
+
+    <script src="js/core/common-ui.js" defer></script>
+</body>
+</html>

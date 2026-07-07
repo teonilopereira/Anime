@@ -44,3 +44,13 @@ yarn-error.log*
 *.sln
 *.swp
 *.swo
+
+# ─── ARCHIVOS TEMPORALES Y DEBUG ANIME DESTINY ────────────────────────────
+.fix-mis-listas*
+test_build.js
+test_cards.js
+view_images.html
+manga-info.html
+js/pages/manga-info.js
+scratch/
+

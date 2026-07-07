@@ -1,258 +1,113 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Catálogo de manga: explorá títulos, marcá visto/me gusta y guardá volúmenes leídos.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Explorá mangas, marcá volúmenes leídos y guardá tu progreso.">
     <meta name="keywords" content="manga, catálogo, volúmenes, visto, me gusta, seinen, shounen">
     <meta name="robots" content="index,follow">
-    <title>Catálogo - Manga</title>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/destiny-navbar.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <style>
-        /* ── Botón login en navbar ── */
-        .nav-login-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 18px;
-            min-height: 40px;
-            border: 1.5px solid rgba(168, 85, 247, 0.7);
-            border-radius: 999px;
-            background: linear-gradient(135deg, rgba(91, 33, 182, 0.35), rgba(168, 85, 247, 0.18));
-            color: #e2d9f3;
-            font-family: "Rajdhani", sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-decoration: none;
-            white-space: nowrap;
-            transition: all 0.22s ease;
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
-            flex-shrink: 0;
-        }
-        .nav-login-btn:hover {
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.35));
-            border-color: #c084fc;
-            color: #fff;
-            box-shadow: 0 0 22px rgba(168, 85, 247, 0.45);
-            transform: translateY(-1px);
-        }
-        .nav-login-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1.5px solid rgba(192, 132, 252, 0.7);
-            object-fit: cover;
-            background: linear-gradient(145deg, #1c1032, #7c3aed);
-            display: block;
-            flex-shrink: 0;
-        }
-        .nav-login-icon {
-            width: 18px;
-            height: 18px;
-            opacity: 0.9;
-        }
-        /* ── Círculo invitado (modo sin sesión) ── */
-        .nav-guest-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1.5px dashed rgba(148, 163, 184, 0.6);
-            background: rgba(30, 20, 50, 0.6);
-            color: rgba(148, 163, 184, 0.85);
-            font-family: "Rajdhani", sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: border-color 0.22s, color 0.22s;
-        }
-        .nav-login-btn:hover .nav-guest-avatar {
-            border-color: rgba(192, 132, 252, 0.7);
-            color: #c084fc;
-        }
-    </style>
+    <meta property="og:title" content="Anime Destiny | Manga">
+    <meta property="og:description" content="Explorá mangas, marcá volúmenes leídos y guardá tu progreso.">
+    <meta name="twitter:title" content="Anime Destiny | Manga">
+    <meta name="twitter:description" content="Explorá mangas, marcá volúmenes leídos y guardá tu progreso.">
+    <title>Anime Destiny | Manga</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://animedestiny.netlify.app/manga.html">
+    <meta property="og:site_name" content="Anime Destiny">
+    <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
+    <meta name="twitter:card" content="summary">
+
+        <link rel="stylesheet" href="css/bundle.css">
+
+    <link rel="stylesheet" href="css/advanced-filter.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+
 </head>
 <body data-page="manga">
     <nav class="navbar destiny-navbar">
-        <a class="nav-brand" href="index.html" aria-label="Anime Destiny">
-            <span class="nav-brand-mark"><img src="images/Logo.png" alt="" aria-hidden="true"></span>
-            <span class="nav-brand-copy">
-                <span class="nav-brand-anime">Anime</span>
-                <span class="nav-brand-destiny">Destiny</span>
-                <span class="nav-brand-jp">&gt; アニメの運命 &lt;</span>
-            </span>
-        </a>
-        <div class="nav-links" aria-label="Navegacion principal">
-            <a href="anime.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">🎬</span><span>Anime</span></a>
-            <a href="manga.html" class="nav-btn active" aria-current="page"><span class="nav-icon" aria-hidden="true">📚</span><span>Manga</span></a>
-            <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
-            <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
-        </div>
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
         <div class="nav-actions">
-            <div class="nav-search" role="search" aria-label="Buscar manga">
-                <span class="nav-search-icon" aria-hidden="true">⌕</span>
-                <input id="catalogSearch" class="nav-search-input" type="search" placeholder="Buscar manga..." autocomplete="off">
-            </div>
-            <!-- Botón login / avatar -->
-            <a id="nav-login-btn" href="Login.html" class="nav-login-btn" aria-label="Iniciar sesión">
-                <img id="nav-login-avatar" class="nav-login-avatar" src="" alt="" aria-hidden="true"
-                     style="display:none"
-                     onerror="this.style.display='none'; document.getElementById('nav-login-icon').style.display='block'">
-                <svg id="nav-login-icon" class="nav-login-icon" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-                <span id="nav-guest-avatar" class="nav-guest-avatar" aria-hidden="true">G</span>
-                <span id="nav-login-label">Ingresar</span>
-            </a>
+            <div id="nav-login-container"></div>
         </div>
     </nav>
 
     <header class="page-header">
         <h1 class="page-title">CATÁLOGO DE MANGA</h1>
-        <p class="page-subtitle">Buscá y marcá ❤ o 👁 con tu cuenta.</p>
+        <p class="page-subtitle">Explorá, descubrí y guardá tus mangas favoritos.</p>
+        
+        <div class="catalog-search-filter-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 15px; max-width: 800px; margin: 0 auto;">
+            <div class="catalog-search-wrap" style="width: 100%; display: flex; gap: 10px;">
+                <div style="position:relative; flex:1;">
+                    <span class="catalog-search-icon">??</span>
+                    <input id="catalogSearch" class="catalog-search-input" type="search" placeholder="Buscar manga..." autocomplete="off">
+                </div>
+                <button id="mainFilterToggle" type="button" class="advanced-filter-toggle" aria-label="Abrir filtros">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                </button>
+            </div>
+            
+            <div class="advanced-filter-dropdown" id="filterDropdown" style="display: none;">
+                <div class="filter-dropdown-inner">
+                    <div class="filter-header-row">
+                        <div class="filter-header-icon-wrap">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                        </div>
+                        <div class="filter-header-content">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <h2>FILTROS ADICIONALES</h2>
+                                <button id="clearFiltersBtn" class="clear-filters-btn">Limpiar Filtros</button>
+                            </div>
+                            
+                            <label class="nsfw-row-label">
+                                <div class="nsfw-checkbox">
+                                    <input type="checkbox" id="nsfwToggle">
+                                    <div class="nsfw-checkbox-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                </div>
+                                <div class="nsfw-text-block">
+                                    <div class="nsfw-title">Mostrar NSFW</div>
+                                    <div class="nsfw-desc">Activa para mostrar contenido para adultos.</div>
+                                </div>
+                                <div style="margin-left: auto; color: rgba(255,255,255,0.4);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="filter-section-divider">
+                        <span class="fsd-line"></span>
+                        <span class="fsd-dot"></span>
+                        <span class="fsd-text">GÉNERO</span>
+                        <span class="fsd-dot"></span>
+                        <span class="fsd-line"></span>
+                    </div>
+
+                    <div class="fancy-filter-genres" id="filterGenres"></div>
+                </div>
+            </div>
+        </div>
     </header>
 
     <section class="featured" id="featuredBanner" data-featured="manga"></section>
 
-    <button class="genre-drawer-tab" id="genreDrawerTab" type="button" aria-controls="genreSidebar" aria-expanded="false">
-        Géneros
-    </button>
-    <aside class="genre-sidebar genre-drawer" id="genreSidebar" aria-label="Géneros"></aside>
-
     <main class="gallery" id="main-container"></main>
 
-    <div class="modern-pagination">
-        <button class="pag-btn prev-btn" onclick="changePage(-1)" id="pagPrevBtn" disabled>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pag-icon"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            <span>Anterior</span>
-        </button>
-        <div class="pag-indicator">
-            <span class="pag-label">PÁGINA</span>
-            <span id="page-num" class="pag-current">1</span>
-            <span class="pag-total" id="page-total">de 250</span>
-        </div>
-        <button class="pag-btn next-btn" onclick="changePage(1)" id="pagNextBtn">
-            <span>Siguiente</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pag-icon"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
-    </div>
+    <div id="scroll-sentinel" class="scroll-sentinel"></div>
 
-    <footer class="app-footer">
-        <div class="app-footer-inner">
-            <div class="app-footer-col">
-                <div class="app-footer-title">Tips</div>
-                <p class="app-footer-text">Entrá a “Detalle” para marcar volúmenes en verde y llevar progreso.</p>
-            </div>
-            <div class="app-footer-col">
-                <div class="app-footer-title">Cuenta</div>
-                <p class="app-footer-text">Si querés guardar tus listas, iniciá sesión desde <strong>Cuenta</strong>.</p>
-            </div>
-            <div class="app-footer-col">
-                <div class="app-footer-title">Redes</div>
-                <div class="app-footer-social">
-                    <a class="app-footer-icon" href="#" aria-label="X">𝕏</a>
-                    <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
-                    <a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
-                </div>
-            </div>
-        </div>
-        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
-    </footer>
+    <div id="footer-container"></div>
     <script src="js/core/config.js"></script>
-    <script src="js/datos.js" defer></script>
-    <script type="importmap">
-    {
-      "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      }
-    }
-    </script>
+    <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js"></script>
-    <script src="js/core/user-store.js" defer></script>
-    <script src="js/core/supabase-sync.js" defer></script>
-    <script src="js/core/auth.js" defer></script>
-    <script src="js/controllers/AuthController.js" defer></script>
-    <script src="js/controllers/UserController.js" defer></script>
-    <script src="js/core/storage.js" defer></script>
-    <script src="js/security/sanitizer.js" defer></script>
-    <script src="js/security/validator.js" defer></script>
-    <script src="js/utils.js" defer></script>
-    <script src="js/ui.js" defer></script>
-    <script src="js/core/api.js" defer></script>
-    <script src="js/catalog/cards.js" defer></script>
-    <script src="js/catalog/search.js" defer></script>
-    <script src="js/script.js" defer></script>
-    <script defer>
-        // ── Botón login: actualizar según estado de sesión ──
-        document.addEventListener('DOMContentLoaded', function () {
-            function updateLoginBtn(user) {
-                const btn    = document.getElementById('nav-login-btn');
-                const avatar = document.getElementById('nav-login-avatar');
-                const icon   = document.getElementById('nav-login-icon');
-                const label  = document.getElementById('nav-login-label');
-                const guest  = document.getElementById('nav-guest-avatar');
-                if (!btn) return;
-
-                if (user) {
-                    const name = user.user_metadata?.username
-                        || user.user_metadata?.name
-                        || user.user_metadata?.full_name
-                        || (user.email ? user.email.split('@')[0] : '')
-                        || 'Usuario';
-                    const photoUrl = user.user_metadata?.avatar_url
-                        || user.user_metadata?.picture
-                        || '';
-
-                    label.textContent = name;
-                    btn.href = 'usuario.html';
-                    btn.setAttribute('aria-label', 'Ver perfil de ' + name);
-                    if (guest) guest.style.display = 'none';
-
-                    if (photoUrl) {
-                        avatar.src = photoUrl;
-                        avatar.alt = name;
-                        avatar.style.display = 'block';
-                        icon.style.display   = 'none';
-                    } else {
-                        avatar.style.display = 'none';
-                        icon.style.display   = 'block';
-                    }
-                } else {
-                    label.textContent = 'Ingresar';
-                    btn.href = 'Login.html';
-                    btn.setAttribute('aria-label', 'Iniciar sesión');
-                    avatar.style.display = 'none';
-                    icon.style.display   = 'none';
-                    if (guest) guest.style.display = 'flex';
-                }
-            }
-
-            function tryGetUser(retries) {
-                if (window.AppSupabase?.getCurrentUser) {
-                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
-                } else if (retries > 0) {
-                    setTimeout(function () { tryGetUser(retries - 1); }, 300);
-                }
-            }
-            tryGetUser(12);
-
-            window.addEventListener('supabase-auth-changed', function () {
-                if (window.AppSupabase?.getCurrentUser) {
-                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
-                }
-            });
-        });
-    </script>
+    <script src="js/core-bundle.js" defer></script>
+    <script src="js/core/mangadex-api.js" defer></script>
+    <script src="js/pages/script.js" defer></script>
 </body>
 </html>
+
+
+

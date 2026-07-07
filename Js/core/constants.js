@@ -1,0 +1,46 @@
+﻿(function () {
+    var C = {
+        PER_PAGE: 40,
+        MAX_PAGES: 250,
+        SKELETON_COUNT: 40,
+        SEARCH_DEBOUNCE_MS: 400,
+        SYNC_DEBOUNCE_MS: 250,
+        SUPABASE_WAIT_TIMEOUT_MS: 12000,
+        REQUEST_TIMEOUT_MS: 12000,
+        CARDS_PER_ROW_MIN: 2,
+        CARDS_PER_ROW_MAX: 8,
+        CARDS_PER_ROW_DEFAULT: 4,
+        TOAST_DURATION_MS: 4000,
+        XP_BASE: 100,
+        XP_MULTIPLIER: 1.2,
+        XP_MAX_LEVEL: 50,
+        XP_VIEWED: 10,
+        XP_FAV: 5,
+        MIN_USERNAME_LENGTH: 3,
+        MIN_PASSWORD_LENGTH: 6,
+        TRUNCATE_MAX_LENGTH: 140,
+        LOCAL_PAGE_SIZE: 20,
+        API_TIMEOUT_MS: 15000,
+        SUGGESTION_LIMIT: 6,
+        API_SUGGESTION_LIMIT: 8,
+        SEARCH_PAGE_SIZE: 10,
+        MANGADEX_SEARCH_LIMIT: 5,
+        SYNC_QUEUE_INTERVAL_MS: 30000,
+        RANKING_PAGE_SIZE: 50,
+        RANKING_SKELETON_ROWS: 5,
+        MAX_RECOMMENDATIONS: 5,
+        MAX_ACTIVITY_ITEMS: 15,
+        MAX_MINI_ACTIVITY: 5,
+        ACTIVITY_TITLE_MAX: 35,
+        SAFETY_NET_TIMEOUT_MS: 15000,
+        PROFILE_REDIRECT_DELAY_MS: 1000,
+        LOGIN_REDIRECT_DELAY_MS: 200,
+        LOGIN_FALLBACK_REDIRECT_MS: 1500,
+        POLL_INTERVAL_MS: 100,
+        MODAL_CLOSE_DELAY_MS: 800,
+        MODAL_CLOSE_LONG_DELAY_MS: 2500
+    };
+    window.AnimeDestiny = window.AnimeDestiny || {};
+    window.AnimeDestiny.Constants = C;
+})();
+

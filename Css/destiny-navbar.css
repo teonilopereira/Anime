@@ -1,25 +1,32 @@
 /* Navbar estilo Anime Destiny para manga.html. */
+
+/* ── Área de usuario en navbar (avatar + nombre + botón) ── */
+.destiny-navbar .nav-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
 .destiny-navbar {
     --nav-accent: #a855f7;
     --nav-accent-soft: rgba(168, 85, 247, 0.24);
     position: sticky;
     top: 10px;
     width: min(1560px, calc(100% - 28px));
-    min-height: 92px;
+    min-height: 76px;
     margin: 10px auto 0;
-    padding: 0 22px;
+    padding: 0 20px;
     display: grid;
-    grid-template-columns: minmax(230px, 285px) minmax(470px, 1fr) minmax(290px, 460px);
+    grid-template-columns: auto 1fr minmax(300px, 440px);
     align-items: center;
-    gap: 18px;
+    gap: 14px;
     overflow: visible;
     border: 1px solid rgba(168, 85, 247, 0.25);
     border-bottom-color: rgba(168, 85, 247, 0.5);
-    border-radius: 10px;
+    border-radius: 12px;
     background:
-        linear-gradient(135deg, rgba(98, 37, 168, 0.28), transparent 18%) left bottom / 22% 100% no-repeat,
-        linear-gradient(315deg, rgba(98, 37, 168, 0.28), transparent 18%) right bottom / 18% 100% no-repeat,
-        radial-gradient(circle at 9% 50%, rgba(168, 85, 247, 0.26), transparent 22%),
+        radial-gradient(ellipse at 10% 50%, rgba(120, 40, 200, 0.18), transparent 50%),
+        radial-gradient(ellipse at 90% 50%, rgba(120, 40, 200, 0.12), transparent 50%),
         linear-gradient(90deg, rgba(3, 5, 12, 0.98), rgba(8, 9, 18, 0.96) 42%, rgba(3, 5, 12, 0.98));
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42), inset 0 0 28px rgba(255, 255, 255, 0.035);
     backdrop-filter: blur(14px);
@@ -40,8 +47,7 @@
     inset: 0;
     border-radius: inherit;
     background:
-        linear-gradient(115deg, transparent 0 19%, rgba(168, 85, 247, 0.14) 19% 20%, transparent 20% 100%),
-        linear-gradient(245deg, transparent 0 13%, rgba(168, 85, 247, 0.18) 13% 14%, transparent 14% 100%);
+        linear-gradient(90deg, transparent 0%, rgba(168, 85, 247, 0.06) 15%, transparent 30%, transparent 70%, rgba(168, 85, 247, 0.06) 85%, transparent 100%);
 }
 
 .destiny-navbar::after {
@@ -63,11 +69,11 @@
 }
 
 .nav-brand-mark {
-    width: 78px;
-    height: 66px;
+    width: 64px;
+    height: 54px;
     display: grid;
     place-items: center;
-    filter: drop-shadow(0 0 14px rgba(168, 85, 247, 0.65));
+    filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.5));
 }
 
 .nav-brand-mark img {
@@ -87,8 +93,16 @@
 .nav-brand-destiny {
     font-family: "Orbitron", sans-serif;
     font-weight: 900;
-    font-size: clamp(1.05rem, 1.75vw, 1.5rem);
+    font-size: clamp(0.95rem, 1.5vw, 1.3rem);
     letter-spacing: 0;
+}
+
+.nav-brand-jp {
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: "Rajdhani", sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
 }
 
 .nav-brand-destiny {
@@ -96,64 +110,68 @@
     text-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
 }
 
-.nav-brand-jp {
-    margin-top: 6px;
-    color: rgba(255, 255, 255, 0.88);
-    font-family: "Rajdhani", sans-serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-}
-
 .destiny-navbar .nav-links {
     position: relative;
     z-index: 1;
-    min-height: 66px;
+    min-height: 60px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
     align-items: stretch;
-    padding: 0 18px;
-    background: linear-gradient(90deg, rgba(18, 20, 31, 0.78), rgba(5, 6, 12, 0.92), rgba(18, 20, 31, 0.78));
-    clip-path: polygon(4% 0, 100% 0, 95% 100%, 0 100%);
+    gap: 2px;
+    padding: 0 10px;
+    background: rgba(12, 14, 24, 0.6);
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .destiny-navbar .nav-btn {
     position: relative;
     min-width: 0;
-    min-height: 66px;
-    padding: 8px 8px;
+    min-height: 60px;
+    padding: 6px 8px;
     display: inline-flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 4px;
     align-items: center;
     justify-content: center;
     border: 0;
-    border-radius: 0;
+    border-radius: 8px;
     background: transparent;
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(255, 255, 255, 0.82);
     box-shadow: none;
-    font-size: 0.8rem;
-    letter-spacing: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
     text-transform: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .destiny-navbar .nav-btn:hover {
     color: #fff;
-    background: rgba(168, 85, 247, 0.1);
-    box-shadow: inset 0 -2px 0 rgba(168, 85, 247, 0.45);
+    background: rgba(168, 85, 247, 0.12);
 }
 
 .destiny-navbar .nav-btn.active {
-    min-height: 84px;
-    margin: -9px 0;
-    color: #c084fc;
+    min-height: 60px;
+    margin: 0;
+    color: #e0cdff;
     background:
-        radial-gradient(circle at 50% 16%, rgba(216, 180, 254, 0.28), transparent 48%),
-        linear-gradient(180deg, rgba(68, 35, 113, 0.9), rgba(18, 14, 31, 0.96));
-    border: 2px solid rgba(168, 85, 247, 0.82);
-    clip-path: polygon(18% 0, 82% 0, 100% 50%, 82% 100%, 18% 100%, 0 50%);
-    box-shadow: 0 0 22px rgba(168, 85, 247, 0.34), inset 0 0 24px rgba(168, 85, 247, 0.18);
+        radial-gradient(ellipse at 50% 30%, rgba(168, 85, 247, 0.2), transparent 70%),
+        rgba(60, 30, 110, 0.5);
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.1);
     z-index: 2;
+}
+
+.destiny-navbar .nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 25%;
+    right: 25%;
+    height: 2px;
+    background: var(--nav-accent);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--nav-accent);
 }
 
 .nav-icon {
@@ -170,50 +188,58 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 20px;
+    gap: 12px;
     min-width: 0;
 }
 
 .destiny-navbar .nav-search {
-    flex: 1 1 280px;
-    min-width: 230px;
-    max-width: 330px;
+    flex: 1 1 240px;
+    min-width: 180px;
+    max-width: 320px;
     margin-left: 0;
     justify-content: flex-start;
+    position: relative;
 }
 
 .nav-search-icon {
     position: absolute;
-    left: 26px;
+    left: 18px;
     z-index: 1;
-    font-size: 1.55rem;
-    color: #fff;
-    opacity: 0.95;
+    font-size: 1.3rem;
+    color: rgba(255,255,255,0.6);
+    pointer-events: none;
+    line-height: 1;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .destiny-navbar .nav-search-input {
     width: 100%;
     max-width: none;
-    min-height: 48px;
-    padding: 0 22px 0 66px;
-    border-radius: 0;
-    border: 2px solid rgba(168, 85, 247, 0.7);
-    background: rgba(7, 8, 16, 0.86);
+    min-height: 44px;
+    padding: 0 16px 0 52px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(168, 85, 247, 0.5);
+    background: rgba(7, 8, 16, 0.8);
     color: #fff;
-    clip-path: polygon(8% 0, 93% 0, 100% 50%, 93% 100%, 8% 100%, 0 50%);
-    box-shadow: inset 0 0 18px rgba(168, 85, 247, 0.12), 0 0 16px rgba(168, 85, 247, 0.14);
+    box-shadow: inset 0 0 12px rgba(168, 85, 247, 0.08);
+    font-size: 0.85rem;
 }
 
 .destiny-navbar .nav-search-input:focus {
     border-color: #c084fc;
-    box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.18), 0 0 24px rgba(168, 85, 247, 0.28);
+    background: rgba(7, 8, 16, 0.95);
+    box-shadow: inset 0 0 18px rgba(168, 85, 247, 0.15), 0 0 20px rgba(168, 85, 247, 0.15);
 }
 
 .destiny-navbar .nav-user {
+    display: flex;
+    align-items: center;
     margin-left: 0;
-    padding-left: 20px;
-    gap: 12px;
-    border-left: 1px solid rgba(255, 255, 255, 0.32);
+    padding-left: 16px;
+    gap: 10px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
 }
 
 .destiny-navbar .nav-user::before {
@@ -221,18 +247,18 @@
 }
 
 .destiny-navbar .nav-user-avatar {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     flex: 0 0 auto;
     border-radius: 50%;
-    border: 2px solid rgba(168, 85, 247, 0.82);
+    border: 2px solid rgba(168, 85, 247, 0.7);
     background:
         radial-gradient(circle at 50% 35%, #fff 0 10px, transparent 11px),
         radial-gradient(ellipse at 50% 75%, #fff 0 22px, transparent 23px),
         linear-gradient(145deg, #1c1032, #7c3aed);
     background-position: center;
     background-size: cover;
-    box-shadow: 0 0 22px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 0 14px rgba(168, 85, 247, 0.35);
 }
 
 .destiny-navbar .nav-user-avatar.has-image {
@@ -243,19 +269,20 @@
     padding: 0;
     border: 0;
     background: transparent;
-    font-size: 0.94rem;
+    font-size: 0.9rem;
     letter-spacing: 0;
 }
 
 .destiny-navbar .nav-user-btn {
-    min-height: 28px;
-    padding: 5px 12px;
+    min-height: 26px;
+    padding: 4px 12px;
     border: 0;
     border-radius: 999px;
     background: linear-gradient(180deg, #8b5cf6, #5b21b6);
     color: #fff;
-    font-size: 0.72rem;
-    box-shadow: 0 0 12px rgba(168, 85, 247, 0.42);
+    font-size: 0.7rem;
+    text-decoration: none;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.35);
 }
 
 .destiny-navbar .nav-toggle {
@@ -267,18 +294,26 @@
     .destiny-navbar {
         grid-template-columns: 1fr;
         min-height: auto;
-        padding: 16px;
+        padding: 14px;
+        gap: 10px;
     }
 
     .destiny-navbar .nav-links {
         order: 3;
-        grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
         width: 100%;
     }
 
     .destiny-navbar .nav-actions {
         order: 2;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .destiny-navbar .nav-search {
+        min-width: 150px;
+        flex: 1 1 180px;
     }
 }
 
@@ -287,18 +322,18 @@
         top: 8px;
         width: calc(100% - 16px);
         grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 12px;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 10px;
     }
 
     .destiny-navbar .nav-brand {
-        gap: 12px;
+        gap: 10px;
     }
 
     .nav-brand-mark {
-        width: 68px;
-        height: 58px;
-        font-size: 2rem;
+        width: 56px;
+        height: 46px;
     }
 
     .destiny-navbar .nav-toggle {
@@ -315,17 +350,20 @@
     .destiny-navbar .nav-links {
         grid-template-columns: 1fr 1fr;
         min-height: auto;
-        clip-path: none;
-        padding: 8px;
+        padding: 6px;
+        border-radius: 8px;
         order: 3;
     }
 
     .destiny-navbar .nav-btn,
     .destiny-navbar .nav-btn.active {
-        min-height: 70px;
+        min-height: 56px;
         margin: 0;
-        clip-path: none;
-        border-radius: 8px;
+        border-radius: 6px;
+    }
+
+    .destiny-navbar .nav-btn.active::after {
+        display: none;
     }
 
     .destiny-navbar .nav-actions {
@@ -343,8 +381,8 @@
     .destiny-navbar .nav-user {
         width: 100%;
         justify-content: center;
-        padding: 12px 0 0;
+        padding: 10px 0 0;
         border-left: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.18);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
     }
 }

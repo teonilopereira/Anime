@@ -1,21 +1,31 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Tus listas en Anime Destiny: anime, manga, novelas y actividad reciente filtrados por usuario.">
-    <meta name="keywords" content="listas, me gusta, visto, anime, manga, novelas, juegos">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Revisá tus favoritos, vistos y actividad reciente.">
+    <meta name="keywords" content="listas, me gusta, visto, anime, manga, novelas">
     <meta name="robots" content="noindex,follow">
-    <title>Mis Listas – Anime Destiny</title>
+    <title>Anime Destiny | Mis Listas</title>
     
 
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/destiny-navbar.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://animedestiny.netlify.app/mis-listas.html">
+    <meta property="og:site_name" content="Anime Destiny">
+    <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
+    <meta name="twitter:card" content="summary">
+
+        <link rel="stylesheet" href="css/bundle.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        /* ── LAYOUT LISTAS ── */
+        /*  LAYOUT LISTAS  */
         .lists-layout {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -24,7 +34,7 @@
 
         /* Sidebar */
         .lists-sidebar {
-            background: rgba(5,2,15,0.9);
+            background: rgba(5,2,15,0.92);
             border-right: 1px solid rgba(188,19,254,0.18);
             padding: 24px 16px;
             position: sticky;
@@ -35,12 +45,62 @@
             flex-direction: column;
             gap: 20px;
         }
+        .lists-sidebar::-webkit-scrollbar { width: 4px; }
+        .lists-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .lists-sidebar::-webkit-scrollbar-thumb { background: rgba(188,19,254,0.3); border-radius: 2px; }
 
         .sidebar-profile {
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(188,19,254,0.2);
             border-radius: 14px;
             padding: 16px;
+            transition: border-color 0.3s;
+        }
+        .sidebar-profile:hover { border-color: rgba(188,19,254,0.4); }
+        .sidebar-avatar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .sidebar-avatar-ring {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #bc13fe, #00f2ff, #bc13fe);
+            background-size: 200% 200%;
+            animation: avatarGlow 3s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px;
+        }
+        @keyframes avatarGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .sidebar-avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #0d0620;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .sidebar-avatar-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sidebar-avatar-inner .sidebar-initials {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
         }
         .lists-profile-avatar {
             width: 52px;
@@ -83,6 +143,7 @@
             height: 100%;
             background: linear-gradient(90deg, #bc13fe, #00f2ff);
             border-radius: 3px;
+            transition: width 0.6s ease;
         }
         .lists-profile-meta {
             font-size: 0.75rem;
@@ -123,6 +184,52 @@
             border-color: rgba(188,19,254,0.5);
         }
 
+        /* Invitado sidebar */
+        .sidebar-guest {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 12px;
+            text-align: center;
+        }
+        .sidebar-guest-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 2px solid rgba(168,85,247,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #1c1032, #7c3aed);
+        }
+        .sidebar-guest-icon svg { width: 32px; height: 32px; }
+        .sidebar-guest-text { color: rgba(255,255,255,0.5); font-size: 0.8rem; font-family: 'Rajdhani', sans-serif; margin: 0 0 4px; }
+        .sidebar-guest-sub { color: rgba(255,255,255,0.35); font-size: 0.72rem; margin: 0; }
+        .sidebar-login-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border: 1.5px solid rgba(168,85,247,0.7);
+            border-radius: 999px;
+            background: linear-gradient(135deg, rgba(91,33,182,0.4), rgba(168,85,247,0.2));
+            color: #e2d9f3;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            transition: all 0.2s;
+            box-shadow: 0 0 14px rgba(168,85,247,0.25);
+        }
+        .sidebar-login-btn:hover {
+            background: linear-gradient(135deg, rgba(124,58,237,0.6), rgba(168,85,247,0.4));
+            color: #fff;
+            box-shadow: 0 0 20px rgba(168,85,247,0.4);
+        }
+        .sidebar-login-btn svg { width: 16px; height: 16px; }
+
         /* Nav sidebar */
         .sidebar-nav {
             display: flex;
@@ -152,6 +259,7 @@
             background: rgba(188,19,254,0.12);
             border-color: rgba(188,19,254,0.25);
             color: #bc13fe;
+            box-shadow: 0 0 12px rgba(188,19,254,0.08);
         }
         .sidebar-icon { font-size: 1rem; width: 20px; text-align: center; }
 
@@ -160,7 +268,16 @@
             padding: 14px;
             border-radius: 12px;
             border: 1px solid rgba(188,19,254,0.15);
-            background: rgba(188,19,254,0.05);
+            background: linear-gradient(135deg, rgba(188,19,254,0.05), rgba(0,242,255,0.03));
+            position: relative;
+            overflow: hidden;
+        }
+        .sidebar-quote-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(188,19,254,0.4), transparent);
         }
         .quote-text {
             font-size: 0.82rem;
@@ -213,7 +330,9 @@
             border: 1px solid rgba(0,242,255,0.2);
             border-radius: 14px;
             padding: 16px 20px;
+            transition: border-color 0.3s;
         }
+        .points-card:hover { border-color: rgba(0,242,255,0.35); }
         .points-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .points-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #fff; }
         .points-value { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #00f2ff; }
@@ -266,12 +385,13 @@
             border-color: rgba(0,242,255,0.45);
             background: rgba(0,242,255,0.1);
             color: #00f2ff;
+            box-shadow: 0 0 12px rgba(0,242,255,0.1);
         }
         .lists-chip.export-btn { border-color: rgba(188,19,254,0.25); color: #bc13fe; }
         .lists-chip.export-btn:hover { background: rgba(188,19,254,0.1); }
         .chip-icon { font-size: 0.9rem; }
 
-        /* ── CARDS DE CATEGORÍA ── */
+        /*  CARDS DE CATEGORÍA  */
         .category-cards-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -286,21 +406,44 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            transition: border-color 0.2s, transform 0.2s;
             cursor: pointer;
+            transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
+            transition: opacity 0.25s;
+            pointer-events: none;
         }
         .category-card:hover {
-            border-color: rgba(188,19,254,0.4);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
         }
         .category-card.anime { border-color: rgba(0,242,255,0.2); }
-        .category-card.anime:hover { border-color: rgba(0,242,255,0.5); }
+        .category-card.anime:hover {
+            border-color: rgba(0,242,255,0.5);
+            box-shadow: 0 6px 24px rgba(0,242,255,0.08);
+        }
         .category-card.manga { border-color: rgba(34,197,94,0.2); }
-        .category-card.manga:hover { border-color: rgba(34,197,94,0.5); }
+        .category-card.manga:hover {
+            border-color: rgba(34,197,94,0.5);
+            box-shadow: 0 6px 24px rgba(34,197,94,0.08);
+        }
         .category-card.novelas { border-color: rgba(244,63,94,0.2); }
-        .category-card.novelas:hover { border-color: rgba(244,63,94,0.5); }
+        .category-card.novelas:hover {
+            border-color: rgba(244,63,94,0.5);
+            box-shadow: 0 6px 24px rgba(244,63,94,0.08);
+        }
         .category-card.actividad { border-color: rgba(188,19,254,0.2); }
-        .category-card.actividad:hover { border-color: rgba(188,19,254,0.5); }
+        .category-card.actividad:hover {
+            border-color: rgba(188,19,254,0.5);
+            box-shadow: 0 6px 24px rgba(188,19,254,0.08);
+        }
 
         .cat-card-head {
             display: flex;
@@ -332,7 +475,11 @@
             font-size: 1.8rem;
             font-weight: 700;
             color: #fff;
+            transition: color 0.25s;
         }
+        .category-card.anime:hover .cat-card-count { color: #00f2ff; }
+        .category-card.manga:hover .cat-card-count { color: #22c55e; }
+        .category-card.novelas:hover .cat-card-count { color: #f43f5e; }
         .cat-card-sublabel {
             font-size: 0.75rem;
             color: rgba(255,255,255,0.4);
@@ -371,12 +518,14 @@
             font-size: 0.8rem;
             font-family: 'Rajdhani', sans-serif;
             color: rgba(255,255,255,0.75);
+            transition: background 0.2s;
         }
+        .cat-activity-item:hover { background: rgba(255,255,255,0.06); }
         .cat-activity-item .ai-icon { font-size: 0.9rem; }
         .cat-activity-item .ai-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .cat-activity-item .ai-time { font-size: 0.7rem; color: rgba(255,255,255,0.35); white-space: nowrap; }
 
-        /* ── GRID DE RESULTADOS (filas) ── */
+        /*  GRID DE RESULTADOS (filas)  */
         .lists-section { margin-bottom: 28px; }
         .lists-h2 {
             font-family: 'Orbitron', sans-serif;
@@ -428,11 +577,12 @@
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 12px;
             padding: 12px 16px;
-            transition: border-color 0.2s, transform 0.18s;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
         }
         .list-row-card:hover {
             border-color: rgba(188,19,254,0.3);
-            transform: translateX(3px);
+            transform: translateX(4px);
+            box-shadow: 0 2px 16px rgba(188,19,254,0.06);
         }
         .row-rank {
             font-family: 'Orbitron', sans-serif;
@@ -464,6 +614,38 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: nowrap;
+        }
+        .row-desc .genre-chips {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .row-desc .genre-chip {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: rgba(188,19,254,0.12);
+            border: 1px solid rgba(188,19,254,0.18);
+            color: rgba(255,255,255,0.7);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .row-desc .genre-chip:hover {
+            background: rgba(188,19,254,0.2);
+            border-color: rgba(188,19,254,0.35);
+            color: #fff;
         }
         .row-status {
             text-align: right;
@@ -485,13 +667,16 @@
             color: rgba(255,255,255,0.4);
             border: 1px dashed rgba(255,255,255,0.1);
             border-radius: 14px;
+            transition: border-color 0.2s;
         }
+        .lists-empty:hover { border-color: rgba(255,255,255,0.18); }
         .lists-empty h3 {
             font-family: 'Orbitron', sans-serif;
             font-size: 1rem;
             color: rgba(255,255,255,0.55);
             margin: 0 0 8px;
         }
+        .lists-empty p { font-family: 'Rajdhani', sans-serif; margin: 0; }
 
         /* Recomendaciones */
         .recommend { margin-bottom: 28px; }
@@ -532,7 +717,12 @@
             background: rgba(0,242,255,0.05);
         }
 
-        /* Achievements */
+        /* Achievements grid */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+        }
         .achievement-card {
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
@@ -541,10 +731,16 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
         }
+        .achievement-card:hover { transform: translateY(-2px); }
         .achievement-card.is-unlocked {
             border-color: rgba(0,242,255,0.25);
             background: rgba(0,242,255,0.05);
+        }
+        .achievement-card.is-unlocked:hover {
+            border-color: rgba(0,242,255,0.45);
+            box-shadow: 0 4px 16px rgba(0,242,255,0.08);
         }
         .achievement-card.is-locked { opacity: 0.5; }
         .achievement-icon {
@@ -570,118 +766,62 @@
         }
         .achievement-card.is-locked .achievement-state { color: rgba(255,255,255,0.3); }
 
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+        .stat-card {
+            background: rgba(10,5,25,0.8);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .stat-card:hover {
+            border-color: rgba(188,19,254,0.2);
+            transform: translateY(-2px);
+        }
+        .stat-icon { font-size: 1.6rem; }
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            font-family: 'Rajdhani', sans-serif;
+        }
+
         /* Responsive */
         @media (max-width: 900px) {
             .lists-layout { grid-template-columns: 1fr; }
             .lists-sidebar { position: static; height: auto; }
             .category-cards-grid { grid-template-columns: 1fr 1fr; }
+            .achievements-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 600px) {
             .lists-main-content { padding: 16px; }
             .category-cards-grid { grid-template-columns: 1fr; }
             .list-row-card { grid-template-columns: 28px 1fr auto; }
             .row-cover, .row-eps { display: none; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
-    <style>
-        /* ── Botón login en navbar ── */
-        .nav-login-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 18px;
-            min-height: 40px;
-            border: 1.5px solid rgba(168, 85, 247, 0.7);
-            border-radius: 999px;
-            background: linear-gradient(135deg, rgba(91, 33, 182, 0.35), rgba(168, 85, 247, 0.18));
-            color: #e2d9f3;
-            font-family: "Rajdhani", sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-decoration: none;
-            white-space: nowrap;
-            transition: all 0.22s ease;
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
-            flex-shrink: 0;
-        }
-        .nav-login-btn:hover {
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.35));
-            border-color: #c084fc;
-            color: #fff;
-            box-shadow: 0 0 22px rgba(168, 85, 247, 0.45);
-            transform: translateY(-1px);
-        }
-        .nav-login-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1.5px solid rgba(192, 132, 252, 0.7);
-            object-fit: cover;
-            background: linear-gradient(145deg, #1c1032, #7c3aed);
-            display: block;
-            flex-shrink: 0;
-        }
-        .nav-login-icon {
-            width: 18px;
-            height: 18px;
-            opacity: 0.9;
-        }
-        /* ── Círculo invitado (modo sin sesión) ── */
-        .nav-guest-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 1.5px dashed rgba(148, 163, 184, 0.6);
-            background: rgba(30, 20, 50, 0.6);
-            color: rgba(148, 163, 184, 0.85);
-            font-family: "Rajdhani", sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: border-color 0.22s, color 0.22s;
-        }
-        .nav-login-btn:hover .nav-guest-avatar {
-            border-color: rgba(192, 132, 252, 0.7);
-            color: #c084fc;
-        }
-    </style>
+
 </head>
 <body data-page="listas" data-no-profile-strip="true">
     <nav class="navbar destiny-navbar">
-        <a class="nav-brand" href="index.html" aria-label="Anime Destiny">
-            <span class="nav-brand-mark"><img src="images/Logo.png" alt="Anime Destiny logo" aria-hidden="true"></span>
-            <span class="nav-brand-copy">
-                <span class="nav-brand-anime">Anime</span>
-                <span class="nav-brand-destiny">Destiny</span>
-                <span class="nav-brand-jp">&gt; アニメの運命 &lt;</span>
-            </span>
-        </a>
-        <div class="nav-links" aria-label="Navegación principal">
-            <a href="anime.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">🎬</span><span>Anime</span></a>
-            <a href="manga.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📚</span><span>Manga</span></a>
-            <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
-            <a href="mis-listas.html" class="nav-btn active"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
-        </div>
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
         <div class="nav-actions">
-            <!-- Botón login / avatar -->
-            <a id="nav-login-btn" href="Login.html" class="nav-login-btn" aria-label="Iniciar sesión">
-                <img id="nav-login-avatar" class="nav-login-avatar" src="" alt="" aria-hidden="true"
-                     style="display:none"
-                     onerror="this.style.display='none'; document.getElementById('nav-login-icon').style.display='block'">
-                <svg id="nav-login-icon" class="nav-login-icon" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-                <span id="nav-guest-avatar" class="nav-guest-avatar" aria-hidden="true">G</span>
-                <span id="nav-login-label">Ingresar</span>
-            </a>
+            <div id="nav-login-container"></div>
         </div>
     </nav>
 
@@ -692,29 +832,33 @@
 
             <nav class="sidebar-nav">
                 <a href="#mis-listas" class="sidebar-link active" data-tab="mis-listas">
-                    <span class="sidebar-icon">⭐</span> Mis Listas
+                    <span class="sidebar-icon">?</span> Mis Listas
                 </a>
                 <a href="#actividad" class="sidebar-link" data-tab="actividad">
-                    <span class="sidebar-icon">🕐</span> Actividad
+                    <span class="sidebar-icon">??</span> Actividad
                 </a>
                 <a href="#logros" class="sidebar-link" data-tab="logros">
-                    <span class="sidebar-icon">🏆</span> Logros
+                    <span class="sidebar-icon">??</span> Logros
                 </a>
                 <a href="#estadisticas" class="sidebar-link" data-tab="estadisticas">
-                    <span class="sidebar-icon">📊</span> Estadísticas
+                    <span class="sidebar-icon">??</span> Estadísticas
                 </a>
             </nav>
 
             <div class="sidebar-quote-box">
                 <div class="quote-text">"Un día sin anime es un día perdido."</div>
-                <div class="quote-author">アニメ</div>
+                <div class="quote-author">???</div>
             </div>
         </aside>
 
         <!-- CONTENIDO PRINCIPAL -->
         <main class="lists-main-content">
 
-            <!-- ── MIS LISTAS ── -->
+            <div class="app-loader" id="listsLoader">
+                <span class="app-loader-text">Cargando tus listas...</span>
+            </div>
+
+            <!--  MIS LISTAS  -->
             <div id="tab-mis-listas" class="tab-content active">
                 <header class="lists-header-new">
                     <h1 class="lists-title">MIS LISTAS</h1>
@@ -729,37 +873,37 @@
                     <div class="category-card anime">
                         <div class="cat-card-head">
                             <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon cyan">📺</div>
+                                <div class="cat-card-icon cyan">??</div>
                                 <div class="cat-card-label">ANIME</div>
                             </div>
                         </div>
                         <div class="cat-card-count" id="countAnime">0</div>
                         <div class="cat-card-sublabel" id="sublabelAnime">Títulos guardados</div>
-                        <a href="anime.html" class="cat-card-link">Ver catálogo ›</a>
+                        <a href="anime.html" class="cat-card-link">Ver catálogo </a>
                     </div>
                     <!-- Manga card -->
                     <div class="category-card manga">
                         <div class="cat-card-head">
                             <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon green">📖</div>
+                                <div class="cat-card-icon green">??</div>
                                 <div class="cat-card-label">MANGA</div>
                             </div>
                         </div>
                         <div class="cat-card-count" id="countManga">0</div>
                         <div class="cat-card-sublabel" id="sublabelManga">Títulos guardados</div>
-                        <a href="manga.html" class="cat-card-link">Ver catálogo ›</a>
+                        <a href="manga.html" class="cat-card-link">Ver catálogo </a>
                     </div>
                     <!-- Novelas card -->
                     <div class="category-card novelas">
                         <div class="cat-card-head">
                             <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon pink">📝</div>
+                                <div class="cat-card-icon pink">??</div>
                                 <div class="cat-card-label">NOVELAS</div>
                             </div>
                         </div>
                         <div class="cat-card-count" id="countNovelas">0</div>
                         <div class="cat-card-sublabel" id="sublabelNovelas">Títulos guardados</div>
-                        <a href="novelas.html" class="cat-card-link">Ver catálogo ›</a>
+                        <a href="novelas.html" class="cat-card-link">Ver catálogo </a>
                     </div>
                 </div>
 
@@ -767,10 +911,10 @@
                 <div class="category-card actividad" id="actividadCard" style="margin-bottom:28px; cursor:default;">
                     <div class="cat-card-head">
                         <div class="cat-card-title-wrap">
-                            <div class="cat-card-icon purple">🕐</div>
+                            <div class="cat-card-icon purple">??</div>
                             <div class="cat-card-label">ACTIVIDAD RECIENTE</div>
                         </div>
-                        <a href="#" class="cat-card-link" onclick="document.querySelector('.sidebar-link[data-tab=\'actividad\']').click(); return false;">Ver todo ›</a>
+                        <a href="#" class="cat-card-link" data-open-tab="actividad">Ver todo </a>
                     </div>
                     <div class="cat-activity-list" id="actividadMini">
                         <div style="color:rgba(255,255,255,0.35); font-size:0.82rem; font-family:'Rajdhani',sans-serif; padding:4px 0;">
@@ -781,27 +925,26 @@
 
                 <!-- Filtros + resultados -->
                 <div class="lists-controls" role="toolbar" aria-label="Filtros">
-                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon">🎛</span> Todo</button>
-                    <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon">❤</span> Me gusta</button>
-                    <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon">👁</span> Vistos</button>
-                    <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon">📥</span> Exportar JSON</button>
+                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon">??</span> Todo</button>
+                    <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon">?</span> Me gusta</button>
+                    <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon">??</span> Vistos</button>
+                    <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon">??</span> Exportar JSON</button>
                 </div>
 
                 <section class="lists-section">
                     <h2 class="lists-h2">RESULTADOS</h2>
                     <div class="resultados-tabs">
-                        <button class="res-tab active" data-cat="all"><span class="tab-icon">🎛</span> Todos</button>
-                        <button class="res-tab" data-cat="anime"><span class="tab-icon">📺</span> Anime</button>
-                        <button class="res-tab" data-cat="manga"><span class="tab-icon">📖</span> Manga</button>
-                        <button class="res-tab" data-cat="novelas"><span class="tab-icon">📝</span> Novelas</button>
-                        <button class="res-tab" data-cat="juegos"><span class="tab-icon">🎮</span> Juegos</button>
+                        <button class="res-tab active" data-cat="all"><span class="tab-icon">??</span> Todos</button>
+                        <button class="res-tab" data-cat="anime"><span class="tab-icon">??</span> Anime</button>
+                        <button class="res-tab" data-cat="manga"><span class="tab-icon">??</span> Manga</button>
+                        <button class="res-tab" data-cat="novelas"><span class="tab-icon">??</span> Novelas</button>
                     </div>
                     <div id="listsGrid" class="lists-grid-rows" aria-live="polite"></div>
                 </section>
 
                 <section class="recommend" aria-label="Recomendaciones">
                     <div class="recommend-header">
-                        <span class="recommend-icon">👍</span>
+                        <span class="recommend-icon">??</span>
                         <div>
                             <h2 class="lists-h2">RECOMENDADO PARA VOS</h2>
                             <p class="lists-subtitle">Basado en lo que marcaste como visto.</p>
@@ -811,7 +954,7 @@
                 </section>
             </div>
 
-            <!-- ── ACTIVIDAD ── -->
+            <!--  ACTIVIDAD  -->
             <div id="tab-actividad" class="tab-content">
                 <header class="lists-header-new">
                     <h1 class="lists-title">ACTIVIDAD RECIENTE</h1>
@@ -822,7 +965,7 @@
                 </div>
             </div>
 
-            <!-- ── LOGROS ── -->
+            <!--  LOGROS  -->
             <div id="tab-logros" class="tab-content">
                 <header class="lists-header-new">
                     <h1 class="lists-title">LOGROS</h1>
@@ -831,102 +974,25 @@
                 <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
             </div>
 
-            <!-- ── ESTADÍSTICAS ── -->
+            <!--  ESTADÍSTICAS  -->
             <div id="tab-estadisticas" class="tab-content">
                 <header class="lists-header-new">
                     <h1 class="lists-title">ESTADÍSTICAS</h1>
                     <p class="lists-subtitle">Resumen de tu actividad en la app.</p>
                 </header>
-                <div id="statsGrid" style="display:grid; grid-template-columns: repeat(2,1fr); gap:16px;"></div>
+                <div id="statsGrid" class="stats-grid"></div>
             </div>
 
         </main>
     </div>
     <script src="js/core/config.js"></script>
-    <script type="importmap">
-    {
-      "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      }
-    }
-    </script>
+    <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js"></script>
-    <script src="js/core/user-store.js" defer></script>
-    <script src="js/core/supabase-sync.js" defer></script>
-    <script src="js/core/auth.js" defer></script>
-    <script src="js/controllers/AuthController.js" defer></script>
-    <script src="js/controllers/UserController.js" defer></script>
-    <script src="js/core/storage.js" defer></script>
-    <script src="js/core/progress.js" defer></script>
-    <script src="js/security/sanitizer.js" defer></script>
-    <script src="js/security/validator.js" defer></script>
-    <script src="js/utils.js" defer></script>
-    <script src="js/ui.js" defer></script>
-    <script src="js/datos.js" defer></script>
-    <script src="js/catalog/cards.js" defer></script>
-    <script src="js/catalog/search.js" defer></script>
-    <script src="js/script.js" defer></script>
-    <script src="js/mis-listas.js" defer></script>
-    <script defer>
-        // ── Botón login: actualizar según estado de sesión ──
-        document.addEventListener('DOMContentLoaded', function () {
-            function updateLoginBtn(user) {
-                const btn    = document.getElementById('nav-login-btn');
-                const avatar = document.getElementById('nav-login-avatar');
-                const icon   = document.getElementById('nav-login-icon');
-                const label  = document.getElementById('nav-login-label');
-                const guest  = document.getElementById('nav-guest-avatar');
-                if (!btn) return;
-
-                if (user) {
-                    const name = user.user_metadata?.username
-                        || user.user_metadata?.name
-                        || user.user_metadata?.full_name
-                        || (user.email ? user.email.split('@')[0] : '')
-                        || 'Usuario';
-                    const photoUrl = user.user_metadata?.avatar_url
-                        || user.user_metadata?.picture
-                        || '';
-
-                    label.textContent = name;
-                    btn.href = 'usuario.html';
-                    btn.setAttribute('aria-label', 'Ver perfil de ' + name);
-                    if (guest) guest.style.display = 'none';
-
-                    if (photoUrl) {
-                        avatar.src = photoUrl;
-                        avatar.alt = name;
-                        avatar.style.display = 'block';
-                        icon.style.display   = 'none';
-                    } else {
-                        avatar.style.display = 'none';
-                        icon.style.display   = 'block';
-                    }
-                } else {
-                    label.textContent = 'Ingresar';
-                    btn.href = 'Login.html';
-                    btn.setAttribute('aria-label', 'Iniciar sesión');
-                    avatar.style.display = 'none';
-                    icon.style.display   = 'none';
-                    if (guest) guest.style.display = 'flex';
-                }
-            }
-
-            function tryGetUser(retries) {
-                if (window.AppSupabase?.getCurrentUser) {
-                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
-                } else if (retries > 0) {
-                    setTimeout(function () { tryGetUser(retries - 1); }, 300);
-                }
-            }
-            tryGetUser(12);
-
-            window.addEventListener('supabase-auth-changed', function () {
-                if (window.AppSupabase?.getCurrentUser) {
-                    window.AppSupabase.getCurrentUser().then(updateLoginBtn);
-                }
-            });
-        });
-    </script>
+    <script src="js/core-bundle.js" defer></script>
+    <script src="js/pages/mis-listas.js" defer></script>
 </body>
 </html>
+
+
+
+

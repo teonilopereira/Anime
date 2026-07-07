@@ -1,386 +1,37 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Configuración de Anime Destiny. Ajustá tu experiencia, fondo, animaciones, tamaño de cards, información personal y datos locales.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Ajustá tu experiencia visual, cuentas y preferencias.">
     <meta name="keywords" content="configuración, ajustes, fondo, cards compactas, anime destiny, preferencias">
     <meta name="robots" content="noindex,follow">
-    <title>Configuración – Anime Destiny</title>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/destiny-navbar.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <style>
-        .cfg-page {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px 60px;
-        }
+    <title>Anime Destiny | Configuración</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://animedestiny.netlify.app/configuracion.html">
+    <meta property="og:site_name" content="Anime Destiny">
+    <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
+    <meta name="twitter:card" content="summary">
 
-        /* Header */
-        .cfg-page-header {
-            text-align: center;
-            padding: 36px 0 28px;
-        }
-        .cfg-page-header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-            background: linear-gradient(90deg, #bc13fe, #00f2ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin: 0 0 8px;
-            letter-spacing: 3px;
-        }
-        .cfg-page-header p {
-            color: rgba(255,255,255,0.6);
-            font-size: 0.95rem;
-            margin: 0;
-        }
+        <link rel="stylesheet" href="css/bundle.css">
 
-        /* Top bar de usuario */
-        .cfg-user-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(10,5,25,0.82);
-            border: 1px solid rgba(188,19,254,0.22);
-            border-radius: 14px;
-            padding: 16px 22px;
-            margin-bottom: 24px;
-            backdrop-filter: blur(10px);
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .cfg-user-info {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .cfg-user-avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #bc13fe, #00f2ff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
-        }
-        .cfg-user-label {
-            font-size: 0.68rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: rgba(255,255,255,0.4);
-            font-family: 'Orbitron', sans-serif;
-        }
-        .cfg-user-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            color: #00f2ff;
-        }
-        .cfg-back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 18px;
-            border-radius: 8px;
-            border: 1px solid rgba(0,242,255,0.3);
-            background: rgba(0,242,255,0.07);
-            color: #00f2ff;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.68rem;
-            text-decoration: none;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-        }
-        .cfg-back-btn:hover {
-            background: rgba(0,242,255,0.15);
-            border-color: rgba(0,242,255,0.6);
-        }
+    <link rel="stylesheet" href="css/configuracion.css">
 
-        /* Layout de secciones */
-        .cfg-sections {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .cfg-section-full {
-            grid-column: 1 / -1;
-        }
-
-        /* Panel base */
-        .cfg-panel {
-            background: rgba(10,5,25,0.82);
-            border: 1px solid rgba(188,19,254,0.18);
-            border-radius: 16px;
-            padding: 22px 24px;
-            backdrop-filter: blur(10px);
-        }
-        .cfg-panel-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.78rem;
-            letter-spacing: 2px;
-            color: #fff;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 18px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-        }
-        .cfg-panel-icon { color: #bc13fe; font-size: 1rem; }
-
-        /* Campo de formulario */
-        .cfg-field {
-            margin-bottom: 14px;
-        }
-        .cfg-field label {
-            display: block;
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255,255,255,0.5);
-            font-family: 'Orbitron', sans-serif;
-            margin-bottom: 6px;
-        }
-        .cfg-field input,
-        .cfg-field select,
-        .cfg-field textarea {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(0,242,255,0.18);
-            background: rgba(0,0,0,0.4);
-            color: #fff;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .cfg-field input:focus,
-        .cfg-field select:focus,
-        .cfg-field textarea:focus {
-            border-color: rgba(0,242,255,0.5);
-            box-shadow: 0 0 0 3px rgba(0,242,255,0.08);
-        }
-        .cfg-field select option {
-            background: #0a051a;
-            color: #fff;
-        }
-        .cfg-field input[type="color"] {
-            padding: 4px;
-            height: 42px;
-            cursor: pointer;
-        }
-
-        /* Toggle switch */
-        .cfg-toggle-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 13px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            gap: 12px;
-        }
-        .cfg-toggle-row:last-child { border-bottom: none; }
-        .cfg-toggle-left { flex: 1; }
-        .cfg-toggle-label {
-            font-size: 0.9rem;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 600;
-            color: #fff;
-        }
-        .cfg-toggle-desc {
-            font-size: 0.78rem;
-            color: rgba(255,255,255,0.4);
-            font-family: 'Rajdhani', sans-serif;
-            margin-top: 2px;
-        }
-        .cfg-switch {
-            position: relative;
-            width: 46px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-        .cfg-switch input { opacity: 0; width: 0; height: 0; }
-        .cfg-switch-slider {
-            position: absolute;
-            inset: 0;
-            border-radius: 24px;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.15);
-            cursor: pointer;
-            transition: background 0.25s;
-        }
-        .cfg-switch-slider::before {
-            content: '';
-            position: absolute;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.5);
-            top: 2px;
-            left: 2px;
-            transition: transform 0.25s, background 0.25s;
-        }
-        .cfg-switch input:checked + .cfg-switch-slider {
-            background: rgba(0,242,255,0.25);
-            border-color: rgba(0,242,255,0.4);
-        }
-        .cfg-switch input:checked + .cfg-switch-slider::before {
-            transform: translateX(22px);
-            background: #00f2ff;
-        }
-
-        /* Fondo */
-        .cfg-bg-mode-btns {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-        .cfg-bg-mode-btn {
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.03);
-            color: rgba(255,255,255,0.6);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        .cfg-bg-mode-btn.active,
-        .cfg-bg-mode-btn:hover {
-            border-color: rgba(0,242,255,0.4);
-            background: rgba(0,242,255,0.08);
-            color: #00f2ff;
-        }
-        .cfg-bg-mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
-
-        /* Actions */
-        .cfg-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        .cfg-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 11px 22px;
-            border-radius: 10px;
-            border: none;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.72rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .cfg-btn-primary {
-            background: linear-gradient(135deg, rgba(0,242,255,0.2), rgba(188,19,254,0.2));
-            border: 1px solid rgba(0,242,255,0.3);
-            color: #00f2ff;
-        }
-        .cfg-btn-primary:hover {
-            background: linear-gradient(135deg, rgba(0,242,255,0.3), rgba(188,19,254,0.3));
-            border-color: rgba(0,242,255,0.6);
-        }
-        .cfg-btn-secondary {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.12);
-            color: rgba(255,255,255,0.7);
-        }
-        .cfg-btn-secondary:hover {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.25);
-            color: #fff;
-        }
-        .cfg-btn-danger {
-            background: rgba(244,63,94,0.1);
-            border: 1px solid rgba(244,63,94,0.3);
-            color: #f43f5e;
-        }
-        .cfg-btn-danger:hover {
-            background: rgba(244,63,94,0.2);
-            border-color: rgba(244,63,94,0.5);
-        }
-
-        /* Toast */
-        .cfg-toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: rgba(10,5,25,0.95);
-            border: 1px solid rgba(0,242,255,0.3);
-            border-radius: 12px;
-            padding: 12px 24px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            color: #00f2ff;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
-            pointer-events: none;
-            backdrop-filter: blur(14px);
-        }
-        .cfg-toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-        .cfg-toast.error {
-            border-color: rgba(244,63,94,0.4);
-            color: #f43f5e;
-        }
-
-        /* Note */
-        .cfg-note {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.4);
-            font-family: 'Rajdhani', sans-serif;
-            margin-top: 10px;
-            line-height: 1.5;
-        }
-        .cfg-note strong { color: rgba(255,255,255,0.65); }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .cfg-sections { grid-template-columns: 1fr; }
-            .cfg-section-full { grid-column: auto; }
-        }
-    </style>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body data-page="configuracion">
     <nav class="navbar destiny-navbar">
-        <a class="nav-brand" href="index.html" aria-label="Anime Destiny">
-            <span class="nav-brand-mark"><img src="images/Logo.png" alt="Anime Destiny logo" aria-hidden="true"></span>
-            <span class="nav-brand-copy">
-                <span class="nav-brand-anime">Anime</span>
-                <span class="nav-brand-destiny">Destiny</span>
-                <span class="nav-brand-jp">&gt; アニメの運命 &lt;</span>
-            </span>
-        </a>
-        <div class="nav-links" aria-label="Navegación principal">
-            <a href="anime.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">🎬</span><span>Anime</span></a>
-            <a href="manga.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📚</span><span>Manga</span></a>
-            <a href="novelas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">📖</span><span>Novelas</span></a>
-            <a href="mis-listas.html" class="nav-btn"><span class="nav-icon" aria-hidden="true">💖</span><span>Mis Listas</span></a>
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
+        <div class="nav-actions">
+            <div id="nav-login-container"></div>
         </div>
-        <div class="nav-actions"></div>
     </nav>
 
     <main class="cfg-page">
@@ -395,18 +46,18 @@
                 <div class="cfg-user-avatar" id="cfgAvatar">?</div>
                 <div>
                     <div class="cfg-user-label">Usuario activo</div>
-                    <div class="cfg-user-name" id="cfgUserName">—</div>
+                <div class="cfg-user-name" id="cfgUserName"></div>
                 </div>
             </div>
-            <a href="usuario.html" class="cfg-back-btn">‹ Volver al perfil</a>
+            <a href="usuario.html" class="cfg-back-btn"> Volver al perfil</a>
         </div>
 
         <div class="cfg-sections">
 
-            <!-- ── INFORMACIÓN PERSONAL ── -->
+            <!-- -- INFORMACIÓN PERSONAL -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">👤</span> INFORMACIÓN PERSONAL
+                    <span class="cfg-panel-icon">??</span> INFORMACIÓN PERSONAL
                 </div>
                 <div class="cfg-field">
                     <label for="cfgEmail">Correo electrónico</label>
@@ -415,17 +66,17 @@
                 <div class="cfg-field">
                     <label for="cfgPais">País / Región</label>
                     <select id="cfgPais">
-                        <option value="Argentina">Argentina 🇦🇷</option>
-                        <option value="México">México 🇲🇽</option>
-                        <option value="España">España 🇪🇸</option>
-                        <option value="Chile">Chile 🇨🇱</option>
-                        <option value="Colombia">Colombia 🇨🇴</option>
-                        <option value="Uruguay">Uruguay 🇺🇾</option>
-                        <option value="Perú">Perú 🇵🇪</option>
-                        <option value="Venezuela">Venezuela 🇻🇪</option>
-                        <option value="Ecuador">Ecuador 🇪🇨</option>
-                        <option value="Bolivia">Bolivia 🇧🇴</option>
-                        <option value="Paraguay">Paraguay 🇵🇾</option>
+                        <option value="Argentina">Argentina ????</option>
+                        <option value="México">México ????</option>
+                        <option value="España">España ????</option>
+                        <option value="Chile">Chile ????</option>
+                        <option value="Colombia">Colombia ????</option>
+                        <option value="Uruguay">Uruguay ????</option>
+                        <option value="Perú">Perú ????</option>
+                        <option value="Venezuela">Venezuela ????</option>
+                        <option value="Ecuador">Ecuador ????</option>
+                        <option value="Bolivia">Bolivia ????</option>
+                        <option value="Paraguay">Paraguay ????</option>
                         <option value="Otro">Otro</option>
                     </select>
                 </div>
@@ -435,7 +86,7 @@
                         <option value="Español">Español</option>
                         <option value="English">English</option>
                         <option value="Português">Português</option>
-                        <option value="日本語">日本語</option>
+                        <option value="???">???</option>
                     </select>
                 </div>
                 <div class="cfg-field">
@@ -448,13 +99,13 @@
                         <option value="GMT+9 (Tokio)">GMT+9 (Tokio)</option>
                     </select>
                 </div>
-                <button class="cfg-btn cfg-btn-primary" id="saveInfoPersonal">💾 GUARDAR INFORMACIÓN</button>
+                <button class="cfg-btn cfg-btn-primary" id="saveInfoPersonal">?? GUARDAR INFORMACIÓN</button>
             </div>
 
-            <!-- ── PREFERENCIAS ── -->
+            <!-- -- PREFERENCIAS -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">⚙</span> PREFERENCIAS
+                    <span class="cfg-panel-icon">?</span> PREFERENCIAS
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
@@ -516,35 +167,98 @@
                         <span class="cfg-switch-slider"></span>
                     </label>
                 </div>
-                <div style="margin-top:16px">
+                <div class="cfg-section-gap">
                     <div class="cfg-field">
                         <label>Tema de la app</label>
                         <select id="prefTema">
-                            <option value="oscuro">🌙 Oscuro</option>
-                            <option value="claro">☀ Claro</option>
-                            <option value="sistema">🖥 Según sistema</option>
+                            <option value="oscuro">?? Oscuro</option>
+                            <option value="claro">? Claro</option>
+                            <option value="sistema">?? Según sistema</option>
                         </select>
                     </div>
                 </div>
-                <button class="cfg-btn cfg-btn-primary" id="savePreferencias">💾 GUARDAR PREFERENCIAS</button>
+                <button class="cfg-btn cfg-btn-primary" id="savePreferencias">?? GUARDAR PREFERENCIAS</button>
             </div>
 
-            <!-- ── FONDO ── -->
+            <!-- -- COLORES DE LA APP -- -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">??</span> COLORES DE LA APP
+                </div>
+                <div class="cfg-color-grid">
+                    <div class="cfg-color-item">
+                        <label>Acento principal</label>
+                        <input type="color" id="clrNeonPurple" value="#bc13fe">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label>Acento navbar</label>
+                        <input type="color" id="clrNavAccent" value="#a855f7">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label>Acento secundario</label>
+                        <input type="color" id="clrCyan" value="#00f2ff">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label>Fondo oscuro</label>
+                        <input type="color" id="clrDarkBg" value="#050505">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label>Texto principal</label>
+                        <input type="color" id="clrTextMain" value="#ffffff">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label>Texto secundario</label>
+                        <input type="color" id="clrTextMuted" value="#b0b0b0">
+                    </div>
+                </div>
+                <div class="cfg-btn-row">
+                    <button class="cfg-btn cfg-btn-primary" id="saveColores">?? APLICAR COLORES</button>
+                    <button class="cfg-btn cfg-btn-secondary" id="resetColores">? RESTABLECER</button>
+                </div>
+                <p class="cfg-note">Los colores se aplican en todas las páginas con las variables CSS.</p>
+            </div>
+
+            <!-- -- TARJETAS POR FILA -- -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">??</span> TARJETAS POR FILA
+                </div>
+                <div class="cfg-cpr-row">
+                    <label class="cfg-toggle-label">
+                        <span>Fijar cantidad</span>
+                        <input type="checkbox" id="cprToggle">
+                        <span class="cfg-toggle-slider"></span>
+                    </label>
+                </div>
+                <div id="cprSliderWrap" class="cfg-slider-wrap" style="display:none">
+                    <div class="cfg-slider-inner">
+                        <input type="range" id="cprSlider" class="cfg-range" min="2" max="8" value="4" step="1">
+                        <span id="cprValue" class="cfg-cpr-value">4</span>
+                    </div>
+                    <p class="cfg-note cfg-note-sm">Mín. 2, máx. 8. Solo aplica en desktop/tablet; en móviles se mantiene el diseño responsive original.</p>
+                </div>
+                <div id="cprActions" class="cfg-cpr-actions" style="display:none">
+                    <button class="cfg-btn cfg-btn-primary" id="saveCpr">?? GUARDAR</button>
+                    <button class="cfg-btn cfg-btn-secondary" id="resetCpr">? AUTO</button>
+                </div>
+            </div>
+
+            <!-- -- FONDO -- -->
             <div class="cfg-panel cfg-section-full">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🖼</span> FONDO DE PANTALLA
+                    <span class="cfg-panel-icon">??</span> FONDO DE PANTALLA
                 </div>
                 <div class="cfg-bg-mode-btns">
                     <button class="cfg-bg-mode-btn active" id="bgBtnDefault" data-mode="default">
-                        <span class="cfg-bg-mode-icon">🌌</span>
+                        <span class="cfg-bg-mode-icon">??</span>
                         POR DEFECTO
                     </button>
                     <button class="cfg-bg-mode-btn" id="bgBtnColor" data-mode="color">
-                        <span class="cfg-bg-mode-icon">🎨</span>
+                        <span class="cfg-bg-mode-icon">??</span>
                         COLOR
                     </button>
                     <button class="cfg-bg-mode-btn" id="bgBtnImage" data-mode="image">
-                        <span class="cfg-bg-mode-icon">📷</span>
+                        <span class="cfg-bg-mode-icon">??</span>
                         IMAGEN
                     </button>
                 </div>
@@ -562,17 +276,16 @@
                         <input type="file" id="cfgBgFile" accept="image/*">
                     </div>
                 </div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="cfg-btn cfg-btn-primary" id="saveFondo">💾 APLICAR FONDO</button>
-                    <button class="cfg-btn cfg-btn-secondary" id="clearFondo">↩ RESTAURAR POR DEFECTO</button>
-                </div>
+                <div class="cfg-btn-row">
+                    <button class="cfg-btn cfg-btn-primary" id="saveFondo">?? APLICAR FONDO</button>
+                    <button class="cfg-btn cfg-btn-secondary" id="clearFondo">? RESTAURAR POR DEFECTO</button>
                 <p class="cfg-note">Las imágenes se guardan en el navegador y se aplican en todas las páginas.</p>
             </div>
 
-            <!-- ── APARIENCIA / CARDS ── -->
+            <!-- -- APARIENCIA / CARDS -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🃏</span> APARIENCIA DE CARDS
+                    <span class="cfg-panel-icon">??</span> APARIENCIA DE CARDS
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
@@ -587,7 +300,7 @@
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
                         <div class="cfg-toggle-label">Mostrar badges de estado</div>
-                        <div class="cfg-toggle-desc">Íconos de ❤ Visto y Me gusta en las cards.</div>
+                        <div class="cfg-toggle-desc">Íconos de ? Visto y Me gusta en las cards.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="showBadges" checked>
@@ -604,13 +317,13 @@
                         <span class="cfg-switch-slider"></span>
                     </label>
                 </div>
-                <button class="cfg-btn cfg-btn-primary" style="margin-top:14px" id="saveApariencia">💾 GUARDAR APARIENCIA</button>
+                <button class="cfg-btn cfg-btn-primary cfg-btn-mt" id="saveApariencia">?? GUARDAR APARIENCIA</button>
             </div>
 
-            <!-- ── PRIVACIDAD Y DATOS ── -->
+            <!-- -- PRIVACIDAD Y DATOS -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🔒</span> PRIVACIDAD Y DATOS
+                    <span class="cfg-panel-icon">??</span> PRIVACIDAD Y DATOS
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
@@ -632,10 +345,10 @@
                         <span class="cfg-switch-slider"></span>
                     </label>
                 </div>
-                <div style="margin-top: 18px; display:flex; flex-direction:column; gap:8px;">
-                    <button class="cfg-btn cfg-btn-secondary" id="exportData" style="width:100%;justify-content:center;">📥 EXPORTAR MIS DATOS (JSON)</button>
-                    <button class="cfg-btn cfg-btn-danger" id="deleteUserBtn" style="width:100%;justify-content:center;">🗑 ELIMINAR USUARIO</button>
-                    <button class="cfg-btn cfg-btn-danger" id="clearAllBtn" style="width:100%;justify-content:center;">⚠ BORRAR TODO EL ALMACENAMIENTO</button>
+                <div class="cfg-action-stack">
+                    <button class="cfg-btn cfg-btn-secondary cfg-btn-full" id="exportData">?? EXPORTAR MIS DATOS (JSON)</button>
+                    <button class="cfg-btn cfg-btn-danger cfg-btn-full" id="deleteUserBtn">?? ELIMINAR USUARIO</button>
+                    <button class="cfg-btn cfg-btn-danger cfg-btn-full" id="clearAllBtn">? BORRAR TODO EL ALMACENAMIENTO</button>
                 </div>
                 <p class="cfg-note">
                     <strong>Eliminar usuario</strong> borra la sesión y sus datos. 
@@ -643,328 +356,40 @@
                 </p>
             </div>
 
-            <!-- ── ACCIONES GLOBALES ── -->
-            <div class="cfg-panel cfg-section-full" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;">
+            <!-- -- ACCIONES GLOBALES -- -->
+            <div class="cfg-panel cfg-section-full cfg-flex-between">
                 <div>
-                    <div style="font-family:'Orbitron',sans-serif; font-size:0.8rem; color:#fff; margin-bottom:4px;">GUARDAR TODO</div>
-                    <div style="font-size:0.82rem; color:rgba(255,255,255,0.45); font-family:'Rajdhani',sans-serif;">Aplicá todos los cambios de una sola vez.</div>
+                    <div class="cfg-save-title">GUARDAR TODO</div>
+                    <div class="cfg-save-desc">Aplicá todos los cambios de una sola vez.</div>
                 </div>
                 <div class="cfg-actions">
-                    <button class="cfg-btn cfg-btn-primary" id="saveAll">✅ GUARDAR TODOS LOS CAMBIOS</button>
-                    <button class="cfg-btn cfg-btn-secondary" id="resetAll">↩ RESTABLECER TODO</button>
+                     <button class="cfg-btn cfg-btn-primary" id="saveAll">? GUARDAR TODOS LOS CAMBIOS</button>
+                     <button class="cfg-btn cfg-btn-secondary" id="resetAll">? RESTABLECER TODO</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <footer class="app-footer">
-        <div class="app-footer-inner">
-            <div class="app-footer-col">
-                <div class="app-footer-title">Configuración</div>
-                <p class="app-footer-text">Tus cambios se guardan localmente en este navegador.</p>
-            </div>
-            <div class="app-footer-col">
-                <div class="app-footer-title">Consejo</div>
-                <p class="app-footer-text">Activá cards compactas si querés ver más títulos sin hacer tanto scroll.</p>
-            </div>
-            <div class="app-footer-col">
-                <div class="app-footer-title">Seguridad</div>
-                <p class="app-footer-text">Si eliminás el usuario, se borra su sesión y progreso local.</p>
-            </div>
-        </div>
-        <div class="app-footer-bottom">© 2026 Anime Destiny</div>
-    </footer>
+    <div id="footer-container"></div>
 
     <!-- Toast -->
     <div class="cfg-toast" id="cfgToast"></div>
 
-    <script src="js/core/config.js" defer></script>
-    <script type="importmap">
-    {
-      "imports": {
-        "@supabase/supabase-js": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
-      }
-    }
-    </script>
-    <script type="module" src="api/supabase-config.js"></script>
+    <script src="js/core/config.js"></script>
+    <script src="js/core/i18n.js"></script>
+
+    <script src="js/core/constants.js"></script>
+    <script src="js/core/namespace.js"></script>
+<script type="module" src="api/supabase-config.js"></script>
     <script src="js/core/user-store.js" defer></script>
+    <script src="js/core/data-sync.js" defer></script>
     <script src="js/core/auth.js" defer></script>
-    <script src="js/controllers/AuthController.js" defer></script>
-    <script src="js/controllers/UserController.js" defer></script>
 
-    <script>
-        /* ── Helpers ── */
-        function r(key, def = '') { try { return localStorage.getItem(key) || def; } catch { return def; } }
-        function w(key, val) { try { localStorage.setItem(key, String(val)); } catch {} }
-        function rb(key, def = false) { const v = r(key, null); return v === null ? def : v === 'true'; }
-
-        function toast(msg, isError = false) {
-            const t = document.getElementById('cfgToast');
-            t.textContent = msg;
-            t.className = 'cfg-toast' + (isError ? ' error' : '');
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2800);
-        }
-
-        function applyBgToPage() {
-            const mode = r('pref:bgMode', 'default');
-            const body = document.body;
-            ['background','background-image','background-color','background-repeat','background-size','background-position','background-attachment']
-                .forEach(p => body.style.removeProperty(p));
-            if (mode === 'color') {
-                const color = r('pref:bgColor', '#2b0a55');
-                body.style.background = `linear-gradient(180deg, #000000 0%, ${color} 100%)`;
-                body.style.backgroundAttachment = 'fixed';
-            } else if (mode === 'image') {
-                const url = r('pref:bgImage', '');
-                if (url) {
-                    body.style.backgroundImage = `linear-gradient(rgba(0,0,0,.62),rgba(0,0,0,.76)),url("${url.replaceAll('"','\\"')}")`;
-                    body.style.backgroundSize = 'cover';
-                    body.style.backgroundPosition = 'center';
-                    body.style.backgroundRepeat = 'no-repeat';
-                    body.style.backgroundAttachment = 'fixed';
-                }
-            }
-        }
-
-        /* ── Sync UI con localStorage ── */
-        function syncUI() {
-            const user = r('currentUser', 'Invitado');
-            document.getElementById('cfgUserName').textContent = user;
-            document.getElementById('cfgAvatar').textContent = user.slice(0, 2).toUpperCase();
-
-            // Info personal
-            document.getElementById('cfgEmail').value = r(`u:${user}|email`, '');
-            document.getElementById('cfgPais').value = r('pref:pais', 'Argentina');
-            document.getElementById('cfgIdioma').value = r('pref:idioma', 'Español');
-            document.getElementById('cfgZona').value = r('pref:zona', 'GMT-3 (Buenos Aires)');
-
-            // Preferencias
-            document.getElementById('prefNotif').checked = rb('pref:notif', false) || r('pref:notif', 'off') === 'on';
-            document.getElementById('prefContenido').checked = r('pref:contenido', 'personalizado') === 'personalizado';
-            document.getElementById('prefCompact').checked = rb('pref:compactCards', false);
-            document.getElementById('prefReduceMotion').checked = rb('pref:reduceMotion', false);
-            document.getElementById('prefShowProgress').checked = rb('pref:showProgress', true);
-            document.getElementById('prefPublic').checked = r('pref:privacidad', 'publica') === 'publica';
-            document.getElementById('prefTema').value = r('pref:tema', 'oscuro');
-
-            // Apariencia
-            document.getElementById('compactCards2').checked = rb('pref:compactCards', false);
-            document.getElementById('showBadges').checked = rb('pref:showBadges', true);
-            document.getElementById('showProgressBadge').checked = rb('pref:showProgress', true);
-
-            // Privacidad
-            document.getElementById('privPublic2').checked = r('pref:privacidad', 'publica') === 'publica';
-            document.getElementById('privHistory').checked = rb('pref:history', true);
-
-            // Fondo
-            const bgMode = r('pref:bgMode', 'default');
-            document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
-            const activeBtn = document.getElementById('bgBtn' + bgMode.charAt(0).toUpperCase() + bgMode.slice(1));
-            if (activeBtn) activeBtn.classList.add('active');
-            document.getElementById('cfgBgColor').value = r('pref:bgColor', '#2b0a55');
-            document.getElementById('cfgBgUrl').value = r('pref:bgImage', '').startsWith('data:') ? '' : r('pref:bgImage', '');
-            updateBgSections(bgMode);
-        }
-
-        function updateBgSections(mode) {
-            document.getElementById('bgColorSection').style.display = mode === 'color' ? 'block' : 'none';
-            document.getElementById('bgImageSection').style.display = mode === 'image' ? 'block' : 'none';
-        }
-
-        /* ── Eventos de fondo ── */
-        let currentBgMode = r('pref:bgMode', 'default');
-        document.querySelectorAll('.cfg-bg-mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentBgMode = btn.dataset.mode;
-                updateBgSections(currentBgMode);
-            });
-        });
-
-        document.getElementById('cfgBgColor').addEventListener('input', () => {
-            if (currentBgMode === 'color') {
-                w('pref:bgColor', document.getElementById('cfgBgColor').value);
-                applyBgToPage();
-            }
-        });
-
-        document.getElementById('cfgBgUrl').addEventListener('input', () => {
-            if (currentBgMode === 'image') {
-                w('pref:bgImage', document.getElementById('cfgBgUrl').value.trim());
-                applyBgToPage();
-            }
-        });
-
-        document.getElementById('cfgBgFile').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-                currentBgMode = 'image';
-                document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('bgBtnImage').classList.add('active');
-                updateBgSections('image');
-                w('pref:bgMode', 'image');
-                w('pref:bgImage', reader.result);
-                applyBgToPage();
-                toast('✅ Imagen de fondo aplicada');
-            };
-            reader.readAsDataURL(file);
-        });
-
-        document.getElementById('saveFondo').addEventListener('click', () => {
-            w('pref:bgMode', currentBgMode);
-            if (currentBgMode === 'color') w('pref:bgColor', document.getElementById('cfgBgColor').value);
-            if (currentBgMode === 'image') w('pref:bgImage', document.getElementById('cfgBgUrl').value.trim());
-            applyBgToPage();
-            toast('✅ Fondo guardado correctamente');
-        });
-
-        document.getElementById('clearFondo').addEventListener('click', () => {
-            currentBgMode = 'default';
-            document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('bgBtnDefault').classList.add('active');
-            updateBgSections('default');
-            w('pref:bgMode', 'default');
-            localStorage.removeItem('pref:bgColor');
-            localStorage.removeItem('pref:bgImage');
-            applyBgToPage();
-            toast('✅ Fondo restaurado al predeterminado');
-        });
-
-        /* ── Guardar información personal ── */
-        document.getElementById('saveInfoPersonal').addEventListener('click', () => {
-            const user = r('currentUser', 'Invitado');
-            w(`u:${user}|email`, document.getElementById('cfgEmail').value.trim());
-            w('pref:pais', document.getElementById('cfgPais').value);
-            w('pref:idioma', document.getElementById('cfgIdioma').value);
-            w('pref:zona', document.getElementById('cfgZona').value);
-            toast('✅ Información personal guardada');
-        });
-
-        /* ── Guardar preferencias ── */
-        document.getElementById('savePreferencias').addEventListener('click', () => {
-            w('pref:notif', document.getElementById('prefNotif').checked ? 'on' : 'off');
-            w('pref:contenido', document.getElementById('prefContenido').checked ? 'personalizado' : 'general');
-            w('pref:compactCards', document.getElementById('prefCompact').checked);
-            w('pref:reduceMotion', document.getElementById('prefReduceMotion').checked);
-            w('pref:showProgress', document.getElementById('prefShowProgress').checked);
-            w('pref:privacidad', document.getElementById('prefPublic').checked ? 'publica' : 'privada');
-            w('pref:tema', document.getElementById('prefTema').value);
-            toast('✅ Preferencias guardadas');
-        });
-
-        /* ── Guardar apariencia ── */
-        document.getElementById('saveApariencia').addEventListener('click', () => {
-            w('pref:compactCards', document.getElementById('compactCards2').checked);
-            w('pref:showBadges', document.getElementById('showBadges').checked);
-            w('pref:showProgress', document.getElementById('showProgressBadge').checked);
-            // sincronizar con el otro checkbox
-            document.getElementById('prefCompact').checked = document.getElementById('compactCards2').checked;
-            toast('✅ Apariencia guardada');
-        });
-
-        /* ── Guardar privacidad ── */
-        document.getElementById('privPublic2').addEventListener('change', () => {
-            document.getElementById('prefPublic').checked = document.getElementById('privPublic2').checked;
-        });
-
-        /* ── Exportar datos ── */
-        document.getElementById('exportData').addEventListener('click', async () => {
-            const supaUser = window.AppSupabase?.getCurrentUser?.();
-            if (!supaUser) { toast('Iniciá sesión primero', true); return; }
-            const username = supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || supaUser.id;
-            const data = { user: username, exportedAt: new Date().toISOString(), prefs: {}, lists: {} };
-
-            // Exportar prefs de UI desde localStorage (son solo de visualización, no datos de usuario)
-            ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
-             'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-             'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => {
-                const v = localStorage.getItem(k);
-                if (v !== null) data.prefs[k] = v;
-            });
-
-            // Exportar datos de usuario desde Supabase
-            try {
-                const client = window.AppSupabase;
-                if (client?.loadItemStates) {
-                    const categorias = ['anime', 'manga', 'novelas', 'juegos'];
-                    const all = await Promise.all(categorias.map(cat =>
-                        client.loadItemStates(cat).then(states => ({ cat, states }))
-                    ));
-                    all.forEach(({ cat, states }) => {
-                        if (!Array.isArray(states)) return;
-                        states.forEach(s => {
-                            if (!data.lists[cat]) data.lists[cat] = [];
-                            data.lists[cat].push({ id: s.item_id, fav: s.fav, viewed: s.viewed });
-                        });
-                    });
-                }
-            } catch (e) { console.warn('Error exportando desde Supabase:', e); }
-
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `anime-destiny-${username}.json`;
-            document.body.appendChild(a); a.click(); a.remove();
-            URL.revokeObjectURL(url);
-            toast('✅ Datos exportados desde Supabase');
-        });
-
-        /* ── Cerrar sesión / Eliminar usuario ── */
-        document.getElementById('deleteUserBtn').addEventListener('click', async () => {
-            const supaUser = window.AppSupabase?.getCurrentUser?.();
-            if (!supaUser) { toast('No hay usuario activo', true); return; }
-            const username = supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || 'usuario';
-            if (!confirm(`¿Cerrar sesión de "${username}"? Los datos están guardados en Supabase.`)) return;
-            try {
-                await window.AppSupabase?.signOutGoogle?.();
-                if (typeof UserStore !== 'undefined') UserStore.clear();
-                toast('✅ Sesión cerrada');
-                setTimeout(() => window.location.href = 'index.html', 1000);
-            } catch (e) {
-                toast('Error al cerrar sesión: ' + e.message, true);
-            }
-        });
-
-        /* ── Borrar preferencias de UI ── */
-        document.getElementById('clearAllBtn').addEventListener('click', () => {
-            if (!confirm('¿Borrar las preferencias de visualización? Los datos de progreso están seguros en Supabase.')) return;
-            // Solo borrar prefs de UI - los datos de usuario están en Supabase
-            ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
-             'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-             'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => localStorage.removeItem(k));
-            if (typeof UserStore !== 'undefined') UserStore.clear();
-            toast('✅ Preferencias borradas');
-            setTimeout(() => window.location.href = 'index.html', 1000);
-        });
-
-        /* ── Guardar todo ── */
-        document.getElementById('saveAll').addEventListener('click', () => {
-            document.getElementById('saveInfoPersonal').click();
-            document.getElementById('savePreferencias').click();
-            document.getElementById('saveApariencia').click();
-            document.getElementById('saveFondo').click();
-            toast('✅ Todos los cambios guardados');
-        });
-
-        /* ── Restablecer todo ── */
-        document.getElementById('resetAll').addEventListener('click', () => {
-            if (!confirm('¿Restablecer todas las preferencias a los valores por defecto?')) return;
-            ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
-             'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-             'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => localStorage.removeItem(k));
-            syncUI();
-            applyBgToPage();
-            toast('✅ Preferencias restablecidas');
-        });
-
-        /* ── Init ── */
-        applyBgToPage();
-        syncUI();
-    </script>
+    <script src="js/pages/configuracion.js" defer></script>
+    <script src="js/core/common-ui.js" defer></script>
 </body>
 </html>
+
+
+

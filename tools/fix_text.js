@@ -36,8 +36,8 @@ function fixScript(text) {
   s = s.replace(/sesión/g, 'sesión');
   s = s.replace(/contraseña/g, 'contraseña');
   s = s.replace(/•/g, '•');
-  s = s.replace(/â¤/g, '❤');
-  s = s.replace(/ðŸ‘/g, '👁');
+  s = s.replace(/❤/g, '❤');
+  s = s.replace(/👁/g, '👁');
   return s;
 }
 

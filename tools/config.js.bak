@@ -1,0 +1,26 @@
+/**
+ * config.js (plantilla de referencia)
+ *
+ * Las páginas HTML cargan js/core/config.js, generado desde .env con:
+ *   node tools/generate-config.js
+ *
+ * No uses process.env aquí: no existe en el navegador.
+ */
+(function (window) {
+    "use strict";
+
+    if (window.AppConfig?.supabaseUrl) return;
+
+    window.AppConfig = {
+        supabaseUrl: "",
+        supabaseAnonKey: "",
+        defaultPageSize: 40,
+        maxCatalogItems: 40,
+        debug: false,
+        cachePrefix: "animeDestiny"
+    };
+
+    console.warn(
+        "⚠️ Supabase no configurado. Ejecutá: node tools/generate-config.js"
+    );
+})(window);

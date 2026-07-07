@@ -4,36 +4,76 @@
  * Expone window.AppSupabase con la API pública.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const SUPABASE_URL = window.AppConfig?.supabaseUrl
-    || process?.env?.VITE_SUPABASE_URL
-    || process?.env?.SUPABASE_URL
-    || "";
-const SUPABASE_ANON = window.AppConfig?.supabaseAnonKey
-    || process?.env?.VITE_SUPABASE_ANON_KEY
-    || process?.env?.SUPABASE_ANON_KEY
-    || "";
+const runtimeConfig = window.AppConfig || {};
 
-if (!SUPABASE_URL || !SUPABASE_ANON) {
+if (!runtimeConfig.supabaseUrl || !runtimeConfig.supabaseAnonKey) {
     console.error("[Supabase] No se encontró la configuración de Supabase. Revisa AppConfig o las variables de entorno.");
     window.AppSupabase = null;
     window.AppSupabaseReady = Promise.resolve(null);
     window.dispatchEvent(new CustomEvent("supabase-auth-changed", { detail: { user: null, username: "" } }));
-    throw new Error("[Supabase] Configuración incompleta: supabase-url o supabase-anon-key faltante.");
-}
+    window.dispatchEvent(new CustomEvent("supabase-ready", { detail: null }));
+} else {
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
+const supabase = createClient(runtimeConfig.supabaseUrl, runtimeConfig.supabaseAnonKey, {
     auth: {
         persistSession:     true,
         autoRefreshToken:   true,
         detectSessionInUrl: true
     }
 });
+// ⚠ SEGURIDAD: persistSession=true guarda el token JWT en localStorage
+// bajo la clave `sb-<url>-auth-token`. Esto es por diseño de Supabase.
+// En un frontend estático (sin backend propio), no es posible usar
+// httpOnly cookies. Cualquier script XSS en el mismo origen puede
+// leer este token. La mitigación requeriría un proxy backend que
+// maneje la sesión con cookies httpOnly.
 
 // ─── Estado de sesión en memoria ──────────────────────────────────
 let _currentUser  = null;
 let _sessionReady = false;
+
+// ─── Listener de sesión ────────────────────────────────────────────
+// Registrado INMEDIATAMENTE después de createClient para no perder INITIAL_SESSION
+const authListeners = new Set();
+
+supabase.auth.onAuthStateChange(async (event, session) => {
+    _currentUser  = session?.user ?? null;
+    _sessionReady = true;
+
+    // NOTA: El perfil se crea automáticamente mediante el trigger handle_new_user()
+    // en auth.users AFTER INSERT. No es necesario saveUserProfile() aquí.
+
+    const detail = { user: _currentUser, username: supabaseUserName(_currentUser) };
+
+    authListeners.forEach((fn) => fn(detail));
+
+    window.dispatchEvent(new CustomEvent("supabase-auth-changed", { detail }));
+
+    if (_currentUser) {
+        queueMicrotask(() => ensureCurrentUserProfile(_currentUser, event));
+    }
+
+    if (event === "SIGNED_IN" && _currentUser) {
+        var _m = document.getElementById("userModal");
+        if (_m) _m.classList.remove("is-open");
+
+        if (window.location.hash && window.location.hash.includes("access_token")) {
+            const cleanUrl = window.location.origin + window.location.pathname + window.location.search;
+            window.history.replaceState(null, "", cleanUrl);
+        }
+    }
+});
+
+// Recuperar sesión al cargar (getUser verifica con el servidor, no depende de cache local)
+supabase.auth.getUser().then(({ data: { user } }) => {
+    _currentUser  = user ?? null;
+    _sessionReady = true;
+    if (_currentUser) queueMicrotask(() => ensureCurrentUserProfile(_currentUser, "getUser"));
+}).catch(() => {
+    _sessionReady = true;
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────
 function supabaseUserName(user) {
@@ -61,11 +101,22 @@ function profileUsername(user, fallback = "") {
 
 async function getCurrentUserAsync() {
     if (!_sessionReady) {
-        const { data: { session } } = await supabase.auth.getSession();
-        _currentUser  = session?.user ?? null;
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            _currentUser  = user ?? null;
+        } catch { _currentUser = null; }
         _sessionReady = true;
     }
     return _currentUser;
+}
+
+async function ensureCurrentUserProfile(user, source = "") {
+    if (!user) return;
+    try {
+        await saveUserProfile(user);
+    } catch (error) {
+        console.warn("No se pudo sincronizar el perfil" + (source ? " (" + source + ")" : "") + ":", error.message);
+    }
 }
 
 // ─── Perfil de usuario ────────────────────────────────────────────
@@ -80,7 +131,7 @@ async function saveUserProfile(user, extra = {}) {
         username:     profileUsername(user, requestedUsername),
         display_name: requestedUsername || user.user_metadata?.full_name || user.user_metadata?.name || "",
         email:        requestedEmail,
-        photo_url:    user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+        photo_url:    extra.photo_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
         provider:     extra.provider || user.app_metadata?.provider || "email",
         updated_at:   new Date().toISOString()
     };
@@ -93,6 +144,20 @@ async function saveUserProfile(user, extra = {}) {
         console.error("Error guardando perfil en Supabase:", error);
         throw new Error(`No se pudo guardar el perfil: ${error.message}`);
     }
+
+    try {
+        await supabase.auth.updateUser({
+            data: {
+                name: profile.display_name,
+                full_name: profile.display_name,
+                avatar_url: profile.photo_url,
+                picture: profile.photo_url
+            }
+        });
+    } catch (e) {
+        console.warn("No se pudo actualizar metadata del auth:", e);
+    }
+
     return profile;
 }
 
@@ -171,28 +236,18 @@ async function saveItemState({ category, itemId, fav = false, viewed = false, me
     const user = await getCurrentUserAsync();
     if (!user) throw new Error("Tenés que iniciar sesión.");
 
-    if (!fav && !viewed) {
-        const { error } = await supabase
-            .from("item_states")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("category", String(category))
-            .eq("item_id",  String(itemId));
-        if (error) console.warn("saveItemState delete:", error.message);
-        return;
-    }
+    // meta se pasa como p_item_data para que el RPC lo upsertee en catalog_items.
+    // item_states.meta ya no se usa (la función SQL guarda '{}' directamente).
+    const itemData = (meta && typeof meta === 'object' && meta.titulo) ? meta : null;
 
-    const { error } = await supabase
-        .from("item_states")
-        .upsert({
-            user_id:    user.id,
-            category:   String(category || ""),
-            item_id:    String(itemId   || ""),
-            fav:        !!fav,
-            viewed:     !!viewed,
-            meta:       meta,
-            updated_at: new Date().toISOString()
-        }, { onConflict: "user_id,category,item_id" });
+    const { error } = await supabase.rpc('save_item_state_v2', {
+        p_user_id:   user.id,
+        p_category:  String(category || ""),
+        p_item_id:   String(itemId   || ""),
+        p_fav:       !!fav,
+        p_viewed:    !!viewed,
+        p_item_data: itemData
+    });
 
     if (error) throw error;
 }
@@ -202,9 +257,8 @@ async function loadItemStates(category = "") {
     if (!user) return [];
 
     let query = supabase
-        .from("item_states")
-        .select("item_id, fav, viewed, meta")
-        .eq("user_id", user.id);
+        .from("item_states_with_details")
+        .select("id, category, fav, viewed, titulo, img, info, status, updated_at");
 
     if (category) query = query.eq("category", category);
 
@@ -212,22 +266,31 @@ async function loadItemStates(category = "") {
     if (error) { console.warn("loadItemStates:", error.message); return []; }
 
     return (data || []).map((row) => ({
-        item_id: row.item_id,
-        fav:     row.fav    ? 1 : 0,
-        viewed:  row.viewed ? 1 : 0,
-        meta:    row.meta   || {}
+        item_id:   row.id,
+        category:  row.category || '',
+        fav:       row.fav    ? 1 : 0,
+        viewed:    row.viewed ? 1 : 0,
+        meta:      { titulo: row.titulo, img: row.img, info: row.info, status: row.status },
+        updated_at: row.updated_at
     }));
 }
  
 async function addExperience(delta) {
     const user = await getCurrentUserAsync();
     if (!user) return;
-    const { data } = await supabase
-        .from('profiles').select('exp').eq('id', user.id).single();
-    const newExp = (data?.exp || 0) + delta;
-    await supabase.from('profiles')
-        .update({ exp: newExp, level: calcLevel(newExp) })
-        .eq('id', user.id);
+    const { error } = await supabase.rpc('add_user_exp', {
+        p_user_id: user.id,
+        p_delta: Number(delta) || 0
+    });
+    if (error) console.warn('addExperience RPC falló:', error.message);
+}
+async function loadProfile() {
+    const user = await getCurrentUserAsync();
+    if (!user) return null;
+    const { data, error } = await supabase
+        .from('profiles').select('exp, level, total_likes, total_viewed').eq('id', user.id).single();
+    if (error) { console.warn("loadProfile:", error.message); return null; }
+    return data || null;
 }
 // ─── Progreso (episodios / capítulos) ─────────────────────────────
 async function setProgress({ category, itemId, key, value }) {
@@ -235,6 +298,7 @@ async function setProgress({ category, itemId, key, value }) {
     if (!user) throw new Error("Tenés que iniciar sesión.");
 
     if (value) {
+        // onConflict coincide con la PK: (user_id, category, item_id, pkey)
         const { error } = await supabase
             .from("progress_keys")
             .upsert({
@@ -275,38 +339,20 @@ async function loadProgress(category, itemId) {
     return (data || []).map((row) => ({ pkey: row.pkey, value: 1 }));
 }
 
-// ─── Listener de sesión ────────────────────────────────────────────
-const authListeners = new Set();
+async function loadAllProgress() {
+    const user = await getCurrentUserAsync();
+    if (!user) return [];
 
-supabase.auth.onAuthStateChange(async (event, session) => {
-    _currentUser  = session?.user ?? null;
-    _sessionReady = true;
+    const { data, error } = await supabase
+        .from("progress_keys")
+        .select("category, item_id, pkey, value")
+        .eq("user_id", user.id)
+        .eq("value", true);
 
-    if (_currentUser && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
-        try { await saveUserProfile(_currentUser); } catch (e) {
-            console.warn("No se pudo guardar el perfil en Supabase:", e);
-        }
-    }
+    if (error) { console.warn("loadAllProgress:", error.message); return []; }
 
-    const detail = { user: _currentUser, username: supabaseUserName(_currentUser) };
-
-    // Notificar a todos los listeners registrados
-    authListeners.forEach((fn) => fn(detail));
-
-    // Mantener el mismo nombre de evento para compatibilidad con auth.js
-    window.dispatchEvent(new CustomEvent("supabase-auth-changed", { detail }));
-
-    // Si acaba de loguearse via Google redirect, cerrar el modal y limpiar la URL
-    if (event === "SIGNED_IN" && _currentUser) {
-        document.getElementById("userModal")?.classList.remove("is-open");
-
-        // Limpiar los tokens de la URL que deja Supabase después del redirect
-        if (window.location.hash && window.location.hash.includes("access_token")) {
-            const cleanUrl = window.location.origin + window.location.pathname + window.location.search;
-            window.history.replaceState(null, "", cleanUrl);
-        }
-    }
-});
+    return data || [];
+}
 
 // ─── API pública ──────────────────────────────────────────────────
 const AppSupabase = Object.freeze({
@@ -320,7 +366,9 @@ const AppSupabase = Object.freeze({
     isSignedIn:         () => !!_currentUser,
 
     loadItemStates,
+    loadProfile,
     loadProgress,
+    loadAllProgress,
     saveItemState,
     saveUserProfile,
     setProgress,
@@ -340,14 +388,20 @@ const AppSupabase = Object.freeze({
     }
 });
 
-// Exponer con ambos nombres para compatibilidad total
 // ==================================================================
-// ─── EXPOSICIÓN GLOBAL ULTRA SEGURA ───────────────────────────────
+// ─── EXPOSICIÓN GLOBAL ────────────────────────────────────────────
 // ==================================================================
 window.AppSupabase = AppSupabase;
-supabase.auth.getSession().then(({ data: { session } }) => {
-    _currentUser = session?.user ?? null;
-    _sessionReady = true;
-    window.AppSupabaseReady = Promise.resolve(AppSupabase);
-    window.dispatchEvent(new CustomEvent("supabase-auth-changed", { detail: { user: _currentUser, username: supabaseUserName(_currentUser) } }));
-});
+window.AppSupabaseReady = Promise.resolve(AppSupabase);
+window.dispatchEvent(new CustomEvent('supabase-ready', { detail: AppSupabase }));
+// Disparar evento de sesión inicial en el próximo macrotask,
+// después de que los scripts defer hayan registrado sus listeners.
+setTimeout(function () {
+    window.dispatchEvent(new CustomEvent("supabase-auth-changed", {
+        detail: { user: _currentUser, username: supabaseUserName(_currentUser) }
+    }));
+}, 0);
+
+} // end else (configOk)
+
+

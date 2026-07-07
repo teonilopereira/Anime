@@ -10,6 +10,13 @@
     --surface-dark: rgba(5, 5, 10, 0.86);
     --text-main: #ffffff;
     --text-muted: rgba(255, 255, 255, 0.72);
+    --font-display: "Orbitron", sans-serif;
+    --font-body: "Rajdhani", sans-serif;
+    --radius-sm: 10px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 999px;
+    --control-height: 42px;
 }
 
 * {
@@ -24,7 +31,7 @@ html {
 body {
     min-height: 100vh;
     margin: 0;
-    font-family: "Rajdhani", sans-serif;
+    font-family: var(--font-body);
     line-height: 1.5;
     color: var(--text-main);
 }
@@ -46,6 +53,111 @@ textarea {
 h1,
 h2,
 h3,
+h4,
 .nav-btn {
-    font-family: "Orbitron", sans-serif;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.12;
+}
+/* Loading spinner */
+.app-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 16px;
+}
+.app-loader::before {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(168, 85, 247, 0.2);
+    border-top-color: var(--nav-accent);
+    border-radius: 50%;
+    animation: app-spin 0.7s linear infinite;
+}
+.app-loader-text {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}
+@keyframes app-spin {
+    to { transform: rotate(360deg); }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    font-family: var(--font-body);
+    line-height: 1.5;
+    color: var(--text-main);
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+.nav-btn {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.12;
+}
+
+
+
+
+
+.skip-link {
+    position: absolute;
+    left: 16px;
+    top: -48px;
+    z-index: 10000;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: #fff;
+    color: #050505;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+    top: 16px;
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
 }

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /scratch/
+Disallow: /tools/
+
+Sitemap: https://animedestiny.netlify.app/sitemap.xml

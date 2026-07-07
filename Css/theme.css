@@ -23,10 +23,6 @@ body[data-page="anime"] {
     --nav-accent-soft: rgba(0, 242, 255, 0.18);
 }
 
-body[data-page="juegos"] {
-    --nav-accent: #f97316;
-    --nav-accent-soft: rgba(249, 115, 22, 0.18);
-}
 
 body[data-page="novelas"] {
     --nav-accent: #f43f5e;

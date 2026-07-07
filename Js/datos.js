@@ -1,86 +1,64 @@
-window.DATOS_WEB = { manga: [], anime: [], juegos: [], novelas: [] };
+window.DATOS_WEB = { manga: [], anime: [], novelas: [] };
 
-function normalizeSupabaseRow(row) {
-    if (!row) return null;
-
-    let source = null;
-    if (row.detail_json) {
-        if (typeof row.detail_json === 'string') {
-            try {
-                source = JSON.parse(row.detail_json);
-            } catch {
-                source = null;
-            }
-        } else if (typeof row.detail_json === 'object' && row.detail_json !== null) {
-            source = row.detail_json;
-        }
-    }
-    if (!source && row.detailJson) {
-        source = typeof row.detailJson === 'string'
-            ? JSON.parse(row.detailJson || '{}')
-            : row.detailJson;
-    }
-    source = source || row;
-
-    return {
-        id:         source.id ?? row.item_id ?? row.itemId ?? row.mal_id ?? null,
-        titulo:     source.titulo || source.title || source.name || '',
-        img:        source.img || source.image || source.cover_image || '',
-        info:       source.info || source.synopsis || '',
-        precio:     source.precio ?? source.price ?? null,
-        status:     source.status || '',
-        clase:      source.clase || source.class_name || source.className || '',
-        demografia: source.demografia || source.demography || '',
-        ...source
+if (typeof window.escapeHtml !== 'function') {
+    window.escapeHtml = function(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
     };
 }
 
-async function loadCatalogFromSupabase() {
-    try {
-        if (!window.AppSupabaseReady) return null;
-        const AppSupabase = await window.AppSupabaseReady;
-        if (!AppSupabase?.db) return null;
-
-        const { data, error } = await AppSupabase.db.from('animes').select('*');
-        if (error) throw error;
-        if (!Array.isArray(data) || data.length === 0) return null;
-
-        const catalog = { manga: [], anime: [], juegos: [], novelas: [] };
-        for (const row of data) {
-            const item = normalizeSupabaseRow(row);
-            if (!item || !item.id) continue;
-
-            const category = String(row.category || row.categoria || row.type || 'anime').toLowerCase();
-            if (!catalog[category]) catalog[category] = [];
-            catalog[category].push(item);
+if (typeof window.safeUrl !== 'function') {
+    window.safeUrl = function(value) {
+        if (!value) return '';
+        var url = String(value).trim();
+        if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
+            return url;
         }
-
-        return catalog;
-    } catch (error) {
-        console.warn('No se pudo cargar el catálogo desde Supabase:', error);
-        return null;
-    }
+        try {
+            var parsed = new URL(url);
+            if (
+                parsed.protocol === 'http:' ||
+                parsed.protocol === 'https:' ||
+                (parsed.protocol === 'data:' && /^data:image\//i.test(url))
+            ) {
+                return url;
+            }
+        } catch (_) {}
+        return '';
+    };
 }
 
-async function cargarDatosEstaticos() {
-    try {
-        const supabaseCatalog = await loadCatalogFromSupabase();
-        if (supabaseCatalog) {
-            window.DATOS_WEB = supabaseCatalog;
-        } else {
-            // Supabase es la única fuente de verdad. Si falla, el catálogo queda vacío.
-            console.warn('datos.js: No se pudo cargar el catálogo desde Supabase. Catálogo vacío.');
-            window.DATOS_WEB = { manga: [], anime: [], juegos: [], novelas: [] };
-        }
-
-        const event = new CustomEvent('datosCargados');
-        document.dispatchEvent(event);
-    } catch (error) {
-        console.error('datos.js: Error inesperado al cargar el catálogo:', error);
-        window.DATOS_WEB = { manga: [], anime: [], juegos: [], novelas: [] };
-        document.dispatchEvent(new CustomEvent('datosCargados'));
-    }
+/** Helper to capitalize first letter */
+function _capitalize(str) {
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 }
 
-// Iniciar la carga apenas se incluye este script
-cargarDatosEstaticos();
+/** Obtiene los items de una categoría (anime, manga, novelas) delegando a la API */
+function obtenerItemsCategoria(categoria) {
+    const fn = window['getTop' + _capitalize(categoria)];
+    if (typeof fn === 'function') {
+        return fn(); // devuelve una Promise de array
+    }
+    return [];
+}
+
+/** Obtiene un item específico de una categoría */
+function obtenerItemCategoria(categoria, id) {
+    return obtenerItemsCategoria(categoria).then(items => items.find(i => i.id == id) || null);
+}
+
+/** Obtiene el detalle de un item */
+// Implementación completa de obtenerDetalleItem
+function obtenerDetalleItem(categoria, id) {
+    const fn = window['get' + _capitalize(categoria) + 'ById'];
+    if (typeof fn === 'function') {
+        return fn(id); // devuelve Promise
+    }
+    return Promise.resolve(null);
+}
+
+document.dispatchEvent(new CustomEvent('datosCargados'));
+

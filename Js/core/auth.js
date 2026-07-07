@@ -1,7 +1,5 @@
-(function (window, document) {
+﻿(function (window, document) {
     "use strict";
-
-    window.AppAuthHandlesUserUi = true;
 
     // ─────────────────────────────────────────────
     // Supabase es la ÚNICA fuente de verdad de sesión.
@@ -10,19 +8,14 @@
 
 async function waitForSupabase() {
         if (window.AppSupabase) return window.AppSupabase;
-        return new Promise((resolve) => {
-            let elapsed = 0;
-            const interval = setInterval(() => {
-                elapsed += 100;
-                if (window.AppSupabase) {
-                    clearInterval(interval);
-                    resolve(window.AppSupabase);
-                } else if (elapsed >= 5000) {
-                    clearInterval(interval);
-                    resolve(null);
-                }
-            }, 100);
-        });
+        var promises = [];
+        if (window.AppSupabaseReady) promises.push(window.AppSupabaseReady);
+        promises.push(new Promise(r => {
+            var onReady = function () { window.removeEventListener('supabase-ready', onReady); r(window.AppSupabase); };
+            window.addEventListener('supabase-ready', onReady, { once: true });
+            setTimeout(function () { window.removeEventListener('supabase-ready', onReady); r(null); }, AnimeDestiny.Constants.SUPABASE_WAIT_TIMEOUT_MS || 12000);
+        }));
+        return await Promise.race(promises);
     }
     async function getCurrentUser() {
         const client = await waitForSupabase();
@@ -39,6 +32,7 @@ async function waitForSupabase() {
         return (
             user.user_metadata?.username ||
             user.user_metadata?.name ||
+            user.user_metadata?.full_name ||
             user.email?.split("@")[0] || 
             "Usuario"
         );
@@ -52,9 +46,21 @@ async function waitForSupabase() {
         if (msg) msg.textContent = text || "";
     }
 
+    function displayNameFromProfile(user, profile) {
+        if (profile?.display_name) return profile.display_name;
+        return displayNameFromUser(user);
+    }
+
+    function photoUrlFromProfile(user, profile) {
+        if (profile?.photo_url) return profile.photo_url;
+        return user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
+    }
+
   async function refreshUserUi() {
         const user = await getCurrentUser();
-        const username = displayNameFromUser(user);
+        // Intentar usar perfil guardado globalmente (lo setea usuario.html)
+        const profile = window.__profileData || null;
+        const username = displayNameFromProfile(user, profile);
         
         const userBtn = document.getElementById("auth-user-btn") || document.getElementById("userBtn") || document.getElementById("user-profile");
         if (userBtn) {
@@ -62,8 +68,36 @@ async function waitForSupabase() {
                 userBtn.textContent = username;
                 userBtn.classList.add("logged-in");
             } else {
-                userBtn.textContent = "Cuenta"; // O "Invitado" según prefieras para deslogueados
+                userBtn.textContent = "Cuenta";
                 userBtn.classList.remove("logged-in");
+            }
+        }
+
+        // Área de usuario en navbar (avatar + nombre + botón de acción)
+        const nameEl = document.getElementById('nav-user-name');
+        const btnEl = document.getElementById('nav-user-btn');
+        const avatarEl = document.getElementById('nav-user-avatar');
+        if (nameEl && btnEl && avatarEl) {
+            if (user) {
+                nameEl.textContent = username;
+                btnEl.textContent = 'Cuenta';
+                btnEl.href = 'usuario.html';
+                btnEl.setAttribute('aria-label', 'Ver perfil de ' + username);
+                const photoUrl = photoUrlFromProfile(user, profile);
+                if (photoUrl && safeUrl(photoUrl)) {
+                    avatarEl.classList.add('has-image');
+                    avatarEl.style.backgroundImage = 'url("' + photoUrl.replace(/[\\"()]/g, '') + '")';
+                } else {
+                    avatarEl.classList.remove('has-image');
+                    avatarEl.style.removeProperty('background-image');
+                }
+            } else {
+                nameEl.textContent = 'Invitado';
+                btnEl.textContent = 'Ingresar';
+                btnEl.href = 'Login.html';
+                btnEl.setAttribute('aria-label', 'Iniciar sesión');
+                avatarEl.classList.remove('has-image');
+                avatarEl.style.removeProperty('background-image');
             }
         }
     }
@@ -117,9 +151,9 @@ async function waitForSupabase() {
 
         // — Validaciones —
         if (!username && !email) return setMsg("Escribí un nombre de usuario o correo.");
-        if (mode === "create" && username.length < 3) return setMsg("El usuario debe tener al menos 3 caracteres.");
+        if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg("El usuario debe tener al menos 3 caracteres.");
         if (mode === "create" && !isValidGmailAddress(email)) return setMsg("Usá un correo @gmail.com válido.");
-        if (!password || password.length < 4) return setMsg("La contraseña debe tener al menos 4 caracteres.");
+        if (!password || password.length < (AnimeDestiny.Constants.MIN_PASSWORD_LENGTH || 6)) return setMsg("La contraseña debe tener al menos 6 caracteres.");
 
         setMsg(mode === "create" ? "Creando cuenta..." : "Iniciando sesión...");
 
@@ -235,96 +269,6 @@ async function waitForSupabase() {
     // Navbar
     // ─────────────────────────────────────────────
 
-    function ensureDestinyNavbar() {
-        const navbar = document.querySelector(".navbar");
-        if (!navbar) return;
-
-        if (!document.querySelector('link[href$="destiny-navbar.css"]')) {
-            const link = document.createElement("link");
-            link.rel = "stylesheet";
-            link.href = "css/destiny-navbar.css";
-            document.head.appendChild(link);
-        }
-
-        navbar.classList.add("destiny-navbar");
-
-        if (!navbar.querySelector(".nav-brand")) {
-            const brand = document.createElement("a");
-            brand.className = "nav-brand";
-            brand.href = "index.html";
-            brand.setAttribute("aria-label", "Anime Destiny");
-            brand.innerHTML = `
-                <span class="nav-brand-mark"><img src="images/Logo.png" alt="" aria-hidden="true"></span>
-                <span class="nav-brand-copy">
-                    <span class="nav-brand-anime">Anime</span>
-                    <span class="nav-brand-destiny">Destiny</span>
-                    <span class="nav-brand-jp">&gt; アニメの運命 &lt;</span>
-                </span>
-            `;
-            navbar.insertBefore(brand, navbar.firstChild);
-        }
-
-        if (!navbar.querySelector(".nav-links")) {
-            const links = Array.from(navbar.children)
-                .filter((el) => el.classList?.contains("nav-btn"))
-                .filter((el) => !String(el.textContent || "").trim().toLowerCase().includes("juego"));
-
-            if (links.length) {
-                const navLinks = document.createElement("div");
-                navLinks.className = "nav-links";
-                navLinks.setAttribute("aria-label", "Navegación principal");
-                links[0].insertAdjacentElement("beforebegin", navLinks);
-                links.forEach((link) => {
-                    if (link.tagName.toLowerCase() === "a") { navLinks.appendChild(link); return; }
-                    const label = String(link.textContent || "").trim();
-                    const href = label.toLowerCase().includes("anime")  ? "anime.html"
-                               : label.toLowerCase().includes("manga")  ? "manga.html"
-                               : label.toLowerCase().includes("novela") ? "novelas.html"
-                               : "index.html";
-                    const anchor = document.createElement("a");
-                    anchor.className = link.className;
-                    anchor.href = href;
-                    anchor.textContent = label;
-                    link.replaceWith(anchor);
-                    navLinks.appendChild(anchor);
-                });
-            }
-        }
-
-        navbar.querySelectorAll(".nav-links .nav-btn").forEach((link) => {
-            if (String(link.textContent || "").trim().toLowerCase().includes("juego")) link.remove();
-        });
-
-        navbar.querySelectorAll(".nav-links .nav-btn").forEach((link) => {
-            if (link.querySelector(".nav-icon")) return;
-            const label = String(link.textContent || "").trim();
-            const n = label.toLowerCase();
-            const icon = n.includes("inicio") ? "⌂" : n.includes("anime") ? "♨"
-                       : n.includes("manga")  ? "▣" : n.includes("novela") ? "▤"
-                       : n.includes("lista")  ? "♡" : "•";
-            link.innerHTML = `<span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span>`;
-        });
-
-        if (!navbar.querySelector(".nav-actions")) {
-            const actions = document.createElement("div");
-            actions.className = "nav-actions";
-            navbar.appendChild(actions);
-        }
-
-        const actions  = navbar.querySelector(".nav-actions");
-        const search   = navbar.querySelector(":scope > .nav-search");
-        if (actions && search) actions.insertBefore(search, actions.firstChild);
-
-        const searchWrap = navbar.querySelector(".nav-search");
-        if (searchWrap && !searchWrap.querySelector(".nav-search-icon")) {
-            const icon = document.createElement("span");
-            icon.className = "nav-search-icon";
-            icon.setAttribute("aria-hidden", "true");
-            icon.textContent = "⌕";
-            searchWrap.insertBefore(icon, searchWrap.firstChild);
-        }
-    }
-
    function ensureUserUi() {
         const userBtn = document.getElementById("auth-user-btn") || document.getElementById("userBtn") || document.getElementById("user-profile");
         if (userBtn && !userBtn.dataset.authInitialized) {
@@ -338,17 +282,28 @@ async function waitForSupabase() {
     // ─────────────────────────────────────────────
 
     // Evento disparado por supabase-config.js
-window.addEventListener("supabase-auth-changed", () => refreshUserUi());
+    window.addEventListener("supabase-auth-changed", () => {
+        refreshUserUi();
+        if (window.AppSupabase && !window.AppSupabase.isSignedIn()) {
+            if (window.UserStore) window.UserStore.clear();
+        }
+    });
 
     waitForSupabase().then((client) => {
         if (client && typeof client.onAuthChange === "function") {
-            client.onAuthChange(() => refreshUserUi());
+            client.onAuthChange(() => {
+                refreshUserUi();
+                if (!client.isSignedIn()) {
+                    if (window.UserStore) window.UserStore.clear();
+                }
+            });
         }
     }).catch((err) => console.error("Error al registrar onAuthChange:", err));
     // ─────────────────────────────────────────────
     // API pública mínima — solo lo que otros módulos necesitan
     // ─────────────────────────────────────────────
 window.getCurrentUser      = getCurrentUser;
+    window.waitForSupabase     = waitForSupabase;
     window.ensureUserUi        = ensureUserUi;
     window.refreshUserUi       = refreshUserUi;
 
@@ -359,3 +314,6 @@ window.getCurrentUser      = getCurrentUser;
     });
 
 })(window, document);
+
+
+

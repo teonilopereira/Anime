@@ -12,7 +12,7 @@ function normalizeDetailItem(item) {
     const normalized = { ...item };
     normalized.id = normalized.id ?? normalized.mal_id ?? normalized.item_id ?? normalized.itemId ?? null;
     normalized.titulo = normalized.titulo || normalized.title || normalized.name || normalized.nombre || '';
-    normalized.img = normalized.img || normalized.image || normalized.cover_image || normalized.portada || normalized.banner || '';
+    normalized.img = normalized.img || normalized.image || normalized.cover_image || normalized.portada || normalized.banner || (normalized.images?.webp?.large_image_url) || (normalized.images?.jpg?.large_image_url) || '';
     normalized.info = normalized.info || normalized.synopsis || normalized.descripcion || normalized.resumen || normalized.summary || '';
     normalized.status = normalized.status || normalized.estado || '';
     normalized.demografia = normalized.demografia || normalized.demography || normalized.demographic || '';
@@ -21,28 +21,148 @@ function normalizeDetailItem(item) {
     return normalized;
 }
 
-function findLocalDetailItem(categoria, id, nombre) {
-    const lista = (typeof DATOS_WEB !== 'undefined' && DATOS_WEB && Array.isArray(DATOS_WEB[categoria]))
-        ? DATOS_WEB[categoria]
-        : [];
-    if (!lista.length) return null;
-
-    const normalizedId = String(id ?? '').trim();
-    const normalizedNombre = String(nombre ?? '').trim().toLowerCase();
-
-    let item = lista.find((entry) => {
-        const entryId = String(entry.id ?? entry.mal_id ?? entry.item_id ?? entry.itemId ?? '').trim();
-        return normalizedId && entryId === normalizedId;
-    });
-    if (item) return normalizeDetailItem(item);
-
-    if (normalizedNombre) {
-        item = lista.find((entry) => {
-            const entryTitle = String(entry.titulo || entry.title || entry.name || entry.nombre || '').trim().toLowerCase();
-            return entryTitle && entryTitle === normalizedNombre;
-        });
-        if (item) return normalizeDetailItem(item);
-    }
-
+function findLocalDetailItem() {
     return null;
+}
+
+function getAnimeStructure(item) {
+    if (!item) return { temporadas: [], temporadasCount: 0, ovas: 0, peliculas: 0, capitulos: 0 };
+    const temporadas = parseTemporadas(item);
+    const totalEps = temporadas.reduce((acc, t) => acc + Number(t.episodios || t.episodes || 0), 0);
+    return {
+        temporadas: temporadas,
+        temporadasCount: temporadas.length,
+        ovas: Number(item.ovas || 0),
+        peliculas: Number(item.peliculas || item.movies || 0),
+        capitulos: totalEps || Number(item.episodios || item.episodes || item.capitulos || 0)
+    };
+}
+
+function parseTemporadas(item) {
+    if (!item) return [];
+    if (Array.isArray(item.temporadas) && item.temporadas.length > 0) return item.temporadas;
+    const eps = Number(item.episodios || item.episodes || item.capitulos || 0);
+    if (eps > 0) {
+        return [{ nombre: 'Temporada 1', episodios: eps }];
+    }
+    return [];
+}
+
+function setDetailViewState(state, title, msg) {
+    var loading = document.getElementById('detail-loading');
+    var error = document.getElementById('detail-error');
+    var apiLayout = document.getElementById('detail-api-layout');
+    var localLayout = document.getElementById('detail-local-layout');
+    if (state === 'loading') {
+        if (loading) loading.hidden = false;
+        if (error) error.hidden = true;
+        if (apiLayout) apiLayout.hidden = true;
+        if (localLayout) localLayout.hidden = true;
+    } else if (state === 'error') {
+        if (loading) loading.hidden = true;
+        if (error) {
+            error.hidden = false;
+            var kicker = document.getElementById('detail-error-kicker');
+            var titleEl = document.getElementById('detail-error-title');
+            var msgEl = document.getElementById('detail-error-msg');
+            if (kicker) kicker.textContent = title || 'No encontrado';
+            if (titleEl) titleEl.textContent = title || 'No se encontr\u00F3 este t\u00EDtulo.';
+            if (msgEl) msgEl.textContent = msg || '';
+        }
+        if (apiLayout) apiLayout.hidden = true;
+        if (localLayout) localLayout.hidden = true;
+    } else if (state === 'local') {
+        if (loading) loading.hidden = true;
+        if (error) error.hidden = true;
+        if (apiLayout) apiLayout.hidden = true;
+        if (localLayout) localLayout.hidden = false;
+    } else {
+        if (loading) loading.hidden = true;
+        if (error) error.hidden = true;
+        if (apiLayout) apiLayout.hidden = false;
+        if (localLayout) localLayout.hidden = true;
+    }
+}
+
+function replaceChildrenWithTextElement(parent, tag, text) {
+    if (!parent) return;
+    parent.innerHTML = '';
+    var el = document.createElement(tag || 'p');
+    el.textContent = text || '';
+    parent.appendChild(el);
+}
+
+function saveDetailStateToSupabase(category, item, fav, viewed) {
+    if (!window.AppSupabase?.saveItemState) return;
+    window.AppSupabase.saveItemState({
+        category: category,
+        itemId: String(item.id || item.mal_id || ''),
+        fav: !!fav,
+        viewed: !!viewed,
+        meta: {
+            titulo: item.titulo || item.title || '',
+            img: item.img || item.image || '',
+            info: item.info || item.synopsis || ''
+        }
+    }).catch(function (err) {
+        console.warn('saveDetailStateToSupabase error:', err);
+    });
+}
+
+function hasSqlSession() {
+    return !!(window.AppSupabase?.getCurrentUserSync?.());
+}
+
+function mergeDetalles(item) {
+    return item;
+}
+
+function parseGeneros(item) {
+    if (!item) return [];
+    if (Array.isArray(item.generos)) return item.generos;
+    if (Array.isArray(item.genres)) return item.genres;
+    if (typeof item.generos === 'string') return item.generos.split(',').map(function (g) { return g.trim(); }).filter(Boolean);
+    if (typeof item.genres === 'string') return item.genres.split(',').map(function (g) { return g.trim(); }).filter(Boolean);
+    if (typeof item.info === 'string') {
+        var parts = item.info.split('/').map(function (g) { return g.trim(); }).filter(Boolean);
+        if (parts.length > 1) return parts;
+    }
+    return [];
+}
+
+function parseVolumenes(volumenes) {
+    if (volumenes === null || volumenes === undefined) return 0;
+    var n = Number(volumenes);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function getApiUnifiedProgress(userId, itemId, progressArg, category) {
+    let watched = 0;
+    let total = 0;
+    if (category === 'anime') {
+        if (Array.isArray(progressArg)) {
+            progressArg.forEach((season, seasonIdx) => {
+                const eps = Number(season.episodios || season.episodes || 0);
+                total += eps;
+                for (let ep = 1; ep <= eps; ep++) {
+                    const key = episodeStorageKey(userId, itemId, seasonIdx, ep);
+                    if (UserStore.getItem(key)) watched++;
+                }
+            });
+        } else {
+            total = Number(progressArg) || 0;
+            for (let ep = 1; ep <= total; ep++) {
+                const key = episodeStorageKey(userId, itemId, 0, ep);
+                if (UserStore.getItem(key)) watched++;
+            }
+        }
+    } else {
+        total = Number(progressArg) || 0;
+        for (let vol = 1; vol <= total; vol++) {
+            const key = volumeStorageKey(userId, itemId, vol, category);
+            if (UserStore.getItem(key)) watched++;
+        }
+    }
+    const pct = total > 0 ? Math.min(100, Math.round((watched / total) * 100)) : 0;
+    return { watched, pct };
 }

@@ -29,6 +29,21 @@
         if (isLoading) element.dataset.loadingText = text;
     }
 
+    // Cargar dinámicamente estilos y script de Toasts
+    (function initToasts() {
+        if (typeof document !== "undefined" && !document.getElementById("toast-styles-link")) {
+            const link = document.createElement("link");
+            link.id = "toast-styles-link";
+            link.rel = "stylesheet";
+            link.href = "css/toast.css";
+            document.head.appendChild(link);
+            
+            const script = document.createElement("script");
+            script.src = "js/ui/toast.js";
+            document.head.appendChild(script);
+        }
+    })();
+
     window.AppUI = Object.freeze({
         showElement,
         hideElement,

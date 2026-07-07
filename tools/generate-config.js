@@ -71,10 +71,8 @@ const output = `// ⚠️  ARCHIVO GENERADO AUTOMÁTICAMENTE — NO EDITAR MANUA
     "use strict";
 
     const config = {
-        anilistEndpoint: "https://graphql.anilist.co",
-        apiBaseUrl:      "",
-        supabaseUrl:     "${SUPABASE_URL}",
-        supabaseAnonKey: "${SUPABASE_ANON}",
+        supabaseUrl:     ${JSON.stringify(SUPABASE_URL)},
+        supabaseAnonKey: ${JSON.stringify(SUPABASE_ANON)},
         defaultPageSize: 40,
         maxCatalogItems: 40,
         debug:           false,
