@@ -242,6 +242,9 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
                 url = streamEp.url || '';
                 site = streamEp.site || '';
                 synopsis = `Este episodio está disponible para ver oficialmente en ${site}. Podés reproducirlo haciendo clic en el enlace de streaming abajo.`;
+                if (typeof translateText === 'function' && streamEp.title && !streamEp.title.startsWith('Episodio')) {
+                    try { title = await translateText(streamEp.title); } catch (_) {}
+                }
             }
 
             const fillerLabel = 'No especificado (Canon probable)';
@@ -368,7 +371,15 @@ async function cargarDetalleDesdeApi(id, categoria) {
 }
 
 function renderApiDetalle(item, apiCat) {
-    renderDetalle(item, item.title || item.titulo || '', apiCat);
+    var synopsisField = item.sinopsis || item.synopsis || item.description || '';
+    if (synopsisField && typeof translateText === 'function') {
+        translateText(synopsisField).then(function (translated) {
+            item.sinopsis = translated;
+            renderDetalle(item, item.title || item.titulo || '', apiCat);
+        });
+    } else {
+        renderDetalle(item, item.title || item.titulo || '', apiCat);
+    }
 }
 
 (function initDetallePage() {

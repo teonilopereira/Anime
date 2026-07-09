@@ -1,3 +1,38 @@
+var TRANSLATION_CACHE_PREFIX = 'ad:trans:v2:';
+var TRANSLATION_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+
+function _translationCacheKey(text) {
+    var s = String(text).trim().toLowerCase();
+    if (s.length > 120) s = s.slice(0, 120);
+    return TRANSLATION_CACHE_PREFIX + s;
+}
+
+async function translateText(text, targetLang) {
+    targetLang = targetLang || 'es';
+    if (!text || typeof text !== 'string' || text.length < 10) return text;
+    var cacheKey = _translationCacheKey(text);
+    try {
+        var cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            var parsed = JSON.parse(cached);
+            if (Date.now() < parsed.expiry) return parsed.text;
+        }
+    } catch (_) {}
+    try {
+        var resp = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 2000)) + '&langpair=en|' + targetLang + '&de=demo@example.com');
+        var data = await resp.json();
+        var translated = (data && data.responseData && data.responseData.translatedText) || text;
+        if (translated !== text) {
+            translated = translated.replace(/^\d+\s*[.)\]]?\s*/g, '').replace(/\s*\d+\s*[.)\]]?\s*$/g, '').trim();
+            localStorage.setItem(cacheKey, JSON.stringify({ text: translated, expiry: Date.now() + TRANSLATION_CACHE_TTL }));
+        }
+        return translated;
+    } catch (err) {
+        console.warn('Translation error:', err);
+        return text;
+    }
+}
+
 function getParams() {
     const params = new URLSearchParams(window.location.search);
     return {
