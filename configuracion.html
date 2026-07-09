@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Ajustá tu experiencia visual, cuentas y preferencias.">
     <meta name="keywords" content="configuración, ajustes, fondo, cards compactas, anime destiny, preferencias">
     <meta name="robots" content="noindex,follow">
-    <title>Anime Destiny | Configuraci�n</title>
+    <title>Anime Destiny | Configuración</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="images/icon-192.png">
     <link rel="apple-touch-icon" href="images/icon-192.png">
@@ -235,7 +235,7 @@
                         <input type="range" id="cprSlider" class="cfg-range" min="2" max="8" value="4" step="1">
                         <span id="cprValue" class="cfg-cpr-value">4</span>
                     </div>
-                    <p class="cfg-note cfg-note-sm">M�n. 2, máx. 8. Solo aplica en desktop/tablet; en m�viles se mantiene el diseño responsive original.</p>
+                    <p class="cfg-note cfg-note-sm">Mín. 2, máx. 8. Solo aplica en desktop/tablet; en móviles se mantiene el diseño responsive original.</p>
                 </div>
                 <div id="cprActions" class="cfg-cpr-actions" style="display:none">
                     <button class="cfg-btn cfg-btn-primary" id="saveCpr">💾 GUARDAR</button>
@@ -254,11 +254,11 @@
                         POR DEFECTO
                     </button>
                     <button class="cfg-bg-mode-btn" id="bgBtnColor" data-mode="color">
-                        <span class="cfg-bg-mode-icon">??</span>
+                        <span class="cfg-bg-mode-icon">🎨</span>
                         COLOR
                     </button>
                     <button class="cfg-bg-mode-btn" id="bgBtnImage" data-mode="image">
-                        <span class="cfg-bg-mode-icon">??</span>
+                        <span class="cfg-bg-mode-icon">🖼️</span>
                         IMAGEN
                     </button>
                 </div>
@@ -279,6 +279,7 @@
                 <div class="cfg-btn-row">
                     <button class="cfg-btn cfg-btn-primary" id="saveFondo">✓ APLICAR FONDO</button>
                     <button class="cfg-btn cfg-btn-secondary" id="clearFondo">↺ RESTAURAR POR DEFECTO</button>
+                </div>
                 <p class="cfg-note">Las imágenes se guardan en el navegador y se aplican en todas las páginas.</p>
             </div>
 

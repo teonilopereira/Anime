@@ -169,3 +169,66 @@ body.login-page {
         padding: 16px 0 0;
     }
 }
+
+@media (max-width: 480px) {
+    .login-shell {
+        gap: 16px;
+    }
+
+    .login-panel {
+        padding: 22px 16px;
+    }
+
+    .login-title {
+        font-size: clamp(1.6rem, 6vw, 2.2rem);
+    }
+
+    .login-tabs {
+        gap: 6px;
+    }
+
+    .login-tab {
+        padding: 10px 12px;
+        font-size: 0.72rem;
+    }
+
+    .login-btn {
+        min-height: 40px;
+        font-size: 0.72rem;
+    }
+
+    .login-links {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .login-field {
+        padding: 10px 12px;
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .login-panel {
+        padding: 16px 12px;
+    }
+
+    .login-title {
+        font-size: clamp(1.3rem, 5vw, 1.6rem);
+    }
+
+    .login-kicker {
+        font-size: 0.65rem;
+    }
+
+    .login-tab {
+        padding: 8px 8px;
+        font-size: 0.65rem;
+    }
+
+    .login-btn {
+        min-height: 36px;
+        font-size: 0.68rem;
+    }
+}

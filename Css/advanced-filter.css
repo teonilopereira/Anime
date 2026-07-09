@@ -191,3 +191,51 @@
     border-color: rgba(168, 85, 247, 0.5);
     color: #fff;
 }
+
+@media (max-width: 480px) {
+    .advanced-filter-toggle {
+        width: 42px;
+        height: 38px;
+    }
+
+    .filter-header-icon-wrap {
+        width: 36px;
+        height: 36px;
+    }
+
+    .filter-header-content h2 {
+        font-size: 0.9rem;
+    }
+
+    .ff-genre-chip {
+        padding: 4px 10px;
+        font-size: 0.78rem;
+    }
+
+    .nsfw-row-label {
+        padding: 8px 12px;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .advanced-filter-toggle {
+        width: 36px;
+        height: 34px;
+    }
+
+    .filter-header-icon-wrap {
+        width: 30px;
+        height: 30px;
+        font-size: 0.85rem;
+    }
+
+    .filter-header-content h2 {
+        font-size: 0.82rem;
+    }
+
+    .ff-genre-chip {
+        padding: 3px 8px;
+        font-size: 0.72rem;
+    }
+}

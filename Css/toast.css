@@ -139,3 +139,36 @@
     opacity: 1;
     transform: translateY(0);
 }
+
+@media (max-width: 480px) {
+    .toast-container {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-width: none;
+    }
+
+    .toast-item {
+        padding: 12px 14px;
+        font-size: 14px;
+        gap: 10px;
+    }
+
+    .sync-toast {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        max-width: none;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .toast-container { bottom: 8px; right: 8px; left: 8px; gap: 8px; }
+    .toast-item { padding: 10px 12px; font-size: 13px; gap: 8px; border-radius: 6px; }
+    .toast-icon { font-size: 15px; }
+    .toast-close { font-size: 14px; }
+    .sync-toast { bottom: 8px; right: 8px; left: 8px; padding: 8px 12px; font-size: 0.8rem; border-radius: 6px; }
+}

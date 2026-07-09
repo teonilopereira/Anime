@@ -8,18 +8,18 @@ function parseParams() {
     };
 }
 
-function getDetallesFor(cat, id) {
+async function getDetallesFor(cat, id) {
     return (typeof obtenerDetalleItem === 'function') ? obtenerDetalleItem(cat, id) : null;
 }
 
-function getItem(cat, id) {
+async function getItem(cat, id) {
     if (typeof obtenerItemCategoria === 'function') return obtenerItemCategoria(cat, id);
     return null;
 }
 
-function buildOptionList(cat, selectEl) {
+async function buildOptionList(cat, selectEl) {
     const list = (typeof obtenerItemsCategoria === 'function')
-        ? obtenerItemsCategoria(cat)
+        ? await obtenerItemsCategoria(cat)
         : [];
     selectEl.innerHTML = list
         .slice()
@@ -32,13 +32,13 @@ function detailLink(cat, item) {
     return `detalle.html?cat=${encodeURIComponent(cat)}&id=${encodeURIComponent(item.id)}&nombre=${encodeURIComponent(item.titulo)}`;
 }
 
-function renderCompareCard(host, cat, item) {
+async function renderCompareCard(host, cat, item) {
     if (!host) return;
     if (!item) {
         host.innerHTML = `<div class="compare-empty">Seleccioná un item</div>`;
         return;
     }
-    const det = getDetallesFor(cat, item.id) || {};
+    const det = (await getDetallesFor(cat, item.id)) || {};
     const generos = (typeof item.info === 'string') ? item.info.split('/').map(s => s.trim()).filter(Boolean) : [];
     const chips = generos.length ? generos.map(g => `<span class="detail-chip">${escapeHtml(g)}</span>`).join('') : '';
 
@@ -88,24 +88,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cat1.value = params.cat1;
     cat2.value = params.cat2;
-    buildOptionList(cat1.value, id1);
-    buildOptionList(cat2.value, id2);
-    if (params.id1) id1.value = params.id1;
-    if (params.id2) id2.value = params.id2;
+    Promise.all([
+        buildOptionList(cat1.value, id1),
+        buildOptionList(cat2.value, id2)
+    ]).then(() => {
+        if (params.id1) id1.value = params.id1;
+        if (params.id2) id2.value = params.id2;
+        run();
+    });
 
-    function run() {
-        const itemA = getItem(cat1.value, id1.value);
-        const itemB = getItem(cat2.value, id2.value);
-        renderCompareCard(a, cat1.value, itemA);
-        renderCompareCard(b, cat2.value, itemB);
+    async function run() {
+        const [itemA, itemB] = await Promise.all([
+            getItem(cat1.value, id1.value),
+            getItem(cat2.value, id2.value)
+        ]);
+        await Promise.all([
+            renderCompareCard(a, cat1.value, itemA),
+            renderCompareCard(b, cat2.value, itemB)
+        ]);
         syncUrl(cat1.value, id1.value, cat2.value, id2.value);
     }
 
-    cat1.addEventListener('change', () => { buildOptionList(cat1.value, id1); run(); });
-    cat2.addEventListener('change', () => { buildOptionList(cat2.value, id2); run(); });
+    cat1.addEventListener('change', () => {
+        buildOptionList(cat1.value, id1).then(run);
+    });
+    cat2.addEventListener('change', () => {
+        buildOptionList(cat2.value, id2).then(run);
+    });
     id1.addEventListener('change', run);
     id2.addEventListener('change', run);
     doCompare.addEventListener('click', run);
-
-    run();
 });

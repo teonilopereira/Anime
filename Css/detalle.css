@@ -4,14 +4,7 @@
 
 /* ── Profile header ── */
 .header-perfil {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    width: min(1200px, 100%);
-    margin: 0 auto;
-    padding: 14px 20px 8px;
-    box-sizing: border-box;
+    display: none;
 }
 .perfil-usuario {
     display: flex;
@@ -624,6 +617,7 @@
     overflow: hidden;
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    align-self: start;
 }
 .detail-cover img {
     display: block;
@@ -831,9 +825,10 @@
 
 /* ── Episode grid (local layout) ── */
 .ep-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 10px;
+    align-items: start;
     margin-top: 8px;
 }
 .cap-box {
@@ -844,17 +839,23 @@
     gap: 4px;
 }
 .ep-btn {
-    width: 48px;
-    height: 48px;
+    min-height: 70px;
     border-radius: var(--radius-md);
-    border: 2px solid rgba(0,242,255,0.3);
-    background: rgba(0,0,0,0.35);
+    border: 2px solid rgba(0,242,255,0.35);
+    background: rgba(0,0,0,0.4);
     color: #fff;
     font-family: var(--font-display);
     font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
     transition: all 0.2s ease;
+    aspect-ratio: 1;
 }
 .ep-btn:hover {
     border-color: rgba(0,242,255,0.6);
@@ -1003,6 +1004,94 @@
     }
     .detail-premium-root {
         padding: 0 12px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        min-height: 220px;
+    }
+    .hero-content {
+        min-height: 220px;
+        padding: 14px 10px;
+        gap: 14px;
+    }
+    .portada-contenedor {
+        width: 100px;
+    }
+    .titulo-obra {
+        font-size: 1.05rem;
+    }
+    .dato-item,
+    .detail-stat {
+        padding: 6px 8px;
+        font-size: 0.78rem;
+    }
+    .btn-circular {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+    .detail-actions-bar .action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+    .season-tab {
+        padding: 4px 10px;
+        font-size: 0.72rem;
+    }
+    .progreso-general-section {
+        padding: 12px 14px;
+    }
+    .capitulos-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 400px) {
+    .hero-section {
+        min-height: 180px;
+    }
+    .hero-content {
+        min-height: 180px;
+        padding: 10px 8px;
+        gap: 10px;
+    }
+    .portada-contenedor {
+        width: 80px;
+    }
+    .titulo-obra {
+        font-size: 0.9rem;
+    }
+    .detail-premium-root {
+        padding: 0 8px 16px;
+    }
+    .btn-circular {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+    .detail-actions-bar .action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+    .ep-btn {
+        min-height: 44px;
+        font-size: 0.68rem;
+    }
+    .season-tab {
+        padding: 3px 8px;
+        font-size: 0.65rem;
+    }
+    .progreso-general-section {
+        padding: 10px 12px;
+    }
+    .contador-progreso {
+        padding: 3px 8px;
+        font-size: 0.72rem;
     }
 }
 

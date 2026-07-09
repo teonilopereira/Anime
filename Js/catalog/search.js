@@ -12,7 +12,7 @@ var _searchListenersAdded = false;
 function inicializarBusquedaCatalogo() {
     const categoria = document.body.getAttribute('data-page');
     const input = document.getElementById('catalogSearch');
-    const mainContainer = document.getElementById('main-container');
+    const mainContainer = document.getElementById('main-content');
     if (!input || !mainContainer) return;
 
     const inputWrap = input.closest('.nav-search') || input.parentElement;
@@ -338,21 +338,13 @@ function inicializarBusquedaCatalogo() {
         });
     }
 
-    // ── NSFW toggle → server reload ──
-    const nsfwCheckbox = document.getElementById('nsfwToggle');
-    if (nsfwCheckbox) {
-        nsfwCheckbox.addEventListener('change', () => {
-            reloadCatalog();
-        });
-    }
-
     applyFilter();
 }
 
 
 function inicializarGeneroWidgets() {
     const categoria = document.body.getAttribute('data-page');
-    const mainContainer = document.getElementById('main-container');
+    const mainContainer = document.getElementById('main-content');
     if (!categoria || !mainContainer) return;
 
     function normalize(text) {
@@ -550,7 +542,7 @@ function inicializarGeneroWidgets() {
         const arr = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
         filterGenresContainer.innerHTML = filterGenres.map((g) => {
             const active = arr.includes(g.key) ? ' is-active' : '';
-            return `<button class="ff-genre-chip${active}" type="button" data-genre="${g.key}" aria-pressed="${active ? 'true' : 'false'}">${g.label}</button>`;
+            return `<button class="ff-genre-chip${active}" type="button" data-genre="${escapeHtml(g.key)}" aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(g.label)}</button>`;
         }).join('');
     }
 

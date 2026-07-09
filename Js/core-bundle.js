@@ -207,6 +207,11 @@
         XP_MAX_LEVEL: 50,
         XP_VIEWED: 10,
         XP_FAV: 5,
+        XP_PROGRESS: 2,
+        XP_COMPLETE: 50,
+        XP_LOGIN: 10,
+        XP_SHARE: 5,
+        XP_MAL_IMPORT: 100,
         MIN_USERNAME_LENGTH: 3,
         MIN_PASSWORD_LENGTH: 6,
         TRUNCATE_MAX_LENGTH: 140,
@@ -263,6 +268,22 @@
             console.warn(prefix, message);
         }
     };
+
+    window.addEventListener('error', function (e) {
+        AD.reportError('global', e.message || 'Uncaught error', {
+            filename: e.filename,
+            lineno: e.lineno,
+            colno: e.colno,
+            stack: e.error?.stack
+        });
+    });
+
+    window.addEventListener('unhandledrejection', function (e) {
+        var reason = e.reason;
+        AD.reportError('global', reason?.message || 'Unhandled promise rejection', {
+            stack: reason?.stack
+        });
+    });
 })();
 
 
@@ -1017,7 +1038,9 @@ function _capitalize(str) {
 
 /** Obtiene los items de una categoría (anime, manga, novelas) delegando a la API */
 function obtenerItemsCategoria(categoria) {
-    const fn = window['getTop' + _capitalize(categoria)];
+    const base = 'getTop' + _capitalize(categoria);
+    // Algunas categorías usan plural en el nombre global
+    const fn = window[base] || window[base + 's'];
     if (typeof fn === 'function') {
         return fn(); // devuelve una Promise de array
     }
@@ -1270,7 +1293,7 @@ async function waitForSupabase() {
                 btnEl.href = 'usuario.html';
                 btnEl.setAttribute('aria-label', 'Ver perfil de ' + username);
                 const photoUrl = photoUrlFromProfile(user, profile);
-                if (photoUrl && safeUrl(photoUrl)) {
+                if (photoUrl && (typeof window.safeUrl !== 'function' || window.safeUrl(photoUrl))) {
                     avatarEl.classList.add('has-image');
                     avatarEl.style.backgroundImage = 'url("' + photoUrl.replace(/[\\"()]/g, '') + '")';
                 } else {
@@ -1464,14 +1487,39 @@ async function waitForSupabase() {
     }
 
     // ─────────────────────────────────────────────
+    function grantDailyLoginBonus() {
+        var client = window.AppSupabase;
+        var user = client && typeof client.getCurrentUserSync === 'function' ? client.getCurrentUserSync() : null;
+        if (!user) return;
+        var today = new Date().toISOString().split('T')[0];
+        var key = 'lastDailyLogin:' + user.id;
+        if (localStorage.getItem(key) === today) return;
+        localStorage.setItem(key, today);
+        var delta = AnimeDestiny.Constants.XP_LOGIN || 10;
+        if (typeof addUserPoints === 'function') {
+            addUserPoints(user.id, delta);
+        } else if (client && typeof client.addExperience === 'function') {
+            client.addExperience(delta);
+            var pts = Number(UserStore.getItem('u:' + user.id + '|points') || '0');
+            UserStore.setItem('u:' + user.id + '|points', String(pts + delta));
+        }
+        if (window.Toast) {
+            setTimeout(function () {
+                window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+            }, 800);
+        }
+    }
+
     // Escuchar cambios de sesión de Supabase
     // ─────────────────────────────────────────────
 
     // Evento disparado por supabase-config.js
-    window.addEventListener("supabase-auth-changed", () => {
+    window.addEventListener("supabase-auth-changed", function () {
         refreshUserUi();
         if (window.AppSupabase && !window.AppSupabase.isSignedIn()) {
             if (window.UserStore) window.UserStore.clear();
+        } else if (window.AppSupabase && window.AppSupabase.isSignedIn()) {
+            grantDailyLoginBonus();
         }
     });
 
@@ -2226,7 +2274,7 @@ window.getCurrentUser      = getCurrentUser;
     }
 
     function updateCardProgressIndicators() {
-        const mainContainer = document.getElementById('main-container');
+        const mainContainer = document.getElementById('main-content');
         if (!mainContainer) return;
         const category = document.body.getAttribute('data-page') || '';
         const userId = getCurrentUserId();
@@ -2306,20 +2354,22 @@ window.getCurrentUser      = getCurrentUser;
         if (card && userId !== 'Invitado') {
             const fav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
             const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
-            const category = card.getAttribute('data-category') || getCategoriaActual() || 'listas';
+            const category = card.getAttribute('data-category') || getCategoriaActual() || '';
             const img = card.getAttribute('data-img') || card.querySelector('img')?.getAttribute('src') || '';
             const titulo = card.getAttribute('data-title') || card.querySelector('.catalog-card-title, .card-back-title')?.textContent || itemId;
             const info = card.getAttribute('data-genres') || card.getAttribute('data-search-index') || '';
 
             if (fav || viewed) {
                 var total = card.getAttribute('data-total') || '0';
+                var finalCat = String(category);
+                if (!finalCat) finalCat = 'listas';
                 UserStore.setItem(metaKey, JSON.stringify({
                     id: String(itemId),
                     titulo: String(titulo).trim(),
                     img,
                     info,
                     total: Number(total),
-                    __category: String(category)
+                    __category: finalCat
                 }));
             } else {
                 UserStore.removeItem(metaKey);
@@ -2999,7 +3049,7 @@ var _searchListenersAdded = false;
 function inicializarBusquedaCatalogo() {
     const categoria = document.body.getAttribute('data-page');
     const input = document.getElementById('catalogSearch');
-    const mainContainer = document.getElementById('main-container');
+    const mainContainer = document.getElementById('main-content');
     if (!input || !mainContainer) return;
 
     const inputWrap = input.closest('.nav-search') || input.parentElement;
@@ -3325,21 +3375,13 @@ function inicializarBusquedaCatalogo() {
         });
     }
 
-    // ── NSFW toggle → server reload ──
-    const nsfwCheckbox = document.getElementById('nsfwToggle');
-    if (nsfwCheckbox) {
-        nsfwCheckbox.addEventListener('change', () => {
-            reloadCatalog();
-        });
-    }
-
     applyFilter();
 }
 
 
 function inicializarGeneroWidgets() {
     const categoria = document.body.getAttribute('data-page');
-    const mainContainer = document.getElementById('main-container');
+    const mainContainer = document.getElementById('main-content');
     if (!categoria || !mainContainer) return;
 
     function normalize(text) {
@@ -3537,7 +3579,7 @@ function inicializarGeneroWidgets() {
         const arr = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
         filterGenresContainer.innerHTML = filterGenres.map((g) => {
             const active = arr.includes(g.key) ? ' is-active' : '';
-            return `<button class="ff-genre-chip${active}" type="button" data-genre="${g.key}" aria-pressed="${active ? 'true' : 'false'}">${g.label}</button>`;
+            return `<button class="ff-genre-chip${active}" type="button" data-genre="${escapeHtml(g.key)}" aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(g.label)}</button>`;
         }).join('');
     }
 
@@ -3623,7 +3665,7 @@ async function loadNextPage() {
     isLoadingPage = true;
 
     const categoria = document.body.getAttribute("data-page");
-    const mainContainer = document.getElementById("main-container");
+    const mainContainer = document.getElementById("main-content");
     if (!mainContainer) { isLoadingPage = false; return; }
 
     var skelWrapper;
@@ -3704,9 +3746,10 @@ function resetInfiniteScroll() {
 }
 
 async function inicializarPagina() {
-    const mainContainer = document.getElementById("main-container");
+    const mainContainer = document.getElementById("main-content");
     if (!mainContainer) return;
     const categoria = document.body.getAttribute("data-page");
+    if (["listas", "top", "comparar", "detalle", "index"].indexOf(categoria) !== -1) return;
     currentPage = 1;
     const usaCatalogoApi = categoria === "anime" || categoria === "manga" || categoria === "novelas";
 

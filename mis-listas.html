@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Revisá tus favoritos, vistos y actividad reciente.">
     <meta name="keywords" content="listas, me gusta, visto, anime, manga, novelas">
     <meta name="robots" content="noindex,follow">
@@ -37,10 +37,6 @@
             background: rgba(5,2,15,0.92);
             border-right: 1px solid rgba(188,19,254,0.18);
             padding: 24px 16px;
-            position: sticky;
-            top: 60px;
-            height: calc(100vh - 60px);
-            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -806,13 +802,55 @@
             .achievements-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: 1fr; }
         }
-        @media (max-width: 600px) {
-            .lists-main-content { padding: 16px; }
-            .category-cards-grid { grid-template-columns: 1fr; }
-            .list-row-card { grid-template-columns: 28px 1fr auto; }
-            .row-cover, .row-eps { display: none; }
-            .stats-grid { grid-template-columns: 1fr; }
-        }
+@media (max-width: 600px) {
+    .lists-main-content { padding: 16px; }
+    .category-cards-grid { grid-template-columns: 1fr; }
+    .list-row-card { grid-template-columns: 28px 1fr auto; }
+    .row-cover, .row-eps { display: none; }
+    .stats-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .lists-main-content { padding: 12px; }
+    .lists-sidebar { padding: 16px 12px; gap: 14px; }
+    .sidebar-avatar-ring { width: 54px; height: 54px; }
+    .sidebar-avatar-inner .sidebar-initials { font-size: 0.9rem; }
+    .sidebar-link { padding: 8px 10px; font-size: 0.82rem; }
+    .category-cards-grid { gap: 10px; }
+    .category-card { padding: 14px; }
+    .cat-card-count { font-size: 1.4rem; }
+    .list-row-card { padding: 8px 10px; gap: 8px; }
+    .row-title { font-size: 0.75rem; }
+    .row-desc { font-size: 0.72rem; }
+    .achievements-grid { grid-template-columns: 1fr; }
+    .stats-grid { gap: 10px; }
+    .stat-card { padding: 12px 14px; }
+    .stat-value { font-size: 1.1rem; }
+}
+@media (max-width: 400px) {
+    .lists-main-content { padding: 8px; }
+    .lists-sidebar { padding: 12px 8px; }
+    .sidebar-profile { padding: 10px; }
+    .sidebar-avatar-ring { width: 44px; height: 44px; }
+    .sidebar-avatar-inner .sidebar-initials { font-size: 0.75rem; }
+    .sidebar-link { padding: 6px 8px; font-size: 0.75rem; gap: 6px; }
+    .sidebar-icon { font-size: 0.85rem; width: 16px; }
+    .sidebar-quote-box { padding: 10px; }
+    .quote-text { font-size: 0.75rem; }
+    .lists-header-new { margin-bottom: 14px; }
+    .lists-title { font-size: clamp(1rem, 4vw, 1.3rem); }
+    .lists-subtitle { font-size: 0.78rem; }
+    .category-cards-grid { gap: 8px; }
+    .category-card { padding: 10px; border-radius: 12px; gap: 8px; }
+    .cat-card-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .cat-card-count { font-size: 1.1rem; }
+    .list-row-card { padding: 6px 8px; gap: 6px; border-radius: 8px; }
+    .lists-chip { padding: 6px 10px; font-size: 0.58rem; }
+    .stat-card { padding: 10px; gap: 10px; border-radius: 10px; }
+    .stat-value { font-size: 1rem; }
+    .stat-label { font-size: 0.7rem; }
+    .achievement-card { padding: 10px; }
+    .points-card { padding: 12px 14px; }
+}
     </style>
 
 </head>
@@ -844,11 +882,6 @@
                     <span class="sidebar-icon">📈</span> Estadísticas
                 </a>
             </nav>
-
-            <div class="sidebar-quote-box">
-                <div class="quote-text">"Un día sin anime es un día perdido."</div>
-                <div class="quote-author">— Otaku anónimo</div>
-            </div>
         </aside>
 
         <!-- CONTENIDO PRINCIPAL -->
@@ -934,7 +967,7 @@
                 <section class="lists-section">
                     <h2 class="lists-h2">RESULTADOS</h2>
                     <div class="resultados-tabs">
-                        <button class="res-tab active" data-cat="all"><span class="tab-icon">?</span> Todos</button>
+                        <button class="res-tab active" data-cat="all"><span class="tab-icon">📋</span> Todos</button>
                         <button class="res-tab" data-cat="anime"><span class="tab-icon">🎬</span> Anime</button>
                         <button class="res-tab" data-cat="manga"><span class="tab-icon">📚</span> Manga</button>
                         <button class="res-tab" data-cat="novelas"><span class="tab-icon">📖</span> Novelas</button>
@@ -985,6 +1018,7 @@
 
         </main>
     </div>
+    <div id="footer-container"></div>
     <script src="js/core/config.js"></script>
     <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js" async></script>

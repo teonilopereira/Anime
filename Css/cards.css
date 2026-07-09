@@ -691,7 +691,8 @@
 }
 
 .cuadrado-item.is-visto + .btn-resumen,
-.vol-btn.is-active + .btn-resumen {
+.vol-btn.is-active + .btn-resumen,
+.cuadrado-item.is-active + .btn-resumen {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;

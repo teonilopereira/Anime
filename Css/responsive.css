@@ -1066,3 +1066,658 @@ body[data-page="listas"] .lists-empty {
         grid-template-columns: repeat(var(--cards-per-row, 4), minmax(0, 1fr)) !important;
     }
 }
+
+/* ==========================================
+   RESPONSIVE COMPLETO — TODAS LAS PÁGINAS
+   ========================================== */
+
+/* ── Index/Hero page ── */
+@media (max-width: 860px) {
+    body.menu-page .hero-menu {
+        padding: 32px 20px;
+    }
+    body.menu-page .hero-menu h1 {
+        font-size: clamp(2rem, 8vw, 3.5rem);
+    }
+    body.menu-page .hero-subtitle {
+        font-size: clamp(0.95rem, 3vw, 1.2rem);
+    }
+    body.menu-page .menu-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 16px;
+    }
+    body.menu-page .menu-item {
+        width: min(400px, 100%);
+    }
+}
+
+@media (max-width: 480px) {
+    body.menu-page .hero-menu {
+        padding: 24px 14px;
+    }
+    body.menu-page .hero-eyebrow {
+        font-size: 0.7rem;
+    }
+    body.menu-page .featured {
+        grid-template-columns: 1fr;
+        padding: 0 12px;
+    }
+    body.menu-page .section-divider {
+        padding: 0 12px;
+    }
+}
+
+/* ── Catalog genre drawer full-screen on small devices ── */
+@media (max-width: 640px) {
+    .genre-drawer {
+        position: fixed;
+        top: 0 !important;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        z-index: 9999;
+        border-radius: 0;
+        border: none;
+        overflow-y: auto;
+
+    }
+    .genre-drawer.is-open {
+        display: block;
+    }
+    #genreDrawerTab {
+        display: flex;
+    }
+}
+
+/* ── Advanced filter ── */
+@media (max-width: 640px) {
+    .advanced-filter-dropdown {
+        padding: 14px;
+    }
+    .filter-header-row {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    .filter-header-icon-wrap {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* ── Comparison page ── */
+@media (max-width: 480px) {
+    .compare-controls {
+        gap: 12px;
+        padding: 0 12px;
+    }
+    .compare-picker {
+        gap: 6px;
+    }
+    .compare-select {
+        width: 100%;
+    }
+    .compare-title {
+        font-size: 0.95rem;
+    }
+    .compare-body {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .compare-grid { gap: 14px; }
+    .compare-controls { padding: 0 8px; gap: 8px; }
+    .compare-picker { flex-direction: column; }
+    .compare-select { font-size: 0.78rem; padding: 8px 10px; }
+    .compare-card { border-radius: 8px; }
+    .compare-cover { min-height: 140px; }
+    .compare-title { font-size: 0.85rem; }
+    .compare-meta { font-size: 0.7rem; }
+    .compare-body { padding: 8px; }
+    .compare-actions { flex-direction: column; gap: 6px; }
+    .compare-actions .compare-btn { width: 100%; text-align: center; }
+}
+
+@media (max-width: 340px) {
+    .compare-grid { grid-template-columns: 1fr; gap: 10px; }
+}
+
+/* ── Ranking page ── */
+@media (max-width: 480px) {
+    .ranking-container {
+        padding: 0 12px;
+    }
+    .ranking-tabs {
+        gap: 6px;
+    }
+    .ranking-tab {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+    .ranking-table th,
+    .ranking-table td {
+        padding: 8px 4px;
+        font-size: 12px;
+    }
+    .ranking-rank {
+        font-size: 13px;
+        width: 28px;
+    }
+}
+
+/* ── Legal/static pages responsive ── */
+@media (max-width: 768px) {
+    .legal-container {
+        padding: 20px 18px;
+    }
+    .legal-container h1 {
+        font-size: 1.5rem;
+    }
+    .legal-container h2 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .legal-container {
+        padding: 16px 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .legal-container { padding: 12px 10px; }
+    .legal-container h1 { font-size: 1.2rem; }
+    .legal-container h2 { font-size: 0.95rem; }
+    .legal-container p, .legal-container li { font-size: 0.85rem; }
+}
+
+/* ── Footer responsive ── */
+@media (max-width: 640px) {
+    .app-footer-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 16px;
+    }
+    .app-footer-social {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 400px) {
+    .app-footer { padding: 24px 12px 16px; }
+    .app-footer-inner { gap: 12px; }
+    .app-footer-title { font-size: 0.75rem; }
+    .app-footer-text { font-size: 0.72rem; }
+    .app-footer-icon { font-size: 1rem; }
+    .app-footer-link { font-size: 0.72rem; }
+    .app-footer-bottom { font-size: 0.65rem; padding-top: 12px; margin-top: 12px; }
+}
+
+/* ── Very small screens (<400px) ── */
+@media (max-width: 400px) {
+    /* General text overflow safety */
+    h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, label,
+    .card-title, .card-synopsis,
+    .perfil-activity-title, .perfil-section-title,
+    .section-title, .page-title {
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    /* Override white-space:nowrap that could overflow */
+    .card-episode-text,
+    .perfil-activity-title,
+    .filter-option span,
+    .stat-card span {
+        white-space: normal;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Catalog gallery: 1 column on tiniest screens */
+    body[data-page="anime"] .gallery,
+    body[data-page="manga"] .gallery,
+    body[data-page="novelas"] .gallery {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: calc(100% - 12px);
+        padding: 16px 4px 32px;
+    }
+
+    body[data-page="anime"] .catalog-neon-card,
+    body[data-page="manga"] .catalog-neon-card,
+    body[data-page="novelas"] .catalog-neon-card {
+        max-width: 100%;
+    }
+
+    body[data-page="anime"] .catalog-card-bar,
+    body[data-page="manga"] .catalog-card-bar,
+    body[data-page="novelas"] .catalog-card-bar {
+        min-height: 44px;
+        padding: 6px 8px;
+    }
+
+    /* Detail page ultra-compact */
+    .detail-premium-root {
+        padding: 0 8px 16px;
+    }
+    .hero-section {
+        min-height: 200px;
+    }
+    .hero-content {
+        min-height: 200px;
+        padding: 12px 8px;
+        gap: 12px;
+    }
+    .portada-contenedor {
+        width: 90px;
+    }
+    .titulo-obra {
+        font-size: 1rem;
+    }
+    .datos-clave-grid,
+    .detail-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+    .dato-item,
+    .detail-stat {
+        padding: 6px 8px;
+    }
+    .detail-chip {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+    .cuadrados-grid,
+    .ep-grid {
+        gap: 6px;
+    }
+    .ep-btn {
+        min-height: 52px;
+        font-size: 0.72rem;
+    }
+
+    /* Lists page ultra-compact */
+    body[data-page="listas"] .lists-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    body[data-page="listas"] .lists-profile {
+        padding: 12px;
+    }
+    body[data-page="listas"] .lists-main-content {
+        padding: 12px;
+    }
+
+    /* Config page */
+    .cfg-page {
+        padding: 0 10px 40px;
+    }
+    .cfg-panel {
+        padding: 14px 16px;
+    }
+    .cfg-color-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Perfil page */
+    .perfil-page {
+        padding: 0 10px 40px;
+    }
+    .perfil-top {
+        padding: 16px;
+    }
+    .perfil-summary-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Ranking tabs */
+    .ranking-tab {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+
+    /* Menu page */
+    body.menu-page .hero-menu h1 {
+        font-size: 1.6rem;
+    }
+
+    /* Compare */
+    .compare-meta {
+        font-size: 0.75rem;
+    }
+}
+
+/* ── Tiny screens (<340px) ── */
+@media (max-width: 340px) {
+    body[data-page="anime"] .gallery,
+    body[data-page="manga"] .gallery,
+    body[data-page="novelas"] .gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .datos-clave-grid,
+    .detail-stat-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .perfil-summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .cfg-bg-mode-btns {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Prevent fixed-width overflow anywhere ── */
+img, video, canvas, svg, iframe {
+    max-width: 100%;
+    height: auto;
+}
+pre, code {
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+input, select, textarea, button {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── Destiny navbar responsive ── */
+@media (max-width: 1180px) {
+    .destiny-navbar.is-scrolled {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 700px) {
+    .destiny-navbar.is-scrolled {
+        padding: 10px;
+    }
+
+    .destiny-navbar .nav-user-avatar {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 480px) {
+    .destiny-navbar {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .destiny-navbar.is-scrolled {
+        padding: 8px 10px;
+    }
+
+    .destiny-navbar .nav-brand {
+        gap: 6px;
+    }
+
+    .nav-brand-mark {
+        width: 44px;
+        height: 36px;
+    }
+
+    .nav-brand-anime,
+    .nav-brand-destiny {
+        font-size: 0.82rem;
+    }
+
+    .nav-brand-jp {
+        font-size: 0.55rem;
+    }
+
+    .destiny-navbar .nav-links {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .destiny-navbar .nav-btn,
+    .destiny-navbar .nav-btn.active {
+        min-height: 44px;
+        font-size: 0.7rem;
+        padding: 6px 8px;
+    }
+
+    .nav-icon {
+        font-size: 1rem;
+    }
+
+    .destiny-navbar .nav-search {
+        font-size: 0.8rem;
+        min-height: 36px;
+    }
+
+    .destiny-navbar .nav-search-input {
+        padding: 0 12px 0 40px;
+        min-height: 36px;
+    }
+
+    .nav-search-icon {
+        font-size: 1.1rem;
+        left: 14px;
+    }
+
+    .destiny-navbar .nav-user-name {
+        font-size: 0.75rem;
+    }
+
+    .destiny-navbar .nav-user-info {
+        gap: 0;
+    }
+
+    .destiny-navbar .nav-user-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .destiny-navbar .nav-user-btn {
+        padding: 3px 10px;
+        min-height: 22px;
+        font-size: 0.65rem;
+    }
+
+    .destiny-navbar .nav-toggle {
+        min-height: 40px;
+    }
+}
+
+@media (max-width: 400px) {
+    .destiny-navbar {
+        padding: 6px 8px;
+        gap: 6px;
+        border-radius: 8px;
+    }
+
+    .destiny-navbar.is-scrolled {
+        padding: 6px 8px;
+    }
+
+    .nav-brand-mark {
+        width: 34px;
+        height: 28px;
+    }
+
+    .nav-brand-anime,
+    .nav-brand-destiny {
+        font-size: 0.72rem;
+    }
+
+    .nav-brand-jp {
+        font-size: 0.5rem;
+        margin-top: 2px;
+    }
+
+    .destiny-navbar .nav-links {
+        grid-template-columns: 1fr;
+    }
+
+    .destiny-navbar .nav-btn,
+    .destiny-navbar .nav-btn.active {
+        min-height: 38px;
+        font-size: 0.65rem;
+    }
+
+    .nav-icon {
+        font-size: 0.9rem;
+    }
+
+    .destiny-navbar .nav-search-input {
+        padding: 0 10px 0 34px;
+        min-height: 32px;
+        font-size: 0.78rem;
+    }
+
+    .nav-search-icon {
+        font-size: 0.95rem;
+        left: 10px;
+    }
+
+    .destiny-navbar .nav-user-avatar {
+        width: 28px;
+        height: 28px;
+        border-width: 1.5px;
+    }
+
+    .destiny-navbar .nav-user-name {
+        display: none;
+    }
+
+    .destiny-navbar .nav-user-btn {
+        padding: 2px 8px;
+        min-height: 20px;
+        font-size: 0.6rem;
+    }
+
+    .destiny-navbar .nav-toggle {
+        min-height: 36px;
+        font-size: 0.75rem;
+    }
+
+    .destiny-navbar .nav-user {
+        padding-top: 6px;
+    }
+
+    .destiny-navbar .nav-actions {
+        gap: 6px;
+    }
+}
+
+/* ===== 340px – ultra small screens ===== */
+@media (max-width: 340px) {
+    .destiny-navbar {
+        padding: 4px 6px;
+        border-radius: 6px;
+    }
+
+    .destiny-navbar.is-scrolled {
+        padding: 4px 6px;
+    }
+
+    .destiny-navbar .nav-brand {
+        gap: 6px;
+    }
+
+    .nav-brand-mark {
+        width: 28px;
+        height: 22px;
+    }
+
+    .nav-brand-anime,
+    .nav-brand-destiny {
+        font-size: 0.62rem;
+    }
+
+    .nav-brand-jp {
+        display: none;
+    }
+
+    .destiny-navbar .nav-search {
+        min-height: 30px;
+    }
+
+    .destiny-navbar .nav-search-input {
+        padding: 0 8px 0 28px;
+        min-height: 30px;
+        font-size: 0.72rem;
+    }
+
+    .nav-search-icon {
+        font-size: 0.8rem;
+        left: 8px;
+    }
+
+    .destiny-navbar .nav-toggle {
+        min-height: 32px;
+        font-size: 0.7rem;
+    }
+
+    .destiny-navbar .nav-btn,
+    .destiny-navbar .nav-btn.active {
+        min-height: 34px;
+        font-size: 0.6rem;
+    }
+
+    .nav-icon {
+        font-size: 0.78rem;
+    }
+
+    .destiny-navbar .nav-user-avatar {
+        width: 24px;
+        height: 24px;
+    }
+
+    .destiny-navbar .nav-user-btn {
+        padding: 1px 6px;
+        min-height: 18px;
+        font-size: 0.55rem;
+    }
+}
+
+/* ===== 320px – absolute minimum ===== */
+@media (max-width: 320px) {
+    .destiny-navbar {
+        border-radius: 4px;
+    }
+
+    .nav-brand-anime,
+    .nav-brand-destiny {
+        font-size: 0.55rem;
+    }
+
+    .destiny-navbar .nav-search-input {
+        font-size: 0.68rem;
+    }
+
+    .destiny-navbar .nav-user-btn {
+        display: none;
+    }
+
+    .nav-toggle-text {
+        display: none;
+    }
+
+    .destiny-navbar .nav-toggle {
+        padding: 4px 8px;
+        min-width: 0;
+    }
+}

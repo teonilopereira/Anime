@@ -302,6 +302,24 @@
                     </div>\
                     <p class="mal-result-note">Los cambios se ven reflejados de inmediato. Se importaron también los episodios y volúmenes marcados como progreso. Recargá el catálogo para verlos.</p>\
                 </div>';
+            var uId = null;
+            var _user = window.AppSupabase && typeof window.AppSupabase.getCurrentUserSync === 'function' ? window.AppSupabase.getCurrentUserSync() : null;
+            if (_user && _user.id) uId = _user.id;
+            if (uId) {
+                var malKey = 'u:' + uId + '|mal_imported';
+                if (!UserStore.getItem(malKey)) {
+                    UserStore.setItem(malKey, '1');
+                    var delta = AnimeDestiny.Constants.XP_MAL_IMPORT || 100;
+                    if (typeof addUserPoints === 'function') {
+                        addUserPoints(uId, delta);
+                    } else if (window.AppSupabase && typeof window.AppSupabase.addExperience === 'function') {
+                        window.AppSupabase.addExperience(delta);
+                        var pts = Number(UserStore.getItem('u:' + uId + '|points') || '0');
+                        UserStore.setItem('u:' + uId + '|points', String(pts + delta));
+                    }
+                    if (window.Toast) window.Toast.success("¡Importación completada! (+" + delta + " EXP)");
+                }
+            }
             if (onDone) onDone();
         }).catch(function (err) {
             setProgress(0, 'Error: ' + escapeHtml(err.message));

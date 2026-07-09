@@ -308,7 +308,7 @@
     }
 
     function updateCardProgressIndicators() {
-        const mainContainer = document.getElementById('main-container');
+        const mainContainer = document.getElementById('main-content');
         if (!mainContainer) return;
         const category = document.body.getAttribute('data-page') || '';
         const userId = getCurrentUserId();
@@ -388,20 +388,22 @@
         if (card && userId !== 'Invitado') {
             const fav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
             const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
-            const category = card.getAttribute('data-category') || getCategoriaActual() || 'listas';
+            const category = card.getAttribute('data-category') || getCategoriaActual() || '';
             const img = card.getAttribute('data-img') || card.querySelector('img')?.getAttribute('src') || '';
             const titulo = card.getAttribute('data-title') || card.querySelector('.catalog-card-title, .card-back-title')?.textContent || itemId;
             const info = card.getAttribute('data-genres') || card.getAttribute('data-search-index') || '';
 
             if (fav || viewed) {
                 var total = card.getAttribute('data-total') || '0';
+                var finalCat = String(category);
+                if (!finalCat) finalCat = 'listas';
                 UserStore.setItem(metaKey, JSON.stringify({
                     id: String(itemId),
                     titulo: String(titulo).trim(),
                     img,
                     info,
                     total: Number(total),
-                    __category: String(category)
+                    __category: finalCat
                 }));
             } else {
                 UserStore.removeItem(metaKey);

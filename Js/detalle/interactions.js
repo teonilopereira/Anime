@@ -1,6 +1,6 @@
 function wirePremiumDetailInteractions(root, item, categoria, seasons) {
     const itemId = String(item.id || item.mal_id || '');
-    const total = getApiChapterTotal(item, categoria);
+    const total = item.episodes || item.chapters || item.volumes || item.total || 0;
     const isAnime = categoria === 'anime';
     const progressLabel = isAnime ? 'EP' : 'VOL';
     const progressHeading = isAnime ? 'EPISODIOS GENERAL' : 'VOLÚMENES GENERAL';

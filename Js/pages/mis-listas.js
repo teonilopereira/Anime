@@ -161,7 +161,7 @@ function renderMediaCard({ item, fav = false, viewed = false, match = null, isRo
                     ${badges}
                 </div>
                 <div class="row-eps">
-                    <div>${item.total || item.episodes || item.chapters || item.volumes || '?'}</div>
+                    <div>${escapeHtml(String(item.total || item.episodes || item.chapters || item.volumes || '?'))}</div>
                     <div style="font-size:0.65em;font-weight:normal;color:rgba(255,255,255,0.35);">${epsLabel}</div>
                 </div>
             </article>
@@ -357,19 +357,21 @@ function renderPoints() {
     const pts = (typeof getUserPoints === 'function')
         ? getUserPoints(userId)
         : Number(UserStore.getItem(`u:${userId}|points`) || '0');
-    const level = (typeof levelFromPoints === 'function')
+    const lv = (typeof levelFromPoints === 'function')
         ? levelFromPoints(pts)
         : { level: 1, current: 0, next: 100 };
-    const pct = Math.max(0, Math.min(100, Math.round((level.current / level.next) * 100)));
+    const dbLevel = Number(UserStore.getItem('u:' + userId + '|level') || '0');
+    const level = Math.max(dbLevel, lv.level);
+    const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
 
     host.innerHTML = `
         <div class="points-card">
             <div class="points-top">
-                <div class="points-title">Nivel ${level.level}</div>
+                <div class="points-title">Nivel ${level}</div>
                 <div class="points-value">${pts} pts</div>
             </div>
             <div class="points-track" aria-hidden="true"><div class="points-fill" style="width:${pct}%"></div></div>
-            <div class="points-sub">Faltan ${Math.max(0, level.next - level.current)} pts para el próximo nivel.</div>
+            <div class="points-sub">Faltan ${Math.max(0, lv.next - lv.current)} pts para el próximo nivel.</div>
         </div>
     `;
 }
@@ -412,8 +414,10 @@ function renderProfileSummary() {
     const initials = String(displayName || 'US').trim().slice(0, 2).toUpperCase();
 
     const pts = (typeof getUserPoints === 'function') ? getUserPoints(userId) : Number(UserStore.getItem(`u:${userId}|points`) || '0');
-    const level = (typeof levelFromPoints === 'function') ? levelFromPoints(pts) : { level: 1, current: 0, next: 100 };
-    const pct = Math.max(0, Math.min(100, Math.round((level.current / level.next) * 100)));
+    const lv = (typeof levelFromPoints === 'function') ? levelFromPoints(pts) : { level: 1, current: 0, next: 100 };
+    const dbLevel = Number(UserStore.getItem('u:' + userId + '|level') || '0');
+    const level = Math.max(dbLevel, lv.level);
+    const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
 
     const avatarHtml = photoUrl
         ? `<div class="sidebar-avatar-ring">
@@ -439,7 +443,7 @@ function renderProfileSummary() {
             <div class="lists-profile-track" aria-label="Progreso de nivel">
                 <div class="lists-profile-fill" style="width:${pct}%"></div>
             </div>
-            <span class="lists-profile-meta">Nivel ${level.level} · ${pts} pts</span>
+            <span class="lists-profile-meta">Nivel ${level} · ${pts} pts</span>
         </div>
         <div class="lists-profile-actions">
             <a class="lists-profile-btn" href="usuario.html">Editar perfil</a>
@@ -795,6 +799,9 @@ async function cargarEstadosDesdeSupabase() {
             if (profile) {
                 if (typeof profile.exp === 'number') {
                     UserStore.setItem(pointsKey(userId), String(profile.exp));
+                }
+                if (typeof profile.level === 'number') {
+                    UserStore.setItem('u:' + userId + '|level', String(profile.level));
                 }
                 if (typeof profile.total_likes === 'number') {
                     UserStore.setItem('u:' + userId + '|total_likes', String(profile.total_likes));

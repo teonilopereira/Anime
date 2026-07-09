@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Ranking de usuarios y progreso acumulado en Anime Destiny.">
     <meta name="keywords" content="ranking, jugadores, nivel, exp, top">
     <meta name="robots" content="index,follow">
@@ -176,6 +176,25 @@
             .ranking-rank { font-size: 15px; width: 36px; }
             .ranking-avatar { width: 26px; height: 26px; font-size: 10px; margin-right: 4px; }
         }
+        @media (max-width: 480px) {
+            .ranking-container { padding: 0 12px; margin: 20px auto; }
+            .ranking-tabs { gap: 6px; }
+            .ranking-tab { padding: 6px 12px; font-size: 11px; }
+            .ranking-table th, .ranking-table td { padding: 6px 4px; font-size: 11px; }
+            .ranking-rank { font-size: 12px; width: 24px; }
+            .ranking-avatar { width: 22px; height: 22px; font-size: 8px; margin-right: 2px; }
+            .ranking-level { font-size: 11px; }
+            .ranking-exp { font-size: 11px; }
+        }
+        @media (max-width: 400px) {
+            .ranking-container { padding: 0 8px; margin: 14px auto; }
+            .ranking-tabs { flex-wrap: wrap; gap: 4px; }
+            .ranking-tab { padding: 5px 8px; font-size: 10px; flex: 1; min-width: 0; }
+            .ranking-table th, .ranking-table td { padding: 4px 2px; font-size: 10px; }
+            .ranking-rank { font-size: 10px; width: 20px; }
+            .ranking-name { font-size: 10px; }
+            .ranking-filter-input { padding: 6px 10px; font-size: 13px; }
+        }
     </style>
 </head>
 <body data-page="top">
@@ -186,6 +205,8 @@
             <div id="nav-login-container"></div>
         </div>
     </nav>
+
+    <main id="main-content">
 
     <header class="page-header">
         <h1 class="page-title">RANKING</h1>
@@ -199,6 +220,8 @@
         </div>
         <div id="rankingContent" class="ranking-loading">Cargando ranking...</div>
     </div>
+
+    </main>
 
     <div id="footer-container"></div>
 

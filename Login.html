@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <title>Anime Destiny | Cuenta</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="images/icon-192.png">
@@ -14,6 +14,11 @@
     <meta property="og:site_name" content="Anime Destiny">
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
+    <meta name="description" content="Iniciá sesión o creá tu cuenta en Anime Destiny para guardar favoritos, progreso y listas personalizadas.">
+    <meta property="og:title" content="Anime Destiny | Cuenta">
+    <meta property="og:description" content="Iniciá sesión o creá tu cuenta en Anime Destiny para guardar favoritos, progreso y listas personalizadas.">
+    <meta name="twitter:title" content="Anime Destiny | Cuenta">
+    <meta name="twitter:description" content="Iniciá sesión o creá tu cuenta en Anime Destiny para guardar favoritos, progreso y listas personalizadas.">
 
         <link rel="stylesheet" href="css/bundle.css">
 
@@ -76,6 +81,8 @@
         </section>
     </main>
 
+    <div id="footer-container"></div>
+
     <script src="js/core/config.js"></script>
     <script src="js/core/i18n.js"></script>
 
@@ -87,7 +94,6 @@
     <script src="js/core/data-sync.js" defer></script>
     <script src="js/core/auth.js" defer></script>
     <script src="js/pages/login.js" defer></script>
-    <div id="footer-container"></div>
     <script src="js/core/common-ui.js" defer></script>
 </body>
 </html>

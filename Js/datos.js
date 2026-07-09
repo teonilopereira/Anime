@@ -38,7 +38,9 @@ function _capitalize(str) {
 
 /** Obtiene los items de una categoría (anime, manga, novelas) delegando a la API */
 function obtenerItemsCategoria(categoria) {
-    const fn = window['getTop' + _capitalize(categoria)];
+    const base = 'getTop' + _capitalize(categoria);
+    // Algunas categorías usan plural en el nombre global
+    const fn = window[base] || window[base + 's'];
     if (typeof fn === 'function') {
         return fn(); // devuelve una Promise de array
     }

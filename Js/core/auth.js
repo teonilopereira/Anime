@@ -84,7 +84,7 @@ async function waitForSupabase() {
                 btnEl.href = 'usuario.html';
                 btnEl.setAttribute('aria-label', 'Ver perfil de ' + username);
                 const photoUrl = photoUrlFromProfile(user, profile);
-                if (photoUrl && safeUrl(photoUrl)) {
+                if (photoUrl && (typeof window.safeUrl !== 'function' || window.safeUrl(photoUrl))) {
                     avatarEl.classList.add('has-image');
                     avatarEl.style.backgroundImage = 'url("' + photoUrl.replace(/[\\"()]/g, '') + '")';
                 } else {
@@ -278,14 +278,39 @@ async function waitForSupabase() {
     }
 
     // ─────────────────────────────────────────────
+    function grantDailyLoginBonus() {
+        var client = window.AppSupabase;
+        var user = client && typeof client.getCurrentUserSync === 'function' ? client.getCurrentUserSync() : null;
+        if (!user) return;
+        var today = new Date().toISOString().split('T')[0];
+        var key = 'lastDailyLogin:' + user.id;
+        if (localStorage.getItem(key) === today) return;
+        localStorage.setItem(key, today);
+        var delta = AnimeDestiny.Constants.XP_LOGIN || 10;
+        if (typeof addUserPoints === 'function') {
+            addUserPoints(user.id, delta);
+        } else if (client && typeof client.addExperience === 'function') {
+            client.addExperience(delta);
+            var pts = Number(UserStore.getItem('u:' + user.id + '|points') || '0');
+            UserStore.setItem('u:' + user.id + '|points', String(pts + delta));
+        }
+        if (window.Toast) {
+            setTimeout(function () {
+                window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+            }, 800);
+        }
+    }
+
     // Escuchar cambios de sesión de Supabase
     // ─────────────────────────────────────────────
 
     // Evento disparado por supabase-config.js
-    window.addEventListener("supabase-auth-changed", () => {
+    window.addEventListener("supabase-auth-changed", function () {
         refreshUserUi();
         if (window.AppSupabase && !window.AppSupabase.isSignedIn()) {
             if (window.UserStore) window.UserStore.clear();
+        } else if (window.AppSupabase && window.AppSupabase.isSignedIn()) {
+            grantDailyLoginBonus();
         }
     });
 

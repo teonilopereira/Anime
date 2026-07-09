@@ -11,10 +11,11 @@
     --nav-accent: #a855f7;
     --nav-accent-soft: rgba(168, 85, 247, 0.24);
     position: sticky;
-    top: 10px;
+    top: 0;
+    z-index: 1000;
     width: min(1560px, calc(100% - 28px));
     min-height: 76px;
-    margin: 10px auto 0;
+    margin: 0 auto;
     padding: 0 20px;
     display: grid;
     grid-template-columns: auto 1fr minmax(300px, 440px);
@@ -298,6 +299,10 @@
         gap: 10px;
     }
 
+    .destiny-navbar.is-scrolled {
+        padding: 14px;
+    }
+
     .destiny-navbar .nav-links {
         order: 3;
         grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
@@ -325,6 +330,10 @@
         gap: 10px;
         padding: 10px;
         border-radius: 10px;
+    }
+
+    .destiny-navbar.is-scrolled {
+        padding: 10px;
     }
 
     .destiny-navbar .nav-brand {
@@ -384,5 +393,175 @@
         padding: 10px 0 0;
         border-left: 0;
         border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .destiny-navbar .nav-user-avatar {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 480px) {
+    .destiny-navbar {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .destiny-navbar.is-scrolled {
+        padding: 8px 10px;
+    }
+
+    .destiny-navbar .nav-brand {
+        gap: 6px;
+    }
+
+    .nav-brand-mark {
+        width: 44px;
+        height: 36px;
+    }
+
+    .nav-brand-anime,
+    .nav-brand-destiny {
+        font-size: 0.82rem;
+    }
+
+    .nav-brand-jp {
+        font-size: 0.55rem;
+    }
+
+    .destiny-navbar .nav-links {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .destiny-navbar .nav-btn,
+    .destiny-navbar .nav-btn.active {
+        min-height: 44px;
+        font-size: 0.7rem;
+        padding: 6px 8px;
+    }
+
+    .nav-icon {
+        font-size: 1rem;
+    }
+
+    .destiny-navbar .nav-search {
+        font-size: 0.8rem;
+        min-height: 36px;
+    }
+
+    .destiny-navbar .nav-search-input {
+        padding: 0 12px 0 40px;
+        min-height: 36px;
+    }
+
+    .nav-search-icon {
+        font-size: 1.1rem;
+        left: 14px;
+    }
+
+    .destiny-navbar .nav-user-name {
+        font-size: 0.75rem;
+    }
+
+    .destiny-navbar .nav-user-info {
+        gap: 0;
+    }
+
+    .destiny-navbar .nav-user-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .destiny-navbar .nav-user-btn {
+        padding: 3px 10px;
+        min-height: 22px;
+        font-size: 0.65rem;
+    }
+
+    .destiny-navbar .nav-toggle {
+        min-height: 40px;
+    }
+}
+
+@media (max-width: 400px) {
+    .destiny-navbar {
+        padding: 6px 8px;
+        gap: 6px;
+        border-radius: 8px;
+    }
+
+    .destiny-navbar.is-scrolled {
+        padding: 6px 8px;
+    }
+
+    .nav-brand-mark {
+        width: 34px;
+        height: 28px;
+    }
+
+    .nav-brand-anime,
+    .nav-brand-destiny {
+        font-size: 0.72rem;
+    }
+
+    .nav-brand-jp {
+        font-size: 0.5rem;
+        margin-top: 2px;
+    }
+
+    .destiny-navbar .nav-links {
+        grid-template-columns: 1fr;
+    }
+
+    .destiny-navbar .nav-btn,
+    .destiny-navbar .nav-btn.active {
+        min-height: 38px;
+        font-size: 0.65rem;
+    }
+
+    .nav-icon {
+        font-size: 0.9rem;
+    }
+
+    .destiny-navbar .nav-search-input {
+        padding: 0 10px 0 34px;
+        min-height: 32px;
+        font-size: 0.78rem;
+    }
+
+    .nav-search-icon {
+        font-size: 0.95rem;
+        left: 10px;
+    }
+
+    .destiny-navbar .nav-user-avatar {
+        width: 28px;
+        height: 28px;
+        border-width: 1.5px;
+    }
+
+    .destiny-navbar .nav-user-name {
+        display: none;
+    }
+
+    .destiny-navbar .nav-user-btn {
+        padding: 2px 8px;
+        min-height: 20px;
+        font-size: 0.6rem;
+    }
+
+    .destiny-navbar .nav-toggle {
+        min-height: 36px;
+        font-size: 0.75rem;
+    }
+
+    .destiny-navbar .nav-user {
+        padding-top: 6px;
+    }
+
+    .destiny-navbar .nav-actions {
+        gap: 6px;
     }
 }

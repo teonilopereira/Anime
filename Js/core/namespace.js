@@ -20,4 +20,20 @@
             console.warn(prefix, message);
         }
     };
+
+    window.addEventListener('error', function (e) {
+        AD.reportError('global', e.message || 'Uncaught error', {
+            filename: e.filename,
+            lineno: e.lineno,
+            colno: e.colno,
+            stack: e.error?.stack
+        });
+    });
+
+    window.addEventListener('unhandledrejection', function (e) {
+        var reason = e.reason;
+        AD.reportError('global', reason?.message || 'Unhandled promise rejection', {
+            stack: reason?.stack
+        });
+    });
 })();

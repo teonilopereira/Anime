@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https: wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Página no encontrada en Anime Destiny.">
     <title>Anime Destiny | 404 - No Encontrado</title>
         <link rel="stylesheet" href="css/bundle.css">
@@ -61,8 +61,23 @@
             box-shadow: 0 6px 20px rgba(188, 19, 254, 0.4);
         }
     </style>
+    <style>
+        @media (max-width: 480px) {
+            .error-container { padding: 28px 16px; margin: 60px auto; }
+            .error-code { font-size: 4rem; }
+            .error-title { font-size: 1.4rem; }
+            .error-text { font-size: 0.95rem; }
+        }
+        @media (max-width: 400px) {
+            .error-container { padding: 20px 12px; margin: 40px auto; border-radius: 12px; }
+            .error-code { font-size: 3rem; }
+            .error-title { font-size: 1.1rem; margin: 14px 0 8px; }
+            .error-text { font-size: 0.85rem; margin-bottom: 20px; }
+            .error-btn { padding: 10px 20px; font-size: 0.8rem; }
+        }
+    </style>
 </head>
-<body class="menu-page">
+<body data-page="404">
     <nav class="navbar destiny-navbar">
         <div id="nav-brand-container"></div>
         <div id="nav-links-container"></div>

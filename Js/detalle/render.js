@@ -230,7 +230,7 @@ function renderDetalle(item, nombreUrl, categoria) {
     localLayout.innerHTML = `
         <div class="detail-grid">
             <div class="detail-cover">
-                <img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}">
+                <img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" loading="lazy" data-fallback-catalog="1" data-title="${escapeHtml(item.titulo)}">
             </div>
             <div class="detail-info">
                 ${demografiaHtml}
@@ -364,6 +364,43 @@ function renderDetalle(item, nombreUrl, categoria) {
     window.addEventListener("supabase-auth-changed", loadFavViewedFromSupabase);
 
  
+    function maybeGrantProgressXp(wasActive) {
+        if (!wasActive) return;
+        const uId = getCurrentUserIdSafe();
+        if (uId === 'Invitado' || typeof addUserPoints !== 'function') return;
+        addUserPoints(uId, AnimeDestiny.Constants.XP_PROGRESS || 2);
+    }
+
+    function maybeGrantCompletionBonus() {
+        const uId = getCurrentUserIdSafe();
+        if (uId === 'Invitado' || typeof addUserPoints !== 'function') return;
+        let watched = 0, total = 0;
+        if (isMangaOrNovela && totalVols > 0) {
+            total = totalVols;
+            for (let v = 1; v <= total; v++) {
+                if (UserStore.getItem(volumeStorageKey(uId, item.id, v, categoria))) watched++;
+            }
+        } else if (isAnime) {
+            const temps = parseTemporadas(item);
+            temps.forEach((s, si) => {
+                const eps = Number(s.episodios) || 0;
+                total += eps;
+                for (let ep = 1; ep <= eps; ep++) {
+                    if (UserStore.getItem(episodeStorageKey(uId, item.id, si, ep))) watched++;
+                }
+            });
+        }
+        if (watched >= total && total > 0) {
+            const bonusKey = `u:${uId}|item:${item.id}|completed_bonus`;
+            if (!UserStore.getItem(bonusKey)) {
+                UserStore.setItem(bonusKey, '1');
+                const xp = AnimeDestiny.Constants.XP_COMPLETE || 50;
+                addUserPoints(uId, xp);
+                if (window.Toast) window.Toast.success("¡Completaste la obra! 🏆 (+" + xp + " EXP)");
+            }
+        }
+    }
+
     if (shareBtn) {
         shareBtn.addEventListener('click', () => {
             const shareData = {
@@ -371,11 +408,19 @@ function renderDetalle(item, nombreUrl, categoria) {
                 text: `¡Mirá este ${categoria} que encontré! Se llama "${item.titulo}".`,
                 url: window.location.href
             };
+            function onShareDone() {
+                const uId = getCurrentUserIdSafe();
+                if (uId !== 'Invitado' && typeof addUserPoints === 'function') {
+                    addUserPoints(uId, AnimeDestiny.Constants.XP_SHARE || 5);
+                    if (window.Toast) window.Toast.success("¡Compartido! (+" + (AnimeDestiny.Constants.XP_SHARE || 5) + " EXP)");
+                }
+            }
             if (navigator.share) {
-                navigator.share(shareData).catch(err => console.warn('Error al compartir:', err));
+                navigator.share(shareData).then(onShareDone).catch(err => console.warn('Error al compartir:', err));
             } else {
                 navigator.clipboard.writeText(window.location.href).then(() => {
                     alert('Enlace copiado al portapapeles. ¡Pegalo para compartir!');
+                    onShareDone();
                 }).catch(() => {
                     alert('No se pudo copiar el enlace.');
                 });
@@ -461,6 +506,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                 else UserStore.removeItem(key);
                 saveProgressToSupabase(categoria, item.id, progressSqlKeyVolume(vol), isActive);
                 renderProgressPanel();
+                maybeGrantProgressXp(isActive);
+                maybeGrantCompletionBonus();
             });
         }
     }
@@ -486,7 +533,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 const key = episodeStorageKey(getCurrentUserIdSafe(), item.id, seasonIndex, ep);
                 const active = UserStore.getItem(key) ? ' is-active' : '';
                 return `
-<div class="cap-box ${active ? 'is-active' : ''}" data-ep="${ep}">
+<div class="cuadrado-wrapper">
     <button 
         class="ep-btn cuadrado-item ${active ? 'is-active' : ''}" 
         type="button"
@@ -496,7 +543,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         ${String(ep).padStart(2, '0')}
     </button>
     <button 
-        class="btn-resumen ${active ? 'show' : ''}" 
+        class="btn-resumen" 
         data-season="${seasonIndex}"
         data-ep="${ep}">
         Resumen
@@ -546,6 +593,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                 else UserStore.removeItem(key);
                 saveProgressToSupabase('anime', item.id, progressSqlKeyEpisode(seasonIndex, ep), isActive);
                 renderProgressPanel();
+                maybeGrantProgressXp(isActive);
+                maybeGrantCompletionBonus();
             });
 
             epGrid.addEventListener('click', (e) => {

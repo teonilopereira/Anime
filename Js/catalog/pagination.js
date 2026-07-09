@@ -29,7 +29,7 @@ async function loadNextPage() {
     isLoadingPage = true;
 
     const categoria = document.body.getAttribute("data-page");
-    const mainContainer = document.getElementById("main-container");
+    const mainContainer = document.getElementById("main-content");
     if (!mainContainer) { isLoadingPage = false; return; }
 
     var skelWrapper;
@@ -110,9 +110,10 @@ function resetInfiniteScroll() {
 }
 
 async function inicializarPagina() {
-    const mainContainer = document.getElementById("main-container");
+    const mainContainer = document.getElementById("main-content");
     if (!mainContainer) return;
     const categoria = document.body.getAttribute("data-page");
+    if (["listas", "top", "comparar", "detalle", "index"].indexOf(categoria) !== -1) return;
     currentPage = 1;
     const usaCatalogoApi = categoria === "anime" || categoria === "manga" || categoria === "novelas";
 
