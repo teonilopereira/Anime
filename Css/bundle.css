@@ -545,6 +545,7 @@ main { padding-bottom: 24px; }
     object-fit: cover;
     border-radius: 6px;
     background: rgba(255,255,255,0.04);
+    display: block;
 }
 .catalog-suggestion-body {
     flex: 1;
@@ -651,8 +652,7 @@ main { padding-bottom: 24px; }
     padding: 0 16px;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr;
     align-items: start;
 }
 
@@ -4086,6 +4086,128 @@ body[data-page="listas"] .lists-empty {
     border-color: rgba(0, 242, 255, 0.6);
     box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
 }
+
+/* ── Sidebar avatar (mis-listas) ── */
+.sidebar-avatar-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.sidebar-avatar-ring {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--neon-purple));
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
+}
+.sidebar-avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a0a35, #0a1a35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.sidebar-avatar-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.sidebar-initials {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #bc13fe;
+    line-height: 1;
+}
+
+/* ── Compare page base styles ── */
+.compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 20px;
+}
+.compare-card {
+    background: rgba(10, 14, 36, 0.82);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(8px);
+}
+.compare-cover {
+    width: 100%;
+    aspect-ratio: 2 / 2.75;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.compare-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.compare-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.compare-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.compare-cat {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--neon-purple);
+    font-family: 'Orbitron', sans-serif;
+}
+.compare-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
+    line-height: 1.25;
+}
+.compare-info {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.4;
+}
+.compare-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+.compare-meta strong {
+    color: var(--accent-cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 400;
+}
+.compare-actions {
+    margin-top: 4px;
+}
+
 .sidebar-nav {
     display: flex;
     flex-direction: column;
@@ -4236,6 +4358,7 @@ body[data-page="listas"] .lists-empty {
     height: 80px;
     border-radius: 6px;
     object-fit: cover;
+    display: block;
 }
 
 .row-info {

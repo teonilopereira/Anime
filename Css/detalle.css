@@ -200,6 +200,7 @@
 .dato-item {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 4px;
     padding: 10px 12px;
     border-radius: var(--radius-sm);
@@ -916,6 +917,49 @@
     .header-acciones {
         justify-content: center;
     }
+}
+
+/* ── Related section ── */
+.detail-section-related {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.related-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.related-card {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(188,19,254,0.15);
+    background: rgba(26,11,46,0.3);
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.2s ease;
+    max-width: 220px;
+}
+.related-card:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 16px rgba(0,242,255,0.1);
+    transform: translateY(-2px);
+}
+.related-type-badge {
+    font-size: 0.65rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-cyan);
+    opacity: 0.8;
+}
+.related-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.2;
 }
 
 @media (max-width: 520px) {

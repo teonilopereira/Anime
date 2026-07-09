@@ -158,6 +158,8 @@ async function inicializarPagina() {
         } else if (categoria === "manga" || categoria === "novelas") {
             progressTotal = Number(detalle?.volumenes || 0);
         }
+        var volCount = Number(item.volumenes || item.volumes || 0);
+        var chCount = Number(item.capitulos || item.chapters || 0);
         return buildCatalogCardHtml({
             id: item.id,
             title: item.titulo,
@@ -169,14 +171,16 @@ async function inicializarPagina() {
             genres: genres.join("|"),
             genresNorm: genresNorm,
             categoria: categoria,
-            progressTotal: progressTotal,
+            progressTotal: volCount || chCount || progressTotal,
+            volCount: volCount,
+            chCount: chCount,
             imageExtraAttrs: ' data-title="' + escapeHtml(item.titulo) + '" data-fallback-catalog="1"'
         });
     }).join("");
 
-    cargarEstadosBotones();
-    inicializarBusquedaCatalogo();
-    inicializarGeneroWidgets();
+    try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
+    try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
+    try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
     resetInfiniteScroll();
 }
 

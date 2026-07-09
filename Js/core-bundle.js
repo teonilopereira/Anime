@@ -430,7 +430,19 @@
             themes: [],
             studios: (item.studios?.nodes || []).map(function (s) { return s.name; }),
             streamingEpisodes: [],
-            relations: [],
+            relations: (item.relations?.edges || []).map(function (edge) {
+                var node = edge.node || {};
+                return {
+                    relationType: edge.relationType || 'OTHER',
+                    id: node.id,
+                    title: extractTitle(node.title),
+                    episodes: node.episodes || 0,
+                    chapters: node.chapters || 0,
+                    volumes: node.volumes || 0,
+                    format: node.format || null,
+                    seasonYear: node.seasonYear || null
+                };
+            }),
             season: item.season || null,
             seasonYear: item.seasonYear || null,
             source: item.source || null,
@@ -448,6 +460,134 @@
         'Mahou Shoujo','Mecha','Music','Mystery','Psychological','Romance',
         'Sci-Fi','Slice of Life','Sports','Supernatural','Thriller'
     ];
+
+    var MD_TAG_UUIDS = {
+        '4-koma':'b11fda93-8f1d-4bef-b2ed-8803d3733170','action':'391b0423-d847-456f-aff0-8b0cfc03066b',
+        'adaptation':'f4122d1c-3b44-44d0-9936-ff7502c39ad3','adventure':'87cc87cd-a395-47af-b27a-93258283bbc6',
+        'aliens':'e64f6742-c834-471d-8d72-dd51fc02b835','animals':'3de8c75d-8ee3-48ff-98ee-e20a65c86451',
+        'anthology':'51d83883-4103-437c-b4b1-731cb73d786c','award winning':'0a39b5a1-b235-4886-a747-1d05d216532d',
+        'boys\' love':'5920b825-4181-4a17-beeb-9918b0ff7a30','comedy':'4d32cc48-9f00-4cca-9b5a-a839f0764984',
+        'cooking':'ea2bc92d-1c26-4930-9b7c-d5c0dc1b6869','crime':'5ca48985-9a9d-4bd8-be29-80dc0303db72',
+        'crossdressing':'9ab53f92-3eed-4e9b-903a-917c86035ee3','delinquents':'da2d50ca-3018-4cc0-ac7a-6b7d472a29ea',
+        'demons':'39730448-9a5f-48a2-85b0-a70db87b1233','doujinshi':'b13b2a48-c720-44a9-9c77-39c9979373fb',
+        'drama':'b9af3a63-f058-46de-a9a0-e0c13906197a','fantasy':'cdc58593-87dd-415e-bbc0-2ec27bf404cc',
+        'full color':'f5ba408b-0e7a-484d-8d49-4e9125ac96de','genderswap':'2bd2e8d0-f146-434a-9b51-fc9ff2c5fe6a',
+        'ghost':'3bb26d85-09d5-4d2e-880c-c34b974339e9','ghosts':'3bb26d85-09d5-4d2e-880c-c34b974339e9',
+        'girls\' love':'a3c67850-4684-404e-9b7f-c69850ee5da6','gore':'b29d6a3d-1569-4e7a-8caf-7557bc92cd5d',
+        'gyaru':'fad12b5e-68ba-460e-b933-9ae8318f5b65','harem':'aafb99c1-7f60-43fa-b75f-fc9502ce29c7',
+        'historical':'33771934-028e-4cb3-8744-691e866a923e','horror':'cdad7e68-1419-41dd-bdce-27753074a640',
+        'incest':'5bd0e105-4481-44ca-b6e7-7544da56b1a3','isekai':'ace04997-f6bd-436e-b261-779182193d3d',
+        'loli':'2d1f5d56-a1e5-4d0d-a961-2193588b08ec','long strip':'3e2b8dae-350e-4ab8-a8ce-016e844b9f0d',
+        'mafia':'85daba54-a71c-4554-8a28-9901a8b0afad','magic':'a1f53773-c69a-4ce5-8cab-fffcd90b1565',
+        'magical girls':'81c836c9-914a-4eca-981a-560dad663e73','martial arts':'799c202e-7daa-44eb-9cf7-8a3c0441531e',
+        'mecha':'50880a9d-5440-4732-9afb-8f457127e836','medical':'c8cbe35b-1b2b-4a3f-9c37-db84c4514856',
+        'military':'ac72833b-c4e9-4878-b9db-6c8a4a99444a','monster':'36fd93ea-e8b8-445e-b836-358f02b3d33d',
+        'monster girls':'dd1f77c5-dea9-4e2b-97ae-224af09caf99','monsters':'36fd93ea-e8b8-445e-b836-358f02b3d33d',
+        'music':'f42fbf9e-188a-447b-9fdc-f19dc1e4d685','mystery':'ee968100-4191-4968-93d3-f82d72be7e46',
+        'ninja':'489dd859-9b61-4c37-af75-5b18e88daafc','office workers':'92d6d951-ca5e-429c-ac78-451071cbf064',
+        'oneshot':'0234a31e-a729-4e28-9d6a-3f87c4966b9e','philosophical':'b1e97889-25b4-4258-b28b-cd7f4d28ea9b',
+        'police':'df33b754-73a3-4c54-80e6-1a74a8058539','post-apocalyptic':'9467335a-1b83-4497-9231-765337a00b96',
+        'psychological':'3b60b75c-a2d7-4860-ab56-05f391bb889c','reincarnation':'0bc90acb-ccc1-44ca-a34a-b9f3a73259d0',
+        'reverse harem':'65761a2a-415e-47f3-bef2-a9dababba7a6','romance':'423e2eae-a7a2-4a8b-ac03-a8351462d71d',
+        'samurai':'81183756-1453-4c81-aa9e-f6e1b63be016','school life':'caaa44eb-cd40-4177-b930-79d3ef2afe87',
+        'sci-fi':'256c8bd9-4904-4360-bf4f-508a76d67183','self-published':'891cf039-b895-47f0-9229-bef4c96eccd4',
+        'shota':'ddefd648-5140-4e5f-ba18-4eca4071d19b','slice of life':'e5301a23-ebd9-49dd-a0cb-2add944c7fe9',
+        'sports':'69964a64-2f90-4d33-beeb-f3ed2875eb4c','superhero':'7064a261-a137-4d3a-8848-2d385de3a99c',
+        'supernatural':'eabc5b4c-6aff-42f3-b657-3e90cbd00b75','survival':'5fff9cde-849c-4d78-aab0-0d52b2ee1d25',
+        'thriller':'07251805-a27e-4d59-b488-f0bfbec15168','time travel':'292e862b-2d17-4062-90a2-0356caa4ae27',
+        'tragedy':'f8f62932-27da-4fe4-8ee1-6779a8c5edba','traditional games':'31932a7e-5b8e-49a6-9f12-2afa39dc544c',
+        'vampire':'d7d1730f-6eb0-4ba6-9437-602cac38664c','vampires':'d7d1730f-6eb0-4ba6-9437-602cac38664c',
+        'video games':'9438db5a-7e2a-4ac0-b39e-e0d95a34b8a8','villainess':'d14322ac-4d6f-4e9b-afd9-629d5f4d8a41',
+        'virtual reality':'8c86611e-fab7-4986-9dec-d1a2f44acdd5','web comic':'e197df38-d0e7-43b5-9b09-2842d0c326dd',
+        'wuxia':'acc803a4-c95a-4c22-86fc-eb6b582d82a2','zombie':'631ef465-9aba-4afb-b0fc-ea10efe274a8',
+        'zombies':'631ef465-9aba-4afb-b0fc-ea10efe274a8'
+    };
+
+    function mdFetch(path) {
+        return new Promise(function (resolve, reject) {
+            var controller = new AbortController();
+            var timer = setTimeout(function () { controller.abort(); reject(new Error('Timeout')); }, REQUEST_TIMEOUT);
+            fetch('https://api.mangadex.org' + path, {
+                method: 'GET', headers: { 'Accept': 'application/json' }, signal: controller.signal
+            }).then(function (res) {
+                clearTimeout(timer);
+                if (!res.ok) return res.text().then(function (t) { reject(new Error('MD HTTP ' + res.status)); });
+                return res.json();
+            }).then(function (json) {
+                if (json.errors) { reject(new Error('MD error: ' + (json.errors[0]?.detail || '?'))); return; }
+                resolve(json);
+            }).catch(function (err) { clearTimeout(timer); reject(err); });
+        });
+    }
+
+    function mdItemToCard(data) {
+        if (!data?.attributes) return null;
+        var a = data.attributes;
+        var id = data.id;
+        var title = (a.title?.en || a.title?.['ja-ro'] || a.title?.ja || Object.values(a.title || {})[0] || '');
+        var desc = (a.description?.en || a.description?.es || Object.values(a.description || {})[0] || '');
+        var coverUrl = '';
+        var rels = data.relationships || [];
+        var coverArt = rels.find(function (r) { return r.type === 'cover_art'; });
+        if (coverArt?.attributes?.fileName) coverUrl = 'https://uploads.mangadex.org/covers/' + id + '/' + coverArt.attributes.fileName;
+        if (!coverUrl) coverUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect fill='%231a0a2e' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23a855f7' font-family='sans-serif' font-size='13' text-anchor='middle' dominant-baseline='middle'%3ESin portada%3C/text%3E%3C/svg%3E";
+        var genres = (a.tags || []).filter(function (t) { return t.attributes?.group === 'genre' || t.attributes?.group === 'theme'; }).map(function (t) { return { name: (t.attributes?.name?.en || '') }; }).filter(function (g) { return g.name; });
+        var chCnt = a.lastChapter ? Math.ceil(Number(a.lastChapter)) || 0 : 0;
+        var volCnt = a.lastVolume ? Math.ceil(Number(a.lastVolume)) || 0 : 0;
+        var status = a.status === 'completed' ? 'FINISHED' : (a.status === 'ongoing' ? 'RELEASING' : (a.status === 'hiatus' ? 'HIATUS' : 'UNKNOWN'));
+        var friendlyType = 'Manga';
+        var lang = String(a.originalLanguage || '').toLowerCase();
+        if (lang === 'ko') friendlyType = 'Manhwa';
+        else if (lang === 'zh' || lang === 'zh-hk' || lang === 'zh-tw') friendlyType = 'Manhua';
+        else {
+            var hasD = (a.tags || []).some(function (t) { return String(t.attributes?.name?.en || '').toLowerCase() === 'doujinshi'; });
+            var hasO = (a.tags || []).some(function (t) { var n = String(t.attributes?.name?.en || '').toLowerCase(); return n === 'one shot' || n === 'oneshot'; });
+            if (hasD) friendlyType = 'Doujinshi';
+            else if (hasO) friendlyType = 'One-shot';
+        }
+        return {
+            id: id, mal_id: null, title: title, title_english: title, synopsis: desc || 'Sin sinopsis.',
+            status: status, type: friendlyType, episodes: 0, chapters: chCnt, volumes: volCnt, score: null,
+            images: { webp: { large_image_url: coverUrl, image_url: coverUrl }, jpg: { large_image_url: coverUrl, image_url: coverUrl } },
+            genres: genres, themes: [], studios: [], streamingEpisodes: [], relations: [],
+            season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null
+        };
+    }
+
+    function mdTagUuidsFromKeys(keys) {
+        var uuids = [];
+        (keys || []).forEach(function (k) {
+            var norm = String(k).toLowerCase().replace(/[\s-]/g, '');
+            for (var name in MD_TAG_UUIDS) {
+                if (name.toLowerCase().replace(/[\s-]/g, '') === norm) { uuids.push(MD_TAG_UUIDS[name]); break; }
+            }
+        });
+        return uuids;
+    }
+
+    async function fetchMangaDexPage(page, perPage, tagUuids, search) {
+        var params = '?limit=' + perPage + '&offset=' + ((page - 1) * perPage) + '&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica';
+        if (search) params += '&title=' + encodeURIComponent(search);
+        tagUuids.forEach(function (u) { params += '&includedTags[]=' + u; });
+        try {
+            var json = await mdFetch('/manga' + params);
+            return (json?.data || []).map(function (m) { return mdItemToCard(m); }).filter(Boolean);
+        } catch (e) { return []; }
+    }
+
+    function normalizeTitle(t) {
+        return String(t || '').toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+    }
+
+    function mergeAnilistAndMd(anilistItems, mdItems) {
+        var seen = new Set();
+        anilistItems.forEach(function (item) { seen.add(normalizeTitle(item.title)); });
+        mdItems.forEach(function (item) {
+            var key = normalizeTitle(item.title);
+            if (!seen.has(key)) { seen.add(key); anilistItems.push(item); }
+        });
+        return anilistItems;
+    }
 
     function splitGenresAndTags(genreKeys) {
         var genres = [];
@@ -680,10 +820,18 @@
             }
             
             var mapped = media.map(function (m) { return anilistItemToLocal(m, 'manga'); });
+
+            // Supplement with MangaDex
+            var mdTagUuids = mdTagUuidsFromKeys(filters.genres);
+            if (mdTagUuids.length || filters.search) {
+                var mdPage = await fetchMangaDexPage(pg, PER_PAGE, mdTagUuids, filters.search);
+                if (mdPage.length) mapped = mergeAnilistAndMd(mapped, mdPage);
+            }
+
             if (mapped.length) setApiCache(cacheKey, mapped, hasFilters ? 300000 : 3600000);
             return mapped;
         } catch (err) {
-            console.warn('AniList getTopMangas error:', err);
+            console.warn('getTopMangas error:', err);
             return [];
         }
     };
@@ -692,7 +840,7 @@
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
         var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult);
-        var cacheKey = 'topNovelas_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
+        var cacheKey = 'novonly_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
@@ -713,10 +861,19 @@
             var json = await anilistFetch(query, vars);
             var media = json?.data?.Page?.media || [];
             var mapped = media.map(function (m) { return anilistItemToLocal(m, 'novelas'); });
+
+            // Supplement with MangaDex
+            var mdTagUuids = mdTagUuidsFromKeys(filters.genres);
+            if (mdTagUuids.length || filters.search) {
+                var pg = page || 1;
+                var mdPage = await fetchMangaDexPage(pg, PER_PAGE, mdTagUuids, filters.search);
+                if (mdPage.length) mapped = mergeAnilistAndMd(mapped, mdPage);
+            }
+
             if (mapped.length) setApiCache(cacheKey, mapped, hasFilters ? 300000 : 3600000);
             return mapped;
         } catch (err) {
-            console.warn('AniList getTopNovelas error:', err);
+            console.warn('getTopNovelas error:', err);
             return [];
         }
     };
@@ -769,6 +926,8 @@
             var opts = { type: type, search: query };
             if (categoria === 'manga') {
                 opts.formatIn = ['MANGA', 'ONE_SHOT'];
+            } else if (categoria === 'novelas') {
+                opts.formatIn = ['NOVEL'];
             } else if (type === 'ANIME') {
                 opts.formatIn = ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC'];
             } else {
@@ -787,6 +946,9 @@
             return [];
         }
     };
+
+    window.fetchMangaDexPage = fetchMangaDexPage;
+    window.mergeAnilistAndMd = mergeAnilistAndMd;
 
     window.buscarNovelasEnApi = async function (query) {
         var cacheKey = 'novela_' + query.trim().toLowerCase();
@@ -2379,7 +2541,8 @@ function getApiCatalogInfo(categoria, item) {
     const typeLabel = String(item?.type || '').toLowerCase().includes('light')
         ? 'Novela ligera'
         : (String(item?.type || '').toLowerCase() === 'novel' ? 'Novela' : (item?.type || 'Manga'));
-    const parts = [typeLabel, item?.volumes ? `${item.volumes} vol.` : '', item?.status].filter(Boolean);
+    const volcap = item?.volumes ? `${item.volumes} vol.` : (item?.chapters ? `${item.chapters} cap.` : '');
+    const parts = [typeLabel, volcap, item?.status].filter(Boolean);
     if (categoria === 'novelas') return parts.join(' / ') || 'Novela';
     return parts.join(' / ') || 'Manga';
 }
@@ -2422,16 +2585,18 @@ function getApiGenresList(item) {
 
 
 
-function getCatalogProgressPrefix(categoria) {
-    if (categoria === 'anime') return 'EP';
-    if (categoria === 'manga' || categoria === 'novelas') return 'VOL';
-    return 'VOL';
-}
-
-
-function buildCatalogBackProgressHtml(categoria, total) {
-    const prefix = getCatalogProgressPrefix(categoria);
-    const label = categoria === 'anime' ? 'capítulos' : 'volúmenes';
+function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
+    var prefix, label;
+    if (categoria === 'anime') {
+        prefix = 'EP';
+        label = 'capítulos';
+    } else if (volCount > 0) {
+        prefix = 'VOL';
+        label = 'volúmenes';
+    } else {
+        prefix = 'CH';
+        label = 'capítulos';
+    }
     const safeTotal = Number(total) > 0 ? Number(total) : 0;
     return `
         <div class="card-back-progress-wrapper" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}" style="display:none">
@@ -2567,7 +2732,9 @@ function buildCatalogCardHtml(options) {
         genresNorm = '',
         imageExtraAttrs = '',
         categoria = 'manga',
-        progressTotal = 0
+        progressTotal = 0,
+        volCount = 0,
+        chCount = 0
     } = options;
 
     const flipId = `flip-${id}`;
@@ -2605,7 +2772,7 @@ function buildCatalogCardHtml(options) {
                                 <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">❤</button>
                                 <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">👁</button>
                             </div>
-                            ${buildCatalogBackProgressHtml(categoria, progressTotal)}
+                            ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
                         </div>
                     </div>
                 </div>
@@ -2686,6 +2853,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                     </section>
                 `;
             }
+            if (!append) { try { inicializarBusquedaCatalogo(); } catch (e) {} try { inicializarGeneroWidgets(); } catch (e) {} }
             return false;
         }
 
@@ -2700,6 +2868,8 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             const detailUrl = 'detalle.html?cat=' + encodeURIComponent(detailCat) + '&id=' + encodeURIComponent(id);
             const searchIndex = [title, item.title_english, info, item.synopsis, item.type].concat(genres).filter(Boolean).join(' ').toLowerCase();
 
+            const volCount = categoria !== 'anime' ? (item.volumes || 0) : 0;
+            const chCount = categoria !== 'anime' ? (item.chapters || 0) : 0;
             return buildCatalogCardHtml({
                 id: id,
                 title: title,
@@ -2710,7 +2880,9 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                 genres: genres.join('|'),
                 genresNorm: genresNorm,
                 categoria: detailCat,
-                progressTotal: categoria === 'anime' ? (item.episodes || 0) : (item.volumes || item.chapters || 0),
+                progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
+                volCount: volCount,
+                chCount: chCount,
                 imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
             });
         }).join('');
@@ -2722,12 +2894,12 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             mainContainer.innerHTML = cardsHtml;
         }
 
-        cargarEstadosBotones();
+        try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
         if (!append) {
-            inicializarBusquedaCatalogo();
-            inicializarGeneroWidgets();
+            try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
+            try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
         } else if (typeof window.__renderDropdownGenres === 'function') {
-            window.__renderDropdownGenres();
+            try { window.__renderDropdownGenres(); } catch (e) { console.warn('Error en generos dropdown:', e); }
         }
         return items.length > 0;
         } catch (error) {
@@ -2740,6 +2912,8 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                     <p>Revisá tu conexión, esperá unos segundos y recargá la página.</p>
                 </section>
             `;
+            try { inicializarBusquedaCatalogo(); } catch (e) {}
+            try { inicializarGeneroWidgets(); } catch (e) {}
         }
         return false;
     }
@@ -2765,6 +2939,8 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
         var genresNorm = genres.map(function (g) { return normalizeCatalogGenre(g); }).join('|');
         var detailUrl = 'detalle.html?cat=' + encodeURIComponent(categoria) + '&id=' + encodeURIComponent(id);
         var searchIndex = [title, item.title_english, item.info, item.synopsis].concat(genres).filter(Boolean).join(' ').toLowerCase();
+        var volCount = Number(item.volumes || 0);
+        var chCount = Number(item.chapters || 0);
         list.push(buildCatalogCardHtml({
             id: id,
             title: title,
@@ -2775,7 +2951,9 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
             genres: genres.join('|'),
             genresNorm: genresNorm,
             categoria: categoria,
-            progressTotal: Number(item.volumes || item.chapters || item.episodes || 0),
+            progressTotal: volCount || chCount || Number(item.episodes || 0),
+            volCount: volCount,
+            chCount: chCount,
             imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
         }));
     });
@@ -2789,12 +2967,12 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
         });
     }
 
-    cargarEstadosBotones();
+    try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
     if (!append) {
-        inicializarBusquedaCatalogo();
-        inicializarGeneroWidgets();
+        try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
+        try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
     } else if (typeof window.__renderDropdownGenres === 'function') {
-        window.__renderDropdownGenres();
+        try { window.__renderDropdownGenres(); } catch (e) { console.warn('Error en generos dropdown:', e); }
     }
     return true;
 }
@@ -2873,13 +3051,8 @@ function inicializarBusquedaCatalogo() {
             .slice(0, AnimeDestiny.Constants.SUGGESTION_LIMIT || 6);
 
         if (!matches.length) {
-            suggestionBox.innerHTML = `
-                <div class="catalog-suggestion empty">
-                    <span class="catalog-suggestion-title">Sin sugerencias</span>
-                    <span class="catalog-suggestion-meta">Probá con menos palabras o revisá el género.</span>
-                </div>
-            `;
-            suggestionBox.classList.add('is-open');
+            suggestionBox.classList.remove('is-open');
+            suggestionBox.innerHTML = '';
             return;
         }
 
@@ -2982,24 +3155,25 @@ function inicializarBusquedaCatalogo() {
 
         const section = prev || document.createElement('div');
         section.className = 'catalog-suggestion-api-section';
+        const seenIds = new Set();
+        section.querySelectorAll('a').forEach(a => { const m = a.href.match(/[?&]id=([^&]+)/); if (m) seenIds.add(m[1]); });
 
-        let html = '<div class="catalog-suggestion-api-header">Relacionados</div>';
         filtered.forEach(item => {
+            const rawId = String(item.id);
+            if (seenIds.has(rawId)) return;
+            seenIds.add(rawId);
+            const id = encodeURIComponent(rawId);
             const imgUrl = item.images?.jpg?.image_url || item.images?.webp?.image_url || '';
-            const id = encodeURIComponent(String(item.id));
             const title = escapeHtml(item.title || '');
             const meta = escapeHtml(item.type || item.status || '');
-            html += `
-                <a class="catalog-suggestion catalog-suggestion--api" href="detalle.html?cat=${encodeURIComponent(String(categoria))}&id=${id}&nombre=${encodeURIComponent(String(item.title || ''))}">
-                    ${imgUrl ? `<img class="catalog-suggestion-img" src="${safeUrl(imgUrl)}" alt="" loading="lazy">` : ''}
-                    <span class="catalog-suggestion-body">
-                        <span class="catalog-suggestion-title">${title}</span>
-                        <span class="catalog-suggestion-meta">${escapeHtml(meta)}</span>
-                    </span>
-                </a>`;
+            const a = document.createElement('a');
+            a.className = 'catalog-suggestion catalog-suggestion--api';
+            a.href = `detalle.html?cat=${encodeURIComponent(String(categoria))}&id=${id}&nombre=${encodeURIComponent(String(item.title || ''))}`;
+            a.innerHTML = `${imgUrl ? `<img class="catalog-suggestion-img" src="${safeUrl(imgUrl)}" alt="" loading="lazy">` : ''}<span class="catalog-suggestion-body"><span class="catalog-suggestion-title">${title}</span><span class="catalog-suggestion-meta">${escapeHtml(meta)}</span></span>`;
+            section.appendChild(a);
         });
 
-        section.innerHTML = html;
+        if (!section.children.length) { if (prev) prev.remove(); return; }
         if (!prev) suggestionBox.appendChild(section);
     }
 
@@ -3007,32 +3181,30 @@ function inicializarBusquedaCatalogo() {
         const q = normalize(rawQuery);
         if (!q || q.length < 1) return;
 
-        const loading = document.createElement('div');
-        loading.className = 'catalog-suggestion-api-section';
-        loading.id = 'catalogSearchLoading';
-        loading.innerHTML = '<div class="catalog-suggestion-api-header">Buscando…</div>';
         const prev = suggestionBox.querySelector('.catalog-suggestion-api-section');
         if (prev) prev.remove();
-        suggestionBox.appendChild(loading);
 
         try {
-            let resultados;
+            let resultados = [];
             if (categoria === 'novelas' && typeof window.buscarNovelasEnApi === 'function') {
                 resultados = await window.buscarNovelasEnApi(rawQuery);
             } else if (typeof window.buscarEnApi === 'function') {
                 resultados = await window.buscarEnApi(rawQuery, categoria);
-            } else {
-                resultados = [];
             }
-            const loadingEl = document.getElementById('catalogSearchLoading');
-            if (loadingEl) loadingEl.remove();
+            if ((categoria === 'manga' || categoria === 'novelas') && typeof window.fetchMangaDexPage === 'function') {
+                try {
+                    var mdResults = await window.fetchMangaDexPage(1, 5, [], rawQuery);
+                    if (mdResults.length) {
+                        resultados = window.mergeAnilistAndMd(Array.isArray(resultados) ? resultados : [], mdResults);
+                    }
+                } catch (_) {}
+            }
             if (normalize(input.value) !== q) return;
             if (Array.isArray(resultados) && resultados.length) {
                 renderApiSuggestions(rawQuery, resultados);
             }
         } catch (e) {
-            const loadingEl = document.getElementById('catalogSearchLoading');
-            if (loadingEl) loadingEl.remove();
+            // ignore
         }
     }
 
@@ -3112,21 +3284,24 @@ function inicializarBusquedaCatalogo() {
     const filterToggle = document.getElementById('mainFilterToggle');
     const filterDropdown = document.getElementById('filterDropdown');
 
+    function showFilter(show) {
+        filterDropdown.style.display = show ? '' : 'none';
+        if (filterToggle) {
+            filterToggle.classList.toggle('is-active', show);
+            filterToggle.setAttribute('aria-expanded', String(show));
+        }
+    }
+
     if (filterToggle && filterDropdown) {
         filterToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            const next = filterDropdown.hidden;
-            filterDropdown.hidden = !next;
-            filterToggle.classList.toggle('is-active', !next);
-            filterToggle.setAttribute('aria-expanded', !next);
+            showFilter(filterDropdown.style.display === 'none');
         });
         
         document.addEventListener('click', (e) => {
-            if (filterDropdown.hidden) return;
+            if (filterDropdown.style.display === 'none') return;
             if (!filterToggle.contains(e.target) && !filterDropdown.contains(e.target)) {
-                filterDropdown.hidden = true;
-                filterToggle.classList.remove('is-active');
-                filterToggle.setAttribute('aria-expanded', 'false');
+                showFilter(false);
             }
         });
     }
@@ -3143,9 +3318,7 @@ function inicializarBusquedaCatalogo() {
                 });
                 applyFilter();
                 if (filterToggle && !filterToggle.classList.contains('inline-filter-mode')) {
-                    filterDropdown.hidden = true;
-                    filterToggle.classList.remove('is-active');
-                    filterToggle.setAttribute('aria-expanded', 'false');
+                    showFilter(false);
                 }
                 return;
             }
@@ -3166,7 +3339,6 @@ function inicializarBusquedaCatalogo() {
 
 function inicializarGeneroWidgets() {
     const categoria = document.body.getAttribute('data-page');
-    const sidebarHost = document.getElementById('genreSidebar');
     const mainContainer = document.getElementById('main-container');
     if (!categoria || !mainContainer) return;
 
@@ -3185,7 +3357,10 @@ function inicializarGeneroWidgets() {
 
     const localList = (() => {
         if (cardGenreRows.length) return [];
-        if (typeof obtenerItemsCategoria === 'function') return obtenerItemsCategoria(categoria);
+        if (typeof obtenerItemsCategoria === 'function') {
+            var result = obtenerItemsCategoria(categoria);
+            return Array.isArray(result) ? result : [];
+        }
         return [];
     })();
 
@@ -3201,69 +3376,135 @@ function inicializarGeneroWidgets() {
         });
     });
 
-    // ── Géneros fijos: unión completa de AniList + MangaDex ──
-    // Demografía
-    // AniList géneros (GenreCollection)
-    // MangaDex géneros + temas
-    // AniList tags populares (MediaTagCollection)
-    var fixedGenres = [
-        // ── Demografía ──
-        'Shounen', 'Shoujo', 'Seinen', 'Josei', 'Kodomo', 'Adult',
-        // ── Géneros principales (AniList + MangaDex) ──
-        'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
-        'Mystery', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports',
-        'Supernatural', 'Thriller', 'Ecchi', 'Psychological', 'Tragedy',
-        'Suspense',
-        // ── Géneros MangaDex ──
-        'Crime', 'Historical', 'Medical', 'Philosophical', 'Wuxia',
-        'Superhero', 'Magical Girls', 'Mahou Shoujo',
-        // ── Temas comunes (AniList + MangaDex) ──
-        'Isekai', 'Mecha', 'Music', 'Harem', 'Reverse Harem',
-        'School', 'School Life', 'Military', 'Police', 'Martial Arts',
-        'Demons', 'Vampires', 'Zombies', 'Ghosts', 'Monsters',
-        'Monster Girls', 'Aliens', 'Animals', 'Ninja', 'Samurai',
-        'Pirates', 'Mafia', 'Delinquents', 'Gyaru', 'Survival',
-        'Post-Apocalyptic', 'Cyberpunk', 'Steampunk', 'Space',
-        'Space Opera', 'Urban Fantasy', 'Gore',
-        // ── Temas AniList ──
-        'Reincarnation', 'Time Travel', 'Time Manipulation',
-        'Genderswap', 'Crossdressing', 'Gender Bending',
-        'Magic', 'Mythology', 'Fairy Tale',
-        'Parody', 'Satire', 'Surreal Comedy',
-        'Cooking', 'Food', 'Fitness', 'Swimming',
-        'Video Games', 'Virtual World', 'Virtual Reality',
-        'Idol', 'Band', 'Musical',
-        'Detective', 'Espionage', 'Noir',
-        'War', 'Terrorism', 'Guns', 'Swordplay',
-        'Revenge', 'Amnesia', 'Gambling',
-        'Cultivation', 'Villainess', 'Anti-Hero',
-        'Boys\' Love', 'Girls\' Love', 'LGBTQ+ Themes',
-        'Incest', 'Loli', 'Shota',
-        'Hikikomori', 'Otaku Culture', 'Chuunibyou',
-        'Chibi', 'Nekomimi', 'Youkai', 'Kaiju',
-        'Iyashikei', 'Denpa', 'Tokusatsu',
-        'Work', 'Office Workers', 'Economics',
-        'Medicine', 'Philosophy', 'Politics',
-        'Family Life', 'Found Family', 'Love Triangle',
-        'Battle Royale', 'Card Battle', 'Traditional Games',
-        'Robots', 'Real Robot', 'Super Robot',
-        'Dystopia', 'Lost Civilization', 'Rural', 'Urban',
-        'Superhero', 'Witch', 'Werewolf', 'Vampire',
-        'Dragon', 'Skeleton',
-        'Female Protagonist', 'Male Protagonist',
-        'Ensemble Cast', 'Primarily Adult Cast',
-        'Slavery', 'Rehabilitation', 'Fugitive',
-        'Trains', 'Ships', 'Motorcycles', 'Tanks',
-        'Photography', 'Drawing', 'Calligraphy',
-        // ── Formato y Origen ──
-        'Manga', 'Manhwa', 'Manhua', 'Doujinshi', 'One-shot', 'Novela',
-        'TV', 'OVA', 'ONA', 'Movie', 'Special',
-        'Oneshot', '4-Koma', 'Full Color', 'Long Strip',
-        'Web Comic', 'Anthology', 'Adaptation',
-        'Award Winning', 'Self-Published',
-        // ── Extra / Custom ──
-        'Fanfic'
-    ];
+    var fixedGenres = (function () {
+        var base = [
+            'Action','Adventure','Comedy','Drama','Fantasy','Horror',
+            'Mystery','Romance','Sci-Fi','Slice of Life','Sports',
+            'Supernatural','Thriller','Psychological','Tragedy',
+            'Magic','Mythology','Parody','Satire',
+            'Superhero','Demons','Vampire','Zombie','Ghost','Aliens',
+            'Post-Apocalyptic','Cyberpunk','Steampunk',
+            'Reincarnation','Time Travel',
+            'Harem','School','Military','Martial Arts',
+            'Ninja','Samurai','Pirates','Mafia','Survival',
+            'Music','Idol','Band',
+            'Detective','Espionage','Noir','Crime',
+            'War','Guns','Swordplay',
+            'Revenge','Amnesia','Gambling',
+            'Cultivation','Villainess','Anti-Hero',
+            'Work','Medicine','Politics',
+            'Family Life','Love Triangle',
+            'Battle Royale','Dystopian',
+            'Female Protagonist','Male Protagonist',
+            'Ensemble Cast',
+            'Food','Historical'
+        ];
+        var animes = base.concat([
+            'Shounen','Shoujo','Seinen','Josei',
+            'Ecchi','Gore',
+            'Isekai','Mecha',
+            'Police',
+            'Mahou Shoujo',
+            'Monster Girl','Animals',
+            'Space','Space Opera','Urban Fantasy',
+            'Crossdressing','Gender Bending',
+            'Fairy Tale',
+            'Fitness','Swimming',
+            'Video Games','Virtual World',
+            'Tokusatsu',
+            'Delinquents','Gyaru',
+            'Rehabilitation','Fugitive',
+            'Trains','Ships','Motorcycles','Tanks',
+            'Photography','Drawing','Calligraphy',
+            'Incest',
+            'Hikikomori','Otaku Culture','Chuunibyou',
+            'Chibi','Nekomimi','Youkai','Kaiju',
+            'Iyashikei','Denpa',
+            'Real Robot','Super Robot','Robots',
+            'Lost Civilization','Rural','Urban',
+            'Witch','Werewolf','Dragon','Skeleton',
+            'Primarily Adult Cast',
+            'Slavery',
+            'Boys\' Love','LGBTQ+ Themes',
+            'Office','Economics','Philosophy',
+            'Surreal Comedy','Time Manipulation',
+            'Found Family',
+            'Card Battle'
+        ]);
+        var mangas = base.concat([
+            'Shounen','Shoujo','Seinen','Josei',
+            'Ecchi','Gore',
+            'Isekai','Mecha',
+            'Police',
+            'Medical','Wuxia',
+            'Mahou Shoujo',
+            'Monster Girl','Monster Girls','Animals',
+            'Space','Space Opera','Urban Fantasy',
+            'Crossdressing','Gender Bending','Genderswap',
+            'Fairy Tale',
+            'Fitness','Swimming',
+            'Video Games','Virtual World','Virtual Reality',
+            'Tokusatsu',
+            'Delinquents','Gyaru',
+            'Rehabilitation','Fugitive',
+            'Trains','Ships','Motorcycles','Tanks',
+            'Photography','Drawing','Calligraphy',
+            'Incest','Loli','Shota',
+            'Hikikomori','Otaku Culture','Chuunibyou',
+            'Chibi','Nekomimi','Youkai','Kaiju',
+            'Iyashikei','Denpa',
+            'Real Robot','Super Robot','Robots',
+            'Lost Civilization','Rural','Urban',
+            'Witch','Werewolf','Dragon','Skeleton',
+            'Primarily Adult Cast',
+            'Slavery',
+            '4-koma','Full Color','Long Strip','Anthology',
+            'Doujinshi','Web Comic','Self-Published',
+            'Award Winning','Adaptation',
+            'School Life',
+            'Reverse Harem',
+            'Girls\' Love',
+            'Cooking',
+            'Office Workers','Office','Economics','Philosophy',
+            'Surreal Comedy','Time Manipulation',
+            'Found Family',
+            'Card Battle','Traditional Games'
+        ]);
+        var novelas = base.concat([
+            'Gore','Isekai',
+            'Police',
+            'Monster Girl','Monster Girls',
+            'Space','Space Opera','Urban Fantasy',
+            'Demons','Vampire','Ghost','Aliens',
+            'Survival',
+            'Crime',
+            'Revenge','Amnesia','Gambling',
+            'Superhero',
+            'School','Martial Arts',
+            'Ninja',
+            'Delinquents','Gyaru',
+            'Witch','Werewolf','Dragon',
+            'Slavery','Rehabilitation','Fugitive',
+            'Hikikomori','Otaku Culture',
+            'Boys\' Love','Girls\' Love','LGBTQ+ Themes',
+            'Office Workers','Office','Economics','Philosophy',
+            'Found Family',
+            'Card Battle',
+            'Idol','Band',
+            'Video Games','Virtual World','Virtual Reality',
+            'Female Protagonist','Male Protagonist',
+            'Family Life','Love Triangle',
+            'Dystopian',
+            'Historical',
+            'School Life',
+            'Reverse Harem',
+            'Award Winning','Adaptation',
+            'Cooking'
+        ]);
+        if (categoria === 'anime') return animes;
+        if (categoria === 'novelas') return novelas;
+        return mangas;
+    })();
     fixedGenres.forEach(function(g) {
         var key = normalize(g);
         if (!counts.has(key)) {
@@ -3274,9 +3515,6 @@ function inicializarGeneroWidgets() {
     const sorted = [...counts.entries()]
         .map(([key, v]) => ({ key, label: v.label, count: v.count }))
         .sort((a, b) => b.count - a.count);
-
-    const max = sorted.length ? sorted[0].count : 1;
-    const top = sorted.slice(0, 6);
 
     const filterGenres = sorted;
 
@@ -3290,131 +3528,6 @@ function inicializarGeneroWidgets() {
     })();
 
     window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = selectedGenres;
-
-    function renderSidebar(host) {
-        const openKey = `ui:genreDrawerOpen:${categoria}`;
-        const isOpen = UserStore.getItem(openKey) === '1';
-        const topHtml = top.length
-            ? `
-                <div class="genre-stats">
-                    <div class="top-genres-title">Popularidad</div>
-                    ${top.map((g) => {
-                        const pct = Math.max(6, Math.round((g.count / max) * 100));
-                        return `
-                            <div class="genre-bar" role="listitem" aria-label="${g.label}">
-                                <div class="genre-bar-label">${g.label}</div>
-                                <div class="genre-bar-track" aria-hidden="true">
-                                    <div class="genre-bar-fill" style="width:${pct}%"></div>
-                                </div>
-                                <div class="genre-bar-count">${g.count}</div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `
-            : '';
-
-        host.innerHTML = `
-            <div class="genre-sidebar-head">
-                <div>
-                    <div class="genre-sidebar-title">Géneros</div>
-                    <div class="genre-sidebar-help">Elegí 1 o más géneros.</div>
-                </div>
-                <button class="genre-collapse-btn" type="button" id="toggleGenreSidebar" aria-expanded="${isOpen ? 'true' : 'false'}">
-                    ${isOpen ? 'Cerrar' : 'Abrir'}
-                </button>
-            </div>
-            ${topHtml}
-            <div class="genre-filters">
-                <button class="genre-chip${selectedGenres.length ? '' : ' is-active'}" type="button" data-genre="" aria-pressed="${selectedGenres.length ? 'false' : 'true'}">Todos</button>
-                ${filterGenres.map((g) => {
-                    const isActive = selectedGenres.includes(g.key);
-                    const active = isActive ? ' is-active' : '';
-                    return `<button class="genre-chip${active}" type="button" data-genre="${g.key}" aria-pressed="${isActive ? 'true' : 'false'}">${g.label}</button>`;
-                }).join('')}
-            </div>
-            <div class="genre-actions">
-                <button class="genre-clear-btn" type="button" id="clearGenres">Limpiar</button>
-            </div>
-        `;
-
-        host.classList.toggle('is-open', isOpen);
-
-        const toggleBtn = host.querySelector('#toggleGenreSidebar');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                const nextOpen = !host.classList.contains('is-open');
-                host.classList.toggle('is-open', nextOpen);
-                UserStore.setItem(openKey, nextOpen ? '1' : '0');
-                toggleBtn.textContent = nextOpen ? 'Cerrar' : 'Abrir';
-                toggleBtn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-            });
-        }
-
-        host.addEventListener('click', (e) => {
-            const clearBtn = e.target instanceof HTMLElement ? e.target.closest('button.genre-clear-btn') : null;
-            if (clearBtn) {
-                window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = [];
-                UserStore.setItem(selectedKey, JSON.stringify([]));
-                host.querySelectorAll('button.genre-chip').forEach((b) => {
-                    const isTodos = String(b.getAttribute('data-genre') || '') === '';
-                    b.classList.toggle('is-active', isTodos);
-                    b.setAttribute('aria-pressed', isTodos ? 'true' : 'false');
-                });
-                if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
-                else if (typeof window.__applyCatalogFilter === 'function') window.__applyCatalogFilter();
-                if (typeof renderDropdownGenres === 'function') renderDropdownGenres();
-                return;
-            }
-
-            const btn = e.target instanceof HTMLElement ? e.target.closest('button.genre-chip') : null;
-            if (!btn) return;
-            const genreKey = String(btn.getAttribute('data-genre') || '');
-
-            if (!genreKey) {
-                window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = [];
-                UserStore.setItem(selectedKey, JSON.stringify([]));
-                host.querySelectorAll('button.genre-chip').forEach((b) => {
-                    const isTodos = String(b.getAttribute('data-genre') || '') === '';
-                    b.classList.toggle('is-active', isTodos);
-                    b.setAttribute('aria-pressed', isTodos ? 'true' : 'false');
-                });
-                if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
-                else if (typeof window.__applyCatalogFilter === 'function') window.__applyCatalogFilter();
-                if (typeof renderDropdownGenres === 'function') renderDropdownGenres();
-                return;
-            }
-
-            const next = new Set(Array.isArray(window.__selectedGenres) ? window.__selectedGenres : []);
-            if (next.has(genreKey)) next.delete(genreKey);
-            else next.add(genreKey);
-
-            const arr = [...next];
-            window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = arr;
-            UserStore.setItem(selectedKey, JSON.stringify(arr));
-
-            host.querySelectorAll('button.genre-chip').forEach((b) => {
-                const k = String(b.getAttribute('data-genre') || '');
-                if (!k) {
-                    const activeTodos = arr.length === 0;
-                    b.classList.toggle('is-active', activeTodos);
-                    b.setAttribute('aria-pressed', activeTodos ? 'true' : 'false');
-                    return;
-                }
-                const active = next.has(k);
-                b.classList.toggle('is-active', active);
-                b.setAttribute('aria-pressed', active ? 'true' : 'false');
-            });
-
-            if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
-            else if (typeof window.__applyCatalogFilter === 'function') window.__applyCatalogFilter();
-            if (typeof renderDropdownGenres === 'function') renderDropdownGenres();
-        }, { passive: true });
-    }
-
-    if (sidebarHost) {
-        renderSidebar(sidebarHost);
-    }
 
     // ── Populate dropdown genre chips ──
     const filterGenresContainer = document.getElementById('filterGenres');
@@ -3465,22 +3578,6 @@ function inicializarGeneroWidgets() {
             const arr = [...next];
             window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = arr;
             UserStore.setItem(selectedKey, JSON.stringify(arr));
-
-            // Sync sidebar chips
-            const sidebar = document.getElementById('genreSidebar');
-            if (sidebar) {
-                sidebar.querySelectorAll('button.genre-chip').forEach((b) => {
-                    const k = String(b.getAttribute('data-genre') || '');
-                    if (!k) {
-                        b.classList.toggle('is-active', arr.length === 0);
-                        b.setAttribute('aria-pressed', arr.length === 0 ? 'true' : 'false');
-                        return;
-                    }
-                    const active = arr.includes(k);
-                    b.classList.toggle('is-active', active);
-                    b.setAttribute('aria-pressed', active ? 'true' : 'false');
-                });
-            }
 
             renderDropdownGenres();
             // Trigger server reload instead of local filter
@@ -3655,6 +3752,8 @@ async function inicializarPagina() {
         } else if (categoria === "manga" || categoria === "novelas") {
             progressTotal = Number(detalle?.volumenes || 0);
         }
+        var volCount = Number(item.volumenes || item.volumes || 0);
+        var chCount = Number(item.capitulos || item.chapters || 0);
         return buildCatalogCardHtml({
             id: item.id,
             title: item.titulo,
@@ -3666,14 +3765,16 @@ async function inicializarPagina() {
             genres: genres.join("|"),
             genresNorm: genresNorm,
             categoria: categoria,
-            progressTotal: progressTotal,
+            progressTotal: volCount || chCount || progressTotal,
+            volCount: volCount,
+            chCount: chCount,
             imageExtraAttrs: ' data-title="' + escapeHtml(item.titulo) + '" data-fallback-catalog="1"'
         });
     }).join("");
 
-    cargarEstadosBotones();
-    inicializarBusquedaCatalogo();
-    inicializarGeneroWidgets();
+    try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
+    try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
+    try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
     resetInfiniteScroll();
 }
 
@@ -3754,7 +3855,7 @@ window.addEventListener("supabase-auth-changed", function () {
         if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
     };
 
-    // ââ NAV BRAND ââ
+    // ── NAV BRAND ──
     const injectNavBrand = () => {
         const el = document.getElementById("nav-brand-container");
         if (!el) return;
@@ -3768,7 +3869,7 @@ window.addEventListener("supabase-auth-changed", function () {
 </a>`;
     };
 
-    // ââ NAV LINKS ââ
+    // ── NAV LINKS ──
     const injectNavLinks = () => {
         const el = document.getElementById("nav-links-container");
         if (!el) return;
@@ -3812,7 +3913,7 @@ window.addEventListener("supabase-auth-changed", function () {
         el.innerHTML = `<div class="nav-links" aria-label="Navegaci\u00F3n principal">${html}</div>`;
     };
 
-    // ââ LOGIN / USER AREA ââ
+    // ── LOGIN / USER AREA ──
     const injectLoginButton = () => {
         const el = document.getElementById("nav-login-container");
         if (!el) return;
@@ -3826,13 +3927,13 @@ window.addEventListener("supabase-auth-changed", function () {
 </div>
 </div>`;
 
-        // Refrescar la UI del usuario si auth.js ya cargÃ³
+        // Refrescar la UI del usuario si auth.js ya cargó
         if (typeof window.refreshUserUi === 'function') {
             window.refreshUserUi();
         }
     };
 
-    // ââ FOOTER ââ
+    // ── FOOTER ──
     const FOOTER_DATA = {
         anime: {
             col1: { title: "Tips", text: 'Us\u00E1 la b\u00FAsqueda para filtrar r\u00E1pido y abr\u00ED "Detalle" para marcar cap\u00EDtulos.' },
@@ -3909,16 +4010,16 @@ window.addEventListener("supabase-auth-changed", function () {
         el.innerHTML = `<footer class="app-footer">
 <div class="app-footer-inner">${cols}</div>
 <div class="app-footer-bottom">
-    <span>Â© 2026 Anime Destiny</span>
-    <span style="margin: 0 10px;">â¢</span>
+    <span>© 2026 Anime Destiny</span>
+    <span style="margin: 0 10px;">•</span>
     <a class="app-footer-link app-footer-link-cyan" href="privacidad.html">Privacidad</a>
-    <span style="margin: 0 10px;">â¢</span>
+    <span style="margin: 0 10px;">•</span>
     <a class="app-footer-link app-footer-link-purple" href="terminos.html">Términos</a>
 </div>
 </footer>`;
     };
 
-    // ââ Custom colors (leer desde localStorage y aplicar en :root) ââ
+    // ── Custom colors (leer desde localStorage y aplicar en :root) ──
     (() => {
         const r = (key, def) => {
             try { return localStorage.getItem(key) || def; } catch { return def; }
@@ -3952,7 +4053,7 @@ window.addEventListener("supabase-auth-changed", function () {
         root.style.setProperty('--nav-accent-soft', `${navAccent}3d`);
     })();
 
-    // ââ Cards per row (localStorage â body class) ââ
+    // ── Cards per row (localStorage → body class) ──
     (() => {
         try {
             const cpr = localStorage.getItem('pref:cardsPerRow');
@@ -3966,7 +4067,7 @@ window.addEventListener("supabase-auth-changed", function () {
         } catch { /* no-op (prefs) */ }
     })();
 
-    // ââ RUN ââ
+    // ── RUN ──
     const installSecurityHandlers = () => {
         if (window.__adSecurityHandlersInstalled) return;
         window.__adSecurityHandlersInstalled = true;

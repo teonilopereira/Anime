@@ -116,7 +116,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             const active = UserStore.getItem(volumeStorageKey(userId, item.id, v, categoria)) ? ' is-active' : '';
             return `
                 <div class="cuadrado-wrapper">
-                    <button class="vol-btn${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">${String(v).padStart(2, '0')}</button>
+                    <button class="vol-btn cuadrado-item${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">${String(v).padStart(2, '0')}</button>
                     <button class="btn-resumen" type="button" data-vol="${v}" aria-label="Ver resumen del volumen ${v}">RESUMEN</button>
                 </div>
             `;
@@ -182,6 +182,45 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
         `;
     }
+    // ── Related items ──
+    var relationTypeLabels = {
+        'SEQUEL': 'Secuela', 'PREQUEL': 'Precuela', 'SIDE_STORY': 'Historia paralela',
+        'SPIN_OFF': 'Spin-off', 'ADAPTATION': 'Adaptaci\u00F3n', 'SUMMARY': 'Resumen',
+        'ALTERNATIVE': 'Alternativa', 'PARENT': 'Principal', 'CONTAINS': 'Contiene', 'OTHER': 'Otro'
+    };
+    function relatedCategory(fmt) {
+        if (fmt === 'NOVEL') return 'novelas';
+        return ['TV','TV_SHORT','MOVIE','SPECIAL','OVA','ONA','MUSIC'].indexOf(fmt) !== -1 ? 'anime' : 'manga';
+    }
+    var relatedMap = {};
+    function pushRelated(src) {
+        if (!src || String(src.id) === String(item.id) || !src.title) return;
+        var key = String(src.id);
+        if (relatedMap[key]) return;
+        relatedMap[key] = src;
+    }
+    (Array.isArray(item.relations) ? item.relations : []).forEach(pushRelated);
+    if (Array.isArray(item.seasons)) {
+        item.seasons.forEach(function (s, i) {
+            if (i === 0) return;
+            pushRelated({ relationType: 'SEQUEL', id: s.id, title: s.title, episodes: s.episodes || 0, format: s.format, seasonYear: s.seasonYear });
+        });
+    }
+    var relatedList = Object.keys(relatedMap).map(function (k) { return relatedMap[k]; }).slice(0, 10);
+    var relatedHtml = '';
+    if (relatedList.length) {
+        relatedHtml = '<div class="detail-section detail-section-related"><h2 class="detail-h2">Relacionados</h2><div class="related-grid">' +
+            relatedList.map(function (r) {
+                var cat = relatedCategory(r.format);
+                var label = relationTypeLabels[r.relationType] || r.relationType || 'Relacionado';
+                return '<a class="related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
+                    '<span class="related-type-badge">' + escapeHtml(label) + '</span>' +
+                    '<span class="related-title">' + escapeHtml(r.title) + '</span>' +
+                    '</a>';
+            }).join('') +
+            '</div></div>';
+    }
+
     let backHref = isAnime ? 'anime.html' : (isNovela ? 'novelas.html' : 'manga.html');
     try {
         const last = sessionStorage.getItem('lastCatalogUrl');
@@ -223,6 +262,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 </div>
             </div>
         </div>
+        ${relatedHtml}
     `;
 
     const favBtn = localLayout.querySelector('.fav-btn');
@@ -448,7 +488,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 return `
 <div class="cap-box ${active ? 'is-active' : ''}" data-ep="${ep}">
     <button 
-        class="ep-btn ${active ? 'is-active' : ''}" 
+        class="ep-btn cuadrado-item ${active ? 'is-active' : ''}" 
         type="button"
         data-season="${seasonIndex}"
         data-ep="${ep}"

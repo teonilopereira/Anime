@@ -64,13 +64,8 @@ function inicializarBusquedaCatalogo() {
             .slice(0, AnimeDestiny.Constants.SUGGESTION_LIMIT || 6);
 
         if (!matches.length) {
-            suggestionBox.innerHTML = `
-                <div class="catalog-suggestion empty">
-                    <span class="catalog-suggestion-title">Sin sugerencias</span>
-                    <span class="catalog-suggestion-meta">Probá con menos palabras o revisá el género.</span>
-                </div>
-            `;
-            suggestionBox.classList.add('is-open');
+            suggestionBox.classList.remove('is-open');
+            suggestionBox.innerHTML = '';
             return;
         }
 
@@ -173,24 +168,25 @@ function inicializarBusquedaCatalogo() {
 
         const section = prev || document.createElement('div');
         section.className = 'catalog-suggestion-api-section';
+        const seenIds = new Set();
+        section.querySelectorAll('a').forEach(a => { const m = a.href.match(/[?&]id=([^&]+)/); if (m) seenIds.add(m[1]); });
 
-        let html = '<div class="catalog-suggestion-api-header">Relacionados</div>';
         filtered.forEach(item => {
+            const rawId = String(item.id);
+            if (seenIds.has(rawId)) return;
+            seenIds.add(rawId);
+            const id = encodeURIComponent(rawId);
             const imgUrl = item.images?.jpg?.image_url || item.images?.webp?.image_url || '';
-            const id = encodeURIComponent(String(item.id));
             const title = escapeHtml(item.title || '');
             const meta = escapeHtml(item.type || item.status || '');
-            html += `
-                <a class="catalog-suggestion catalog-suggestion--api" href="detalle.html?cat=${encodeURIComponent(String(categoria))}&id=${id}&nombre=${encodeURIComponent(String(item.title || ''))}">
-                    ${imgUrl ? `<img class="catalog-suggestion-img" src="${safeUrl(imgUrl)}" alt="" loading="lazy">` : ''}
-                    <span class="catalog-suggestion-body">
-                        <span class="catalog-suggestion-title">${title}</span>
-                        <span class="catalog-suggestion-meta">${escapeHtml(meta)}</span>
-                    </span>
-                </a>`;
+            const a = document.createElement('a');
+            a.className = 'catalog-suggestion catalog-suggestion--api';
+            a.href = `detalle.html?cat=${encodeURIComponent(String(categoria))}&id=${id}&nombre=${encodeURIComponent(String(item.title || ''))}`;
+            a.innerHTML = `${imgUrl ? `<img class="catalog-suggestion-img" src="${safeUrl(imgUrl)}" alt="" loading="lazy">` : ''}<span class="catalog-suggestion-body"><span class="catalog-suggestion-title">${title}</span><span class="catalog-suggestion-meta">${escapeHtml(meta)}</span></span>`;
+            section.appendChild(a);
         });
 
-        section.innerHTML = html;
+        if (!section.children.length) { if (prev) prev.remove(); return; }
         if (!prev) suggestionBox.appendChild(section);
     }
 
@@ -198,32 +194,30 @@ function inicializarBusquedaCatalogo() {
         const q = normalize(rawQuery);
         if (!q || q.length < 1) return;
 
-        const loading = document.createElement('div');
-        loading.className = 'catalog-suggestion-api-section';
-        loading.id = 'catalogSearchLoading';
-        loading.innerHTML = '<div class="catalog-suggestion-api-header">Buscando…</div>';
         const prev = suggestionBox.querySelector('.catalog-suggestion-api-section');
         if (prev) prev.remove();
-        suggestionBox.appendChild(loading);
 
         try {
-            let resultados;
+            let resultados = [];
             if (categoria === 'novelas' && typeof window.buscarNovelasEnApi === 'function') {
                 resultados = await window.buscarNovelasEnApi(rawQuery);
             } else if (typeof window.buscarEnApi === 'function') {
                 resultados = await window.buscarEnApi(rawQuery, categoria);
-            } else {
-                resultados = [];
             }
-            const loadingEl = document.getElementById('catalogSearchLoading');
-            if (loadingEl) loadingEl.remove();
+            if ((categoria === 'manga' || categoria === 'novelas') && typeof window.fetchMangaDexPage === 'function') {
+                try {
+                    var mdResults = await window.fetchMangaDexPage(1, 5, [], rawQuery);
+                    if (mdResults.length) {
+                        resultados = window.mergeAnilistAndMd(Array.isArray(resultados) ? resultados : [], mdResults);
+                    }
+                } catch (_) {}
+            }
             if (normalize(input.value) !== q) return;
             if (Array.isArray(resultados) && resultados.length) {
                 renderApiSuggestions(rawQuery, resultados);
             }
         } catch (e) {
-            const loadingEl = document.getElementById('catalogSearchLoading');
-            if (loadingEl) loadingEl.remove();
+            // ignore
         }
     }
 
@@ -303,21 +297,24 @@ function inicializarBusquedaCatalogo() {
     const filterToggle = document.getElementById('mainFilterToggle');
     const filterDropdown = document.getElementById('filterDropdown');
 
+    function showFilter(show) {
+        filterDropdown.style.display = show ? '' : 'none';
+        if (filterToggle) {
+            filterToggle.classList.toggle('is-active', show);
+            filterToggle.setAttribute('aria-expanded', String(show));
+        }
+    }
+
     if (filterToggle && filterDropdown) {
         filterToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            const next = filterDropdown.hidden;
-            filterDropdown.hidden = !next;
-            filterToggle.classList.toggle('is-active', !next);
-            filterToggle.setAttribute('aria-expanded', !next);
+            showFilter(filterDropdown.style.display === 'none');
         });
         
         document.addEventListener('click', (e) => {
-            if (filterDropdown.hidden) return;
+            if (filterDropdown.style.display === 'none') return;
             if (!filterToggle.contains(e.target) && !filterDropdown.contains(e.target)) {
-                filterDropdown.hidden = true;
-                filterToggle.classList.remove('is-active');
-                filterToggle.setAttribute('aria-expanded', 'false');
+                showFilter(false);
             }
         });
     }
@@ -334,9 +331,7 @@ function inicializarBusquedaCatalogo() {
                 });
                 applyFilter();
                 if (filterToggle && !filterToggle.classList.contains('inline-filter-mode')) {
-                    filterDropdown.hidden = true;
-                    filterToggle.classList.remove('is-active');
-                    filterToggle.setAttribute('aria-expanded', 'false');
+                    showFilter(false);
                 }
                 return;
             }
@@ -357,7 +352,6 @@ function inicializarBusquedaCatalogo() {
 
 function inicializarGeneroWidgets() {
     const categoria = document.body.getAttribute('data-page');
-    const sidebarHost = document.getElementById('genreSidebar');
     const mainContainer = document.getElementById('main-container');
     if (!categoria || !mainContainer) return;
 
@@ -376,7 +370,10 @@ function inicializarGeneroWidgets() {
 
     const localList = (() => {
         if (cardGenreRows.length) return [];
-        if (typeof obtenerItemsCategoria === 'function') return obtenerItemsCategoria(categoria);
+        if (typeof obtenerItemsCategoria === 'function') {
+            var result = obtenerItemsCategoria(categoria);
+            return Array.isArray(result) ? result : [];
+        }
         return [];
     })();
 
@@ -392,69 +389,135 @@ function inicializarGeneroWidgets() {
         });
     });
 
-    // ── Géneros fijos: unión completa de AniList + MangaDex ──
-    // Demografía
-    // AniList géneros (GenreCollection)
-    // MangaDex géneros + temas
-    // AniList tags populares (MediaTagCollection)
-    var fixedGenres = [
-        // ── Demografía ──
-        'Shounen', 'Shoujo', 'Seinen', 'Josei', 'Kodomo', 'Adult',
-        // ── Géneros principales (AniList + MangaDex) ──
-        'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
-        'Mystery', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports',
-        'Supernatural', 'Thriller', 'Ecchi', 'Psychological', 'Tragedy',
-        'Suspense',
-        // ── Géneros MangaDex ──
-        'Crime', 'Historical', 'Medical', 'Philosophical', 'Wuxia',
-        'Superhero', 'Magical Girls', 'Mahou Shoujo',
-        // ── Temas comunes (AniList + MangaDex) ──
-        'Isekai', 'Mecha', 'Music', 'Harem', 'Reverse Harem',
-        'School', 'School Life', 'Military', 'Police', 'Martial Arts',
-        'Demons', 'Vampires', 'Zombies', 'Ghosts', 'Monsters',
-        'Monster Girls', 'Aliens', 'Animals', 'Ninja', 'Samurai',
-        'Pirates', 'Mafia', 'Delinquents', 'Gyaru', 'Survival',
-        'Post-Apocalyptic', 'Cyberpunk', 'Steampunk', 'Space',
-        'Space Opera', 'Urban Fantasy', 'Gore',
-        // ── Temas AniList ──
-        'Reincarnation', 'Time Travel', 'Time Manipulation',
-        'Genderswap', 'Crossdressing', 'Gender Bending',
-        'Magic', 'Mythology', 'Fairy Tale',
-        'Parody', 'Satire', 'Surreal Comedy',
-        'Cooking', 'Food', 'Fitness', 'Swimming',
-        'Video Games', 'Virtual World', 'Virtual Reality',
-        'Idol', 'Band', 'Musical',
-        'Detective', 'Espionage', 'Noir',
-        'War', 'Terrorism', 'Guns', 'Swordplay',
-        'Revenge', 'Amnesia', 'Gambling',
-        'Cultivation', 'Villainess', 'Anti-Hero',
-        'Boys\' Love', 'Girls\' Love', 'LGBTQ+ Themes',
-        'Incest', 'Loli', 'Shota',
-        'Hikikomori', 'Otaku Culture', 'Chuunibyou',
-        'Chibi', 'Nekomimi', 'Youkai', 'Kaiju',
-        'Iyashikei', 'Denpa', 'Tokusatsu',
-        'Work', 'Office Workers', 'Economics',
-        'Medicine', 'Philosophy', 'Politics',
-        'Family Life', 'Found Family', 'Love Triangle',
-        'Battle Royale', 'Card Battle', 'Traditional Games',
-        'Robots', 'Real Robot', 'Super Robot',
-        'Dystopia', 'Lost Civilization', 'Rural', 'Urban',
-        'Superhero', 'Witch', 'Werewolf', 'Vampire',
-        'Dragon', 'Skeleton',
-        'Female Protagonist', 'Male Protagonist',
-        'Ensemble Cast', 'Primarily Adult Cast',
-        'Slavery', 'Rehabilitation', 'Fugitive',
-        'Trains', 'Ships', 'Motorcycles', 'Tanks',
-        'Photography', 'Drawing', 'Calligraphy',
-        // ── Formato y Origen ──
-        'Manga', 'Manhwa', 'Manhua', 'Doujinshi', 'One-shot', 'Novela',
-        'TV', 'OVA', 'ONA', 'Movie', 'Special',
-        'Oneshot', '4-Koma', 'Full Color', 'Long Strip',
-        'Web Comic', 'Anthology', 'Adaptation',
-        'Award Winning', 'Self-Published',
-        // ── Extra / Custom ──
-        'Fanfic'
-    ];
+    var fixedGenres = (function () {
+        var base = [
+            'Action','Adventure','Comedy','Drama','Fantasy','Horror',
+            'Mystery','Romance','Sci-Fi','Slice of Life','Sports',
+            'Supernatural','Thriller','Psychological','Tragedy',
+            'Magic','Mythology','Parody','Satire',
+            'Superhero','Demons','Vampire','Zombie','Ghost','Aliens',
+            'Post-Apocalyptic','Cyberpunk','Steampunk',
+            'Reincarnation','Time Travel',
+            'Harem','School','Military','Martial Arts',
+            'Ninja','Samurai','Pirates','Mafia','Survival',
+            'Music','Idol','Band',
+            'Detective','Espionage','Noir','Crime',
+            'War','Guns','Swordplay',
+            'Revenge','Amnesia','Gambling',
+            'Cultivation','Villainess','Anti-Hero',
+            'Work','Medicine','Politics',
+            'Family Life','Love Triangle',
+            'Battle Royale','Dystopian',
+            'Female Protagonist','Male Protagonist',
+            'Ensemble Cast',
+            'Food','Historical'
+        ];
+        var animes = base.concat([
+            'Shounen','Shoujo','Seinen','Josei',
+            'Ecchi','Gore',
+            'Isekai','Mecha',
+            'Police',
+            'Mahou Shoujo',
+            'Monster Girl','Animals',
+            'Space','Space Opera','Urban Fantasy',
+            'Crossdressing','Gender Bending',
+            'Fairy Tale',
+            'Fitness','Swimming',
+            'Video Games','Virtual World',
+            'Tokusatsu',
+            'Delinquents','Gyaru',
+            'Rehabilitation','Fugitive',
+            'Trains','Ships','Motorcycles','Tanks',
+            'Photography','Drawing','Calligraphy',
+            'Incest',
+            'Hikikomori','Otaku Culture','Chuunibyou',
+            'Chibi','Nekomimi','Youkai','Kaiju',
+            'Iyashikei','Denpa',
+            'Real Robot','Super Robot','Robots',
+            'Lost Civilization','Rural','Urban',
+            'Witch','Werewolf','Dragon','Skeleton',
+            'Primarily Adult Cast',
+            'Slavery',
+            'Boys\' Love','LGBTQ+ Themes',
+            'Office','Economics','Philosophy',
+            'Surreal Comedy','Time Manipulation',
+            'Found Family',
+            'Card Battle'
+        ]);
+        var mangas = base.concat([
+            'Shounen','Shoujo','Seinen','Josei',
+            'Ecchi','Gore',
+            'Isekai','Mecha',
+            'Police',
+            'Medical','Wuxia',
+            'Mahou Shoujo',
+            'Monster Girl','Monster Girls','Animals',
+            'Space','Space Opera','Urban Fantasy',
+            'Crossdressing','Gender Bending','Genderswap',
+            'Fairy Tale',
+            'Fitness','Swimming',
+            'Video Games','Virtual World','Virtual Reality',
+            'Tokusatsu',
+            'Delinquents','Gyaru',
+            'Rehabilitation','Fugitive',
+            'Trains','Ships','Motorcycles','Tanks',
+            'Photography','Drawing','Calligraphy',
+            'Incest','Loli','Shota',
+            'Hikikomori','Otaku Culture','Chuunibyou',
+            'Chibi','Nekomimi','Youkai','Kaiju',
+            'Iyashikei','Denpa',
+            'Real Robot','Super Robot','Robots',
+            'Lost Civilization','Rural','Urban',
+            'Witch','Werewolf','Dragon','Skeleton',
+            'Primarily Adult Cast',
+            'Slavery',
+            '4-koma','Full Color','Long Strip','Anthology',
+            'Doujinshi','Web Comic','Self-Published',
+            'Award Winning','Adaptation',
+            'School Life',
+            'Reverse Harem',
+            'Girls\' Love',
+            'Cooking',
+            'Office Workers','Office','Economics','Philosophy',
+            'Surreal Comedy','Time Manipulation',
+            'Found Family',
+            'Card Battle','Traditional Games'
+        ]);
+        var novelas = base.concat([
+            'Gore','Isekai',
+            'Police',
+            'Monster Girl','Monster Girls',
+            'Space','Space Opera','Urban Fantasy',
+            'Demons','Vampire','Ghost','Aliens',
+            'Survival',
+            'Crime',
+            'Revenge','Amnesia','Gambling',
+            'Superhero',
+            'School','Martial Arts',
+            'Ninja',
+            'Delinquents','Gyaru',
+            'Witch','Werewolf','Dragon',
+            'Slavery','Rehabilitation','Fugitive',
+            'Hikikomori','Otaku Culture',
+            'Boys\' Love','Girls\' Love','LGBTQ+ Themes',
+            'Office Workers','Office','Economics','Philosophy',
+            'Found Family',
+            'Card Battle',
+            'Idol','Band',
+            'Video Games','Virtual World','Virtual Reality',
+            'Female Protagonist','Male Protagonist',
+            'Family Life','Love Triangle',
+            'Dystopian',
+            'Historical',
+            'School Life',
+            'Reverse Harem',
+            'Award Winning','Adaptation',
+            'Cooking'
+        ]);
+        if (categoria === 'anime') return animes;
+        if (categoria === 'novelas') return novelas;
+        return mangas;
+    })();
     fixedGenres.forEach(function(g) {
         var key = normalize(g);
         if (!counts.has(key)) {
@@ -465,9 +528,6 @@ function inicializarGeneroWidgets() {
     const sorted = [...counts.entries()]
         .map(([key, v]) => ({ key, label: v.label, count: v.count }))
         .sort((a, b) => b.count - a.count);
-
-    const max = sorted.length ? sorted[0].count : 1;
-    const top = sorted.slice(0, 6);
 
     const filterGenres = sorted;
 
@@ -481,131 +541,6 @@ function inicializarGeneroWidgets() {
     })();
 
     window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = selectedGenres;
-
-    function renderSidebar(host) {
-        const openKey = `ui:genreDrawerOpen:${categoria}`;
-        const isOpen = UserStore.getItem(openKey) === '1';
-        const topHtml = top.length
-            ? `
-                <div class="genre-stats">
-                    <div class="top-genres-title">Popularidad</div>
-                    ${top.map((g) => {
-                        const pct = Math.max(6, Math.round((g.count / max) * 100));
-                        return `
-                            <div class="genre-bar" role="listitem" aria-label="${g.label}">
-                                <div class="genre-bar-label">${g.label}</div>
-                                <div class="genre-bar-track" aria-hidden="true">
-                                    <div class="genre-bar-fill" style="width:${pct}%"></div>
-                                </div>
-                                <div class="genre-bar-count">${g.count}</div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `
-            : '';
-
-        host.innerHTML = `
-            <div class="genre-sidebar-head">
-                <div>
-                    <div class="genre-sidebar-title">Géneros</div>
-                    <div class="genre-sidebar-help">Elegí 1 o más géneros.</div>
-                </div>
-                <button class="genre-collapse-btn" type="button" id="toggleGenreSidebar" aria-expanded="${isOpen ? 'true' : 'false'}">
-                    ${isOpen ? 'Cerrar' : 'Abrir'}
-                </button>
-            </div>
-            ${topHtml}
-            <div class="genre-filters">
-                <button class="genre-chip${selectedGenres.length ? '' : ' is-active'}" type="button" data-genre="" aria-pressed="${selectedGenres.length ? 'false' : 'true'}">Todos</button>
-                ${filterGenres.map((g) => {
-                    const isActive = selectedGenres.includes(g.key);
-                    const active = isActive ? ' is-active' : '';
-                    return `<button class="genre-chip${active}" type="button" data-genre="${g.key}" aria-pressed="${isActive ? 'true' : 'false'}">${g.label}</button>`;
-                }).join('')}
-            </div>
-            <div class="genre-actions">
-                <button class="genre-clear-btn" type="button" id="clearGenres">Limpiar</button>
-            </div>
-        `;
-
-        host.classList.toggle('is-open', isOpen);
-
-        const toggleBtn = host.querySelector('#toggleGenreSidebar');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                const nextOpen = !host.classList.contains('is-open');
-                host.classList.toggle('is-open', nextOpen);
-                UserStore.setItem(openKey, nextOpen ? '1' : '0');
-                toggleBtn.textContent = nextOpen ? 'Cerrar' : 'Abrir';
-                toggleBtn.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-            });
-        }
-
-        host.addEventListener('click', (e) => {
-            const clearBtn = e.target instanceof HTMLElement ? e.target.closest('button.genre-clear-btn') : null;
-            if (clearBtn) {
-                window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = [];
-                UserStore.setItem(selectedKey, JSON.stringify([]));
-                host.querySelectorAll('button.genre-chip').forEach((b) => {
-                    const isTodos = String(b.getAttribute('data-genre') || '') === '';
-                    b.classList.toggle('is-active', isTodos);
-                    b.setAttribute('aria-pressed', isTodos ? 'true' : 'false');
-                });
-                if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
-                else if (typeof window.__applyCatalogFilter === 'function') window.__applyCatalogFilter();
-                if (typeof renderDropdownGenres === 'function') renderDropdownGenres();
-                return;
-            }
-
-            const btn = e.target instanceof HTMLElement ? e.target.closest('button.genre-chip') : null;
-            if (!btn) return;
-            const genreKey = String(btn.getAttribute('data-genre') || '');
-
-            if (!genreKey) {
-                window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = [];
-                UserStore.setItem(selectedKey, JSON.stringify([]));
-                host.querySelectorAll('button.genre-chip').forEach((b) => {
-                    const isTodos = String(b.getAttribute('data-genre') || '') === '';
-                    b.classList.toggle('is-active', isTodos);
-                    b.setAttribute('aria-pressed', isTodos ? 'true' : 'false');
-                });
-                if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
-                else if (typeof window.__applyCatalogFilter === 'function') window.__applyCatalogFilter();
-                if (typeof renderDropdownGenres === 'function') renderDropdownGenres();
-                return;
-            }
-
-            const next = new Set(Array.isArray(window.__selectedGenres) ? window.__selectedGenres : []);
-            if (next.has(genreKey)) next.delete(genreKey);
-            else next.add(genreKey);
-
-            const arr = [...next];
-            window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = arr;
-            UserStore.setItem(selectedKey, JSON.stringify(arr));
-
-            host.querySelectorAll('button.genre-chip').forEach((b) => {
-                const k = String(b.getAttribute('data-genre') || '');
-                if (!k) {
-                    const activeTodos = arr.length === 0;
-                    b.classList.toggle('is-active', activeTodos);
-                    b.setAttribute('aria-pressed', activeTodos ? 'true' : 'false');
-                    return;
-                }
-                const active = next.has(k);
-                b.classList.toggle('is-active', active);
-                b.setAttribute('aria-pressed', active ? 'true' : 'false');
-            });
-
-            if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
-            else if (typeof window.__applyCatalogFilter === 'function') window.__applyCatalogFilter();
-            if (typeof renderDropdownGenres === 'function') renderDropdownGenres();
-        }, { passive: true });
-    }
-
-    if (sidebarHost) {
-        renderSidebar(sidebarHost);
-    }
 
     // ── Populate dropdown genre chips ──
     const filterGenresContainer = document.getElementById('filterGenres');
@@ -656,22 +591,6 @@ function inicializarGeneroWidgets() {
             const arr = [...next];
             window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = arr;
             UserStore.setItem(selectedKey, JSON.stringify(arr));
-
-            // Sync sidebar chips
-            const sidebar = document.getElementById('genreSidebar');
-            if (sidebar) {
-                sidebar.querySelectorAll('button.genre-chip').forEach((b) => {
-                    const k = String(b.getAttribute('data-genre') || '');
-                    if (!k) {
-                        b.classList.toggle('is-active', arr.length === 0);
-                        b.setAttribute('aria-pressed', arr.length === 0 ? 'true' : 'false');
-                        return;
-                    }
-                    const active = arr.includes(k);
-                    b.classList.toggle('is-active', active);
-                    b.setAttribute('aria-pressed', active ? 'true' : 'false');
-                });
-            }
 
             renderDropdownGenres();
             // Trigger server reload instead of local filter

@@ -347,6 +347,7 @@ main { padding-bottom: 24px; }
     object-fit: cover;
     border-radius: 6px;
     background: rgba(255,255,255,0.04);
+    display: block;
 }
 .catalog-suggestion-body {
     flex: 1;
@@ -453,8 +454,7 @@ main { padding-bottom: 24px; }
     padding: 0 16px;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 16px;
+    grid-template-columns: 1fr;
     align-items: start;
 }
 
@@ -1347,6 +1347,88 @@ main { padding-bottom: 24px; }
     opacity: 0.8;
     text-transform: uppercase;
     letter-spacing: 0.6px;
+}
+
+/* ── Compare page base styles ── */
+.compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 20px;
+}
+.compare-card {
+    background: rgba(10, 14, 36, 0.82);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(8px);
+}
+.compare-cover {
+    width: 100%;
+    aspect-ratio: 2 / 2.75;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.compare-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.compare-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.compare-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.compare-cat {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--neon-purple);
+    font-family: 'Orbitron', sans-serif;
+}
+.compare-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
+    line-height: 1.25;
+}
+.compare-info {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.4;
+}
+.compare-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+.compare-meta strong {
+    color: var(--accent-cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 400;
+}
+.compare-actions {
+    margin-top: 4px;
 }
 
 /* ==========================================

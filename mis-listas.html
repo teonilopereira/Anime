@@ -25,7 +25,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        /* ? LAYOUT LISTAS ? */
+        /* LAYOUT LISTAS */
         .lists-layout {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -832,22 +832,22 @@
 
             <nav class="sidebar-nav">
                 <a href="#mis-listas" class="sidebar-link active" data-tab="mis-listas">
-                    <span class="sidebar-icon">??</span> Mis Listas
+                    <span class="sidebar-icon">📋</span> Mis Listas
                 </a>
                 <a href="#actividad" class="sidebar-link" data-tab="actividad">
-                    <span class="sidebar-icon">??</span> Actividad
+                    <span class="sidebar-icon">📊</span> Actividad
                 </a>
                 <a href="#logros" class="sidebar-link" data-tab="logros">
-                    <span class="sidebar-icon">??</span> Logros
+                    <span class="sidebar-icon">🏆</span> Logros
                 </a>
                 <a href="#estadisticas" class="sidebar-link" data-tab="estadisticas">
-                    <span class="sidebar-icon">??</span> Estad�sticas
+                    <span class="sidebar-icon">📈</span> Estadísticas
                 </a>
             </nav>
 
             <div class="sidebar-quote-box">
-                <div class="quote-text">"Un d�a sin anime es un d�a perdido."</div>
-                <div class="quote-author">??</div>
+                <div class="quote-text">"Un día sin anime es un día perdido."</div>
+                <div class="quote-author">— Otaku anónimo</div>
             </div>
         </aside>
 
@@ -858,7 +858,7 @@
                 <span class="app-loader-text">Cargando tus listas...</span>
             </div>
 
-            <!-- ? MIS LISTAS ? -->
+            <!-- MIS LISTAS -->
             <div id="tab-mis-listas" class="tab-content active">
                 <header class="lists-header-new">
                     <h1 class="lists-title">MIS LISTAS</h1>
@@ -873,7 +873,7 @@
                     <div class="category-card anime">
                         <div class="cat-card-head">
                             <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon cyan">??</div>
+                                <div class="cat-card-icon cyan">🎬</div>
                                 <div class="cat-card-label">ANIME</div>
                             </div>
                         </div>
@@ -885,7 +885,7 @@
                     <div class="category-card manga">
                         <div class="cat-card-head">
                             <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon green">??</div>
+                                <div class="cat-card-icon green">📚</div>
                                 <div class="cat-card-label">MANGA</div>
                             </div>
                         </div>
@@ -897,7 +897,7 @@
                     <div class="category-card novelas">
                         <div class="cat-card-head">
                             <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon pink">??</div>
+                                <div class="cat-card-icon pink">📖</div>
                                 <div class="cat-card-label">NOVELAS</div>
                             </div>
                         </div>
@@ -911,7 +911,7 @@
                 <div class="category-card actividad" id="actividadCard" style="margin-bottom:28px; cursor:default;">
                     <div class="cat-card-head">
                         <div class="cat-card-title-wrap">
-                            <div class="cat-card-icon purple">?</div>
+                            <div class="cat-card-icon purple">📋</div>
                             <div class="cat-card-label">ACTIVIDAD RECIENTE</div>
                         </div>
                         <a href="#" class="cat-card-link" data-open-tab="actividad">Ver todo ?</a>
@@ -925,19 +925,19 @@
 
                 <!-- Filtros + resultados -->
                 <div class="lists-controls" role="toolbar" aria-label="Filtros">
-                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon">?</span> Todo</button>
-                    <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon">?</span> Me gusta</button>
-                    <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon">??</span> Vistos</button>
-                    <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon">??</span> Exportar JSON</button>
+                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon">📋</span> Todo</button>
+                    <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon">❤</span> Me gusta</button>
+                    <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon">👁</span> Vistos</button>
+                    <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon">📤</span> Exportar JSON</button>
                 </div>
 
                 <section class="lists-section">
                     <h2 class="lists-h2">RESULTADOS</h2>
                     <div class="resultados-tabs">
                         <button class="res-tab active" data-cat="all"><span class="tab-icon">?</span> Todos</button>
-                        <button class="res-tab" data-cat="anime"><span class="tab-icon">??</span> Anime</button>
-                        <button class="res-tab" data-cat="manga"><span class="tab-icon">??</span> Manga</button>
-                        <button class="res-tab" data-cat="novelas"><span class="tab-icon">??</span> Novelas</button>
+                        <button class="res-tab" data-cat="anime"><span class="tab-icon">🎬</span> Anime</button>
+                        <button class="res-tab" data-cat="manga"><span class="tab-icon">📚</span> Manga</button>
+                        <button class="res-tab" data-cat="novelas"><span class="tab-icon">📖</span> Novelas</button>
                     </div>
                     <div id="listsGrid" class="lists-grid-rows" aria-live="polite"></div>
                 </section>

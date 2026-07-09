@@ -787,6 +787,46 @@ body[data-page="listas"] .lists-empty {
     border-color: rgba(0, 242, 255, 0.6);
     box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
 }
+
+/* ── Sidebar avatar (mis-listas) ── */
+.sidebar-avatar-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.sidebar-avatar-ring {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--neon-purple));
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
+}
+.sidebar-avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a0a35, #0a1a35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.sidebar-avatar-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.sidebar-initials {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #bc13fe;
+    line-height: 1;
+}
+
 .sidebar-nav {
     display: flex;
     flex-direction: column;
@@ -937,6 +977,7 @@ body[data-page="listas"] .lists-empty {
     height: 80px;
     border-radius: 6px;
     object-fit: cover;
+    display: block;
 }
 
 .row-info {

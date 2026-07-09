@@ -40,7 +40,7 @@
         if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
     };
 
-    // ââ NAV BRAND ââ
+    // ── NAV BRAND ──
     const injectNavBrand = () => {
         const el = document.getElementById("nav-brand-container");
         if (!el) return;
@@ -54,7 +54,7 @@
 </a>`;
     };
 
-    // ââ NAV LINKS ââ
+    // ── NAV LINKS ──
     const injectNavLinks = () => {
         const el = document.getElementById("nav-links-container");
         if (!el) return;
@@ -98,7 +98,7 @@
         el.innerHTML = `<div class="nav-links" aria-label="Navegaci\u00F3n principal">${html}</div>`;
     };
 
-    // ââ LOGIN / USER AREA ââ
+    // ── LOGIN / USER AREA ──
     const injectLoginButton = () => {
         const el = document.getElementById("nav-login-container");
         if (!el) return;
@@ -112,13 +112,13 @@
 </div>
 </div>`;
 
-        // Refrescar la UI del usuario si auth.js ya cargÃ³
+        // Refrescar la UI del usuario si auth.js ya cargó
         if (typeof window.refreshUserUi === 'function') {
             window.refreshUserUi();
         }
     };
 
-    // ââ FOOTER ââ
+    // ── FOOTER ──
     const FOOTER_DATA = {
         anime: {
             col1: { title: "Tips", text: 'Us\u00E1 la b\u00FAsqueda para filtrar r\u00E1pido y abr\u00ED "Detalle" para marcar cap\u00EDtulos.' },
@@ -195,16 +195,16 @@
         el.innerHTML = `<footer class="app-footer">
 <div class="app-footer-inner">${cols}</div>
 <div class="app-footer-bottom">
-    <span>Â© 2026 Anime Destiny</span>
-    <span style="margin: 0 10px;">â¢</span>
+    <span>© 2026 Anime Destiny</span>
+    <span style="margin: 0 10px;">•</span>
     <a class="app-footer-link app-footer-link-cyan" href="privacidad.html">Privacidad</a>
-    <span style="margin: 0 10px;">â¢</span>
+    <span style="margin: 0 10px;">•</span>
     <a class="app-footer-link app-footer-link-purple" href="terminos.html">Términos</a>
 </div>
 </footer>`;
     };
 
-    // ââ Custom colors (leer desde localStorage y aplicar en :root) ââ
+    // ── Custom colors (leer desde localStorage y aplicar en :root) ──
     (() => {
         const r = (key, def) => {
             try { return localStorage.getItem(key) || def; } catch { return def; }
@@ -238,7 +238,7 @@
         root.style.setProperty('--nav-accent-soft', `${navAccent}3d`);
     })();
 
-    // ââ Cards per row (localStorage â body class) ââ
+    // ── Cards per row (localStorage → body class) ──
     (() => {
         try {
             const cpr = localStorage.getItem('pref:cardsPerRow');
@@ -252,7 +252,7 @@
         } catch { /* no-op (prefs) */ }
     })();
 
-    // ââ RUN ââ
+    // ── RUN ──
     const installSecurityHandlers = () => {
         if (window.__adSecurityHandlersInstalled) return;
         window.__adSecurityHandlersInstalled = true;

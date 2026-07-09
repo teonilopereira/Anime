@@ -42,7 +42,8 @@ function getApiCatalogInfo(categoria, item) {
     const typeLabel = String(item?.type || '').toLowerCase().includes('light')
         ? 'Novela ligera'
         : (String(item?.type || '').toLowerCase() === 'novel' ? 'Novela' : (item?.type || 'Manga'));
-    const parts = [typeLabel, item?.volumes ? `${item.volumes} vol.` : '', item?.status].filter(Boolean);
+    const volcap = item?.volumes ? `${item.volumes} vol.` : (item?.chapters ? `${item.chapters} cap.` : '');
+    const parts = [typeLabel, volcap, item?.status].filter(Boolean);
     if (categoria === 'novelas') return parts.join(' / ') || 'Novela';
     return parts.join(' / ') || 'Manga';
 }
@@ -85,16 +86,18 @@ function getApiGenresList(item) {
 
 
 
-function getCatalogProgressPrefix(categoria) {
-    if (categoria === 'anime') return 'EP';
-    if (categoria === 'manga' || categoria === 'novelas') return 'VOL';
-    return 'VOL';
-}
-
-
-function buildCatalogBackProgressHtml(categoria, total) {
-    const prefix = getCatalogProgressPrefix(categoria);
-    const label = categoria === 'anime' ? 'capítulos' : 'volúmenes';
+function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
+    var prefix, label;
+    if (categoria === 'anime') {
+        prefix = 'EP';
+        label = 'capítulos';
+    } else if (volCount > 0) {
+        prefix = 'VOL';
+        label = 'volúmenes';
+    } else {
+        prefix = 'CH';
+        label = 'capítulos';
+    }
     const safeTotal = Number(total) > 0 ? Number(total) : 0;
     return `
         <div class="card-back-progress-wrapper" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}" style="display:none">
@@ -230,7 +233,9 @@ function buildCatalogCardHtml(options) {
         genresNorm = '',
         imageExtraAttrs = '',
         categoria = 'manga',
-        progressTotal = 0
+        progressTotal = 0,
+        volCount = 0,
+        chCount = 0
     } = options;
 
     const flipId = `flip-${id}`;
@@ -268,7 +273,7 @@ function buildCatalogCardHtml(options) {
                                 <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">❤</button>
                                 <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">👁</button>
                             </div>
-                            ${buildCatalogBackProgressHtml(categoria, progressTotal)}
+                            ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
                         </div>
                     </div>
                 </div>
@@ -349,6 +354,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                     </section>
                 `;
             }
+            if (!append) { try { inicializarBusquedaCatalogo(); } catch (e) {} try { inicializarGeneroWidgets(); } catch (e) {} }
             return false;
         }
 
@@ -363,6 +369,8 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             const detailUrl = 'detalle.html?cat=' + encodeURIComponent(detailCat) + '&id=' + encodeURIComponent(id);
             const searchIndex = [title, item.title_english, info, item.synopsis, item.type].concat(genres).filter(Boolean).join(' ').toLowerCase();
 
+            const volCount = categoria !== 'anime' ? (item.volumes || 0) : 0;
+            const chCount = categoria !== 'anime' ? (item.chapters || 0) : 0;
             return buildCatalogCardHtml({
                 id: id,
                 title: title,
@@ -373,7 +381,9 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                 genres: genres.join('|'),
                 genresNorm: genresNorm,
                 categoria: detailCat,
-                progressTotal: categoria === 'anime' ? (item.episodes || 0) : (item.volumes || item.chapters || 0),
+                progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
+                volCount: volCount,
+                chCount: chCount,
                 imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
             });
         }).join('');
@@ -385,12 +395,12 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             mainContainer.innerHTML = cardsHtml;
         }
 
-        cargarEstadosBotones();
+        try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
         if (!append) {
-            inicializarBusquedaCatalogo();
-            inicializarGeneroWidgets();
+            try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
+            try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
         } else if (typeof window.__renderDropdownGenres === 'function') {
-            window.__renderDropdownGenres();
+            try { window.__renderDropdownGenres(); } catch (e) { console.warn('Error en generos dropdown:', e); }
         }
         return items.length > 0;
         } catch (error) {
@@ -403,6 +413,8 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                     <p>Revisá tu conexión, esperá unos segundos y recargá la página.</p>
                 </section>
             `;
+            try { inicializarBusquedaCatalogo(); } catch (e) {}
+            try { inicializarGeneroWidgets(); } catch (e) {}
         }
         return false;
     }
@@ -428,6 +440,8 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
         var genresNorm = genres.map(function (g) { return normalizeCatalogGenre(g); }).join('|');
         var detailUrl = 'detalle.html?cat=' + encodeURIComponent(categoria) + '&id=' + encodeURIComponent(id);
         var searchIndex = [title, item.title_english, item.info, item.synopsis].concat(genres).filter(Boolean).join(' ').toLowerCase();
+        var volCount = Number(item.volumes || 0);
+        var chCount = Number(item.chapters || 0);
         list.push(buildCatalogCardHtml({
             id: id,
             title: title,
@@ -438,7 +452,9 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
             genres: genres.join('|'),
             genresNorm: genresNorm,
             categoria: categoria,
-            progressTotal: Number(item.volumes || item.chapters || item.episodes || 0),
+            progressTotal: volCount || chCount || Number(item.episodes || 0),
+            volCount: volCount,
+            chCount: chCount,
             imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
         }));
     });
@@ -452,12 +468,12 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
         });
     }
 
-    cargarEstadosBotones();
+    try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
     if (!append) {
-        inicializarBusquedaCatalogo();
-        inicializarGeneroWidgets();
+        try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
+        try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
     } else if (typeof window.__renderDropdownGenres === 'function') {
-        window.__renderDropdownGenres();
+        try { window.__renderDropdownGenres(); } catch (e) { console.warn('Error en generos dropdown:', e); }
     }
     return true;
 }
