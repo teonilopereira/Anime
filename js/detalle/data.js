@@ -21,9 +21,25 @@ async function translateText(text, targetLang) {
     try {
         var resp = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 2000)) + '&langpair=en|' + targetLang + '&de=demo@example.com');
         var data = await resp.json();
-        var translated = (data && data.responseData && data.responseData.translatedText) || text;
-        if (translated !== text) {
+        var translated = text;
+        if (data && data.matches && data.matches.length) {
+            var cleanInput = text.toLowerCase().trim();
+            var bestMatch = null;
+            for (var i = 0; i < data.matches.length; i++) {
+                var m = data.matches[i];
+                if (!m || !m.translation) continue;
+                var segment = (m.segment || '').toLowerCase().trim();
+                var isExact = segment === cleanInput;
+                var isMT = m['created-by'] === 'MT!' || m.model === 'neural';
+                if (isExact && isMT) { bestMatch = m; break; }
+                if (isExact && !bestMatch) bestMatch = m;
+                if (isMT && !bestMatch) bestMatch = m;
+            }
+            if (!bestMatch) bestMatch = data.matches[0];
+            translated = bestMatch.translation;
             translated = translated.replace(/^\d+\s*[.)\]]?\s*/g, '').replace(/\s*\d+\s*[.)\]]?\s*$/g, '').trim();
+        }
+        if (translated !== text) {
             localStorage.setItem(cacheKey, JSON.stringify({ text: translated, expiry: Date.now() + TRANSLATION_CACHE_TTL }));
         }
         return translated;
@@ -54,10 +70,6 @@ function normalizeDetailItem(item) {
     normalized.volumenes = normalized.volumenes ?? normalized.volumes ?? normalized.chapters ?? normalized.capitulos ?? null;
     normalized.anio = normalized.anio ?? normalized.year ?? normalized.año ?? null;
     return normalized;
-}
-
-function findLocalDetailItem() {
-    return null;
 }
 
 function getAnimeStructure(item) {
@@ -160,10 +172,6 @@ function saveDetailStateToSupabase(category, item, fav, viewed) {
 
 function hasSqlSession() {
     return !!(window.AppSupabase?.getCurrentUserSync?.());
-}
-
-function mergeDetalles(item) {
-    return item;
 }
 
 function parseGeneros(item) {

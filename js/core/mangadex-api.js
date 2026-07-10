@@ -172,7 +172,6 @@
             genres: genreList,
             themes: [],
             studios: [],
-            streamingEpisodes: [],
             relations: [],
             season: null,
             seasonYear: null,

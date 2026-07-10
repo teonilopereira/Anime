@@ -831,13 +831,6 @@
     align-items: start;
     margin-top: 8px;
 }
-.cap-box {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
 .ep-btn {
     min-height: 70px;
     border-radius: var(--radius-md);
@@ -862,8 +855,7 @@
     transform: scale(1.05);
     box-shadow: 0 0 12px rgba(0,242,255,0.2);
 }
-.ep-btn.is-active,
-.cap-box.is-active .ep-btn {
+.ep-btn.is-active {
     background: rgba(34,197,94,0.15);
     border-color: rgba(34,197,94,0.55);
 }

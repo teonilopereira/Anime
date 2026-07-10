@@ -450,7 +450,6 @@
             genres: genres,
             themes: [],
             studios: (item.studios?.nodes || []).map(function (s) { return s.name; }),
-            streamingEpisodes: [],
             relations: (item.relations?.edges || []).map(function (edge) {
                 var node = edge.node || {};
                 return {
@@ -570,7 +569,7 @@
             id: id, mal_id: null, title: title, title_english: title, synopsis: desc || 'Sin sinopsis.',
             status: status, type: friendlyType, episodes: 0, chapters: chCnt, volumes: volCnt, score: null,
             images: { webp: { large_image_url: coverUrl, image_url: coverUrl }, jpg: { large_image_url: coverUrl, image_url: coverUrl } },
-            genres: genres, themes: [], studios: [], streamingEpisodes: [], relations: [],
+            genres: genres, themes: [], studios: [], relations: [],
             season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null
         };
     }
@@ -3912,6 +3911,25 @@ window.addEventListener("supabase-auth-changed", function () {
 </a>`;
     };
 
+    // ── NAV TOGGLE (Hamburger) ──
+    const injectNavToggle = () => {
+        const nav = document.querySelector('.destiny-navbar');
+        if (!nav || nav.querySelector('.nav-toggle')) return;
+
+        const toggle = document.createElement('button');
+        toggle.className = 'nav-toggle';
+        toggle.setAttribute('aria-label', 'Menú de navegación');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.innerHTML = '<span class="nav-toggle-icon" aria-hidden="true"></span><span class="nav-toggle-text">Menú</span>';
+
+        toggle.addEventListener('click', () => {
+            const isOpen = nav.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        nav.insertBefore(toggle, document.getElementById('nav-links-container'));
+    };
+
     // ── NAV LINKS ──
     const injectNavLinks = () => {
         const el = document.getElementById("nav-links-container");
@@ -4169,6 +4187,7 @@ window.addEventListener("supabase-auth-changed", function () {
     ensureSkipLink();
     ensureMainTarget();
     injectNavBrand();
+    injectNavToggle();
     injectNavLinks();
     injectLoginButton();
     injectFooter();

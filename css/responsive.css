@@ -25,13 +25,6 @@
         padding: 12px 16px 16px;
     }
 }
-.cap-box{
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
 .btn-resumen{
     margin-top: 6px;
     padding: 4px 8px;
@@ -47,12 +40,6 @@
     pointer-events: none;
 
     transition: .25s;
-}
-
-.btn-resumen.show{
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
 }
 
 .popup-resumen{
@@ -1060,6 +1047,23 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
+@media (max-width: 480px) {
+    .lists-sidebar {
+        padding: 12px 10px;
+    }
+    .sidebar-link {
+        padding: 10px 12px;
+        font-size: 0.82rem;
+        white-space: normal;
+        min-width: 0;
+        flex: 1 1 0;
+        text-align: center;
+    }
+    .lists-main-content {
+        padding: 14px 10px;
+    }
+}
+
 /* Fixed cards-per-row override — solo desktop, fuerza override de selectores de página */
 @media (min-width: 769px) {
     body.fixed-cards-row .gallery {
@@ -1083,8 +1087,8 @@ body[data-page="listas"] .lists-empty {
         font-size: clamp(0.95rem, 3vw, 1.2rem);
     }
     body.menu-page .menu-container {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
+        justify-items: center;
         gap: 12px;
         padding: 20px 16px;
     }
@@ -1258,6 +1262,23 @@ body[data-page="listas"] .lists-empty {
     .app-footer-icon { font-size: 1rem; }
     .app-footer-link { font-size: 0.72rem; }
     .app-footer-bottom { font-size: 0.65rem; padding-top: 12px; margin-top: 12px; }
+}
+
+/* ── Detail skeleton mobile ── */
+@media (max-width: 520px) {
+    .detail-skeleton-hero {
+        flex-direction: column;
+        align-items: center;
+    }
+    .detail-skeleton-poster {
+        width: 160px;
+    }
+    .detail-skeleton-body {
+        flex-direction: column;
+    }
+    .detail-skeleton-body-right {
+        width: 100%;
+    }
 }
 
 /* ── Very small screens (<400px) ── */

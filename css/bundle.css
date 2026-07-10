@@ -1686,30 +1686,20 @@ main { padding-bottom: 24px; }
 }
 
 @media (max-width: 640px) {
-    .navbar {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 10px 16px;
-    }
-    .nav-toggle {
+    .destiny-navbar .nav-toggle {
         display: flex;
         width: 100%;
         justify-content: center;
     }
-    .navbar:not(.is-open) .nav-btn,
-    .navbar:not(.is-open) .nav-search,
-    .navbar:not(.is-open) .nav-user {
+    .destiny-navbar:not(.is-open) .nav-links,
+    .destiny-navbar:not(.is-open) .nav-actions {
         display: none;
     }
-    .navbar.is-open .nav-btn,
-    .navbar.is-open .nav-search,
-    .navbar.is-open .nav-user {
+    .destiny-navbar.is-open .nav-links,
+    .destiny-navbar.is-open .nav-actions {
         width: 100%;
         text-align: center;
         margin-top: 6px;
-    }
-    .navbar.is-open .nav-search {
-        margin-top: 14px;
     }
 }
 
@@ -2294,6 +2284,30 @@ main { padding-bottom: 24px; }
     top: calc(100% + 12px);
     right: 0;
     width: 280px;
+}
+
+@media (max-width: 640px) {
+    .catalog-search-filter-container {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 12px;
+    }
+    .catalog-search-wrap {
+        width: 100%;
+    }
+    .catalog-filter-wrap {
+        width: 100%;
+    }
+    .catalog-filter-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .catalog-filter-wrap .filter-dropdown {
+        width: min(280px, calc(100vw - 48px));
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+    }
 }
 
 /* === css/cards.css === */
@@ -3303,12 +3317,6 @@ main { padding-bottom: 24px; }
         padding: 12px 16px 16px;
     }
 }
-.cap-box{
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
 
 .btn-resumen{
     margin-top: 6px;
@@ -3325,12 +3333,6 @@ main { padding-bottom: 24px; }
     pointer-events: none;
 
     transition: .25s;
-}
-
-.btn-resumen.show{
-    opacity: 1;
-    transform: scale(1);
-    pointer-events: auto;
 }
 
 .popup-resumen{
@@ -4340,6 +4342,23 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
+@media (max-width: 480px) {
+    .lists-sidebar {
+        padding: 12px 10px;
+    }
+    .sidebar-link {
+        padding: 10px 12px;
+        font-size: 0.82rem;
+        white-space: normal;
+        min-width: 0;
+        flex: 1 1 0;
+        text-align: center;
+    }
+    .lists-main-content {
+        padding: 14px 10px;
+    }
+}
+
 /* ==========================================
    RESPONSIVE COMPLETO — TODAS LAS PÁGINAS
    ========================================== */
@@ -4355,8 +4374,8 @@ body[data-page="listas"] .lists-empty {
         font-size: clamp(0.95rem, 3vw, 1.2rem);
     }
     body.menu-page .menu-container {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
+        justify-items: center;
         gap: 12px;
         padding: 20px 16px;
     }
@@ -4530,6 +4549,23 @@ body[data-page="listas"] .lists-empty {
     .app-footer-icon { font-size: 1rem; }
     .app-footer-link { font-size: 0.72rem; }
     .app-footer-bottom { font-size: 0.65rem; padding-top: 12px; margin-top: 12px; }
+}
+
+/* ── Detail skeleton mobile ── */
+@media (max-width: 520px) {
+    .detail-skeleton-hero {
+        flex-direction: column;
+        align-items: center;
+    }
+    .detail-skeleton-poster {
+        width: 160px;
+    }
+    .detail-skeleton-body {
+        flex-direction: column;
+    }
+    .detail-skeleton-body-right {
+        width: 100%;
+    }
 }
 
 /* ── Very small screens (<400px) ── */
@@ -5248,6 +5284,19 @@ input, select, textarea, button {
     .destiny-navbar:not(.is-open) .nav-links,
     .destiny-navbar:not(.is-open) .nav-actions {
         display: none;
+    }
+
+    .destiny-navbar.is-open .nav-links,
+    .destiny-navbar.is-open .nav-actions {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        animation: drawerSlideIn 0.25s ease-out;
+    }
+
+    @keyframes drawerSlideIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .destiny-navbar .nav-links {

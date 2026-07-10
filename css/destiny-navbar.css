@@ -356,6 +356,19 @@
         display: none;
     }
 
+    .destiny-navbar.is-open .nav-links,
+    .destiny-navbar.is-open .nav-actions {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        animation: drawerSlideIn 0.25s ease-out;
+    }
+
+    @keyframes drawerSlideIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .destiny-navbar .nav-links {
         grid-template-columns: 1fr 1fr;
         min-height: auto;

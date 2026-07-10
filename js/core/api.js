@@ -157,7 +157,6 @@
             genres: genres,
             themes: [],
             studios: (item.studios?.nodes || []).map(function (s) { return s.name; }),
-            streamingEpisodes: [],
             relations: (item.relations?.edges || []).map(function (edge) {
                 var node = edge.node || {};
                 return {
@@ -277,7 +276,7 @@
             id: id, mal_id: null, title: title, title_english: title, synopsis: desc || 'Sin sinopsis.',
             status: status, type: friendlyType, episodes: 0, chapters: chCnt, volumes: volCnt, score: null,
             images: { webp: { large_image_url: coverUrl, image_url: coverUrl }, jpg: { large_image_url: coverUrl, image_url: coverUrl } },
-            genres: genres, themes: [], studios: [], streamingEpisodes: [], relations: [],
+            genres: genres, themes: [], studios: [], relations: [],
             season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null
         };
     }

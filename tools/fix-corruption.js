@@ -1,221 +1,197 @@
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('fs');
+const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..');
-const REPL = '\uFFFD';
+const F = '\uFFFD';
 
-function read(rel) {
-    return fs.readFileSync(path.join(ROOT, rel), 'utf8');
-}
-
-function write(rel, text) {
-    fs.writeFileSync(path.join(ROOT, rel), text, 'utf8');
-    console.log('Fixed:', rel);
-}
-
-function replaceAll(text, pairs) {
-    let out = text;
-    for (const [from, to] of pairs) {
-        out = out.split(from).join(to);
+function fixFile(relPath, replacements) {
+  const filePath = path.resolve(relPath);
+  let content = fs.readFileSync(filePath, 'utf8');
+  let modified = false;
+  let count = 0;
+  for (const [oldStr, newStr] of replacements) {
+    if (content.includes(oldStr)) {
+      content = content.replaceAll(oldStr, newStr);
+      modified = true;
+      count++;
     }
-    return out;
+  }
+  if (modified) {
+    fs.writeFileSync(filePath, content, 'utf8');
+    console.log(`  ${relPath}: ${count} replacements`);
+  } else {
+    console.log(`  ${relPath}: no changes`);
+  }
 }
 
-// --- index.html ---
-write('index.html', replaceAll(read('index.html'), [
-    [`Base de datos ${REPL} v2026`, 'Base de datos • v2026'],
-    [`constru${REPL} tus listas`, 'construí tus listas'],
-    [`Men${REPL} principal`, 'Menú principal'],
-    [`pel${REPL}culas`, 'películas'],
-    [`C${REPL}mics`, 'Cómics'],
-    [`Contin${REPL}a viendo`, 'Continuá viendo'],
-]));
-
-// --- detalle.html ---
-write('detalle.html', replaceAll(read('detalle.html'), [
-    [`<span class="tipo-obra" id="detail-tipo">?? ${REPL}</span>`, '<span class="tipo-obra" id="detail-tipo">…</span>'],
-    [`<span class="estado-obra-badge" id="detail-estado-badge">? ${REPL}</span>`, '<span class="estado-obra-badge" id="detail-estado-badge">…</span>'],
-    ['<span class="dato-icono" aria-hidden="true">?</span>\n                                    <span class="dato-label" id="detail-stat-1-label">Cap' + REPL + 'tulos</span>', '<span class="dato-icono" aria-hidden="true">📚</span>\n                                    <span class="dato-label" id="detail-stat-1-label">Capítulos</span>'],
-    [`Vol${REPL}menes`, 'Volúmenes'],
-    ['<span class="dato-icono" aria-hidden="true">??</span>\n                                    <span class="dato-label">Volúmenes</span>', '<span class="dato-icono" aria-hidden="true">📖</span>\n                                    <span class="dato-label">Volúmenes</span>'],
-    ['<span class="dato-icono" aria-hidden="true">??</span>\n                                    <span class="dato-label">Estado</span>', '<span class="dato-icono" aria-hidden="true">✓</span>\n                                    <span class="dato-label">Estado</span>'],
-    ['<span class="dato-icono" aria-hidden="true">?</span>\n                                    <span class="dato-label">Puntaje</span>', '<span class="dato-icono" aria-hidden="true">⭐</span>\n                                    <span class="dato-label">Puntaje</span>'],
-    [`CAP${REPL}TULOS`, 'CAPÍTULOS'],
-    ['aria-label="Agregar a favoritos">?</button>', 'aria-label="Agregar a favoritos">❤</button>'],
-    ['aria-label="Marcar como visto">?</button>', 'aria-label="Marcar como visto">👁</button>'],
-    ['aria-label="Cerrar modal">?</button>', 'aria-label="Cerrar modal">×</button>'],
-    [`Aqu${REPL} aparecerá el resumen.`, 'Aquí aparecerá el resumen.'],
-]));
-
-// --- privacidad.html ---
-write('privacidad.html', replaceAll(read('privacidad.html'), [
-    [`pol${REPL}tica`, 'política'],
-    [`actualizaci${REPL}n`, 'actualización'],
-    [`c${REPL}mo`, 'cómo'],
-    [`trav${REPL}s`, 'través'],
-    [`autenticaci${REPL}n`, 'autenticación'],
-    [`visualizaci${REPL}n`, 'visualización'],
-    [`Estad${REPL}sticas`, 'Estadísticas'],
-    [`b${REPL}sicas`, 'básicas'],
-    [`interacci${REPL}n`, 'interacción'],
-    [`ning${REPL}n`, 'ningún'],
-    [`est${REPL}ticas`, 'estéticas'],
-    [`eliminaci${REPL}n`, 'eliminación'],
-    [`aplicaci${REPL}n`, 'aplicación'],
-    ['última actualización', 'Última actualización'],
-]));
-
-// --- terminos.html ---
-write('terminos.html', replaceAll(read('terminos.html'), [
-    [`t${REPL}rminos`, 'términos'],
-    [`actualizaci${REPL}n`, 'actualización'],
-    [`Limitaci${REPL}n`, 'Limitación'],
-    [`seg${REPL}n`, 'según'],
-    [`ser${REPL}`, 'será'],
-    [`p${REPL}rdida`, 'pérdida'],
-    [`conexi${REPL}n`, 'conexión'],
-    [`pr${REPL}cticas`, 'prácticas'],
-    [`regir${REPL}n`, 'regirán'],
-    [`interpretar${REPL}n`, 'interpretarán'],
-    [`aplicaci${REPL}n`, 'aplicación'],
-    ['última actualización', 'Última actualización'],
-]));
-
-// --- mis-listas.html ---
-let misListas = read('mis-listas.html');
-misListas = replaceAll(misListas, [
-    [`Estad${REPL}sticas`, 'Estadísticas'],
-    [`Un d${REPL}a sin anime es un d${REPL}a perdido.`, 'Un día sin anime es un día perdido.'],
-    ['/* ? LAYOUT LISTAS ? */', '/* LAYOUT LISTAS */'],
-    ['<!-- ? MIS LISTAS ? -->', '<!-- MIS LISTAS -->'],
-    ['<span class="sidebar-icon">??</span> Mis Listas', '<span class="sidebar-icon">📋</span> Mis Listas'],
-    ['<span class="sidebar-icon">??</span> Actividad', '<span class="sidebar-icon">📊</span> Actividad'],
-    ['<span class="sidebar-icon">??</span> Logros', '<span class="sidebar-icon">🏆</span> Logros'],
-    ['<span class="sidebar-icon">??</span> Estadísticas', '<span class="sidebar-icon">📈</span> Estadísticas'],
-    ['<div class="quote-author">??</div>', '<div class="quote-author">— Otaku anónimo</div>'],
-    ['<div class="cat-card-icon cyan">??</div>', '<div class="cat-card-icon cyan">🎬</div>'],
-    ['<div class="cat-card-icon green">??</div>', '<div class="cat-card-icon green">📚</div>'],
-    ['<div class="cat-card-icon pink">??</div>', '<div class="cat-card-icon pink">📖</div>'],
-    ['<div class="cat-card-icon purple">?</div>', '<div class="cat-card-icon purple">📋</div>'],
-    ['<span class="chip-icon">?</span> Todo', '<span class="chip-icon">📋</span> Todo'],
-    ['<span class="chip-icon">?</span> Me gusta', '<span class="chip-icon">❤</span> Me gusta'],
-    ['<span class="chip-icon">??</span> Vistos', '<span class="chip-icon">👁</span> Vistos'],
-    ['<span class="chip-icon">??</span> Exportar JSON', '<span class="chip-icon">📤</span> Exportar JSON'],
-    ['<span class="tab-icon">??</span> Anime', '<span class="tab-icon">🎬</span> Anime'],
-    ['<span class="tab-icon">??</span> Manga', '<span class="tab-icon">📚</span> Manga'],
-    ['<span class="tab-icon">??</span> Novelas', '<span class="tab-icon">📖</span> Novelas'],
+// ============================================================
+// FIX: index.html
+// ============================================================
+console.log('\n=== index.html ===');
+fixFile('index.html', [
+  ['Base de datos ' + F + '\u20AC' + F + ' v2026', 'Base de datos \u2022 v2026'],
+  [F + '\u0178\u017D' + F, '\uD83C\uDFAC'],  // 🎬
+  [F + '\u0178\u201C\u0161', '\uD83D\uDCDA'], // 📚
+  [F + '\u0178\u201C\u2013', '\uD83D\uDCD6'], // 📖
+  [F + '\u0178\u201C\u2039', '\uD83D\uDC96'], // 💖
+  [F + '\u0178' + F + '\u2020', '\uD83C\uDFC6'], // 🏆
 ]);
-write('mis-listas.html', misListas);
 
-// --- usuario.html ---
-let usuario = read('usuario.html');
-usuario = replaceAll(usuario, [
-    [`EN L${REPL}NEA`, 'EN LÍNEA'],
-    ['Info y m' + REPL + 'tricas', 'Info y métricas'],
-    [`Regi${REPL}n`, 'Región'],
-    [`P${REPL}blica`, 'Pública'],
-    [`Configuraci${REPL}n`, 'Configuración'],
-    [`Estad${REPL}sticas`, 'Estadísticas'],
-    ['<div class="perfil-change-img-btn" id="changeImgBtn" title="Cambiar imagen">??</div>', '<div class="perfil-change-img-btn" id="changeImgBtn" title="Cambiar imagen">📷</div>'],
-    ['<span class="perfil-edit-icon" title="Editar nombre">??</span>', '<span class="perfil-edit-icon" title="Editar nombre">✏️</span>'],
-    ['id="editProfileBtn">?? EDITAR PERFIL</a>', 'id="editProfileBtn">✏️ EDITAR PERFIL</a>'],
-    ['id="backBtn">? VOLVER</a>', 'id="backBtn">← VOLVER</a>'],
-    ['class="perfil-btn-config">? Configuración</a>', 'class="perfil-btn-config">⚙️ Configuración</a>'],
-    ['<span class="perfil-card-icon">?</span>\n                                <span id="cardLevel">', '<span class="perfil-card-icon">🏆</span>\n                                <span id="cardLevel">'],
-    ['<span class="perfil-card-icon">??</span>\n                                <span id="cardPoints">', '<span class="perfil-card-icon">⭐</span>\n                                <span id="cardPoints">'],
-    ['<span class="perfil-card-icon">?</span>\n                                <span id="cardFavs">', '<span class="perfil-card-icon">❤</span>\n                                <span id="cardFavs">'],
-    ['<span class="perfil-card-icon">??</span>\n                                <span id="cardViewed">', '<span class="perfil-card-icon">👁</span>\n                                <span id="cardViewed">'],
-    ['<span class="pp-icon">??</span> INFORMACIÓN PERSONAL', '<span class="pp-icon">👤</span> INFORMACIÓN PERSONAL'],
-    ['<span class="pir-icon">??</span> Correo electrónico', '<span class="pir-icon">✉️</span> Correo electrónico'],
-    ['<span class="pir-icon">??</span> País / Región', '<span class="pir-icon">🌎</span> País / Región'],
-    ['<span class="pir-icon">??</span> Idioma', '<span class="pir-icon">🌐</span> Idioma'],
-    ['<span class="pir-icon">??</span> Zona horaria', '<span class="pir-icon">🕐</span> Zona horaria'],
-    ['id="infoPais">Argentina ????</div>', 'id="infoPais">Argentina 🇦🇷</div>'],
-    ['id="cambiarInfoBtn">?? CAMBIAR INFORMACIÓN</button>', 'id="cambiarInfoBtn">✏️ CAMBIAR INFORMACIÓN</button>'],
-    ['<span class="pp-icon">??</span> ESTADÍSTICAS', '<span class="pp-icon">📊</span> ESTADÍSTICAS'],
-    ['<div class="perfil-stat-icon-wrap">?</div>\n                            <div>\n                                <div class="perfil-stat-label">Tiempo en la app', '<div class="perfil-stat-icon-wrap">⏱️</div>\n                            <div>\n                                <div class="perfil-stat-label">Tiempo en la app'],
-    ['<div class="perfil-stat-icon-wrap">??</div>\n                            <div>\n                                <div class="perfil-stat-label">Sesiones', '<div class="perfil-stat-icon-wrap">🔄</div>\n                            <div>\n                                <div class="perfil-stat-label">Sesiones'],
-    ['<div class="perfil-stat-icon-wrap">??</div>\n                            <div>\n                                <div class="perfil-stat-label">Contenido explorado', '<div class="perfil-stat-icon-wrap">🔍</div>\n                            <div>\n                                <div class="perfil-stat-label">Contenido explorado'],
-    ['<div class="perfil-stat-icon-wrap">??</div>\n                            <div>\n                                <div class="perfil-stat-label">Promedio por sesión', '<div class="perfil-stat-icon-wrap">📈</div>\n                            <div>\n                                <div class="perfil-stat-label">Promedio por sesión'],
-    ['<button class="perfil-panel-btn">?? VER ESTADÍSTICAS DETALLADAS</button>', '<button class="perfil-panel-btn">📊 VER ESTADÍSTICAS DETALLADAS</button>'],
-    ['<span class="pp-icon">?</span> PREFERENCIAS', '<span class="pp-icon">⚙️</span> PREFERENCIAS'],
-    ['<span class="perfil-pref-icon">??</span> Tema de la app', '<span class="perfil-pref-icon">🌙</span> Tema de la app'],
-    ['id="prefTema">Oscuro ??</div>', 'id="prefTema">Oscuro 🌙</div>'],
-    ['<span class="perfil-pref-icon">??</span> Notificaciones', '<span class="perfil-pref-icon">🔔</span> Notificaciones'],
-    ['id="prefNotif">Activadas ??</div>', 'id="prefNotif">Activadas 🔔</div>'],
-    ['<span class="perfil-pref-icon">?</span> Contenido sugerido', '<span class="perfil-pref-icon">⭐</span> Contenido sugerido'],
-    ['<span class="perfil-pref-icon">??</span> Privacidad', '<span class="perfil-pref-icon">🔒</span> Privacidad'],
-    ['id="prefPrivacidad">Pública ??</div>', 'id="prefPrivacidad">Pública 🔒</div>'],
-    ['class="perfil-panel-btn purple">? ADMINISTRAR PREFERENCIAS</a>', 'class="perfil-panel-btn purple">⚙️ ADMINISTRAR PREFERENCIAS</a>'],
-    ['<span class="pp-icon">?</span> ACTIVIDAD RECIENTE', '<span class="pp-icon">📋</span> ACTIVIDAD RECIENTE'],
-    ['VER TODA LA ACTIVIDAD ?</a>', 'VER TODA LA ACTIVIDAD →</a>'],
-    ['<span class="perfil-import-icon">??</span> IMPORTAR DESDE MyAnimeList', '<span class="perfil-import-icon">📥</span> IMPORTAR DESDE MyAnimeList'],
-    ['id="previewMalBtn">?? VISTA PREVIA</button>', 'id="previewMalBtn">👁️ VISTA PREVIA</button>'],
+// ============================================================
+// FIX: anime.html, manga.html, novelas.html
+// ============================================================
+for (const f of ['anime.html', 'manga.html', 'novelas.html']) {
+  console.log(`\n=== ${f} ===`);
+  fixFile(f, [
+    [F + '\u0178\u017D' + F, '\uD83C\uDFAC'],
+    ['G' + F + '\u2030NERO', 'G\u00C9NERO'],
+  ]);
+}
+
+// ============================================================
+// FIX: detalle.html
+// ============================================================
+console.log('\n=== detalle.html ===');
+fixFile('detalle.html', [
+  ['CONFIGURACI' + F + '\u201CN', 'CONFIGURACIÓN'],
+  [F + '\u20AC' + F, '\uD83C\uDFAC'],      // 🎬 badge
+  [F + '\u0178\u201C\u2013', '\uD83D\uDCD6'], // 📖 volumenes
+  [F + '\u0178\u201C\u0152', '\uD83D\uDCCC'], // 📌 estado
+  [F + '\u0178\u201D\u2014', '\uD83D\uDD17'], // 🔗 compartir
+  [F + '\u0178\u2018' + F, '\uD83D\uDC41'],   // 👁 visto
+  [F + '\u2014', '\u00D7'],                    // × close
+  ['G' + F + '\u2030NEROS', 'G\u00C9NEROS'],
+  ['G\u00C9\u2030NEROS', 'G\u00C9NEROS'],     // in case partial fix
+  ['G' + F + '\u2030NEROS' , 'G\u00C9NEROS'], // GÉNEROS
 ]);
-write('usuario.html', usuario);
 
-// --- configuracion.html ---
-let cfg = read('configuracion.html');
-cfg = replaceAll(cfg, [
-    [`Regi${REPL}n`, 'Región'],
-    [`im${REPL}genes`, 'imágenes'],
-    [`tambi${REPL}n`, 'también'],
-    ['<option value="???">??</option>', '<option value="日本語">日本語 🇯🇵</option>'],
-    ['Argentina ????', 'Argentina 🇦🇷'],
-    ['México ????', 'México 🇲🇽'],
-    ['España ????', 'España 🇪🇸'],
-    ['Chile ????', 'Chile 🇨🇱'],
-    ['Colombia ????', 'Colombia 🇨🇴'],
-    ['Uruguay ????', 'Uruguay 🇺🇾'],
-    ['Perú ????', 'Perú 🇵🇪'],
-    ['Venezuela ????', 'Venezuela 🇻🇪'],
-    ['Ecuador ????', 'Ecuador 🇪🇨'],
-    ['Bolivia ????', 'Bolivia 🇧🇴'],
-    ['Paraguay ????', 'Paraguay 🇵🇾'],
-    ['<span class="cfg-panel-icon">??</span> INFORMACIÓN PERSONAL', '<span class="cfg-panel-icon">👤</span> INFORMACIÓN PERSONAL'],
-    ['<span class="cfg-panel-icon">?</span> PREFERENCIAS', '<span class="cfg-panel-icon">⚙️</span> PREFERENCIAS'],
-    ['<span class="cfg-panel-icon">??</span> COLORES DE LA APP', '<span class="cfg-panel-icon">🎨</span> COLORES DE LA APP'],
-    ['<span class="cfg-panel-icon">??</span> TARJETAS POR FILA', '<span class="cfg-panel-icon">🔲</span> TARJETAS POR FILA'],
-    ['<span class="cfg-panel-icon">??</span> FONDO DE PANTALLA', '<span class="cfg-panel-icon">🖼️</span> FONDO DE PANTALLA'],
-    ['<span class="cfg-panel-icon">??</span> APARIENCIA DE CARDS', '<span class="cfg-panel-icon">✨</span> APARIENCIA DE CARDS'],
-    ['<span class="cfg-panel-icon">??</span> PRIVACIDAD Y DATOS', '<span class="cfg-panel-icon">🔒</span> PRIVACIDAD Y DATOS'],
-    ['id="saveInfoPersonal">?? GUARDAR INFORMACIÓN</button>', 'id="saveInfoPersonal">💾 GUARDAR INFORMACIÓN</button>'],
-    ['id="savePreferencias">?? GUARDAR PREFERENCIAS</button>', 'id="savePreferencias">💾 GUARDAR PREFERENCIAS</button>'],
-    ['<option value="oscuro">?? Oscuro</option>', '<option value="oscuro">🌙 Oscuro</option>'],
-    ['<option value="claro">?? Claro</option>', '<option value="claro">☀️ Claro</option>'],
-    ['<option value="sistema">?? Según sistema</option>', '<option value="sistema">💻 Según sistema</option>'],
-    ['id="saveCpr">?? GUARDAR</button>', 'id="saveCpr">💾 GUARDAR</button>'],
-    ['id="resetCpr">? AUTO</button>', 'id="resetCpr">↺ AUTO</button>'],
-    ['<span class="cfg-bg-mode-icon">?</span>', '<span class="cfg-bg-mode-icon">🌌</span>'],
-    ['<span class="cfg-bg-mode-icon">??</span>\n                        COLOR', '<span class="cfg-bg-mode-icon">🎨</span>\n                        COLOR'],
-    ['<span class="cfg-bg-mode-icon">??</span>\n                        IMAGEN', '<span class="cfg-bg-mode-icon">🖼️</span>\n                        IMAGEN'],
-    ['id="saveFondo">? APLICAR FONDO</button>', 'id="saveFondo">✓ APLICAR FONDO</button>'],
-    ['id="clearFondo">? RESTAURAR POR DEFECTO</button>', 'id="clearFondo">↺ RESTAURAR POR DEFECTO</button>'],
-    ['Íconos de ? Visto y Me gusta', 'Íconos de 👁 Visto y ❤ Me gusta'],
-    ['id="saveApariencia">?? GUARDAR APARIENCIA</button>', 'id="saveApariencia">💾 GUARDAR APARIENCIA</button>'],
-    ['id="exportData">?? EXPORTAR MIS DATOS (JSON)</button>', 'id="exportData">📤 EXPORTAR MIS DATOS (JSON)</button>'],
-    ['id="deleteUserBtn">?? ELIMINAR USUARIO</button>', 'id="deleteUserBtn">🗑️ ELIMINAR USUARIO</button>'],
-    ['id="clearAllBtn">? BORRAR TODO EL ALMACENAMIENTO</button>', 'id="clearAllBtn">⚠️ BORRAR TODO EL ALMACENAMIENTO</button>'],
-    ['id="saveAll">?? GUARDAR TODOS LOS CAMBIOS</button>', 'id="saveAll">💾 GUARDAR TODOS LOS CAMBIOS</button>'],
+// ============================================================
+// FIX: privacidad.html, terminos.html
+// ============================================================
+for (const f of ['privacidad.html', 'terminos.html']) {
+  console.log(`\n=== ${f} ===`);
+  fixFile(f, [
+    [F + '\u0161ltima', '\u00DAltima'],
+  ]);
+}
+
+// ============================================================
+// FIX: configuracion.html (complete)
+// ============================================================
+console.log('\n=== configuracion.html ===');
+
+// Helper: same corruption patterns
+const P_O = F + '\u201C';
+const P_FLAG = F + '\u0178\u2021' + F + F + '\u0178\u2021' + F;
+const P_JP = F + '\u2014' + F + F + '\u0153' + F + F + '\u017E';
+const P_GEAR = F + '\u0161\u2122\uFE0F';
+const P_MOON = F + '\u0178\u0153\u2122';
+const P_SUN = F + '\u02DC\u20AC\uFE0F';
+const P_SYSTEM = F + '\u0178\u2019' + F;
+const P_CHECK = F + '\u0153\u201C';
+const P_BRUSH = F + '\u0178\u017D' + F;
+const P_LOCK = F + '\u0178\u201D\u2019';
+const P_CARD = F + '\u0178\u201D' + F;
+const P_FRAME = F + '\u0178\u2013\uFE0F';
+const P_CARDS = F + '\u0153' + F;
+const P_PERSONAL = F + '\u0178\u2018' + F;
+const P_SAVE = F + '\u0178\u2019' + F;
+const P_IMPORT = F + '\u0178\u201C' + F;
+const P_DEL = F + '\u0178\u2014\u2018\uFE0F';
+const P_WARN = F + '\u0161' + F + '\uFE0F';
+const P_RESET = F + '\u2020' + F;
+const P_DEF = F + '\u0178\u0152\u0152';
+const P_EYE = F + '\u0178\u2018\uFE0F';
+
+fixFile('configuracion.html', [
+  // --- FIX 1: CONFIGURACIÓN y INFORMACIÓN ---
+  ['CONFIGURACI' + P_O + 'N', 'CONFIGURACIÓN'],
+  ['INFORMACI' + P_O + 'N', 'INFORMACIÓN'],
+  ['INFORMACI' + P_O + 'N PERSONAL', 'INFORMACIÓN PERSONAL'],
+
+  // --- FIX 2: Panel icons (match with context) ---
+  [P_PERSONAL + '</span>\r\n                    INFORMACIÓN PERSONAL', '\uD83D\uDCCB</span>\r\n                    INFORMACIÓN PERSONAL'],
+  [P_PERSONAL + '</span> INFORMACIÓN PERSONAL', '\uD83D\uDCCB</span> INFORMACIÓN PERSONAL'],
+  [P_GEAR + '</span> PREFERENCIAS', '\u2699\uFE0F</span> PREFERENCIAS'],
+  [P_BRUSH + '</span> COLORES DE LA APP', '\uD83C\uDFA8</span> COLORES DE LA APP'],
+  [P_CARD + '</span> TARJETAS POR FILA', '\uD83C\uDCCF</span> TARJETAS POR FILA'],
+  [P_FRAME + '</span> FONDO DE PANTALLA', '\uD83D\uDDBC\uFE0F</span> FONDO DE PANTALLA'],
+  [P_CARDS + '</span> APARIENCIA DE CARDS', '\uD83C\uDCB4</span> APARIENCIA DE CARDS'],
+  [P_LOCK + '</span> PRIVACIDAD Y DATOS', '\uD83D\uDD12</span> PRIVACIDAD Y DATOS'],
+
+  // --- FIX 3: Country flags ---
+  ['Argentina ' + P_FLAG, 'Argentina \uD83C\uDDE6\uD83C\uDDF7'],
+  ['M\u00E9xico ' + P_FLAG, 'M\u00E9xico \uD83C\uDDF2\uD83C\uDDFD'],
+  ['Espa\u00F1a ' + P_FLAG, 'Espa\u00F1a \uD83C\uDDEA\uD83C\uDDF8'],
+  ['Chile ' + P_FLAG, 'Chile \uD83C\uDDE8\uD83C\uDDF1'],
+  ['Colombia ' + P_FLAG, 'Colombia \uD83C\uDDE8\uD83C\uDDF4'],
+  ['Uruguay ' + P_FLAG, 'Uruguay \uD83C\uDDFA\uD83C\uDDFE'],
+  ['Per\u00FA ' + P_FLAG, 'Per\u00FA \uD83C\uDDF5\uD83C\uDDEA'],
+  ['Venezuela ' + P_FLAG, 'Venezuela \uD83C\uDDFB\uD83C\uDDEA'],
+  ['Ecuador ' + P_FLAG, 'Ecuador \uD83C\uDDEA\uD83C\uDDE8'],
+  ['Bolivia ' + P_FLAG, 'Bolivia \uD83C\uDDE7\uD83C\uDDF4'],
+  ['Paraguay ' + P_FLAG, 'Paraguay \uD83C\uDDF5\uD83C\uDDFE'],
+
+  // --- FIX 4: Japanese language ---
+  [P_JP + '\u201D', '\u65E5\u672C\u8A9E'],
+  ['\u65E5\u672C\u8A9E ' + P_FLAG, '\u65E5\u672C\u8A9E \uD83C\uDDEF\uD83C\uDDF5'],
+
+  // --- FIX 5: Save buttons ---
+  [P_SAVE + ' GUARDAR INFORMACIÓN', '\uD83D\uDCBE GUARDAR INFORMACIÓN'],
+  [P_SAVE + ' GUARDAR PREFERENCIAS', '\uD83D\uDCBE GUARDAR PREFERENCIAS'],
+  [P_SAVE + ' GUARDAR APARIENCIA', '\uD83D\uDCBE GUARDAR APARIENCIA'],
+  [P_SAVE + ' GUARDAR TODOS LOS CAMBIOS', '\uD83D\uDCBE GUARDAR TODOS LOS CAMBIOS'],
+  [P_SAVE + ' GUARDAR</button>', '\uD83D\uDCBE GUARDAR</button>'],
+
+  // --- FIX 6: Theme options ---
+  [P_MOON + ' Oscuro', '\uD83C\uDF19 Oscuro'],
+  [P_SUN + ' Claro', '\u2600\uFE0F Claro'],
+  [P_SYSTEM + ' Seg\u00FAn sistema', '\uD83D\uDCBB Seg\u00FAn sistema'],
+
+  // --- FIX 7: Apply/reset buttons ---
+  ['>' + F + ' APLICAR COLORES', '>\u2705 APLICAR COLORES'],
+  ['>' + F + ' RESTABLECER', '>\uD83D\uDD04 RESTABLECER'],
+  [P_RESET + ' AUTO', '\uD83D\uDD04 AUTO'],
+
+  // --- FIX 8: Background icons ---
+  [P_DEF + '</span>', '\uD83C\uDF0C</span>'],
+  ['colores' + F + ' APLICAR FONDO', '\u2705 APLICAR FONDO'], // let's be more specific
+  [P_CHECK + ' APLICAR FONDO', '\u2705 APLICAR FONDO'],
+
+  // --- FIX 9: Clear/restore background ---
+  ['clearFondo\">' + F + '\u2020' + ' RESTAURAR POR DEFECTO', 'clearFondo\">\uD83D\uDD04 RESTAURAR POR DEFECTO'],
+
+  // --- FIX 10: Description text ---
+  ['\u00CDconos de ' + P_EYE + ' Visto', '\u00CDconos de \uD83D\uDC41\uFE0F Visto'],
+  ['\u00CDconos de ' + F + '\u0178\u2018' + F + ' Visto', '\u00CDconos de \uD83D\uDC41\uFE0F Visto'],
+
+  // --- FIX 11: Privacy buttons ---
+  ['exportData\">' + P_IMPORT + ' EXPORTAR MIS DATOS (JSON)', 'exportData\">\uD83D\uDCE5 EXPORTAR MIS DATOS (JSON)'],
+  ['deleteUserBtn\">' + P_DEL + ' ELIMINAR USUARIO', 'deleteUserBtn\">\uD83D\uDDD1\uFE0F ELIMINAR USUARIO'],
+  ['clearAllBtn\">' + P_WARN + ' BORRAR TODO EL ALMACENAMIENTO', 'clearAllBtn\">\u26A0\uFE0F BORRAR TODO EL ALMACENAMIENTO'],
+
+  // --- FIX 12: Global save/reset buttons ---
+  ['resetAll\">' + F + ' RESTABLECER TODO', 'resetAll\">\uD83D\uDD04 RESTABLECER TODO'],
+  
+  // remaining bg-mode-icon patterns (these don't have the panel icon context)
+  // The bg-mode-icon with P_BRUSH should be color palette
 ]);
-write('configuracion.html', cfg);
 
-// --- common-ui.js ---
-let commonUi = read('js/core/common-ui.js');
-commonUi = commonUi.replace(/Â©/g, '©');
-commonUi = commonUi.replace(/â¢/g, '•');
-commonUi = commonUi.replace(/cargÃ³/g, 'cargó');
-commonUi = commonUi.replace(/ââ/g, '──');
-commonUi = commonUi.replace(/â/g, '→');
-write('js/core/common-ui.js', commonUi);
+// After main fixes, do a second pass for remaining corruption
+console.log('\n=== Second pass: checking remaining corruption ===');
 
-// --- core-bundle.js: same footer/comment fixes ---
-let bundle = read('js/core-bundle.js');
-bundle = bundle.replace(/Â©/g, '©');
-bundle = bundle.replace(/â¢/g, '•');
-bundle = bundle.replace(/cargÃ³/g, 'cargó');
-bundle = bundle.replace(/ââ/g, '──');
-bundle = bundle.replace(/â/g, '→');
-write('js/core-bundle.js', bundle);
+const files = ['index.html', 'anime.html', 'manga.html', 'novelas.html', 'detalle.html', 
+               'usuario.html', 'mis-listas.html', 'privacidad.html', 'terminos.html', 
+               'configuracion.html'];
 
-console.log('Done.');
+for (const f of files) {
+  let c = fs.readFileSync(f, 'utf8');
+  let count = 0;
+  for (let i = 0; i < c.length; i++) {
+    if (c[i] === F) { count++; break; }
+  }
+  if (count > 0) {
+    console.log(`  ${f}: STILL HAS CORRUPTION`);
+  } else {
+    console.log(`  ${f}: CLEAN`);
+  }
+}

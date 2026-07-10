@@ -54,6 +54,25 @@
 </a>`;
     };
 
+    // ── NAV TOGGLE (Hamburger) ──
+    const injectNavToggle = () => {
+        const nav = document.querySelector('.destiny-navbar');
+        if (!nav || nav.querySelector('.nav-toggle')) return;
+
+        const toggle = document.createElement('button');
+        toggle.className = 'nav-toggle';
+        toggle.setAttribute('aria-label', 'Menú de navegación');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.innerHTML = '<span class="nav-toggle-icon" aria-hidden="true"></span><span class="nav-toggle-text">Menú</span>';
+
+        toggle.addEventListener('click', () => {
+            const isOpen = nav.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        nav.insertBefore(toggle, document.getElementById('nav-links-container'));
+    };
+
     // ── NAV LINKS ──
     const injectNavLinks = () => {
         const el = document.getElementById("nav-links-container");
@@ -311,6 +330,7 @@
     ensureSkipLink();
     ensureMainTarget();
     injectNavBrand();
+    injectNavToggle();
     injectNavLinks();
     injectLoginButton();
     injectFooter();

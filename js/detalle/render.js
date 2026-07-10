@@ -20,7 +20,6 @@ function renderDetalle(item, nombreUrl, categoria) {
         return;
     }
 
-    item = mergeDetalles(item);
     try {
         document.body.setAttribute('data-detail-cat', String(categoria || 'manga'));
     } catch { /* no-op (body attr) */ }

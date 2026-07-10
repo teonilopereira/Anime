@@ -192,9 +192,14 @@ body.login-page {
         font-size: 0.72rem;
     }
 
+    .login-actions {
+        gap: 8px;
+    }
+
     .login-btn {
-        min-height: 40px;
-        font-size: 0.72rem;
+        width: 100%;
+        min-height: 44px;
+        font-size: 0.75rem;
     }
 
     .login-links {
