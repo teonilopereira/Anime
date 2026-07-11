@@ -22,7 +22,7 @@ if (typeof window.safeUrl !== 'function') {
             if (
                 parsed.protocol === 'http:' ||
                 parsed.protocol === 'https:' ||
-                (parsed.protocol === 'data:' && /^data:image\//i.test(url))
+                (parsed.protocol === 'data:' && url.toLowerCase().startsWith('data:image/'))
             ) {
                 return url;
             }

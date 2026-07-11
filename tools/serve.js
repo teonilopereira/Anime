@@ -105,4 +105,25 @@ http.createServer((req, res) => {
     console.log("Servidor corriendo en http://localhost:" + PORT);
     console.log("Abrí http://localhost:" + PORT + "/Login.html");
     console.log("Live reload activo — editá source files y el bundle se reconstruye solo.");
+    // BOM check — warn if any source file has Byte Order Mark
+    var bomFiles = [];
+    ["js/core","js/catalog","js/security","js/pages","js/detalle","css","."].forEach(function(dir) {
+        try {
+            var full = path.join(ROOT, dir);
+            fs.readdirSync(full).forEach(function(f) {
+                if (!/\.(html|js|css)$/.test(f)) return;
+                var fp = path.join(full, f);
+                try {
+                    var buf = fs.readFileSync(fp);
+                    if (buf.length >= 3 && buf[0] === 0xEF && buf[1] === 0xBB && buf[2] === 0xBF) {
+                        bomFiles.push(path.relative(ROOT, fp));
+                    }
+                } catch(_) {}
+            });
+        } catch(_) {}
+    });
+    if (bomFiles.length) {
+        console.warn("⚠ BOM detectado en:", bomFiles.join(", "));
+        console.warn("  Ejecutá: node tools/strip-bom.js");
+    }
 });

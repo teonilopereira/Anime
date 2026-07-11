@@ -50,11 +50,7 @@ function getApiCatalogInfo(categoria, item) {
 
 
 function normalizeCatalogGenre(text) {
-    return String(text || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .trim();
+    return normalizeText(text).trim();
 }
 
 
@@ -161,7 +157,7 @@ function _buildProgressIndex(userId) {
                 index.novelas.get(nvId).add(nvNum);
             }
         }
-    } catch (_) {}
+    } catch (e) { console.warn('_buildProgressIndex failed:', e); }
     _progressIndex = index;
     _progressIndexUser = userId;
     return index;
@@ -252,7 +248,7 @@ function buildCatalogCardHtml(options) {
 
     var safeImg = safeUrl(image);
     return `
-    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="catalog-card-shell">
             <div class="catalog-card-inner">
@@ -260,7 +256,7 @@ function buildCatalogCardHtml(options) {
                     <div class="card-inner">
                         <div class="card-front">
                             <div class="catalog-card-poster">
-                                <img src="${escapeHtml(safeImg)}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
+                                <img src="${safeImg}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
                             </div>
                         </div>
                         <div class="card-back card-back-neon">

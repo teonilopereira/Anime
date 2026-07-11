@@ -24,6 +24,8 @@
             .replace(/\p{Diacritic}/gu, "");
     }
 
+    window.normalizeText = normalizeText;
+
     function getCurrentUserId() {
         const user = window.AppSupabase?.getCurrentUserSync?.()
                   || window.AppSupabase?.client?.auth?.user?.()

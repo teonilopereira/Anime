@@ -5509,5 +5509,105 @@ input, select, textarea, button {
     }
 }
 
-
+/* ─── Age Gate Modal ─── */
+.age-gate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(6px);
+    animation: ageGateFadeIn 0.2s ease;
+}
+.age-gate-modal {
+    background: #12131a;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(168, 85, 247, 0.15);
+    animation: ageGateSlideUp 0.25s ease;
+}
+.age-gate-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+.age-gate-title {
+    margin: 0 0 8px 0;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.04em;
+}
+.age-gate-text {
+    margin: 0 0 12px 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+.age-gate-question {
+    margin: 0 0 20px 0;
+    color: #c084fc;
+    font-weight: 600;
+    font-size: 1rem;
+}
+.age-gate-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.age-gate-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.age-gate-yes {
+    background: linear-gradient(135deg, #6d28d9, #a855f7);
+    color: #fff;
+}
+.age-gate-yes:hover {
+    background: linear-gradient(135deg, #7c3aed, #b974f7);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(109, 40, 217, 0.4);
+}
+.age-gate-no {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.age-gate-no:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+}
+@keyframes ageGateFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes ageGateSlideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 480px) {
+    .age-gate-modal {
+        padding: 24px 20px;
+    }
+    .age-gate-title {
+        font-size: 1.1rem;
+    }
+    .age-gate-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
 

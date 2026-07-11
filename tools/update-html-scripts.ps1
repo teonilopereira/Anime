@@ -70,7 +70,8 @@ foreach ($page in $htmlPages) {
         
         if ($content.Contains($oldNorm)) {
             $content = $content.Replace($oldNorm, $newNorm)
-            Set-Content $page $content -Encoding UTF8 -NoNewline
+            # UTF8 without BOM (Set-Content -Encoding UTF8 injects BOM in PS 5.1)
+            [System.IO.File]::WriteAllText($page, $content, [System.Text.UTF8Encoding]::new($false))
             Write-Host "ACTUALIZADO: $page"
         } else {
             Write-Host "MANUAL (bloque distinto): $page — revisar manualmente"

@@ -6,6 +6,16 @@ function write(key, val) {
     try { localStorage.setItem(key, val); } catch {}
 }
 
+function sanitizeBgUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    if (url.startsWith('data:image/')) return url;
+    try {
+        var parsed = new URL(url);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+    } catch (_) {}
+    return '';
+}
+
 function applyBackgroundPreference() {
     const body = document.body;
     const mode = read('pref:bgMode', 'default');
@@ -21,9 +31,9 @@ function applyBackgroundPreference() {
         body.style.background = 'linear-gradient(180deg, #000000 0%, ' + color + ' 100%)';
         body.style.backgroundAttachment = 'fixed';
     } else if (mode === 'image') {
-        const imageUrl = read('pref:bgImage', '');
+        const imageUrl = sanitizeBgUrl(read('pref:bgImage', ''));
         if (imageUrl) {
-            body.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.62), rgba(0,0,0,.76)), url("' + String(imageUrl).replaceAll('"', '\\"') + '")';
+            body.style.backgroundImage = 'linear-gradient(rgba(0,0,0,.62), rgba(0,0,0,.76)), url("' + imageUrl + '")';
             body.style.backgroundSize = 'cover';
             body.style.backgroundPosition = 'center';
             body.style.backgroundRepeat = 'no-repeat';

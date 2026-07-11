@@ -1,4 +1,4 @@
-﻿/* === Anime Destiny Core Bundle === */
+/* === Anime Destiny Core Bundle === */
 
 /* ========================================== */
 /* === FILE: js/core/config.js === */
@@ -234,7 +234,10 @@
         LOGIN_FALLBACK_REDIRECT_MS: 1500,
         POLL_INTERVAL_MS: 100,
         MODAL_CLOSE_DELAY_MS: 800,
-        MODAL_CLOSE_LONG_DELAY_MS: 2500
+        MODAL_CLOSE_LONG_DELAY_MS: 2500,
+        COMMENT_MAX_LENGTH: 2000,
+        COMMENTS_PER_PAGE: 20,
+        COMMENT_RATE_LIMIT_MS: 5000
     };
     window.AnimeDestiny = window.AnimeDestiny || {};
     window.AnimeDestiny.Constants = C;
@@ -592,7 +595,7 @@
         try {
             var json = await mdFetch('/manga' + params);
             return (json?.data || []).map(function (m) { return mdItemToCard(m); }).filter(Boolean);
-        } catch (e) { return []; }
+        } catch (e) { console.warn('fetchMangaDexPage failed:', e); return []; }
     }
 
     function normalizeTitle(t) {
@@ -1021,7 +1024,7 @@ if (typeof window.safeUrl !== 'function') {
             if (
                 parsed.protocol === 'http:' ||
                 parsed.protocol === 'https:' ||
-                (parsed.protocol === 'data:' && /^data:image\//i.test(url))
+                (parsed.protocol === 'data:' && url.toLowerCase().startsWith('data:image/'))
             ) {
                 return url;
             }
@@ -1294,7 +1297,8 @@ async function waitForSupabase() {
                 const photoUrl = photoUrlFromProfile(user, profile);
                 if (photoUrl && (typeof window.safeUrl !== 'function' || window.safeUrl(photoUrl))) {
                     avatarEl.classList.add('has-image');
-                    avatarEl.style.backgroundImage = 'url("' + photoUrl.replace(/[\\"()]/g, '') + '")';
+                    var cleanUrl = photoUrl.replace(/[\\"'()]/g, '');
+                    avatarEl.style.backgroundImage = 'url("' + cleanUrl + '")';
                 } else {
                     avatarEl.classList.remove('has-image');
                     avatarEl.style.removeProperty('background-image');
@@ -1389,7 +1393,7 @@ async function waitForSupabase() {
                     } else if (error.message?.toLowerCase().includes("password")) {
                         setMsg("La contraseña es muy débil. Usá al menos 6 caracteres.");
                     } else {
-                        setMsg("Error al crear cuenta: " + error.message);
+                        setMsg("Error al crear cuenta. Intentá de nuevo.");
                     }
                     return;
                 }
@@ -1440,7 +1444,7 @@ async function waitForSupabase() {
                            error.message?.toLowerCase().includes("fetch")) {
                     setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
                 } else {
-                    setMsg("Error al iniciar sesión: " + error.message);
+                    setMsg("Error al iniciar sesión. Intentá de nuevo.");
                 }
                 return;
             }
@@ -1655,7 +1659,7 @@ window.getCurrentUser      = getCurrentUser;
             if (
                 parsed.protocol === "http:" ||
                 parsed.protocol === "https:" ||
-                (parsed.protocol === "data:" && /^data:image\//i.test(url))
+                (parsed.protocol === "data:" && url.toLowerCase().startsWith("data:image/"))
             ) {
                 return url;
             }
@@ -1747,6 +1751,8 @@ window.getCurrentUser      = getCurrentUser;
             .normalize("NFD")
             .replace(/\p{Diacritic}/gu, "");
     }
+
+    window.normalizeText = normalizeText;
 
     function getCurrentUserId() {
         const user = window.AppSupabase?.getCurrentUserSync?.()
@@ -1975,7 +1981,7 @@ window.getCurrentUser      = getCurrentUser;
 
     function getSyncQueue() {
         try { return JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)) || []; }
-        catch { return []; }
+        catch (e) { console.warn('getSyncQueue: corrupt data, resetting:', e); return []; }
     }
 
     function saveSyncQueue(queue) {
@@ -2116,7 +2122,8 @@ window.getCurrentUser      = getCurrentUser;
                 if (k.startsWith(prefix) && UserStore.getItem(k)) count++;
             }
             return count;
-        } catch {
+        } catch (e) {
+            console.warn('countKeysWithPrefix failed:', e);
             return 0;
         }
     }
@@ -2133,7 +2140,7 @@ window.getCurrentUser      = getCurrentUser;
                 if (key.endsWith('|fav'))         fav++;
                 else if (key.endsWith('|viewed')) viewed++;
             }
-        } catch (_) {}
+        } catch (e) { console.warn('countUserStatesBoth failed:', e); }
         return { fav, viewed };
     }
 
@@ -2266,8 +2273,8 @@ window.getCurrentUser      = getCurrentUser;
                 const watched = countKeysWithPrefix(`u:${userId}|anime:${itemId}|s:`);
                 return Math.min(100, Math.round((watched / total) * 100));
             }
-        } catch {
-            // ignore
+        } catch (e) {
+            console.warn('getProgressPercentForItem failed:', e);
         }
         return null;
     }
@@ -2404,7 +2411,7 @@ window.getCurrentUser      = getCurrentUser;
                 if (k.endsWith('|fav'))         favSet.add(k.slice(prefix.length, k.length - 4));
                 else if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
             }
-        } catch (_) {}
+        } catch (e) { console.warn('applyRemoteStateToCards scan failed:', e); }
         cards.forEach(card => {
             const itemId = card.getAttribute('data-item-id');
             if (!itemId) return;
@@ -2423,7 +2430,9 @@ window.getCurrentUser      = getCurrentUser;
     function syncStatesFromSupabase(category, userId, cards) {
         const client = window.AppSupabase;
         if (!client?.loadItemStates || !client?.isSignedIn?.()) return;
-        client.loadItemStates('').then((states) => {
+        const validCategories = ['anime', 'manga', 'novelas'];
+        const filter = validCategories.includes(category) ? category : '';
+        client.loadItemStates(filter).then((states) => {
             if (!Array.isArray(states)) return;
             states.forEach((state) => {
                 const key = state.item_id;
@@ -2455,7 +2464,7 @@ window.getCurrentUser      = getCurrentUser;
                 if (k.endsWith('|fav'))    favSet.add(k.slice(prefix.length, k.length - 4));
                 if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
             }
-        } catch (_) {}
+        } catch (e) { console.warn('cargarEstadosBotones scan failed:', e); }
 
         cards.forEach(card => {
             const itemId = card.getAttribute('data-item-id');
@@ -2598,11 +2607,7 @@ function getApiCatalogInfo(categoria, item) {
 
 
 function normalizeCatalogGenre(text) {
-    return String(text || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .trim();
+    return normalizeText(text).trim();
 }
 
 
@@ -2709,7 +2714,7 @@ function _buildProgressIndex(userId) {
                 index.novelas.get(nvId).add(nvNum);
             }
         }
-    } catch (_) {}
+    } catch (e) { console.warn('_buildProgressIndex failed:', e); }
     _progressIndex = index;
     _progressIndexUser = userId;
     return index;
@@ -2800,7 +2805,7 @@ function buildCatalogCardHtml(options) {
 
     var safeImg = safeUrl(image);
     return `
-    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="catalog-card-shell">
             <div class="catalog-card-inner">
@@ -2808,7 +2813,7 @@ function buildCatalogCardHtml(options) {
                     <div class="card-inner">
                         <div class="card-front">
                             <div class="catalog-card-poster">
-                                <img src="${escapeHtml(safeImg)}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
+                                <img src="${safeImg}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
                             </div>
                         </div>
                         <div class="card-back card-back-neon">
@@ -3044,6 +3049,34 @@ window.__catalogFilters = { search: '', genres: [], isAdult: false };
 var _genreWidgetsListenersAdded = false;
 var _searchListenersAdded = false;
 
+/* ─── NSFW Age Gate Modal ─── */
+function showNsfwAgeGate(onConfirm) {
+    if (document.getElementById('ageGateOverlay')) return;
+    var overlay = document.createElement('div');
+    overlay.id = 'ageGateOverlay';
+    overlay.className = 'age-gate-overlay';
+    overlay.innerHTML =
+        '<div class="age-gate-modal">' +
+            '<div class="age-gate-icon">⚠️</div>' +
+            '<h3 class="age-gate-title">Contenido para adultos</h3>' +
+            '<p class="age-gate-text">Este contenido puede no ser apto para menores de edad.</p>' +
+            '<p class="age-gate-question">¿Sos mayor de edad?</p>' +
+            '<div class="age-gate-actions">' +
+                '<button class="age-gate-btn age-gate-yes" type="button">Sí, tengo edad</button>' +
+                '<button class="age-gate-btn age-gate-no" type="button">No</button>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('.age-gate-yes').addEventListener('click', function () {
+        overlay.remove();
+        if (typeof onConfirm === 'function') onConfirm(true);
+    });
+    overlay.querySelector('.age-gate-no').addEventListener('click', function () {
+        overlay.remove();
+        if (typeof onConfirm === 'function') onConfirm(false);
+    });
+}
+
 
 function inicializarBusquedaCatalogo() {
     const categoria = document.body.getAttribute('data-page');
@@ -3076,10 +3109,7 @@ function inicializarBusquedaCatalogo() {
     }
 
     function normalize(text) {
-        return String(text || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/\p{Diacritic}/gu, '');
+        return normalizeText(text);
     }
 
     function getCatalogItems() {
@@ -3138,7 +3168,7 @@ function inicializarBusquedaCatalogo() {
                     if (k.endsWith('|fav'))         favSet.add(k.slice(prefix.length, k.length - 4));
                     else if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
                 }
-            } catch (_) {}
+            } catch (e) { console.warn('State filter scan failed:', e); }
         }
         
         let visible = 0;
@@ -3303,6 +3333,36 @@ function inicializarBusquedaCatalogo() {
     }
     _searchListenersAdded = true;
 
+    // ── NSFW pref: read from localStorage and set toggle ──
+    var nsfwToggle = document.getElementById('nsfwToggle');
+    var nsfwPrefStored = false;
+    try { nsfwPrefStored = localStorage.getItem('pref:nsfw') === 'true'; } catch (_) {}
+    if (nsfwToggle) {
+        nsfwToggle.checked = nsfwPrefStored;
+        window.__catalogFilters.isAdult = nsfwPrefStored;
+        // Intercept toggle: age gate on enable + reload catalog
+        nsfwToggle.addEventListener('change', function () {
+            if (nsfwToggle.checked) {
+                showNsfwAgeGate(function (confirmed) {
+                    if (confirmed) {
+                        try { localStorage.setItem('pref:nsfw', 'true'); } catch (_) {}
+                        window.__catalogFilters.isAdult = true;
+                        if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+                        else applyFilter();
+                    } else {
+                        nsfwToggle.checked = false;
+                        window.__catalogFilters.isAdult = false;
+                    }
+                });
+            } else {
+                try { localStorage.setItem('pref:nsfw', 'false'); } catch (_) {}
+                window.__catalogFilters.isAdult = false;
+                if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+                else applyFilter();
+            }
+        });
+    }
+
     // ── Input: local filter + API suggestions ──
     input.addEventListener('input', () => {
         applyFilter();
@@ -3384,10 +3444,7 @@ function inicializarGeneroWidgets() {
     if (!categoria || !mainContainer) return;
 
     function normalize(text) {
-        return String(text || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/\p{Diacritic}/gu, '');
+        return normalizeText(text);
     }
 
     const counts = new Map();
@@ -3771,7 +3828,7 @@ async function inicializarPagina() {
     }
 
     function normalize(text) {
-        return String(text || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+        return normalizeText(text);
     }
 
     function getGenres(item) {

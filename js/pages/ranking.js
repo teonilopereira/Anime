@@ -10,7 +10,7 @@
 
     function escapeHtml(str) {
         if (typeof str !== "string") return "";
-        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     function getMedal(rank) {
@@ -52,13 +52,23 @@
             var exp = p.exp != null ? p.exp : 0;
             var rank = i + 1;
             var medal = getMedal(rank);
-            var initials = escapeHtml(getInitials(p.display_name || p.username));
             var isCurrentUser = currentUserId && (p.id === currentUserId);
+            var photoUrl = p.photo_url || '';
+
+            var avatarHtml;
+            if (photoUrl) {
+                var initials = escapeHtml(getInitials(p.display_name || p.username));
+                avatarHtml = '<span class="ranking-avatar ranking-avatar-img">' +
+                    '<img src="' + escapeHtml(photoUrl) + '" alt="" loading="lazy" data-initials="' + initials + '">' +
+                    '</span>';
+            } else {
+                avatarHtml = '<span class="ranking-avatar">' + escapeHtml(getInitials(p.display_name || p.username)) + '</span>';
+            }
 
             html += '<tr class="' + (isCurrentUser ? 'ranking-row-own' : '') + '">' +
                 '<td class="ranking-rank">' + (medal || rank) + '</td>' +
                 '<td class="ranking-name">' +
-                    '<span class="ranking-avatar">' + initials + '</span> ' + name +
+                    avatarHtml + ' ' + name +
                     (isCurrentUser ? ' <span class="ranking-badge">TÚ</span>' : '') +
                 '</td>' +
                 '<td class="ranking-level">' + level + '</td>' +
@@ -80,6 +90,19 @@
 
         container.innerHTML = html;
         container.className = "ranking-loaded";
+
+        if (!container._imgErrBound) {
+            container._imgErrBound = true;
+            container.addEventListener("error", function (e) {
+                if (e.target.tagName === "IMG") {
+                    var span = e.target.parentNode;
+                    if (span && span.classList.contains("ranking-avatar-img")) {
+                        span.classList.remove("ranking-avatar-img");
+                        span.textContent = e.target.getAttribute("data-initials") || "?";
+                    }
+                }
+            }, true);
+        }
 
         var btnLoadMore = document.getElementById("btnLoadMore");
         if (btnLoadMore) {
@@ -131,14 +154,9 @@
             var client = window.AppSupabase?.db || window.AppSupabase?.client;
             if (!client) { isLoading = false; return; }
             var from = currentPage * pageSize;
-            var to = from + pageSize - 1;
 
             var { data, error } = await client
-                .from("profiles_public")
-                .select("id, username, display_name, level, exp")
-                .order("level", { ascending: false })
-                .order("exp", { ascending: false })
-                .range(from, to);
+                .rpc("get_ranking_profiles", { p_limit: pageSize, p_offset: from });
 
             if (error) {
                 console.warn("Error cargando más rankings:", error.message);

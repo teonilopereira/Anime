@@ -10,7 +10,7 @@
 
     function getSyncQueue() {
         try { return JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)) || []; }
-        catch { return []; }
+        catch (e) { console.warn('getSyncQueue: corrupt data, resetting:', e); return []; }
     }
 
     function saveSyncQueue(queue) {
@@ -151,7 +151,8 @@
                 if (k.startsWith(prefix) && UserStore.getItem(k)) count++;
             }
             return count;
-        } catch {
+        } catch (e) {
+            console.warn('countKeysWithPrefix failed:', e);
             return 0;
         }
     }
@@ -168,7 +169,7 @@
                 if (key.endsWith('|fav'))         fav++;
                 else if (key.endsWith('|viewed')) viewed++;
             }
-        } catch (_) {}
+        } catch (e) { console.warn('countUserStatesBoth failed:', e); }
         return { fav, viewed };
     }
 
@@ -301,8 +302,8 @@
                 const watched = countKeysWithPrefix(`u:${userId}|anime:${itemId}|s:`);
                 return Math.min(100, Math.round((watched / total) * 100));
             }
-        } catch {
-            // ignore
+        } catch (e) {
+            console.warn('getProgressPercentForItem failed:', e);
         }
         return null;
     }
@@ -439,7 +440,7 @@
                 if (k.endsWith('|fav'))         favSet.add(k.slice(prefix.length, k.length - 4));
                 else if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
             }
-        } catch (_) {}
+        } catch (e) { console.warn('applyRemoteStateToCards scan failed:', e); }
         cards.forEach(card => {
             const itemId = card.getAttribute('data-item-id');
             if (!itemId) return;
@@ -458,7 +459,9 @@
     function syncStatesFromSupabase(category, userId, cards) {
         const client = window.AppSupabase;
         if (!client?.loadItemStates || !client?.isSignedIn?.()) return;
-        client.loadItemStates('').then((states) => {
+        const validCategories = ['anime', 'manga', 'novelas'];
+        const filter = validCategories.includes(category) ? category : '';
+        client.loadItemStates(filter).then((states) => {
             if (!Array.isArray(states)) return;
             states.forEach((state) => {
                 const key = state.item_id;
@@ -490,7 +493,7 @@
                 if (k.endsWith('|fav'))    favSet.add(k.slice(prefix.length, k.length - 4));
                 if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
             }
-        } catch (_) {}
+        } catch (e) { console.warn('cargarEstadosBotones scan failed:', e); }
 
         cards.forEach(card => {
             const itemId = card.getAttribute('data-item-id');

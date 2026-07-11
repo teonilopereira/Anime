@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org wss:; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Ajustá tu experiencia visual, cuentas y preferencias.">
     <meta name="keywords" content="configuración, ajustes, fondo, cards compactas, anime destiny, preferencias">
     <meta name="robots" content="noindex,follow">
@@ -18,7 +18,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.css">
+        <link rel="stylesheet" href="css/bundle.min.css">
 
     <link rel="stylesheet" href="css/configuracion.css">
 
@@ -167,9 +167,19 @@
                         <span class="cfg-switch-slider"></span>
                     </label>
                 </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label">Mostrar contenido NSFW</div>
+                        <div class="cfg-toggle-desc">Activar para ver contenido para adultos en el catálogo.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefNsfw">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
                 <div class="cfg-section-gap">
                     <div class="cfg-field">
-                        <label>Tema de la app</label>
+                        <label for="prefTema">Tema de la app</label>
                         <select id="prefTema">
                             <option value="oscuro">🌙 Oscuro</option>
                             <option value="claro">☀️ Claro</option>
@@ -187,33 +197,33 @@
                 </div>
                 <div class="cfg-color-grid">
                     <div class="cfg-color-item">
-                        <label>Acento principal</label>
+                        <label for="clrNeonPurple">Acento principal</label>
                         <input type="color" id="clrNeonPurple" value="#bc13fe">
                     </div>
                     <div class="cfg-color-item">
-                        <label>Acento navbar</label>
+                        <label for="clrNavAccent">Acento navbar</label>
                         <input type="color" id="clrNavAccent" value="#a855f7">
                     </div>
                     <div class="cfg-color-item">
-                        <label>Acento secundario</label>
+                        <label for="clrCyan">Acento secundario</label>
                         <input type="color" id="clrCyan" value="#00f2ff">
                     </div>
                     <div class="cfg-color-item">
-                        <label>Fondo oscuro</label>
+                        <label for="clrDarkBg">Fondo oscuro</label>
                         <input type="color" id="clrDarkBg" value="#050505">
                     </div>
                     <div class="cfg-color-item">
-                        <label>Texto principal</label>
+                        <label for="clrTextMain">Texto principal</label>
                         <input type="color" id="clrTextMain" value="#ffffff">
                     </div>
                     <div class="cfg-color-item">
-                        <label>Texto secundario</label>
+                        <label for="clrTextMuted">Texto secundario</label>
                         <input type="color" id="clrTextMuted" value="#b0b0b0">
                     </div>
                 </div>
                 <div class="cfg-btn-row">
-                    <button class="cfg-btn cfg-btn-primary" id="saveColores">? APLICAR COLORES</button>
-                    <button class="cfg-btn cfg-btn-secondary" id="resetColores">? RESTABLECER</button>
+                    <button class="cfg-btn cfg-btn-primary" id="saveColores">✅ APLICAR COLORES</button>
+                    <button class="cfg-btn cfg-btn-secondary" id="resetColores">🔄 RESTABLECER</button>
                 </div>
                 <p class="cfg-note">Los colores se aplican en todas las páginas con las variables CSS.</p>
             </div>
@@ -365,7 +375,7 @@
                 </div>
                 <div class="cfg-actions">
                      <button class="cfg-btn cfg-btn-primary" id="saveAll">💾 GUARDAR TODOS LOS CAMBIOS</button>
-                     <button class="cfg-btn cfg-btn-secondary" id="resetAll">? RESTABLECER TODO</button>
+                     <button class="cfg-btn cfg-btn-secondary" id="resetAll">🔄 RESTABLECER TODO</button>
                 </div>
             </div>
 

@@ -92,8 +92,8 @@ function getAllItems() {
                 try {
                     const item = JSON.parse(UserStore.getItem(key));
                     pushItem(item, item.__category || item.categoria);
-                } catch {
-                    /* item meta corrupto */
+                } catch (e) {
+                    console.warn('Corrupt itemMeta key:', key, e);
                 }
             });
         }
@@ -111,10 +111,9 @@ function getItemLink(item) {
 }
 
 function getUserItemState(userId, item) {
-    const remote = _remoteItemStates.find((state) => {
-        return String(state.item_id) === String(item.id)
-            && String(state.category || '') === String(item.__category || item.categoria || '');
-    });
+    const cat = String(item.__category || item.categoria || '');
+    const map = _getRemoteStatesMap();
+    const remote = map.get(String(item.id) + '|' + cat) || null;
 
     const fav = remote ? !!remote.fav : !!UserStore.getItem(statusStorageKeySafe(userId, item.id, 'fav'));
     const viewed = remote ? !!remote.viewed : !!UserStore.getItem(statusStorageKeySafe(userId, item.id, 'viewed'));
@@ -453,7 +452,9 @@ function renderProfileSummary() {
 }
 
 function getItemTs(userId, itemId) {
-    const remote = _remoteItemStates.find((state) => String(state.item_id) === String(itemId));
+    const map = _getRemoteStatesMap();
+    var remote = null;
+    map.forEach(function(v, k) { if (k.startsWith(String(itemId) + '|')) remote = v; });
     const raw = remote?.updated_at
         || UserStore.getItem('u:' + userId + '|item:' + itemId + '|ts')
         || UserStore.getItem('u:' + userId + '|item:' + itemId + '|progressTs')
@@ -464,6 +465,19 @@ function getItemTs(userId, itemId) {
 }
 
 let filterModeState = LIST_FILTERS.ALL;
+
+// Cached Map for O(1) lookups from _remoteItemStates
+let _remoteStatesMap = null;
+let _remoteStatesMapRef = null;
+function _getRemoteStatesMap() {
+    if (_remoteStatesMap && _remoteStatesMapRef === _remoteItemStates) return _remoteStatesMap;
+    _remoteStatesMap = new Map();
+    _remoteItemStates.forEach(function(s) {
+        _remoteStatesMap.set(String(s.item_id) + '|' + String(s.category || ''), s);
+    });
+    _remoteStatesMapRef = _remoteItemStates;
+    return _remoteStatesMap;
+}
 
 function bindControls() {
     const actions = [
@@ -499,37 +513,41 @@ function renderActividad() {
     }
 
     const allItems = getAllItems();
+
+    // Pre-build progress index: scan UserStore keys ONCE
+    const progressMap = new Map();
+    try {
+        UserStore.keys().forEach((key) => {
+            if (!key.startsWith(`u:${userId}|`)) return;
+            if (!UserStore.getItem(key)) return;
+            let itemId = null, chapter = '';
+            const animeM = key.match(/\|anime:(\d+)\|s:\d+\|ep:(\d+)$/);
+            if (animeM) { itemId = animeM[1]; chapter = 'EP ' + animeM[2]; }
+            if (!itemId) {
+                const mangaM = key.match(/\|manga:(\d+)\|vol:(\d+)$/);
+                if (mangaM) { itemId = mangaM[1]; chapter = 'Vol ' + mangaM[2]; }
+            }
+            if (!itemId) {
+                const novelaM = key.match(/\|novela:(\d+)\|vol:(\d+)$/);
+                if (novelaM) { itemId = novelaM[1]; chapter = 'Vol ' + novelaM[2]; }
+            }
+            if (itemId) {
+                const prev = progressMap.get(itemId) || { hasProgress: false, lastChapter: '' };
+                progressMap.set(itemId, { hasProgress: true, lastChapter: chapter || prev.lastChapter });
+            }
+        });
+    } catch (e) { console.warn('Activity progress scan failed:', e); }
+
     let actividadItems = [];
-    
-    // Buscar items con vistos o fav, o que tengan capítulos guardados
     allItems.forEach(item => {
         const fav = !!UserStore.getItem(`u:${userId}|item:${item.id}|fav`);
         const viewed = !!UserStore.getItem(`u:${userId}|item:${item.id}|viewed`);
+        const prog = progressMap.get(String(item.id));
+        const hasProgress = prog ? prog.hasProgress : false;
+        const lastChapter = prog ? prog.lastChapter : '';
         
-        let hasProgress = false;
-        let lastChapter = '';
-        
-        UserStore.keys().forEach((key) => {
-            if (!key.startsWith(`u:${userId}|`)) return;
-            // anime: u:userId|anime:id|s:0|ep:1  (siempre tiene |s:N| antes de |ep:)
-            if (key.includes(`|anime:${item.id}|s:`) && key.includes('|ep:')) {
-                hasProgress = true;
-                const epPart = key.split('|ep:')[1];
-                lastChapter = epPart ? `EP ${epPart}` : lastChapter;
-            }
-            // manga/novela: u:userId|manga:id|vol:1 or u:userId|novela:id|vol:1
-            if (key.includes(`|manga:${item.id}|vol:`) || key.includes(`|novela:${item.id}|vol:`)) {
-                hasProgress = true;
-                const volPart = key.split('|vol:')[1];
-                lastChapter = volPart ? `Vol ${volPart}` : lastChapter;
-            }
-        });
-
         if (fav || viewed || hasProgress) {
-            actividadItems.push({
-                ...item,
-                fav, viewed, hasProgress, lastChapter
-            });
+            actividadItems.push({ ...item, fav, viewed, hasProgress, lastChapter });
         }
     });
 
@@ -870,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const { data: { session } } = await window.AppSupabase.client.auth.getSession();
                 _sessionUser = session?.user ?? null;
-            } catch (_) {}
+            } catch (e) { console.warn('Auth session refresh failed:', e); }
         }
         await cargarEstadosDesdeSupabase();
         renderAll();

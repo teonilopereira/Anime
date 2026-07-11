@@ -136,7 +136,7 @@ async function inicializarPagina() {
     }
 
     function normalize(text) {
-        return String(text || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+        return normalizeText(text);
     }
 
     function getGenres(item) {

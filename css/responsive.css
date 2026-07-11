@@ -1,4 +1,4 @@
-﻿/* Responsive */
+/* Responsive */
 @media (max-width: 640px) {
     .modal-overlay {
         padding: 12px;
@@ -24,76 +24,6 @@
     .modal-footer {
         padding: 12px 16px 16px;
     }
-}
-.btn-resumen{
-    margin-top: 6px;
-    padding: 4px 8px;
-    border: none;
-    border-radius: 8px;
-    background: #22c55e;
-    color: white;
-    font-size: 11px;
-    cursor: pointer;
-
-    opacity: 0;
-    transform: scale(.8);
-    pointer-events: none;
-
-    transition: .25s;
-}
-
-.popup-resumen{
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.7);
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    opacity: 0;
-    pointer-events: none;
-
-    transition: .3s;
-    z-index: 9999;
-}
-
-.popup-resumen.show{
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.popup-content{
-    width: min(500px,90%);
-    max-height: 80vh;
-    overflow-y: hidden;
-
-    background: #111827;
-    border: 2px solid #22c55e;
-
-    padding: 20px;
-    border-radius: 16px;
-
-    color: white;
-}
-
-.popup-content h2{
-    margin-top: 0;
-    color: #22c55e;
-}
-
-.cerrar-popup{
-    margin-top: 20px;
-
-    padding: 10px 16px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: #22c55e;
-    color: white;
-
-    cursor: pointer;
 }
 
 /* ==========================================
@@ -225,14 +155,6 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
     background:
         radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.18), transparent 42%),
         linear-gradient(180deg, #050812 0%, #07020f 100%);
-}
-
-body[data-page="manga"] .genre-drawer,
-body[data-page="anime"] .genre-drawer,
-body[data-page="novelas"] .genre-drawer {
-    top: 96px;
-    border-color: rgba(0, 242, 255, 0.36);
-    background: rgba(3, 7, 18, 0.96);
 }
 
 @media (min-width: 1500px) {
@@ -1110,32 +1032,6 @@ body[data-page="listas"] .lists-empty {
     }
     body.menu-page .section-divider {
         padding: 0 12px;
-    }
-}
-
-/* ── Catalog genre drawer full-screen on small devices ── */
-@media (max-width: 640px) {
-    .genre-drawer {
-        position: fixed;
-        top: 0 !important;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100%;
-        max-width: 100%;
-        height: 100vh;
-        height: 100dvh;
-        z-index: 9999;
-        border-radius: 0;
-        border: none;
-        overflow-y: auto;
-
-    }
-    .genre-drawer.is-open {
-        display: block;
-    }
-    #genreDrawerTab {
-        display: flex;
     }
 }
 

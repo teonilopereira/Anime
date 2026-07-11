@@ -36,6 +36,7 @@ foreach ($f in $jsFiles) {
     }
 }
 
-Set-Content "js/core-bundle.js" $bundle -Encoding UTF8 -NoNewline
+# UTF8 without BOM (Set-Content -Encoding UTF8 injects BOM in PS 5.1)
+[System.IO.File]::WriteAllText("js/core-bundle.js", $bundle, [System.Text.UTF8Encoding]::new($false))
 $size = (Get-Item "js/core-bundle.js").Length
 Write-Host "core-bundle.js creado exitosamente: $([math]::Round($size/1024, 1)) KB"

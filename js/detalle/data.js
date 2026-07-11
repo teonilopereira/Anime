@@ -51,10 +51,13 @@ async function translateText(text, targetLang) {
 
 function getParams() {
     const params = new URLSearchParams(window.location.search);
+    const rawCat = (params.get('cat') || params.get('categoria') || '').toLowerCase();
+    const VALID_CATS = new Set(['anime', 'manga', 'novelas', 'detalle']);
+    const rawId = params.get('id') || '';
     return {
-        id: params.get('id'),
-        nombre: params.get('nombre'),
-        cat: params.get('cat') || params.get('categoria')
+        id: /^[a-z]?\d+$/i.test(rawId) ? rawId : '',
+        nombre: params.get('nombre') || '',
+        cat: VALID_CATS.has(rawCat) ? rawCat : 'manga'
     };
 }
 

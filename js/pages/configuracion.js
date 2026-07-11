@@ -1,6 +1,6 @@
-﻿/* ── Helpers ── */
+/* ── Helpers ── */
 function r(key, def = '') { try { return localStorage.getItem(key) || def; } catch { return def; } }
-function w(key, val) { try { localStorage.setItem(key, String(val)); } catch {} }
+function w(key, val) { try { localStorage.setItem(key, String(val)); } catch (e) { console.warn('config save failed:', key, e); } }
 function rb(key, def = false) { const v = r(key, null); return v === null ? def : v === 'true'; }
 
 function getCurrentUserName() {
@@ -9,7 +9,7 @@ function getCurrentUserName() {
             var u = window.AppSupabase.getCurrentUserSync();
             if (u) return u.user_metadata?.username || u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || 'Usuario';
         }
-    } catch {}
+    } catch (e) { console.warn('getCurrentUserName failed:', e); }
     return 'Invitado';
 }
 
@@ -19,6 +19,16 @@ function toast(msg, isError = false) {
     t.className = 'cfg-toast' + (isError ? ' error' : '');
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function sanitizeBgUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    if (url.startsWith('data:image/')) return url;
+    try {
+        var parsed = new URL(url);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.href;
+    } catch (_) {}
+    return '';
 }
 
 function applyBgToPage() {
@@ -31,9 +41,9 @@ function applyBgToPage() {
         body.style.background = `linear-gradient(180deg, #000000 0%, ${color} 100%)`;
         body.style.backgroundAttachment = 'fixed';
     } else if (mode === 'image') {
-        const url = r('pref:bgImage', '');
+        const url = sanitizeBgUrl(r('pref:bgImage', ''));
         if (url) {
-            body.style.backgroundImage = `linear-gradient(rgba(0,0,0,.62),rgba(0,0,0,.76)),url("${url.replaceAll('"','\\"')}")`;
+            body.style.backgroundImage = `linear-gradient(rgba(0,0,0,.62),rgba(0,0,0,.76)),url("${url}")`;
             body.style.backgroundSize = 'cover';
             body.style.backgroundPosition = 'center';
             body.style.backgroundRepeat = 'no-repeat';
@@ -105,6 +115,7 @@ function syncUI() {
     document.getElementById('prefReduceMotion').checked = rb('pref:reduceMotion', false);
     document.getElementById('prefShowProgress').checked = rb('pref:showProgress', true);
     document.getElementById('prefPublic').checked = r('pref:privacidad', 'publica') === 'publica';
+    document.getElementById('prefNsfw').checked = rb('pref:nsfw', false);
     document.getElementById('prefTema').value = r('pref:tema', 'oscuro');
 
     document.getElementById('compactCards2').checked = rb('pref:compactCards', false);
@@ -297,6 +308,7 @@ document.getElementById('savePreferencias').addEventListener('click', () => {
     w('pref:reduceMotion', document.getElementById('prefReduceMotion').checked);
     w('pref:showProgress', document.getElementById('prefShowProgress').checked);
     w('pref:privacidad', document.getElementById('prefPublic').checked ? 'publica' : 'privada');
+    w('pref:nsfw', document.getElementById('prefNsfw').checked);
     w('pref:tema', document.getElementById('prefTema').value);
     toast("✅ Preferencias guardadas");
 });
@@ -324,7 +336,7 @@ document.getElementById('exportData').addEventListener('click', async () => {
 
     ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
      'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => {
+     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history','pref:nsfw'].forEach(k => {
         const v = localStorage.getItem(k);
         if (v !== null) data.prefs[k] = v;
     });
@@ -376,7 +388,7 @@ document.getElementById('clearAllBtn').addEventListener('click', () => {
     if (!confirm('¿Borrar las preferencias de visualización? Los datos de progreso están seguros en Supabase.')) return;
     ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
      'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => localStorage.removeItem(k));
+     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history','pref:nsfw'].forEach(k => localStorage.removeItem(k));
     if (typeof UserStore !== 'undefined') UserStore.clear();
     toast("✅ Preferencias borradas");
     setTimeout(() => window.location.href = 'index.html', AnimeDestiny.Constants.PROFILE_REDIRECT_DELAY_MS || 1000);
@@ -398,7 +410,7 @@ document.getElementById('resetAll').addEventListener('click', () => {
     if (!confirm('¿Restablecer todas las preferencias a los valores por defecto?')) return;
     ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
      'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history'].forEach(k => localStorage.removeItem(k));
+     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history','pref:nsfw'].forEach(k => localStorage.removeItem(k));
     syncUI();
     applyBgToPage();
     toast("✅ Preferencias restablecidas");

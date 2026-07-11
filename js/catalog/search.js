@@ -8,6 +8,34 @@ window.__catalogFilters = { search: '', genres: [], isAdult: false };
 var _genreWidgetsListenersAdded = false;
 var _searchListenersAdded = false;
 
+/* ─── NSFW Age Gate Modal ─── */
+function showNsfwAgeGate(onConfirm) {
+    if (document.getElementById('ageGateOverlay')) return;
+    var overlay = document.createElement('div');
+    overlay.id = 'ageGateOverlay';
+    overlay.className = 'age-gate-overlay';
+    overlay.innerHTML =
+        '<div class="age-gate-modal">' +
+            '<div class="age-gate-icon">⚠️</div>' +
+            '<h3 class="age-gate-title">Contenido para adultos</h3>' +
+            '<p class="age-gate-text">Este contenido puede no ser apto para menores de edad.</p>' +
+            '<p class="age-gate-question">¿Sos mayor de edad?</p>' +
+            '<div class="age-gate-actions">' +
+                '<button class="age-gate-btn age-gate-yes" type="button">Sí, tengo edad</button>' +
+                '<button class="age-gate-btn age-gate-no" type="button">No</button>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('.age-gate-yes').addEventListener('click', function () {
+        overlay.remove();
+        if (typeof onConfirm === 'function') onConfirm(true);
+    });
+    overlay.querySelector('.age-gate-no').addEventListener('click', function () {
+        overlay.remove();
+        if (typeof onConfirm === 'function') onConfirm(false);
+    });
+}
+
 
 function inicializarBusquedaCatalogo() {
     const categoria = document.body.getAttribute('data-page');
@@ -40,10 +68,7 @@ function inicializarBusquedaCatalogo() {
     }
 
     function normalize(text) {
-        return String(text || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/\p{Diacritic}/gu, '');
+        return normalizeText(text);
     }
 
     function getCatalogItems() {
@@ -102,7 +127,7 @@ function inicializarBusquedaCatalogo() {
                     if (k.endsWith('|fav'))         favSet.add(k.slice(prefix.length, k.length - 4));
                     else if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
                 }
-            } catch (_) {}
+            } catch (e) { console.warn('State filter scan failed:', e); }
         }
         
         let visible = 0;
@@ -267,6 +292,36 @@ function inicializarBusquedaCatalogo() {
     }
     _searchListenersAdded = true;
 
+    // ── NSFW pref: read from localStorage and set toggle ──
+    var nsfwToggle = document.getElementById('nsfwToggle');
+    var nsfwPrefStored = false;
+    try { nsfwPrefStored = localStorage.getItem('pref:nsfw') === 'true'; } catch (_) {}
+    if (nsfwToggle) {
+        nsfwToggle.checked = nsfwPrefStored;
+        window.__catalogFilters.isAdult = nsfwPrefStored;
+        // Intercept toggle: age gate on enable + reload catalog
+        nsfwToggle.addEventListener('change', function () {
+            if (nsfwToggle.checked) {
+                showNsfwAgeGate(function (confirmed) {
+                    if (confirmed) {
+                        try { localStorage.setItem('pref:nsfw', 'true'); } catch (_) {}
+                        window.__catalogFilters.isAdult = true;
+                        if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+                        else applyFilter();
+                    } else {
+                        nsfwToggle.checked = false;
+                        window.__catalogFilters.isAdult = false;
+                    }
+                });
+            } else {
+                try { localStorage.setItem('pref:nsfw', 'false'); } catch (_) {}
+                window.__catalogFilters.isAdult = false;
+                if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+                else applyFilter();
+            }
+        });
+    }
+
     // ── Input: local filter + API suggestions ──
     input.addEventListener('input', () => {
         applyFilter();
@@ -348,10 +403,7 @@ function inicializarGeneroWidgets() {
     if (!categoria || !mainContainer) return;
 
     function normalize(text) {
-        return String(text || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/\p{Diacritic}/gu, '');
+        return normalizeText(text);
     }
 
     const counts = new Map();

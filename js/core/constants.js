@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     var C = {
         PER_PAGE: 40,
         MAX_PAGES: 250,
@@ -43,7 +43,10 @@
         LOGIN_FALLBACK_REDIRECT_MS: 1500,
         POLL_INTERVAL_MS: 100,
         MODAL_CLOSE_DELAY_MS: 800,
-        MODAL_CLOSE_LONG_DELAY_MS: 2500
+        MODAL_CLOSE_LONG_DELAY_MS: 2500,
+        COMMENT_MAX_LENGTH: 2000,
+        COMMENTS_PER_PAGE: 20,
+        COMMENT_RATE_LIMIT_MS: 5000
     };
     window.AnimeDestiny = window.AnimeDestiny || {};
     window.AnimeDestiny.Constants = C;

@@ -191,6 +191,9 @@ function renderApiDetalle(item, apiCat) {
         if (!found) {
             setDetailViewState('error', 'No encontrado', 'No se pudo encontrar el t\u00EDtulo en las APIs.');
         }
+        if (window.AnimeDestiny?.Comments?.load) {
+            window.AnimeDestiny.Comments.load(params.cat, params.id);
+        }
     });
 })();
 

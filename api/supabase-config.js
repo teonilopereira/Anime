@@ -4,7 +4,7 @@
  * Expone window.AppSupabase con la API pública.
  */
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/+esm';
 
 const runtimeConfig = window.AppConfig || {};
 
@@ -33,6 +33,7 @@ const supabase = createClient(runtimeConfig.supabaseUrl, runtimeConfig.supabaseA
 // ─── Estado de sesión en memoria ──────────────────────────────────
 let _currentUser  = null;
 let _sessionReady = false;
+let _profileCache = null;
 
 // ─── Listener de sesión ────────────────────────────────────────────
 // Registrado INMEDIATAMENTE después de createClient para no perder INITIAL_SESSION
@@ -41,6 +42,7 @@ const authListeners = new Set();
 supabase.auth.onAuthStateChange(async (event, session) => {
     _currentUser  = session?.user ?? null;
     _sessionReady = true;
+    if (!_currentUser) _profileCache = null;
 
     // NOTA: El perfil se crea automáticamente mediante el trigger handle_new_user()
     // en auth.users AFTER INSERT. No es necesario saveUserProfile() aquí.
@@ -118,6 +120,17 @@ async function getCurrentUserAsync() {
 async function ensureCurrentUserProfile(user, source = "") {
     if (!user) return;
     try {
+        // Si ya tenemos cache para este usuario, verificar si algo cambió
+        if (_profileCache && _profileCache._userId === user.id) {
+            const newUsername   = profileUsername(user);
+            const newDisplay    = user.user_metadata?.full_name || user.user_metadata?.name || "";
+            const newPhoto      = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
+            if (_profileCache.username === newUsername &&
+                _profileCache.display_name === newDisplay &&
+                _profileCache.photo_url === newPhoto) {
+                return; // Sin cambios, no escribir
+            }
+        }
         await saveUserProfile(user);
     } catch (error) {
         console.warn("No se pudo sincronizar el perfil" + (source ? " (" + source + ")" : "") + ":", error.message);
@@ -147,8 +160,11 @@ async function saveUserProfile(user, extra = {}) {
 
     if (error) {
         console.error("Error guardando perfil en Supabase:", error);
-        throw new Error(`No se pudo guardar el perfil: ${error.message}`);
+        throw new Error("No se pudo guardar el perfil. Intentá de nuevo.");
     }
+
+    // Actualizar cache después de escritura exitosa
+    _profileCache = { ...profile, _userId: user.id };
 
     try {
         await supabase.auth.updateUser({
@@ -359,6 +375,102 @@ async function loadAllProgress() {
     return data || [];
 }
 
+// ─── Comentarios ────────────────────────────────────────────────
+async function loadComments(category, itemId) {
+    const user = await getCurrentUserAsync();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+        .from("comments")
+        .select("id, user_id, body, parent_id, created_at, updated_at")
+        .eq("category", category)
+        .eq("item_id", String(itemId))
+        .order("created_at", { ascending: false });
+
+    if (error) { console.warn("loadComments:", error.message); return []; }
+    if (!data || !data.length) return [];
+
+    // Obtener perfiles de autores (uno por usuario único)
+    const userIds = [...new Set(data.map(c => c.user_id))];
+    let profilesMap = {};
+    if (userIds.length) {
+        const { data: profiles } = await supabase
+            .rpc("get_profiles_by_ids", { p_ids: userIds });
+        if (profiles) {
+            profiles.forEach(p => { profilesMap[p.id] = p; });
+        }
+    }
+
+    return data.map(c => ({
+        ...c,
+        author: profilesMap[c.user_id] || { username: "Usuario", display_name: "", photo_url: "" }
+    }));
+}
+
+async function addComment(category, itemId, body, parentId = null) {
+    const user = await getCurrentUserAsync();
+    if (!user) throw new Error("Debés iniciar sesión para comentar");
+
+    const { data, error } = await supabase
+        .from("comments")
+        .insert({
+            user_id:   user.id,
+            category:  category,
+            item_id:   String(itemId),
+            body:      body.trim(),
+            parent_id: parentId || null
+        })
+        .select("id, user_id, body, parent_id, created_at, updated_at")
+        .single();
+
+    if (error) {
+        console.error("addComment:", error);
+        throw new Error("No se pudo guardar el comentario");
+    }
+
+    // Obtener perfil del autor
+    const { data: profiles } = await supabase
+        .rpc("get_profiles_by_ids", { p_ids: [user.id] });
+    const profile = profiles && profiles[0] ? profiles[0] : null;
+
+    return {
+        ...data,
+        author: profile || { username: "Usuario", display_name: "", photo_url: "" }
+    };
+}
+
+async function editComment(commentId, body) {
+    const user = await getCurrentUserAsync();
+    if (!user) throw new Error("Debés iniciar sesión");
+
+    const { error } = await supabase
+        .from("comments")
+        .update({ body: body.trim(), updated_at: new Date().toISOString() })
+        .eq("id", commentId)
+        .eq("user_id", user.id);
+
+    if (error) {
+        console.error("editComment:", error);
+        throw new Error("No se pudo editar el comentario");
+    }
+}
+
+async function deleteComment(commentId) {
+    const user = await getCurrentUserAsync();
+    if (!user) throw new Error("Debés iniciar sesión");
+
+    const { error } = await supabase
+        .from("comments")
+        .delete()
+        .eq("id", commentId)
+        .eq("user_id", user.id);
+
+    if (error) {
+        console.error("deleteComment:", error);
+        throw new Error("No se pudo borrar el comentario");
+    }
+}
+
 // ─── API pública ──────────────────────────────────────────────────
 const AppSupabase = Object.freeze({
     client: supabase,
@@ -378,6 +490,11 @@ const AppSupabase = Object.freeze({
     saveUserProfile,
     setProgress,
     addExperience,
+
+    loadComments,
+    addComment,
+    editComment,
+    deleteComment,
 
     signInWithGoogle,
     signOutGoogle,

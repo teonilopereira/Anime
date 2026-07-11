@@ -12,6 +12,10 @@
 # Regeneralo con: node tools/generate-config.js
 js/core/config.js
 
+# Schema SQL y drafts (estructura de DB no debe exponerse en repo público)
+server/sql.txt
+server/todos sql.txt
+
 
 # ─── DEPENDENCIAS DE NODE ────────────────────────────────────────────────
 # Las dependencias se regeneran con 'npm install' o 'yarn install'.

@@ -1,10 +1,15 @@
 function parseParams() {
     const p = new URLSearchParams(window.location.search);
+    const VALID_CATS = new Set(['anime', 'manga', 'novelas']);
+    const cat1 = (p.get('cat1') || 'anime').toLowerCase();
+    const cat2 = (p.get('cat2') || 'anime').toLowerCase();
+    const id1 = p.get('id1') || '';
+    const id2 = p.get('id2') || '';
     return {
-        cat1: p.get('cat1') || 'anime',
-        id1: p.get('id1') || '',
-        cat2: p.get('cat2') || 'anime',
-        id2: p.get('id2') || ''
+        cat1: VALID_CATS.has(cat1) ? cat1 : 'anime',
+        id1: /^[a-z]?\d+$/i.test(id1) ? id1 : '',
+        cat2: VALID_CATS.has(cat2) ? cat2 : 'anime',
+        id2: /^[a-z]?\d+$/i.test(id2) ? id2 : ''
     };
 }
 

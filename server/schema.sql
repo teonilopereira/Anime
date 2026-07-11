@@ -40,7 +40,8 @@ DROP TABLE IF EXISTS public.user_progress CASCADE;
 -- ────────────────────────────────────────────────────────────────
 DROP FUNCTION IF EXISTS public.set_updated_at() CASCADE;
 CREATE OR REPLACE FUNCTION public.set_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER LANGUAGE plpgsql
+SET search_path = public AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
@@ -78,13 +79,13 @@ CREATE TRIGGER trg_profiles_updated_at
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Lectura pública: todos pueden ver perfiles (rankings, comparación)
--- No necesitamos "read own" separado porque esta lo cubre.
-DROP POLICY IF EXISTS "profiles: read own"   ON public.profiles;
+-- Lectura restringida: solo el propio usuario puede ver su perfil completo (email, etc.)
+-- Para rankings/comparación usar la función get_ranking_profiles() (no expone email).
+DROP POLICY IF EXISTS "profiles: read own"    ON public.profiles;
 DROP POLICY IF EXISTS "profiles: read public" ON public.profiles;
-CREATE POLICY "profiles: read public"
+CREATE POLICY "profiles: read own"
     ON public.profiles FOR SELECT
-    USING (true);
+    USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "profiles: insert own"  ON public.profiles;
 CREATE POLICY "profiles: insert own"
@@ -96,16 +97,18 @@ CREATE POLICY "profiles: update own"
     ON public.profiles FOR UPDATE
     USING (auth.uid() = id);
 
--- ═══════════════════════════════════════════════════════════════
+-- ════════════════════════════════════════════════════════════════
 -- Vista pública restringida para rankings
 -- Expone solo campos seguros (sin email ni provider).
--- El frontend debería usar esta vista para ranking/comparación.
+-- Nota: security_invoker aplica las policies del caller sobre profiles.
+-- Para rankings (incluyendo anónimos) usar get_ranking_profiles().
 -- ═══════════════════════════════════════════════════════════════
 CREATE OR REPLACE VIEW public.profiles_public AS
 SELECT
     id,
     username,
     display_name,
+    photo_url,
     level,
     exp
 FROM public.profiles;
@@ -308,7 +311,8 @@ ALTER VIEW public.item_states_with_details SET (security_invoker = true);
 -- handle_new_user() — Crea perfil automático al registrarse
 -- ────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER SECURITY DEFINER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER SECURITY DEFINER LANGUAGE plpgsql
+SET search_path = public AS $$
 DECLARE
     v_username TEXT;
     v_provider TEXT;
@@ -354,7 +358,8 @@ CREATE TRIGGER on_auth_user_created
 --    Maneja INSERT, UPDATE y DELETE correctamente.
 -- ────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.update_user_stats_on_item_change()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 DECLARE
     v_likes_delta  INT := 0;
     v_viewed_delta INT := 0;
@@ -406,7 +411,8 @@ CREATE TRIGGER update_user_stats_trigger
 CREATE OR REPLACE FUNCTION public.add_user_exp(
     p_user_id UUID,
     p_delta   INT
-) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 DECLARE
     v_level INT;
     v_exp   INT;
@@ -451,7 +457,8 @@ CREATE OR REPLACE FUNCTION public.upsert_catalog_item(
     p_img      TEXT DEFAULT NULL,
     p_info     TEXT DEFAULT NULL,
     p_status   TEXT DEFAULT NULL
-) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 BEGIN
     -- Solo usuarios autenticados pueden modificar el catálogo
     IF auth.uid() IS NULL THEN
@@ -484,7 +491,8 @@ CREATE OR REPLACE FUNCTION public.save_item_state_v2(
     p_fav       BOOLEAN DEFAULT FALSE,
     p_viewed    BOOLEAN DEFAULT FALSE,
     p_item_data JSONB   DEFAULT NULL
-) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 BEGIN
     -- Validar identidad PRIMERO (antes de cualquier escritura)
     IF p_user_id IS DISTINCT FROM auth.uid() THEN
@@ -535,13 +543,81 @@ GRANT EXECUTE ON FUNCTION public.save_item_state_v2 TO authenticated;
 
 
 -- ────────────────────────────────────────────────────────────────
+-- get_ranking_profiles() — Ranking seguro para todos los usuarios
+--    SECURITY DEFINER: bypasea RLS para devolver solo campos
+--    públicos (id, username, display_name, photo_url, level, exp).
+--    Reemplaza el SELECT directo sobre profiles_public que
+--    exponía todas las columnas via USING(true) policy.
+-- ────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.get_ranking_profiles(
+    p_limit  INT DEFAULT 50,
+    p_offset INT DEFAULT 0
+) RETURNS TABLE (
+    id           UUID,
+    username     TEXT,
+    display_name TEXT,
+    photo_url    TEXT,
+    level        INT,
+    exp          INT
+) LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.username,
+        p.display_name,
+        p.photo_url,
+        p.level,
+        p.exp
+    FROM public.profiles p
+    ORDER BY p.level DESC, p.exp DESC, p.total_likes DESC
+    LIMIT p_limit OFFSET p_offset;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_ranking_profiles TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_ranking_profiles TO anon;
+
+
+-- ────────────────────────────────────────────────────────────────
+-- get_profiles_by_ids() — Perfiles públicos por lista de IDs
+--    SECURITY DEFINER: bypasea RLS para devolver campos públicos
+--    de múltiples usuarios (para comments, mentions, etc.).
+-- ────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.get_profiles_by_ids(
+    p_ids UUID[]
+) RETURNS TABLE (
+    id           UUID,
+    username     TEXT,
+    display_name TEXT,
+    photo_url    TEXT
+) LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.username,
+        p.display_name,
+        p.photo_url
+    FROM public.profiles p
+    WHERE p.id = ANY(p_ids);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_profiles_by_ids TO authenticated;
+
+
+-- ────────────────────────────────────────────────────────────────
 -- log_and_prune_activity() — Logging + Pruning COMBINADOS
 --    ⚡ OPTIMIZACIÓN: Un solo trigger en vez de dos separados.
 --    El pruning solo se ejecuta cada ~20 inserts (probabilístico)
 --    para reducir carga. Usa ROW_NUMBER en vez de NOT IN.
 -- ────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.log_item_state_change()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 DECLARE
     v_action  TEXT;
     v_user_id UUID;
@@ -613,7 +689,8 @@ DROP FUNCTION IF EXISTS public.prune_old_activity() CASCADE;
 --    Solo loguea si el valor cambió (evita duplicados en UPDATE sin cambio).
 -- ────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.log_progress_activity()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 BEGIN
     -- En UPDATE, solo loguear si value cambió
     IF TG_OP = 'UPDATE' AND NEW.value IS NOT DISTINCT FROM OLD.value THEN
@@ -638,7 +715,8 @@ CREATE TRIGGER trg_log_progress
 --    Ideal: configurar como pg_cron job si disponible.
 -- ────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.cleanup_old_activity()
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
 BEGIN
     DELETE FROM public.user_activity_log
     WHERE created_at < NOW() - INTERVAL '90 days';
@@ -648,6 +726,9 @@ $$;
 
 -- ════════════════════════════════════════════════════════════════
 -- STORAGE (avatares)
+-- Bucket público: acceso por URL directa (storage.objects NO
+-- necesita policy SELECT — el flag "public" del bucket ya lo
+-- permite. Sin policy SELECT = sin listing via API).
 -- ════════════════════════════════════════════════════════════════
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
@@ -659,10 +740,11 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- ⚠️ NO crear policy SELECT en storage.objects para el bucket avatars.
+-- Bucket público = acceso por URL directa sin necesidad de policy.
+-- Esto previene el lint "public_bucket_allows_listing".
+
 DROP POLICY IF EXISTS "avatars: read public" ON storage.objects;
-CREATE POLICY "avatars: read public"
-    ON storage.objects FOR SELECT
-    USING (bucket_id = 'avatars');
 
 DROP POLICY IF EXISTS "avatars: insert own" ON storage.objects;
 CREATE POLICY "avatars: insert own"
@@ -748,10 +830,25 @@ GRANT SELECT ON public.profiles_public          TO authenticated;
 GRANT EXECUTE ON FUNCTION public.add_user_exp         TO authenticated;
 GRANT EXECUTE ON FUNCTION public.save_item_state_v2   TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_catalog_item  TO authenticated;
-GRANT EXECUTE ON FUNCTION public.cleanup_old_activity  TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_ranking_profiles  TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_ranking_profiles  TO anon;
+GRANT EXECUTE ON FUNCTION public.get_profiles_by_ids   TO authenticated;
 
--- Anon (para vista de rankings sin login)
-GRANT SELECT ON public.profiles_public TO anon;
+-- REVOKE: funciones SECURITY DEFINER que NO deben ser llamables por anon
+REVOKE EXECUTE ON FUNCTION public.add_user_exp FROM anon;
+REVOKE EXECUTE ON FUNCTION public.save_item_state_v2 FROM anon;
+REVOKE EXECUTE ON FUNCTION public.upsert_catalog_item FROM anon;
+REVOKE EXECUTE ON FUNCTION public.get_profiles_by_ids FROM anon;
+REVOKE EXECUTE ON FUNCTION public.cleanup_old_activity FROM anon;
+
+-- REVOKE: funciones internas (triggers) que no deben ser llamables vía RPC
+REVOKE EXECUTE ON FUNCTION public.handle_new_user FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.update_user_stats_on_item_change FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.log_item_state_change FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.log_progress_activity FROM anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.set_updated_at FROM anon, authenticated;
+
+-- Anon (para ranking sin login — vía función SECURITY DEFINER)
 GRANT SELECT ON public.catalog_items   TO anon;
 
 

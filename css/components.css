@@ -493,24 +493,6 @@ main { padding-bottom: 24px; }
 /* (legacy) */
 .genre-sidebar.is-collapsed .genre-filters { display: none; }
 
-/* Drawer (lengüeta) */
-.genre-drawer {
-    position: fixed;
-    left: 12px;
-    top: 86px;
-    bottom: 16px;
-    width: min(320px, calc(100vw - 24px));
-    max-height: calc(100vh - 102px);
-    overflow: auto;
-    z-index: 1201;
-    transform: translateX(calc(-100% - 16px));
-    transition: transform 0.22s ease;
-}
-
-.genre-drawer.is-open {
-    transform: translateX(0);
-}
-
 .genre-sidebar-title {
     font-family: 'Orbitron', sans-serif;
     letter-spacing: 1px;

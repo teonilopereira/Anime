@@ -299,7 +299,7 @@
         try {
             var json = await mdFetch('/manga' + params);
             return (json?.data || []).map(function (m) { return mdItemToCard(m); }).filter(Boolean);
-        } catch (e) { return []; }
+        } catch (e) { console.warn('fetchMangaDexPage failed:', e); return []; }
     }
 
     function normalizeTitle(t) {

@@ -1,4 +1,4 @@
-﻿(function (window, document) {
+(function (window, document) {
     "use strict";
 
     // ─────────────────────────────────────────────
@@ -86,7 +86,8 @@ async function waitForSupabase() {
                 const photoUrl = photoUrlFromProfile(user, profile);
                 if (photoUrl && (typeof window.safeUrl !== 'function' || window.safeUrl(photoUrl))) {
                     avatarEl.classList.add('has-image');
-                    avatarEl.style.backgroundImage = 'url("' + photoUrl.replace(/[\\"()]/g, '') + '")';
+                    var cleanUrl = photoUrl.replace(/[\\"'()]/g, '');
+                    avatarEl.style.backgroundImage = 'url("' + cleanUrl + '")';
                 } else {
                     avatarEl.classList.remove('has-image');
                     avatarEl.style.removeProperty('background-image');
@@ -181,7 +182,7 @@ async function waitForSupabase() {
                     } else if (error.message?.toLowerCase().includes("password")) {
                         setMsg("La contraseña es muy débil. Usá al menos 6 caracteres.");
                     } else {
-                        setMsg("Error al crear cuenta: " + error.message);
+                        setMsg("Error al crear cuenta. Intentá de nuevo.");
                     }
                     return;
                 }
@@ -232,7 +233,7 @@ async function waitForSupabase() {
                            error.message?.toLowerCase().includes("fetch")) {
                     setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
                 } else {
-                    setMsg("Error al iniciar sesión: " + error.message);
+                    setMsg("Error al iniciar sesión. Intentá de nuevo.");
                 }
                 return;
             }
