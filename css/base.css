@@ -4,12 +4,20 @@
     --dark-bg: #050505;
     --purple-gradient: #1a0b2e;
     --neon-purple: #bc13fe;
+    --neon-purple-18: rgba(188, 19, 254, 0.18);
+    --neon-purple-15: rgba(188, 19, 254, 0.15);
+    --neon-purple-10: rgba(188, 19, 254, 0.10);
+    --neon-purple-glow: rgba(188, 19, 254, 0.40);
     --accent-cyan: #00f2ff;
+    --accent-cyan-18: rgba(0, 242, 255, 0.18);
+    --accent-cyan-10: rgba(0, 242, 255, 0.10);
     --nav-accent: var(--accent-cyan);
-    --nav-accent-soft: rgba(0, 242, 255, 0.18);
+    --nav-accent-soft: var(--accent-cyan-18);
     --surface-dark: rgba(5, 5, 10, 0.86);
+    --surface-card: rgba(10, 5, 25, 0.80);
     --text-main: #ffffff;
     --text-muted: rgba(255, 255, 255, 0.72);
+    --text-faint: rgba(255, 255, 255, 0.35);
     --font-display: "Orbitron", sans-serif;
     --font-body: "Rajdhani", sans-serif;
     --radius-sm: 10px;
@@ -24,6 +32,9 @@
     --z-modal: 1000;
     --z-toast: 2000;
     --z-max: 9999;
+    /* Catalog search layout tokens */
+    --catalog-search-max-width: 800px;
+    --catalog-search-gap: 15px;
 }
 
 * {

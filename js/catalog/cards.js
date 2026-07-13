@@ -95,6 +95,23 @@ function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
         label = 'capítulos';
     }
     const safeTotal = Number(total) > 0 ? Number(total) : 0;
+    
+    // Si no hay total, mostramos una interfaz alternativa simplificada
+    if (safeTotal === 0) {
+        return `
+        <div class="card-back-progress-wrapper" data-progress data-total="0" data-label="${label}" data-prefix="${prefix}">
+            <div class="card-back-progress-card card-back-no-progress-card">
+                <span class="no-progress-text">Progreso libre</span>
+                <span class="no-progress-subtext">Marcá como visto completo usando el botón 👁</span>
+            </div>
+            <div class="card-back-footer-status" style="display:none" data-viewed-footer>
+                <div class="footer-line"></div>
+                <span>100% VISTO</span>
+                <div class="footer-line"></div>
+            </div>
+        </div>`;
+    }
+
     return `
         <div class="card-back-progress-wrapper" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}" style="display:none">
             <div class="card-back-progress-card">
@@ -181,14 +198,19 @@ function resolveCatalogProgress(userId, category, itemId, card) {
     const box = card.querySelector('[data-progress]');
     const dataTotal = Number(box?.getAttribute('data-total') || 0);
     const label = box?.getAttribute('data-label') || (category === 'anime' ? 'capítulos' : 'volúmenes');
+    const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
 
     if (!dataTotal) {
         const legacyPct = getProgressPercentForItem(userId, category, itemId);
-        if (legacyPct === null) return { show: false };
-        return { show: true, pct: legacyPct, watched: 0, total: 0, label };
+        if (viewed) {
+            return { show: true, pct: 100, watched: 0, total: 0, label };
+        }
+        if (legacyPct !== null) {
+            return { show: true, pct: legacyPct, watched: 0, total: 0, label };
+        }
+        return { show: true, pct: 0, watched: 0, total: 0, label }; // Show alternative card
     }
 
-    const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
     let watched = 0;
     if (category === 'anime') {
         watched = countAnimeEpisodesWatched(userId, itemId, dataTotal);
@@ -251,6 +273,10 @@ function buildCatalogCardHtml(options) {
     <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="catalog-card-shell">
+            <div class="card-corner card-corner-tl"></div>
+            <div class="card-corner card-corner-tr"></div>
+            <div class="card-corner card-corner-bl"></div>
+            <div class="card-corner card-corner-br"></div>
             <div class="catalog-card-inner">
                 <div class="catalog-card-media">
                     <div class="card-inner">
@@ -266,8 +292,12 @@ function buildCatalogCardHtml(options) {
                                 ${statusHtml}
                             </div>
                             <div class="card-back-actions">
-                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">❤</button>
-                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">👁</button>
+                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                </button>
+                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
                             </div>
                             ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
                         </div>
@@ -314,6 +344,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                 item: {
                     id: item.id ?? item.mal_id,
                     titulo: item.title,
+                    imagen: getApiPoster(item),
                     info: getApiCatalogInfo(categoria, item)
                 },
                 searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
@@ -330,6 +361,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                     item: {
                         id: item.id ?? item.mal_id,
                         titulo: item.title,
+                        imagen: getApiPoster(item),
                         info: getApiCatalogInfo(categoria, item)
                     },
                     searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
@@ -460,7 +492,11 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
     } else {
         mainContainer.innerHTML = list.join('');
         window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = items.map(function (item) {
-            return { item: item, searchIndex: buildSearchIndexForItem(categoria, item) };
+            var entry = { item: item, searchIndex: buildSearchIndexForItem(categoria, item) };
+            if (!item.imagen) {
+                item.imagen = item.img || item.image || item.cover_image || '';
+            }
+            return entry;
         });
     }
 

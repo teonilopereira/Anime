@@ -1,0 +1,17 @@
+{
+  "name": "anime-destiny",
+  "version": "1.0.0",
+  "description": "Anime Destiny - App de seguimiento de anime, manga y novelas",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.0.0",
+    "jsdom": "^29.1.1",
+    "vitest": "^2.0.0"
+  }
+}

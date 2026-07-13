@@ -6,7 +6,7 @@ const ROOT = path.resolve(__dirname, "..");
 const PORT = 8000;
 
 const SRC_DIRS = [
-    "js/core", "js/catalog", "js/security", "js/utils.js", "js/ui.js", "js/datos.js"
+    "js/core", "js/catalog", "js/security", "js/utils.js", "js/ui", "js/datos.js"
 ];
 const BUNDLE_PATH = path.join(ROOT, "js/core-bundle.js");
 const BUILD_SCRIPT = path.join(ROOT, "tools/build-js-bundle.ps1");
@@ -38,9 +38,17 @@ function rebuildBundle() {
             function (err, stdout, stderr) {
                 if (err) {
                     console.error("Error al reconstruir bundle:", stderr || err.message);
-                } else {
-                    console.log(stdout.trim());
+                    return;
                 }
+                console.log(stdout.trim());
+                // Ejecutar minificación automáticamente después de compilar
+                cp.exec('node tools/minify.js', { cwd: ROOT }, function (minErr, minStdout, minStderr) {
+                    if (minErr) {
+                        console.error("Error al minificar bundle:", minStderr || minErr.message);
+                    } else {
+                        console.log(minStdout.trim());
+                    }
+                });
             }
         );
     }, 300);

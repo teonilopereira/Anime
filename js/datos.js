@@ -1,5 +1,3 @@
-window.DATOS_WEB = { manga: [], anime: [], novelas: [] };
-
 if (typeof window.escapeHtml !== 'function') {
     window.escapeHtml = function(value) {
         return String(value ?? '')
@@ -62,5 +60,5 @@ function obtenerDetalleItem(categoria, id) {
     return Promise.resolve(null);
 }
 
-document.dispatchEvent(new CustomEvent('datosCargados'));
+
 

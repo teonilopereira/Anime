@@ -1,28 +1,31 @@
 /* advanced-filter.css */
 .advanced-filter-toggle {
-    background: rgba(168, 85, 247, 0.1);
-    border: 1px solid rgba(168, 85, 247, 0.3);
-    border-radius: 8px;
-    color: #fff;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 44px;
-    transition: all 0.2s ease;
+    width: 56px;
+    min-height: 52px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
 }
-.advanced-filter-toggle:hover {
-    background: rgba(168, 85, 247, 0.25);
+.advanced-filter-toggle:hover,
+.advanced-filter-toggle.is-active {
+    background: rgba(188, 19, 254, 0.12);
+    color: rgba(188, 19, 254, 0.9);
 }
 .advanced-filter-dropdown {
-    background: #090a10;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    background: rgba(10, 8, 20, 0.95);
+    border-top: 1px solid rgba(188, 19, 254, 0.25);
+    border-radius: 0 0 12px 12px;
     padding: 20px;
-    margin-top: 15px;
+    margin-top: 0;
     width: 100%;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-sizing: border-box;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4) inset;
     transition: opacity 0.3s ease;
 }
 .filter-header-row {

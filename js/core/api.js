@@ -71,7 +71,7 @@
     function buildSeasonsFromItem(item, type) {
         var seasons = [];
         var isAnime = type === 'anime';
-        var mainCount = isAnime ? (item.episodes || 0) : (!isAnime ? (item.chapters || item.volumes || 0) : 0);
+        var mainCount = isAnime ? (item.episodes || 0) : (item.chapters || item.volumes || 0);
 
         if (item.relations?.edges) {
             var sequelEdges = item.relations.edges.filter(function (e) {
@@ -89,7 +89,7 @@
                 });
                 sequelEdges.forEach(function (edge) {
                     var node = edge.node;
-                    var count = isAnime ? (node.episodes || 0) : (!isAnime ? (node.chapters || node.volumes || 0) : 0);
+                    var count = isAnime ? (node.episodes || 0) : (node.chapters || node.volumes || 0);
                     if (count > 0) {
                         seasons.push({
                             id: node.id,

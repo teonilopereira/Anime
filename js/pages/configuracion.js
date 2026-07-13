@@ -383,6 +383,21 @@ document.getElementById('deleteUserBtn').addEventListener('click', async () => {
     }
 });
 
+/* ── Cerrar sesión ── */
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    const supaUser = await window.AppSupabase?.getCurrentUser?.();
+    if (!supaUser) { toast('No hay usuario activo', true); return; }
+    const username = supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || 'usuario';
+    if (!confirm(`¿Cerrar sesión de "${username}"? Tus datos están guardados en Supabase.`)) return;
+    try {
+        await window.logoutUser?.();
+        toast("✅ Sesión cerrada");
+        setTimeout(() => window.location.href = 'index.html', AnimeDestiny.Constants.PROFILE_REDIRECT_DELAY_MS || 1000);
+    } catch (e) {
+        toast('Error al cerrar sesión: ' + e.message, true);
+    }
+});
+
 /* ── Borrar preferencias de UI ── */
 document.getElementById('clearAllBtn').addEventListener('click', () => {
     if (!confirm('¿Borrar las preferencias de visualización? Los datos de progreso están seguros en Supabase.')) return;
@@ -420,6 +435,13 @@ document.getElementById('resetAll').addEventListener('click', () => {
 applyCustomColors();
 applyBgToPage();
 syncUI();
+
+/* ── Actualizar nombre de usuario cuando Supabase cargue ── */
+window.addEventListener('supabase-ready', () => {
+    const nameEl = document.getElementById('cfgUserName');
+    if (nameEl) nameEl.textContent = getCurrentUserName();
+    if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
+}, { once: true });
 
 
 

@@ -152,11 +152,7 @@
     }
 
     const utils = {
-        formatDate,
-        truncateText,
-        parseUrlParams,
         normalizeText,
-        escapeHtml: function (v) { return window.escapeHtml ? window.escapeHtml(v) : String(v ?? ''); },
         getCurrentUserId,
         getCurrentUserIdSafe: getCurrentUserId,
         fallbackCatalogImage,

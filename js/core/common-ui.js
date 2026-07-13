@@ -14,14 +14,6 @@
         path.includes("top") ? "top" :
         "index";
 
-    const ensureSkipLink = () => {
-        if (document.querySelector('.skip-link')) return;
-        const skip = document.createElement('a');
-        skip.className = 'skip-link';
-        skip.href = '#main-content';
-        skip.textContent = 'Saltar al contenido';
-        document.body.prepend(skip);
-    };
 
     const ensureMainTarget = () => {
         if (document.getElementById('main-content')) return;
@@ -90,11 +82,11 @@
         if (isIndex) activePage = null;
 
         const links = [
-            { id: "anime", href: "anime.html", icon: "\uD83C\uDFAC", label: "Anime" },
-            { id: "manga", href: "manga.html", icon: "\uD83D\uDCDA", label: "Manga" },
-            { id: "novelas", href: "novelas.html", icon: "\uD83D\uDCD6", label: "Novelas" },
-            { id: "mis-listas", href: "mis-listas.html", icon: "\uD83D\uDC96", label: "Mis Listas" },
-            { id: "top", href: "top.html", icon: "\uD83C\uDFC6", label: "Ranking" }
+            { id: "anime", href: "anime.html", icon: "clapperboard", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
+            { id: "manga", href: "manga.html", icon: "book-open", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
+            { id: "novelas", href: "novelas.html", icon: "book", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
+            { id: "mis-listas", href: "mis-listas.html", icon: "heart", label: window.AppI18n ? window.AppI18n.t("nav.mis_listas") : "Mis Listas" },
+            { id: "top", href: "top.html", icon: "trophy", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Ranking" }
         ];
 
         let html = "";
@@ -111,10 +103,90 @@
                 dataCat = ` data-nav-cat="${l.id}"`;
             }
             html += `<a href="${l.href}" class="${cls}"${current}${dataCat}>
-<span class="nav-icon" aria-hidden="true">${l.icon}</span><span>${l.label}</span>
+<span class="nav-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="nav.${l.id.replace('-', '_')}">${l.label}</span>
 </a>`;
         }
-        el.innerHTML = `<div class="nav-links" aria-label="Navegaci\u00F3n principal">${html}</div>`;
+        el.innerHTML = `<div class="nav-links" aria-label="Navegación principal">${html}</div>`;
+    };
+
+    // ── MOBILE BOTTOM NAV ──
+    const injectMobileBottomNav = () => {
+        if (document.querySelector('.mobile-bottom-nav')) return;
+
+        // No inyectar en páginas de auth/legal/usuario
+        const skipPages = ["login", "configuracion", "usuario", "privacidad", "terminos"];
+        for (let i = 0; i < skipPages.length; i++) {
+            if (path.includes(skipPages[i])) return;
+        }
+        if (path.includes("404")) return;
+
+        const isAnime = path.includes("anime");
+        const isManga = path.includes("manga");
+        const isNovelas = path.includes("novelas");
+        const isMisListas = path.includes("mis-listas");
+
+        const isTop = path.includes("top");
+        const isIndex = path.endsWith("index.html") || path.endsWith("/") || path === "";
+
+        let activePage = isAnime ? "anime" : isManga ? "manga" : isNovelas ? "novelas" : isMisListas ? "mis-listas" : isTop ? "top" : null;
+        if (isIndex) activePage = null;
+
+        const tabs = [
+            { id: "anime", href: "anime.html", icon: "clapperboard", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
+            { id: "manga", href: "manga.html", icon: "book-open", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
+            { id: "novelas", href: "novelas.html", icon: "book", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
+            { id: "mis-listas", href: "mis-listas.html", icon: "heart", label: window.AppI18n ? window.AppI18n.t("nav.mis_listas") : "Listas" },
+            { id: "top", href: "top.html", icon: "trophy", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Top" }
+        ];
+
+        let html = '';
+        for (let i = 0; i < tabs.length; i++) {
+            const t = tabs[i];
+            const activeClass = t.id === activePage ? ' active' : '';
+            const currentAttr = t.id === activePage ? ' aria-current="page"' : '';
+            html += `<a href="${t.href}" class="bottom-tab${activeClass}"${currentAttr}>
+<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="${t.icon}"></i></span>
+<span data-i18n="nav.${t.id.replace('-', '_')}">${t.label}</span>
+</a>`;
+        }
+
+        const searchText = window.AppI18n ? window.AppI18n.t("nav.menu") : "Menú";
+        html += `<button class="bottom-tab-search" aria-label="Buscar" type="button">
+<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="menu"></i></span>
+<span data-i18n="nav.menu">${searchText}</span>
+</button>`;
+
+        const nav = document.createElement('nav');
+        nav.className = 'mobile-bottom-nav';
+        nav.setAttribute('aria-label', 'Navegación móvil');
+        nav.innerHTML = html;
+        document.body.appendChild(nav);
+        document.body.classList.add('has-bottom-nav');
+
+        // Cerrar navbar top al hacer click en cualquier link del bottom bar
+        nav.addEventListener('click', (e) => {
+            const link = e.target.closest('.bottom-tab');
+            if (!link) return;
+            const navbar = document.querySelector('.destiny-navbar');
+            if (navbar) navbar.classList.remove('is-open');
+            const searchBtn = nav.querySelector('.bottom-tab-search');
+            if (searchBtn) searchBtn.classList.remove('is-open');
+        });
+
+        // Search toggle: show top navbar search
+        const searchBtn = nav.querySelector('.bottom-tab-search');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                const navbar = document.querySelector('.destiny-navbar');
+                if (!navbar) return;
+                const isOpen = navbar.classList.toggle('is-open');
+                searchBtn.classList.toggle('is-open', isOpen);
+                if (isOpen) {
+                    const input = navbar.querySelector('.nav-search-input');
+                    if (input) setTimeout(() => input.focus(), 100);
+                }
+            });
+        }
     };
 
     // ── LOGIN / USER AREA ──
@@ -123,11 +195,13 @@
         if (!el) return;
         if (path.includes("login")) return;
 
+        const ingresarText = window.AppI18n ? window.AppI18n.t("nav.ingresar") : "Ingresar";
+        const invitadoText = window.AppI18n ? window.AppI18n.t("nav.usuario_invitado") : "...";
         el.innerHTML = `<div class="nav-user" id="nav-user">
 <div id="nav-user-avatar" class="nav-user-avatar"></div>
 <div class="nav-user-info">
-<span id="nav-user-name" class="nav-user-name">Invitado</span>
-<a id="nav-user-btn" href="Login.html" class="nav-user-btn">Ingresar</a>
+<span id="nav-user-name" class="nav-user-name" data-i18n="nav.usuario_invitado">${invitadoText}</span>
+<a id="nav-user-btn" href="Login.html" class="nav-user-btn" data-i18n="nav.ingresar">${ingresarText}</a>
 </div>
 </div>`;
 
@@ -135,6 +209,13 @@
         if (typeof window.refreshUserUi === 'function') {
             window.refreshUserUi();
         }
+
+        // Cuando Supabase cargue, actualizar la UI del usuario
+        window.addEventListener('supabase-ready', () => {
+            if (typeof window.refreshUserUi === 'function') {
+                window.refreshUserUi();
+            }
+        }, { once: true });
     };
 
     // ── FOOTER ──
@@ -186,6 +267,13 @@
         const el = document.getElementById("footer-container");
         if (!el) return;
 
+        const lang = window.AppI18n ? window.AppI18n.getLang() : "es";
+
+        // Translate static footer titles/links
+        const redesTitle = lang === "en" ? "Social" : "Redes";
+        const privacidadText = lang === "en" ? "Privacy" : "Privacidad";
+        const terminosText = lang === "en" ? "Terms" : "Términos";
+
         const data = FOOTER_DATA[pageKey];
         if (!data) return;
 
@@ -194,15 +282,78 @@
 
         for (let i = 0; i < entries.length; i++) {
             const c = entries[i];
+            let title = c.title;
+            let text = c.text;
+
+            // Apply translations dynamically for footer if language is set to English
+            if (lang === "en") {
+                if (title === "Tips" || title === "Tip" || title === "Consejo") title = "Tips";
+                else if (title === "Cuenta") title = "Account";
+                else if (title === "Contacto") title = "Contact";
+                else if (title === "PROGRESO") title = "PROGRESS";
+                else if (title === "LISTAS") title = "LISTS";
+                else if (title === "Configuraci\u00F3n" || title === "Configuracion") title = "Settings";
+                else if (title === "Seguridad") title = "Security";
+                else if (title === "Perfil") title = "Profile";
+                else if (title === "Acciones") title = "Actions";
+                else if (title === "Tus listas") title = "Your lists";
+                else if (title === "Ranking") title = "Ranking";
+                else if (title === "F2P / P2W") title = "F2P / P2W";
+
+                if (text.includes("b\u00FAsqueda para filtrar")) {
+                    text = "Use search to filter quickly and open \"Detail\" to track chapters.";
+                } else if (text.includes("Entr\u00E1 desde el bot\u00F3n")) {
+                    text = "Log in using the <strong>Account</strong> button to save your lists.";
+                } else if (text.includes("marcar vol\u00FAmenes")) {
+                    text = "Open \"Detail\" to mark green volumes and track progress.";
+                } else if (text.includes("guardar tus listas, inici\u00E1 sesi\u00F3n")) {
+                    text = "If you want to save your lists, log in from <strong>Account</strong>.";
+                } else if (text.includes("filtrar por t\u00EDtulo")) {
+                    text = "Use search to filter by title.";
+                } else if (text.includes("guardar tus \"Me gusta\"")) {
+                    text = "Log in to save your \"Likes\" and \"Watched\" items.";
+                } else if (text.includes("Cat\u00E1logo de anime")) {
+                    text = "Anime, manga and novel catalog with detail, progress and lists per user.";
+                } else if (text.includes("contacto@animedestiny")) {
+                    text = "Support: contacto@animedestiny.local<br>Buenos Aires, AR";
+                } else if (text.includes("comparar t\u00EDtulos de distintas")) {
+                    text = "You can compare titles of different categories.";
+                } else if (text.includes("comparaci\u00F3n pod\u00E9s abrir")) {
+                    text = "From the comparison you can open the detail of each.";
+                } else if (text.includes("cuadrados (vol\u00FAmenes")) {
+                    text = "Tap the squares (volumes/chapters) to mark them green.";
+                } else if (text.includes(" cards para armar")) {
+                    text = "Use \u2764 and \uD83D\uDC41 on cards to build your lists.";
+                } else if (text.includes("guardan localmente")) {
+                    text = "Your changes are saved locally in this browser.";
+                } else if (text.includes("cards compactas si quer\u00E9s")) {
+                    text = "Enable compact cards if you want to see more titles without scrolling.";
+                } else if (text.includes("elimin\u00E1s el usuario")) {
+                    text = "If you delete the user, their session and local progress are deleted.";
+                } else if (text.includes("Gestion\u00E1 tu informaci\u00F3n")) {
+                    text = "Manage your info, preferences, and usage statistics.";
+                } else if (text.includes("comparador para analizar")) {
+                    text = "Use My lists to review saved items and comparison to analyze two titles.";
+                } else if (text.includes("Revis\u00E1 tus Me gusta")) {
+                    text = "Review your Likes, Watched and progress of chapters/volumes.";
+                } else if (text.includes("Supabase. Nunca perd\u00E9s")) {
+                    text = "Everything is saved to your Supabase account. You never lose your progress.";
+                } else if (text.includes("nivel y experiencia total acumulada")) {
+                    text = "Players sorted by level and total accumulated experience.";
+                } else if (text.includes("categor\u00EDas de ranking")) {
+                    text = "More ranking categories coming soon.";
+                }
+            }
+
             cols += `<div class="app-footer-col">
-<div class="app-footer-title">${c.title}</div>
-<p class="app-footer-text">${c.text}</p>
+<div class="app-footer-title">${title}</div>
+<p class="app-footer-text">${text}</p>
 </div>`;
         }
 
         if (!data.col3) {
             cols += `<div class="app-footer-col">
-<div class="app-footer-title">Redes</div>
+<div class="app-footer-title">${redesTitle}</div>
 <div class="app-footer-social">
 <a class="app-footer-icon" href="#" aria-label="X">\uD835\uDD4F</a>
 <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
@@ -216,9 +367,9 @@
 <div class="app-footer-bottom">
     <span>© 2026 Anime Destiny</span>
     <span style="margin: 0 10px;">•</span>
-    <a class="app-footer-link app-footer-link-cyan" href="privacidad.html">Privacidad</a>
+    <a class="app-footer-link app-footer-link-cyan" href="privacidad.html">${privacidadText}</a>
     <span style="margin: 0 10px;">•</span>
-    <a class="app-footer-link app-footer-link-purple" href="terminos.html">Términos</a>
+    <a class="app-footer-link app-footer-link-purple" href="terminos.html">${terminosText}</a>
 </div>
 </footer>`;
     };
@@ -245,12 +396,10 @@
             '--text-muted':   '#b0b0b0'
         };
         const root = document.documentElement;
-        let hasCustom = false;
         for (const name in colorKeys) {
             if (colorKeys.hasOwnProperty(name)) {
                 const val = r(colorKeys[name], defaults[name]);
                 root.style.setProperty(name, val);
-                if (val !== defaults[name]) hasCustom = true;
             }
         }
         const navAccent = root.style.getPropertyValue('--nav-accent') || defaults['--nav-accent'];
@@ -327,16 +476,13 @@
             }
         }, true);
     };
-    ensureSkipLink();
     ensureMainTarget();
     injectNavBrand();
     injectNavToggle();
     injectNavLinks();
+    injectMobileBottomNav();
     injectLoginButton();
     injectFooter();
     installSecurityHandlers();
 
 })();
-
-
-

@@ -47,8 +47,7 @@
         });
     }
 
-    function saveLocalUser(user, fallbackName) {
-        if (!user && !fallbackName) return;
+    function saveLocalUser() {
         if (typeof window.refreshUserUi === "function") window.refreshUserUi();
     }
 
@@ -118,7 +117,7 @@
         try {
             if (mode === "register") {
                 const data = await client.signUpWithEmail(email, password, username);
-                saveLocalUser(data?.user, username);
+                saveLocalUser();
                 if (data?.session) {
                     setStatus("Cuenta creada. Entrando...");
                     goHomeSoon();
@@ -127,7 +126,7 @@
                 }
             } else {
                 const data = await client.signInWithEmail(email, password);
-                saveLocalUser(data?.user, email.split("@")[0]);
+                saveLocalUser();
                 setStatus("Sesión iniciada.");
                 goHomeSoon();
             }
@@ -180,7 +179,7 @@
     if (window.AppSupabaseReady) {
         window.AppSupabaseReady.then((client) => {
             client?.onAuthChange?.((detail) => {
-                if (detail?.user) saveLocalUser(detail.user, detail.username);
+                if (detail?.user) saveLocalUser();
             });
         });
     }

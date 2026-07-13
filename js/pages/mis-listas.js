@@ -22,7 +22,6 @@ function renderGenres(info) {
 // problemas de timing con _currentUser interno de supabase-config.js
 let _sessionUser = null;
 let _remoteItemStates = [];
-let _remoteProgressRows = [];
 
 
 function getCurrentUserIdSafe() {
@@ -45,13 +44,6 @@ function getCurrentUserIdSafe() {
 function statusStorageKeySafe(userId, itemId, type) {
     if (typeof statusStorageKey === 'function') return statusStorageKey(userId, itemId, type);
     return `u:${userId}|item:${itemId}|${type}`;
-}
-
-function normalizeTextSafe(value) {
-    return String(value ?? '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '');
 }
 
 function getAllItems() {
@@ -762,7 +754,6 @@ async function cargarEstadosDesdeSupabase() {
         if (typeof client.loadAllProgress === 'function') {
             const progressRows = await client.loadAllProgress();
             if (Array.isArray(progressRows)) {
-                _remoteProgressRows = progressRows.slice();
                 progressRows.forEach((row) => {
                     const pkey = String(row.pkey || '');
                     const itemId = String(row.item_id || '');

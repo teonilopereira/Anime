@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -18,11 +18,12 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css">
+        <link rel="stylesheet" href="css/bundle.css?v=3">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
 </head>
 <body data-page="comparar">
     <nav class="destiny-navbar">
@@ -34,8 +35,8 @@
     </nav>
 
     <header class="page-header">
-        <h1 class="page-title">COMPARAR</h1>
-        <p class="page-subtitle">Elegí 2 items para verlos lado a lado.</p>
+        <h1 class="page-title" data-i18n="compare.titulo">COMPARAR</h1>
+        <p class="page-subtitle" data-i18n="compare.desc">Elegí 2 items para verlos lado a lado.</p>
     </header>
 
     <main class="compare-page" id="main-content">
@@ -74,8 +75,9 @@
     <div id="footer-container"></div>
     <script src="js/core/config.js"></script>
     <script src="js/core/namespace.js"></script>
+    <script src="js/core/i18n.js"></script>
     <script type="module" src="api/supabase-config.js" async></script>
-    <script src="js/core-bundle.min.js" defer></script>
+    <script src="js/core-bundle.min.js?v=3" defer></script>
     <script src="js/pages/script.js" defer></script>
     <script src="js/pages/comparar.js" defer></script>
 </body>

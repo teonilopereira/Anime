@@ -469,13 +469,6 @@
     padding-top: 10px;
 }
 
-.price-tag {
-    color: #2ecc71;
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin: 10px 0;
-}
-
 .card-progress,
 .detail-progress-card {
     width: 100%;
@@ -711,6 +704,11 @@
     transform: scale(0.95);
 }
 
+/* ==========================================
+   CATALOG CARD — FUTURISTIC / HUD STYLE
+   Según Analisis_Diseno_Card_Futurista.txt
+========================================== */
+
 .catalog-neon-card {
     width: 100%;
     max-width: 326px;
@@ -725,30 +723,99 @@
     filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.4));
 }
 
-.catalog-card-shell,
 .catalog-card-inner {
     border-radius: var(--radius-lg);
     overflow: hidden;
 }
 
 .catalog-card-shell {
-    padding: 3px;
-    background:
-        linear-gradient(135deg, var(--accent-cyan) 0 18px, transparent 18px) top left / 50% 50% no-repeat,
-        linear-gradient(225deg, rgba(255, 255, 255, 0.92) 0 16px, transparent 16px) top right / 50% 50% no-repeat,
-        linear-gradient(315deg, var(--neon-purple) 0 20px, transparent 20px) bottom right / 50% 50% no-repeat,
-        linear-gradient(145deg, rgba(0, 242, 255, 0.95), rgba(188, 19, 254, 0.92));
+    position: relative;
+    padding: 6px;
+    background: #0a0a0f;
     clip-path: polygon(18px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 18px);
-    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.18), 0 0 24px rgba(0, 242, 255, 0.18);
+    box-shadow:
+        0 0 0 1px rgba(0, 242, 255, 0.1),
+        0 0 20px rgba(188, 19, 254, 0.15),
+        0 0 50px rgba(188, 19, 254, 0.08);
 }
 
+/* ── Corner decorations (DOM elements) ── */
+.card-corner {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Top-left: 3 diagonal blue stripes */
+.card-corner-tl {
+    top: 10px;
+    left: 10px;
+    width: 26px;
+    height: 20px;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 3px,
+        rgba(0, 242, 255, 0.75) 3px,
+        rgba(0, 242, 255, 0.75) 5px
+    );
+    clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%);
+}
+
+/* Top-right: 4 horizontal blue bars */
+.card-corner-tr {
+    top: 10px;
+    right: 12px;
+    width: 20px;
+    height: 16px;
+    background: repeating-linear-gradient(
+        180deg,
+        rgba(0, 242, 255, 0.75) 0px,
+        rgba(0, 242, 255, 0.75) 2px,
+        transparent 2px,
+        transparent 4px
+    );
+    clip-path: polygon(0 0, 100% 0, 100% 65%, 0 100%);
+}
+
+/* Bottom-left: discreet decorative line */
+.card-corner-bl {
+    bottom: 54px;
+    left: 14px;
+    width: 22px;
+    height: 1px;
+    background: rgba(0, 242, 255, 0.4);
+}
+
+/* Bottom-right: trapezoid with internal lines */
+.card-corner-br {
+    bottom: 48px;
+    right: 8px;
+    width: 20px;
+    height: 18px;
+    background:
+        repeating-linear-gradient(
+            135deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 242, 255, 0.3) 2px,
+            rgba(0, 242, 255, 0.3) 3px
+        ),
+        linear-gradient(180deg, rgba(0, 242, 255, 0.45), rgba(0, 242, 255, 0.12));
+    clip-path: polygon(25% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* ── Inner frame ── */
 .catalog-card-inner {
+    position: relative;
     clip-path: polygon(15px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 0 100%, 0 15px);
     background: #02040b;
+    border: 1px solid rgba(0, 242, 255, 0.12);
 }
 
+/* ── Illustration area (~75%) ── */
 .catalog-card-media {
-    aspect-ratio: 2 / 3;
+    aspect-ratio: 2 / 2.5;
     min-height: 0;
     position: relative;
     overflow: hidden;
@@ -791,6 +858,7 @@
     filter: brightness(1.06) saturate(1.1);
 }
 
+/* ── Flip mechanism (CSS-only) ── */
 .flip-toggle {
     display: none;
 }
@@ -799,17 +867,19 @@
     transform: rotateY(180deg);
 }
 
+/* ── Bottom band ── */
 .catalog-card-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    min-height: 42px;
+    min-height: 48px;
     padding: 8px 12px;
     background: #000;
-    border-top: 1px solid rgba(0, 242, 255, 0.22);
+    border-top: 1px solid rgba(0, 242, 255, 0.25);
 }
 
+/* ── Typography ── */
 .catalog-card-title {
     flex: 1;
     min-width: 0;
@@ -824,21 +894,22 @@
     text-overflow: ellipsis;
 }
 
+/* ── Circular button ── */
 .catalog-card-flip-btn {
     flex: 0 0 auto;
     display: grid;
     place-items: center;
     width: 36px;
-    height: 32px;
+    height: 36px;
     margin: 0;
     padding: 0;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(188, 19, 254, 0.65);
-    background: rgba(0, 0, 0, 0.75);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: #000;
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 0 8px rgba(188, 19, 254, 0.28);
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .catalog-flip-icon {
@@ -849,15 +920,16 @@
 
 .catalog-card-flip-btn:hover {
     transform: scale(1.06);
-    border-color: rgba(0, 242, 255, 0.75);
-    box-shadow: 0 0 16px rgba(0, 242, 255, 0.35);
+    border-color: rgba(0, 242, 255, 0.6);
+    box-shadow: 0 0 12px rgba(0, 242, 255, 0.25);
 }
 
 .catalog-neon-card .flip-toggle:checked ~ .catalog-card-shell .catalog-card-flip-btn {
-    border-color: rgba(0, 242, 255, 0.75);
-    box-shadow: 0 0 14px rgba(0, 242, 255, 0.35);
+    border-color: rgba(0, 242, 255, 0.6);
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.25);
 }
 
+/* ── Card back ── */
 .card-back-neon {
     justify-content: flex-start;
     gap: 10px;
@@ -869,8 +941,8 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(188, 19, 254, 0.4) transparent;
     background:
-        radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.12), transparent 40%),
-        linear-gradient(180deg, #050812 0%, #07020f 100%);
+        radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.1), transparent 40%),
+        linear-gradient(180deg, #040610 0%, #030508 100%);
 }
 
 .card-back-neon .card-back-title {
@@ -967,7 +1039,7 @@
     }
 
     .catalog-card-bar {
-        min-height: 40px;
+        min-height: 44px;
         padding: 8px 10px;
     }
 

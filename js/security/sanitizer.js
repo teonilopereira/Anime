@@ -11,16 +11,6 @@
             .replace(/'/g, "&#039;");
     }
 
-    function stripTags(value) {
-        const template = document.createElement("template");
-        template.innerHTML = String(value ?? "");
-        return template.content.textContent || "";
-    }
-
-    function sanitizeText(value) {
-        return escapeHtml(stripTags(value)).trim();
-    }
-
     function safeUrl(value) {
         if (!value) return "";
         var url = String(value).trim();
@@ -40,13 +30,6 @@
         } catch (_) { }
         return "";
     }
-
-    window.AppSanitizer = Object.freeze({
-        escapeHtml,
-        stripTags,
-        sanitizeText,
-        safeUrl
-    });
 
     window.escapeHtml = escapeHtml;
     window.safeUrl = safeUrl;

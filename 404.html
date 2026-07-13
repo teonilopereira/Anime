@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Página no encontrada en Anime Destiny.">
     <title>Anime Destiny | 404 - No Encontrado</title>
-        <link rel="stylesheet" href="css/bundle.min.css">
+        <link rel="stylesheet" href="css/bundle.css?v=3">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
@@ -76,6 +76,7 @@
             .error-btn { padding: 10px 20px; font-size: 0.8rem; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
 </head>
 <body data-page="404">
     <nav class="destiny-navbar">
@@ -88,9 +89,9 @@
 
     <main class="error-container" id="main-content">
         <div class="error-code">404</div>
-        <h1 class="error-title">Ruta perdida en la Red</h1>
-        <p class="error-text">El enlace que ingresaste no existe, fue movido o se cayó temporalmente.</p>
-        <a href="index.html" class="error-btn">Volver al Inicio</a>
+        <h1 class="error-title" data-i18n="error.404.title">Ruta perdida en la Red</h1>
+        <p class="error-text" data-i18n="error.404.text">El enlace que ingresaste no existe, fue movido o se cayó temporalmente.</p>
+        <a href="index.html" class="error-btn" data-i18n="error.volver_inicio">Volver al Inicio</a>
     </main>
 
     <div id="footer-container"></div>

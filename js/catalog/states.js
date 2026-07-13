@@ -66,8 +66,22 @@
 
     function addUserPoints(userId, delta) {
         if (!userId || userId === 'Invitado') return;
-        const next = Math.max(0, getUserPoints(userId) + delta);
+        const currentPoints = getUserPoints(userId);
+        const oldLevelInfo = levelFromPoints(currentPoints);
+
+        const next = Math.max(0, currentPoints + delta);
         UserStore.setItem(pointsKey(userId), String(next));
+
+        const newLevelInfo = levelFromPoints(next);
+        if (newLevelInfo.level > oldLevelInfo.level) {
+            if (window.Toast) {
+                const translatedMsg = window.AppI18n
+                    ? window.AppI18n.t("notification.levelup", { level: newLevelInfo.level })
+                    : `¡Subiste de Nivel! 🎉 ¡Ahora eres Nivel ${newLevelInfo.level}! 🌟`;
+                window.Toast.success(translatedMsg, 6000);
+            }
+        }
+
         const client = window.AppSupabase;
         if (!client?.addExperience) {
             enqueueSync({ type: "experience", payload: { delta } });
@@ -171,11 +185,6 @@
             }
         } catch (e) { console.warn('countUserStatesBoth failed:', e); }
         return { fav, viewed };
-    }
-
-    function countUserStates(userId, type) {
-        const counts = countUserStatesBoth(userId);
-        return type === 'fav' ? counts.fav : counts.viewed;
     }
 
     function getPreference(key, fallback = false) {
@@ -328,19 +337,34 @@
                 return;
             }
 
-            const fillEl = progressBox.querySelector('.card-back-progress-fill');
-            const pctEl = progressBox.querySelector('[data-pct-text]');
-            const pctOnlyEl = progressBox.querySelector('[data-pct-only]');
-            const metaEl = progressBox.querySelector('[data-meta-text]');
+            const dataTotal = Number(progressBox.getAttribute('data-total') || 0);
+            if (dataTotal === 0) {
+                // Caso: Progreso Libre (safeTotal === 0)
+                const noProgCard = progressBox.querySelector('.card-back-no-progress-card');
+                const viewedFooter = progressBox.querySelector('[data-viewed-footer]');
+                if (meta.pct === 100) {
+                    if (noProgCard) noProgCard.style.display = 'none';
+                    if (viewedFooter) viewedFooter.style.display = '';
+                } else {
+                    if (noProgCard) noProgCard.style.display = '';
+                    if (viewedFooter) viewedFooter.style.display = 'none';
+                }
+            } else {
+                // Caso normal con barra de progreso
+                const fillEl = progressBox.querySelector('.card-back-progress-fill');
+                const pctEl = progressBox.querySelector('[data-pct-text]');
+                const pctOnlyEl = progressBox.querySelector('[data-pct-only]');
+                const metaEl = progressBox.querySelector('[data-meta-text]');
 
-            if (fillEl) fillEl.style.width = `${meta.pct}%`;
-            if (pctEl) pctEl.textContent = `${meta.pct}% VISTO`;
-            if (pctOnlyEl) pctOnlyEl.textContent = `${meta.pct}%`;
-            if (metaEl) {
-                const pr = progressBox.getAttribute('data-prefix') || 'EP';
-                metaEl.textContent = meta.total
-                    ? `${pr} ${meta.watched}/${meta.total}`
-                    : `${meta.pct}%`;
+                if (fillEl) fillEl.style.width = `${meta.pct}%`;
+                if (pctEl) pctEl.textContent = `${meta.pct}% VISTO`;
+                if (pctOnlyEl) pctOnlyEl.textContent = `${meta.pct}%`;
+                if (metaEl) {
+                    const pr = progressBox.getAttribute('data-prefix') || 'EP';
+                    metaEl.textContent = meta.total
+                        ? `${pr} ${meta.watched}/${meta.total}`
+                        : `${meta.pct}%`;
+                }
             }
 
             progressBox.style.display = '';
@@ -379,10 +403,6 @@
         UserStore.setItem(`u:${userId}|item:${itemId}|ts`, new Date().toISOString());
 
         const card = btn.closest('.card-container') || btn.closest('[data-item-id]');
-        const completeInput = card?.querySelector('.card-complete-input');
-        if (completeInput && type === 'viewed') {
-            completeInput.checked = enabled;
-        }
 
         const metaKey = `u:${userId}|itemMeta:${itemId}`;
 
@@ -450,8 +470,6 @@
             const viewedBtn  = card.querySelector('.viewed-btn');
             if (favBtn)    favBtn.classList.toggle('active', isFav);
             if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
-            const completeInput = card.querySelector('.card-complete-input');
-            if (completeInput) completeInput.checked = isViewed;
         });
         updateCardProgressIndicators();
     }
@@ -506,9 +524,6 @@
             const viewedBtn = card.querySelector('.viewed-btn');
             if (favBtn)    favBtn.classList.toggle('active', isFav);
             if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
-
-            const completeInput = card.querySelector('.card-complete-input');
-            if (completeInput) completeInput.checked = isViewed;
         });
 
         updateCardProgressIndicators();
@@ -550,29 +565,15 @@
             if (!itemId || !action) return;
             toggleStatus(btn, action, itemId);
         });
-
-        document.addEventListener('change', function (e) {
-            var input = e.target;
-            if (!input.classList.contains('card-complete-input')) return;
-            var itemId = input.getAttribute('data-item-id');
-            if (!itemId) return;
-            if (typeof window.toggleCardComplete === 'function') {
-                window.toggleCardComplete(input, itemId);
-            }
-        });
     })();
 
     // Exports
     window.addUserPoints = addUserPoints;
     window.cargarEstadosBotones = cargarEstadosBotones;
-    window.toggleStatus = toggleStatus;
-    window.getUserStateSummary = getUserStateSummary;
     window.buildSearchIndexForItem = buildSearchIndexForItem;
     window.getCategoriaActual = getCategoriaActual;
     window.statusStorageKey = statusStorageKey;
-    window.applyUserPreferences = applyUserPreferences;
-    window.applyBackgroundPreference = applyBackgroundPreference;
-    window.updateCardProgressIndicators = updateCardProgressIndicators;
+    window.syncItemStateToSupabase = syncItemStateToSupabase;
     window.getUserPoints = getUserPoints;
     window.levelFromPoints = levelFromPoints;
     window.pointsKey = pointsKey;

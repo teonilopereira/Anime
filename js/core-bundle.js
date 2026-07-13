@@ -15,10 +15,7 @@
     const config = {
         supabaseUrl:     "https://llytokoztnjuczuppzgs.supabase.co",
         supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxseXRva296dG5qdWN6dXBwemdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMTE2MTcsImV4cCI6MjA5NTU4NzYxN30.jKU5ZoweR3v5TPyn_4TNs6W01Cns3xEZOkleZGg1UNg",
-        defaultPageSize: 40,
-        maxCatalogItems: 40,
-        debug:           false,
-        cachePrefix:     "animeDestiny"
+        debug:           false
     };
 
     window.AppConfig = Object.freeze(config);
@@ -34,98 +31,461 @@
 
     var translations = {
         es: {
-            "nav.inicio": "Inicio",
-            "nav.anime": "Anime",
-            "nav.manga": "Manga",
-            "nav.novelas": "Novelas",
-            "nav.comparar": "Comparar",
-            "nav.top": "Top",
-            "nav.mis_listas": "Mis Listas",
-            "nav.configuracion": "Configuración",
-            "nav.cuenta": "Cuenta",
-            "nav.ingresar": "Ingresar",
-            "nav.perfil": "Perfil",
-            "nav.cerrar_sesion": "Cerrar Sesión",
+            // ── Navegación ──────────────────────────────────────────────────
+            "nav.inicio":         "Inicio",
+            "nav.anime":          "Anime",
+            "nav.manga":          "Manga",
+            "nav.novelas":        "Novelas",
+            "nav.comparar":       "Comparar",
+            "nav.top":            "Top",
+            "nav.mis_listas":     "Mis Listas",
+            "nav.configuracion":  "Configuración",
+            "nav.cuenta":         "Cuenta",
+            "nav.ingresar":       "Ingresar",
+            "nav.perfil":         "Perfil",
+            "nav.cerrar_sesion":  "Cerrar Sesión",
+            "nav.menu":           "Menú",
+            "nav.usuario_invitado": "Invitado",
+            "nav.usuario": "Usuario",
 
-            "catalog.buscar": "Buscar...",
+            // ── Index / Inicio ───────────────────────────────────────────────
+            "index.eyebrow":       "Base de datos • v2026",
+            "index.subtitle":      "Explorá el catálogo, guardá tu progreso y construí tus listas.",
+            "index.card.anime":    "Series y películas",
+            "index.card.manga":    "Cómics y tankobon",
+            "index.card.novelas":  "Light novels y más",
+            "index.card.listas":   "Favoritos y vistos",
+            "index.card.ranking":  "Rankings F2P y P2W",
+            "index.destacados":    "Destacados",
+            "index.continuar":     "Continuar viendo",
+
+            // ── Catálogo (anime / manga / novelas) ───────────────────────────
+            "catalog.title.anime":    "CATÁLOGO DE ANIME",
+            "catalog.title.manga":    "CATÁLOGO DE MANGA",
+            "catalog.title.novelas":  "CATÁLOGO DE NOVELAS",
+            "catalog.subtitle.anime": "Explorá, descubrí y guardá tus animes favoritos.",
+            "catalog.subtitle.manga": "Explorá, descubrí y guardá tus mangas favoritos.",
+            "catalog.subtitle.novelas": "Explorá, descubrí y guardá tus novelas favoritas.",
+            "catalog.buscar":         "Buscar...",
+            "catalog.buscar.anime":   "Buscar anime...",
+            "catalog.buscar.manga":   "Buscar manga...",
+            "catalog.buscar.novelas": "Buscar novela...",
             "catalog.sin_resultados": "No se encontraron resultados.",
-            "catalog.cargando": "Cargando...",
-            "catalog.error": "Error al cargar el catálogo.",
+            "catalog.cargando":       "Cargando...",
+            "catalog.error":          "Error al cargar el catálogo.",
             "catalog.continuar_viendo": "Continuar viendo",
-            "catalog.favoritos": "Favoritos",
-            "catalog.vistos": "Vistos",
+            "catalog.favoritos":      "Favoritos",
+            "catalog.vistos":         "Vistos",
             "catalog.filtrar_estado": "Filtrar por estado",
+            "catalog.filtros":        "FILTROS ADICIONALES",
+            "catalog.limpiar":        "Limpiar Filtros",
+            "catalog.nsfw.titulo":    "Mostrar NSFW",
+            "catalog.nsfw.desc":      "Activa para mostrar contenido para adultos.",
+            "catalog.genero":         "GÉNERO",
+            "catalog.abrir_filtros":  "Abrir filtros",
 
-            "detail.cargando": "Buscando detalle en la API...",
-            "detail.no_encontrado": "No se encontró este título.",
-            "detail.sin_sinopsis": "Sin sinopsis disponible.",
-            "detail.sinopsis": "SINOPSIS",
-            "detail.generos": "GÉNEROS",
-            "detail.capitulos": "CAPÍTULOS",
-            "detail.episodios": "EPISODIOS",
-            "detail.volumenes": "VOLÚMENES",
-            "detail.estado": "Estado",
-            "detail.puntaje": "Puntaje",
-            "detail.sin_capitulos": "Sin capítulos especificados en la API.",
+            // ── Detalle ──────────────────────────────────────────────────────
+            "detail.cargando":        "Buscando detalle en la API...",
+            "detail.no_encontrado":   "No se encontró este título.",
+            "detail.sin_sinopsis":    "Sin sinopsis disponible.",
+            "detail.sinopsis":        "SINOPSIS",
+            "detail.generos":         "GÉNEROS",
+            "detail.capitulos":       "CAPÍTULOS",
+            "detail.episodios":       "EPISODIOS",
+            "detail.volumenes":       "VOLÚMENES",
+            "detail.estado":          "Estado",
+            "detail.puntaje":         "Puntaje",
+            "detail.sin_capitulos":   "Sin capítulos especificados en la API.",
             "detail.progreso_general": "PROGRESO GENERAL",
-            "detail.completados": "{vistos}/{total} completados",
-            "detail.volver": "Volver al catálogo",
-            "detail.compartir": "Compartir con conocidos o amigos",
-            "detail.favorito": "Agregar a favoritos",
-            "detail.marcar_visto": "Marcar como visto",
-            "detail.ver_mas": "Ver más",
+            "detail.completados":     "{vistos}/{total} completados",
+            "detail.volver":          "Volver al catálogo",
+            "detail.compartir":       "Compartir con conocidos o amigos",
+            "detail.favorito":        "Agregar a favoritos",
+            "detail.marcar_visto":    "Marcar como visto",
+            "detail.ver_mas":         "Ver más",
+            "detail.perfil":          "PERFIL",
+            "detail.abrir":           "ABRIR",
+            "detail.configuracion":   "CONFIGURACIÓN",
+            "detail.cargando_kicker": "Cargando",
+            "detail.no_encontrado_kicker": "No encontrado",
+            "detail.sinopsis_h3":     "SINOPSIS",
+            "detail.generos_h3":      "GÉNEROS",
+            "detail.capitulos_h3":    "CAPÍTULOS",
+            "detail.episodios_h3":    "EPISODIOS",
+            "detail.volumenes_h3":    "VOLÚMENES",
+            "detail.barra_capitulos": "CAPÍTULOS GENERAL",
+            "detail.barra_episodios": "EPISODIOS GENERAL",
+            "detail.barra_volumenes": "VOLÚMENES GENERAL",
+            "detail.modal.info":      "Información",
+            "detail.modal.cerrar":    "Cerrar",
 
-            "rank.cargando": "Cargando ranking...",
-            "rank.cargar_mas": "Cargar más",
+            // ── Top / Ranking ────────────────────────────────────────────────
+            "rank.titulo":       "TOP RANKING",
+            "rank.subtitulo":    "Los mejor puntuados por la comunidad.",
+            "rank.cargando":     "Cargando ranking...",
+            "rank.cargar_mas":   "Cargar más",
             "rank.no_resultados": "Sin resultados.",
+            "top.rank.title":    "RANKING",
+            "top.rank.subtitle": "Jugadores ordenados por nivel y experiencia total.",
 
-            "lists.cargando": "Cargando tus listas...",
-            "lists.titulo": "MIS LISTAS",
-            "lists.subtitulo": "Tus \"Me gusta\" y \"Vistos\" separados por categoría.",
-            "lists.vacio": "No tenés elementos en esta categoría.",
+            // ── Mis Listas ───────────────────────────────────────────────────
+            "lists.cargando":    "Cargando tus listas...",
+            "lists.titulo":      "MIS LISTAS",
+            "lists.subtitulo":   "Tus \"Me gusta\" y \"Vistos\" separados por categoría.",
+            "lists.vacio":       "No tenés elementos en esta categoría.",
+            "lists.sidebar.mis_listas": "Mis Listas",
+            "lists.sidebar.actividad": "Actividad",
+            "lists.sidebar.logros": "Logros",
+            "lists.sidebar.estadisticas": "Estadísticas",
+            "lists.card.anime": "ANIME",
+            "lists.card.manga": "MANGA",
+            "lists.card.novelas": "NOVELAS",
+            "lists.card.sublabel": "Títulos guardados",
+            "lists.card.ver_catalogo": "Ver catálogo ➜",
+            "lists.card.actividad_reciente": "ACTIVIDAD RECIENTE",
+            "lists.card.ver_todo": "Ver todo ➜",
+            "lists.card.sin_actividad": "Sin actividad reciente.",
+            "lists.filter.todo": "Todo",
+            "lists.filter.me_gusta": "Me gusta",
+            "lists.filter.vistos": "Vistos",
+            "lists.filter.exportar": "Exportar JSON",
+            "lists.results.titulo": "RESULTADOS",
+            "lists.results.todos": "Todos",
+            "lists.results.anime": "Anime",
+            "lists.results.manga": "Manga",
+            "lists.results.novelas": "Novelas",
+            "lists.recommend.titulo": "RECOMENDADO PARA VOS",
+            "lists.recommend.subtitulo": "Basado en lo que marcaste como visto.",
+            "lists.activity.titulo": "ACTIVIDAD RECIENTE",
+            "lists.activity.subtitulo": "Tus últimos animes, mangas y novelas marcados.",
+            "lists.activity.sin_actividad": "Sin actividad",
+            "lists.activity.no_actividad_desc": "No hay actividad reciente.",
+            "lists.achievements.titulo": "LOGROS",
+            "lists.achievements.subtitulo": "Desbloqueá logros marcando Me gusta, Visto y registrando progreso.",
+            "lists.stats.titulo": "ESTADÍSTICAS",
+            "lists.stats.subtitulo": "Resumen de tu actividad en la app.",
 
-            "login.titulo": "Iniciar Sesión",
-            "login.usuario": "Nombre de usuario",
-            "login.email": "Correo electrónico",
-            "login.contrasena": "Contraseña",
-            "login.ingresar": "Ingresar",
-            "login.crear": "Crear Cuenta",
-            "login.google": "Continuar con Google",
-            "login.cerrar": "Cerrar",
+            // ── Login ────────────────────────────────────────────────────────
+            "login.kicker":      "Tu cuenta",
+            "login.copy":        "Entrá para guardar favoritos, progreso y listas en tu perfil.",
+            "login.titulo":      "Iniciar sesión",
+            "login.tab.login":   "Iniciar",
+            "login.tab.crear":   "Crear cuenta",
+            "login.usuario":     "Usuario",
+            "login.email":       "Correo",
+            "login.contrasena":  "Contraseña",
+            "login.ingresar":    "Entrar",
+            "login.crear":       "Crear Cuenta",
+            "login.google":      "Continuar con Google",
+            "login.cerrar":      "Cerrar sesión",
+            "login.volver":      "Volver al inicio",
+            "login.mis_listas":  "Ver mis listas",
+            "login.placeholder.usuario":   "Ej: NarutoFan",
+            "login.placeholder.email":     "tuusuario@gmail.com",
+            "login.placeholder.password":  "********",
 
-            "config.titulo": "Configuración",
-            "config.fondo": "Fondo",
-            "config.color": "Color de fondo",
-            "config.imagen": "Imagen de fondo",
-            "config.idioma": "Idioma",
-            "config.guardado": "Configuración guardada.",
+            // ── Configuración ────────────────────────────────────────────────
+            "config.titulo":         "CONFIGURACIÓN",
+            "config.subtitulo":      "Personalizá tu experiencia, información y preferencias de la app.",
+            "config.usuario_activo": "Usuario activo",
+            "config.volver_perfil":  "← Volver al perfil",
+            "config.info_personal":  "INFORMACIÓN PERSONAL",
+            "config.email":          "Correo electrónico",
+            "config.pais":           "País / Región",
+            "config.idioma":         "Idioma",
+            "config.zona":           "Zona horaria",
+            "config.guardar_info":   "💾 GUARDAR INFORMACIÓN",
+            "config.preferencias":   "PREFERENCIAS",
+            "config.notif.titulo":   "Notificaciones",
+            "config.notif.desc":     "Recibir alertas y novedades de la app.",
+            "config.sugerido.titulo": "Contenido sugerido personalizado",
+            "config.sugerido.desc":  "Recomendaciones basadas en tus gustos.",
+            "config.compact.titulo": "Cards compactas",
+            "config.compact.desc":   "Reduce el tamaño de las cards para ver más contenido.",
+            "config.motion.titulo":  "Reducir animaciones",
+            "config.motion.desc":     "Menos efectos visuales para navegación más suave.",
+            "config.progress.titulo": "Barra de progreso visible",
+            "config.progress.desc":  "Muestra siempre el progreso en cards and detalles.",
+            "config.public.titulo":  "Perfil público",
+            "config.public.desc":    "Permitir que otros usuarios vean tu perfil.",
+            "config.nsfw.titulo":    "Mostrar contenido NSFW",
+            "config.nsfw.desc":      "Activar para ver contenido para adultos en el catálogo.",
+            "config.tema":           "Tema de la app",
+            "config.guardar_pref":   "GUARDAR PREFERENCIAS",
+            "config.fondo":          "Fondo",
+            "config.color":          "Color de fondo",
+            "config.imagen":         "Imagen de fondo",
+            "config.guardado":       "Configuración guardada.",
+            "notification.levelup":   "¡Subiste de Nivel! 🎉 ¡Ahora eres Nivel {level}! 🌟",
 
-            "user.perfil": "Perfil",
-            "user.puntos": "Puntos",
-            "user.nivel": "Nivel",
-            "user.vistos": "Vistos",
-            "user.favoritos": "Favoritos",
+            // ── Usuario / Perfil ─────────────────────────────────────────────
+            "user.perfil":     "Perfil",
+            "user.puntos":     "Puntos",
+            "user.nivel":      "Nivel",
+            "user.vistos":     "Vistos",
+            "user.favoritos":  "Favoritos",
 
-            "state.visto": "Visto",
-            "state.favorito": "Favorito",
+            // ── Comparar ─────────────────────────────────────────────────────
+            "compare.titulo":  "COMPARAR",
+            "compare.desc":    "Compará dos títulos lado a lado.",
+
+            // ── Estados ──────────────────────────────────────────────────────
+            "state.visto":     "Visto",
+            "state.favorito":  "Favorito",
             "state.pendiente": "Pendiente",
 
-            "error.generico": "Algo salió mal. Intentá de nuevo en unos minutos.",
-            "error.conexion": "Sin conexión al servidor. Revisá tu internet.",
-            "error.no_encontrado": "No encontrado.",
+            // ── Errores ──────────────────────────────────────────────────────
+            "error.generico":        "Algo salió mal. Intentá de nuevo en unos minutos.",
+            "error.conexion":        "Sin conexión al servidor. Revisá tu internet.",
+            "error.online":          "¡Conexión restablecida!",
+            "error.no_encontrado":   "No encontrado.",
+            "error.404.title":       "Ruta perdida en la Red",
+            "error.404.text":        "El enlace que ingresaste no existe, fue movido o se cayó temporalmente.",
             "error.sesion_expirada": "Sesión expirada. Tus cambios se guardaron y se sincronizarán al reconectar.",
-            "error.volver_inicio": "Volver al inicio",
+            "error.volver_inicio":   "Volver al inicio",
+            "privacy.title":         "Política de Privacidad",
+            "privacy.updated":       "Última actualización: Julio 2026",
+            "terms.title":           "Términos de Servicio",
+            "terms.updated":         "Última actualización: Julio 2026",
 
-            "general.cargando": "Cargando...",
+            // ── General ──────────────────────────────────────────────────────
+            "general.cargando":  "Cargando...",
             "general.guardando": "Guardando...",
-            "general.hecho": "Hecho",
-            "general.cancelar": "Cancelar",
-            "general.cerrar": "Cerrar"
+            "general.hecho":     "Hecho",
+            "general.cancelar":  "Cancelar",
+            "general.cerrar":    "Cerrar"
         },
-        en: {}
+
+        en: {
+            // ── Navigation ───────────────────────────────────────────────────
+            "nav.inicio":         "Home",
+            "nav.anime":          "Anime",
+            "nav.manga":          "Manga",
+            "nav.novelas":        "Novels",
+            "nav.comparar":       "Compare",
+            "nav.top":            "Top",
+            "nav.mis_listas":     "My Lists",
+            "nav.configuracion":  "Settings",
+            "nav.cuenta":         "Account",
+            "nav.ingresar":       "Log In",
+            "nav.perfil":         "Profile",
+            "nav.cerrar_sesion":  "Log Out",
+            "nav.menu":           "Menu",
+            "nav.usuario_invitado": "Guest",
+            "nav.usuario": "User",
+
+            // ── Index / Home ─────────────────────────────────────────────────
+            "index.eyebrow":       "Database • v2026",
+            "index.subtitle":      "Browse the catalog, track your progress and build your lists.",
+            "index.card.anime":    "Series & movies",
+            "index.card.manga":    "Comics & tankobon",
+            "index.card.novelas":  "Light novels & more",
+            "index.card.listas":   "Favorites & watched",
+            "index.card.ranking":  "F2P & P2W Rankings",
+            "index.destacados":    "Featured",
+            "index.continuar":     "Continue watching",
+
+            // ── Catalog ──────────────────────────────────────────────────────
+            "catalog.title.anime":    "ANIME CATALOG",
+            "catalog.title.manga":    "MANGA CATALOG",
+            "catalog.title.novelas":  "NOVEL CATALOG",
+            "catalog.subtitle.anime": "Browse, discover and save your favorite anime.",
+            "catalog.subtitle.manga": "Browse, discover and save your favorite manga.",
+            "catalog.subtitle.novelas": "Browse, discover and save your favorite novels.",
+            "catalog.buscar":         "Search...",
+            "catalog.buscar.anime":   "Search anime...",
+            "catalog.buscar.manga":   "Search manga...",
+            "catalog.buscar.novelas": "Search novel...",
+            "catalog.sin_resultados": "No results found.",
+            "catalog.cargando":       "Loading...",
+            "catalog.error":          "Error loading catalog.",
+            "catalog.continuar_viendo": "Continue watching",
+            "catalog.favoritos":      "Favorites",
+            "catalog.vistos":         "Watched",
+            "catalog.filtrar_estado": "Filter by status",
+            "catalog.filtros":        "ADDITIONAL FILTERS",
+            "catalog.limpiar":        "Clear Filters",
+            "catalog.nsfw.titulo":    "Show NSFW",
+            "catalog.nsfw.desc":      "Enable to show adult content.",
+            "catalog.genero":         "GENRE",
+            "catalog.abrir_filtros":  "Open filters",
+
+            // ── Detail ───────────────────────────────────────────────────────
+            "detail.cargando":        "Fetching detail from the API...",
+            "detail.no_encontrado":   "This title was not found.",
+            "detail.sin_sinopsis":    "No synopsis available.",
+            "detail.sinopsis":        "SYNOPSIS",
+            "detail.generos":         "GENRES",
+            "detail.capitulos":       "CHAPTERS",
+            "detail.episodios":       "EPISODES",
+            "detail.volumenes":       "VOLUMES",
+            "detail.estado":          "Status",
+            "detail.puntaje":         "Score",
+            "detail.sin_capitulos":   "No chapters specified in the API.",
+            "detail.progreso_general": "OVERALL PROGRESS",
+            "detail.completados":     "{vistos}/{total} completed",
+            "detail.volver":          "Back to catalog",
+            "detail.compartir":       "Share with friends",
+            "detail.favorito":        "Add to favorites",
+            "detail.marcar_visto":    "Mark as watched",
+            "detail.ver_mas":         "See more",
+            "detail.perfil":          "PROFILE",
+            "detail.abrir":           "OPEN",
+            "detail.configuracion":   "SETTINGS",
+            "detail.cargando_kicker": "Loading",
+            "detail.no_encontrado_kicker": "Not found",
+            "detail.sinopsis_h3":     "SYNOPSIS",
+            "detail.generos_h3":      "GENRES",
+            "detail.capitulos_h3":    "CHAPTERS",
+            "detail.episodios_h3":    "EPISODES",
+            "detail.volumenes_h3":    "VOLUMES",
+            "detail.barra_capitulos": "OVERALL CHAPTERS",
+            "detail.barra_episodios": "OVERALL EPISODES",
+            "detail.barra_volumenes": "OVERALL VOLUMES",
+            "detail.modal.info":      "Information",
+            "detail.modal.cerrar":    "Close",
+
+            // ── Top / Ranking ────────────────────────────────────────────────
+            "rank.titulo":        "TOP RANKING",
+            "rank.subtitulo":     "The highest rated by the community.",
+            "rank.cargando":      "Loading ranking...",
+            "rank.cargar_mas":    "Load more",
+            "rank.no_resultados": "No results.",
+            "top.rank.title":     "RANKING",
+            "top.rank.subtitle":  "Players sorted by level and total experience.",
+
+            // ── My Lists ─────────────────────────────────────────────────────
+            "lists.cargando":   "Loading your lists...",
+            "lists.titulo":     "MY LISTS",
+            "lists.subtitulo":  "Your \"Likes\" and \"Watched\" separated by category.",
+            "lists.vacio":      "You have no items in this category.",
+            "lists.sidebar.mis_listas": "My Lists",
+            "lists.sidebar.actividad": "Activity",
+            "lists.sidebar.logros": "Achievements",
+            "lists.sidebar.estadisticas": "Statistics",
+            "lists.card.anime": "ANIME",
+            "lists.card.manga": "MANGA",
+            "lists.card.novelas": "NOVELS",
+            "lists.card.sublabel": "Saved titles",
+            "lists.card.ver_catalogo": "View catalog ➜",
+            "lists.card.actividad_reciente": "RECENT ACTIVITY",
+            "lists.card.ver_todo": "View all ➜",
+            "lists.card.sin_actividad": "No recent activity.",
+            "lists.filter.todo": "All",
+            "lists.filter.me_gusta": "Likes",
+            "lists.filter.vistos": "Watched",
+            "lists.filter.exportar": "Export JSON",
+            "lists.results.titulo": "RESULTS",
+            "lists.results.todos": "All",
+            "lists.results.anime": "Anime",
+            "lists.results.manga": "Manga",
+            "lists.results.novelas": "Novels",
+            "lists.recommend.titulo": "RECOMMENDED FOR YOU",
+            "lists.recommend.subtitulo": "Based on what you marked as watched.",
+            "lists.activity.titulo": "RECENT ACTIVITY",
+            "lists.activity.subtitulo": "Your latest anime, manga and novels tracked.",
+            "lists.activity.sin_actividad": "No activity",
+            "lists.activity.no_actividad_desc": "No recent activity.",
+            "lists.achievements.titulo": "ACHIEVEMENTS",
+            "lists.achievements.subtitulo": "Unlock achievements by liking, watching, and logging progress.",
+            "lists.stats.titulo": "STATISTICS",
+            "lists.stats.subtitulo": "Summary of your app activity.",
+
+            // ── Login ────────────────────────────────────────────────────────
+            "login.kicker":     "Your account",
+            "login.copy":       "Log in to save favorites, progress and lists to your profile.",
+            "login.titulo":     "Log In",
+            "login.tab.login":  "Log In",
+            "login.tab.crear":  "Create account",
+            "login.usuario":    "Username",
+            "login.email":      "Email",
+            "login.contrasena": "Password",
+            "login.ingresar":   "Enter",
+            "login.crear":      "Create Account",
+            "login.google":     "Continue with Google",
+            "login.cerrar":     "Log Out",
+            "login.volver":     "Back to home",
+            "login.mis_listas": "View my lists",
+            "login.placeholder.usuario":   "e.g. NarutoFan",
+            "login.placeholder.email":     "youruser@gmail.com",
+            "login.placeholder.password":  "********",
+
+            // ── Settings ─────────────────────────────────────────────────────
+            "config.titulo":          "SETTINGS",
+            "config.subtitulo":       "Customize your experience, information and app preferences.",
+            "config.usuario_activo":  "Active user",
+            "config.volver_perfil":   "← Back to profile",
+            "config.info_personal":   "PERSONAL INFORMATION",
+            "config.email":           "Email address",
+            "config.pais":            "Country / Region",
+            "config.idioma":          "Language",
+            "config.zona":            "Time zone",
+            "config.guardar_info":    "💾 SAVE INFORMATION",
+            "config.preferencias":    "PREFERENCES",
+            "config.notif.titulo":    "Notifications",
+            "config.notif.desc":      "Receive alerts and app updates.",
+            "config.sugerido.titulo": "Personalized suggested content",
+            "config.sugerido.desc":   "Recommendations based on your taste.",
+            "config.compact.titulo":  "Compact cards",
+            "config.compact.desc":    "Reduce card size to see more content.",
+            "config.motion.titulo":   "Reduce animations",
+            "config.motion.desc":     "Fewer visual effects for smoother navigation.",
+            "config.progress.titulo": "Visible progress bar",
+            "config.progress.desc":   "Always show progress in cards and details.",
+            "config.public.titulo":   "Public profile",
+            "config.public.desc":     "Allow other users to view your profile.",
+            "config.nsfw.titulo":     "Show NSFW content",
+            "config.nsfw.desc":       "Enable to see adult content in the catalog.",
+            "config.tema":            "App theme",
+            "config.guardar_pref":    "SAVE PREFERENCES",
+            "config.fondo":           "Background",
+            "config.color":           "Background color",
+            "config.imagen":          "Background image",
+            "config.guardado":        "Settings saved.",
+            "notification.levelup":    "Level Up! 🎉 You are now Level {level}! 🌟",
+
+            // ── User / Profile ───────────────────────────────────────────────
+            "user.perfil":    "Profile",
+            "user.puntos":    "Points",
+            "user.nivel":     "Level",
+            "user.vistos":    "Watched",
+            "user.favoritos": "Favorites",
+
+            // ── Compare ──────────────────────────────────────────────────────
+            "compare.titulo": "COMPARE",
+            "compare.desc":   "Compare two titles side by side.",
+
+            // ── States ───────────────────────────────────────────────────────
+            "state.visto":     "Watched",
+            "state.favorito":  "Favorite",
+            "state.pendiente": "Pending",
+
+            // ── Errors ───────────────────────────────────────────────────────
+            "error.generico":        "Something went wrong. Please try again in a few minutes.",
+            "error.conexion":        "No server connection. Check your internet.",
+            "error.online":          "Connection restored!",
+            "error.no_encontrado":   "Not found.",
+            "error.404.title":       "Route lost in the Grid",
+            "error.404.text":        "The link you entered does not exist, was moved or is temporarily down.",
+            "error.sesion_expirada": "Session expired. Your changes were saved and will sync on reconnect.",
+            "error.volver_inicio":   "Back to home",
+            "privacy.title":         "Privacy Policy",
+            "privacy.updated":       "Last updated: July 2026",
+            "terms.title":           "Terms of Service",
+            "terms.updated":         "Last updated: July 2026",
+
+            // ── General ──────────────────────────────────────────────────────
+            "general.cargando":  "Loading...",
+            "general.guardando": "Saving...",
+            "general.hecho":     "Done",
+            "general.cancelar":  "Cancel",
+            "general.cerrar":    "Close"
+        }
     };
 
     function resolveKey(obj, key) {
+        // Soporte para claves planas ("nav.inicio") y anidadas
+        if (obj[key] != null) return obj[key];
         var parts = key.split(".");
         var current = obj;
         for (var i = 0; i < parts.length && current != null; i++) {
@@ -141,39 +501,77 @@
         });
     }
 
+    function getCurrentLang() {
+        return localStorage.getItem("pref:lang") || "es";
+    }
+
+    var isTranslating = false;
     window.applyTranslations = function (lang) {
-        lang = lang || localStorage.getItem("pref:lang") || "es";
-        var dict = translations[lang];
-        if (!dict) {
-            if (lang !== "es") { window.applyTranslations("es"); return; }
-            return;
-        }
-
-        var elements = document.querySelectorAll("[data-i18n]");
-        for (var i = 0; i < elements.length; i++) {
-            var el = elements[i];
-            var key = el.getAttribute("data-i18n");
-            if (!key) continue;
-
-            var value = resolveKey(dict, key);
-            if (value == null) value = "[missing: " + key + "]";
-
-            var argsAttr = el.getAttribute("data-i18n-args");
-            var args = null;
-            if (argsAttr) { try { args = JSON.parse(argsAttr); } catch (e) { args = null; } }
-
-            var text = interpolate(value, args);
-            var attrList = el.getAttribute("data-i18n-attr");
-
-            if (attrList) {
-                var attrs = attrList.split(",");
-                for (var j = 0; j < attrs.length; j++) {
-                    var attr = attrs[j].trim();
-                    if (attr) el.setAttribute(attr, text);
-                }
-            } else {
-                el.textContent = text;
+        if (isTranslating) return;
+        isTranslating = true;
+        try {
+            lang = lang || getCurrentLang();
+            var dict = translations[lang];
+            if (!dict) {
+                if (lang !== "es") { window.applyTranslations("es"); return; }
+                return;
             }
+
+            // Actualizar atributo lang del documento
+            document.documentElement.setAttribute("lang", lang);
+
+            var elements = document.querySelectorAll("[data-i18n]");
+            for (var i = 0; i < elements.length; i++) {
+                var el = elements[i];
+                var key = el.getAttribute("data-i18n");
+                if (!key) continue;
+
+                var value = resolveKey(dict, key);
+                // Fallback al español si la clave no está traducida
+                if (value == null) value = resolveKey(translations["es"], key);
+                if (value == null) value = "[" + key + "]";
+
+                var argsAttr = el.getAttribute("data-i18n-args");
+                var args = null;
+                if (argsAttr) { try { args = JSON.parse(argsAttr); } catch (e) { args = null; } }
+
+                var text = interpolate(value, args);
+                var attrList = el.getAttribute("data-i18n-attr");
+
+                if (attrList) {
+                    var attrs = attrList.split(",");
+                    for (var j = 0; j < attrs.length; j++) {
+                        var attr = attrs[j].trim();
+                        if (attr) el.setAttribute(attr, text);
+                    }
+                } else {
+                    el.textContent = text;
+                }
+            }
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        } finally {
+            isTranslating = false;
+        }
+    };
+
+    // API pública
+    window.AppI18n = {
+        _translations: translations,
+        setLang: function (lang) {
+            if (!translations[lang]) return;
+            localStorage.setItem("pref:lang", lang);
+            window.applyTranslations(lang);
+        },
+        getLang: getCurrentLang,
+        t: function (key, args) {
+            var lang = getCurrentLang();
+            var dict = translations[lang] || translations["es"];
+            var value = resolveKey(dict, key);
+            if (value == null) value = resolveKey(translations["es"], key);
+            if (value == null) return "[" + key + "]";
+            return interpolate(value, args);
         }
     };
 
@@ -181,6 +579,31 @@
         document.addEventListener("DOMContentLoaded", function () { window.applyTranslations(); });
     } else {
         window.applyTranslations();
+    }
+
+    // Observador de cambios para traducir elementos inyectados dinámicamente
+    if (typeof MutationObserver !== 'undefined') {
+        var observer = new MutationObserver(function (mutations) {
+            if (isTranslating) return;
+            var needsTranslation = false;
+            for (var i = 0; i < mutations.length; i++) {
+                var addedNodes = mutations[i].addedNodes;
+                for (var j = 0; j < addedNodes.length; j++) {
+                    var node = addedNodes[j];
+                    if (node.nodeType === 1) { // ELEMENT_NODE
+                        if (node.hasAttribute("data-i18n") || node.querySelector("[data-i18n]")) {
+                            needsTranslation = true;
+                            break;
+                        }
+                    }
+                }
+                if (needsTranslation) break;
+            }
+            if (needsTranslation) {
+                window.applyTranslations();
+            }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
     }
 })();
 
@@ -237,7 +660,8 @@
         MODAL_CLOSE_LONG_DELAY_MS: 2500,
         COMMENT_MAX_LENGTH: 2000,
         COMMENTS_PER_PAGE: 20,
-        COMMENT_RATE_LIMIT_MS: 5000
+        COMMENT_RATE_LIMIT_MS: 5000,
+        COMMENT_REF_TYPES: { EPISODE: 'episode', VOLUME: 'volume', CHAPTER: 'chapter' }
     };
     window.AnimeDestiny = window.AnimeDestiny || {};
     window.AnimeDestiny.Constants = C;
@@ -254,14 +678,6 @@
     AD.internals = AD.internals || {};
     AD.Constants = AD.Constants || {};
     AD.config = window.AppConfig || {};
-
-    AD.migrate = function (source, target, keys) {
-        if (!source || !target) return;
-        for (var i = 0; i < keys.length; i++) {
-            var k = keys[i];
-            if (k in source) target[k] = source[k];
-        }
-    };
 
     AD.reportError = function (namespace, message, data) {
         var prefix = '[AnimeDestiny:' + namespace + ']';
@@ -287,6 +703,67 @@
             stack: reason?.stack
         });
     });
+
+    // 1. Registro de Service Worker (PWA)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js').then(function (reg) {
+                console.log('[AnimeDestiny:PWA] Service Worker registrado con éxito:', reg.scope);
+            }).catch(function (err) {
+                console.warn('[AnimeDestiny:PWA] Error al registrar Service Worker:', err);
+            });
+        });
+    }
+
+    // 3. Forzar redirección HTTPS en producción
+    if (location.protocol === 'http:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        location.replace('https://' + location.hostname + location.pathname + location.search);
+    }
+
+    // 4. Banners de Estado de Conexión (Offline/Online)
+    function showConnectionStatusToast(online) {
+        if (window.Toast) {
+            if (online) {
+                window.Toast.success(window.AppI18n ? window.AppI18n.t("error.online") || "¡Conexión restablecida!" : "¡Conexión restablecida!");
+            } else {
+                window.Toast.error(window.AppI18n ? window.AppI18n.t("error.conexion") : "Sin conexión al servidor. Revisá tu internet.");
+            }
+        } else {
+            var bannerId = 'connection-status-banner';
+            var banner = document.getElementById(bannerId);
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = bannerId;
+                banner.style.position = 'fixed';
+                banner.style.top = '0';
+                banner.style.left = '0';
+                banner.style.width = '100%';
+                banner.style.textAlign = 'center';
+                banner.style.padding = '12px';
+                banner.style.fontFamily = 'sans-serif';
+                banner.style.fontWeight = 'bold';
+                banner.style.fontSize = '14px';
+                banner.style.zIndex = '99999';
+                banner.style.transition = 'all 0.3s ease';
+                document.body.appendChild(banner);
+            }
+            if (online) {
+                banner.textContent = window.AppI18n ? window.AppI18n.t("error.online") || "¡Conexión restablecida!" : "¡Conexión restablecida!";
+                banner.style.background = '#10B981';
+                banner.style.color = '#fff';
+                setTimeout(function () {
+                    if (banner.parentNode) banner.parentNode.removeChild(banner);
+                }, 3000);
+            } else {
+                banner.textContent = window.AppI18n ? window.AppI18n.t("error.conexion") : "Sin conexión al servidor. Revisá tu internet.";
+                banner.style.background = '#EF4444';
+                banner.style.color = '#fff';
+            }
+        }
+    }
+
+    window.addEventListener('online', function () { showConnectionStatusToast(true); });
+    window.addEventListener('offline', function () { showConnectionStatusToast(false); });
 })();
 
 
@@ -367,7 +844,7 @@
     function buildSeasonsFromItem(item, type) {
         var seasons = [];
         var isAnime = type === 'anime';
-        var mainCount = isAnime ? (item.episodes || 0) : (!isAnime ? (item.chapters || item.volumes || 0) : 0);
+        var mainCount = isAnime ? (item.episodes || 0) : (item.chapters || item.volumes || 0);
 
         if (item.relations?.edges) {
             var sequelEdges = item.relations.edges.filter(function (e) {
@@ -385,7 +862,7 @@
                 });
                 sequelEdges.forEach(function (edge) {
                     var node = edge.node;
-                    var count = isAnime ? (node.episodes || 0) : (!isAnime ? (node.chapters || node.volumes || 0) : 0);
+                    var count = isAnime ? (node.episodes || 0) : (node.chapters || node.volumes || 0);
                     if (count > 0) {
                         seasons.push({
                             id: node.id,
@@ -1000,8 +1477,6 @@
 /* === FILE: js/datos.js === */
 /* ========================================== */
 
-window.DATOS_WEB = { manga: [], anime: [], novelas: [] };
-
 if (typeof window.escapeHtml !== 'function') {
     window.escapeHtml = function(value) {
         return String(value ?? '')
@@ -1064,7 +1539,7 @@ function obtenerDetalleItem(categoria, id) {
     return Promise.resolve(null);
 }
 
-document.dispatchEvent(new CustomEvent('datosCargados'));
+
 
 
 
@@ -1109,8 +1584,6 @@ document.dispatchEvent(new CustomEvent('datosCargados'));
             this._data.clear();
         }
 
-        key(index)      { var keys = Array.from(this._data.keys()); return keys[index] || null; }
-        get length()    { return this._data.size; }
         keys()          { return Array.from(this._data.keys()); }
 
         _notify(key, value) {
@@ -1125,84 +1598,50 @@ document.dispatchEvent(new CustomEvent('datosCargados'));
 
 
 /* ========================================== */
-/* === FILE: js/core/data-sync.js === */
+/* === FILE: js/core/storage.js === */
 /* ========================================== */
 
-(() => {
+/**
+ * storage.js — Wrapper de localStorage con soporte JSON.
+ * Disponible como window.AppStorage para uso futuro (persistencia offline, cache).
+ */
+(function (window) {
     "use strict";
 
-    let pendingSync = null;
-    let changedItems = {};
+    var PREFIX = (window.AppConfig && window.AppConfig.cachePrefix) || "animeDestiny";
 
-    const scheduleSync = (itemId) => {
-        changedItems[itemId] = true;
-        if (pendingSync) return;
-        pendingSync = setTimeout(flushSync, AnimeDestiny.Constants.SYNC_DEBOUNCE_MS || 250);
-    };
+    function read(key) {
+        try { return localStorage.getItem(PREFIX + ":" + key); } catch (_) { return null; }
+    }
 
-    const flushSync = () => {
-        pendingSync = null;
+    function write(key, value) {
+        try { localStorage.setItem(PREFIX + ":" + key, String(value)); } catch (_) {}
+    }
 
-        const username = getUsername();
-        if (!username || username === "Invitado") {
-            // Auth aún no listo — reintentar cuando llegue la sesión
-            const onReady = () => {
-                window.removeEventListener('supabase-auth-changed', onReady);
-                flushSync();
-            };
-            window.addEventListener('supabase-auth-changed', onReady, { once: true });
-            return;
-        }
+    function readJson(key, fallback) {
+        try {
+            var raw = localStorage.getItem(PREFIX + ":" + key);
+            return raw ? JSON.parse(raw) : (fallback || null);
+        } catch (_) { return fallback || null; }
+    }
 
-        const fn = window.syncItemStateToSupabase;
-        if (typeof fn !== "function") {
-            pendingSync = setTimeout(flushSync, AnimeDestiny.Constants.SYNC_DEBOUNCE_MS || 250);
-            return;
-        }
+    function writeJson(key, obj) {
+        try { localStorage.setItem(PREFIX + ":" + key, JSON.stringify(obj)); } catch (_) {}
+    }
 
-        const ids = Object.keys(changedItems);
-        if (!ids.length) return;
-        changedItems = {};
+    function remove(key) {
+        try { localStorage.removeItem(PREFIX + ":" + key); } catch (_) {}
+    }
 
-        const metaPrefix = `u:${username}|itemMeta:`;
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const fav = window.UserStore.getItem(`u:${username}|item:${id}|fav`) === "1";
-            const viewed = window.UserStore.getItem(`u:${username}|item:${id}|viewed`) === "1";
+    window.AppStorage = Object.freeze({
+        read: read,
+        write: write,
+        readJson: readJson,
+        writeJson: writeJson,
+        remove: remove
+    });
 
-            const metaRaw = window.UserStore.getItem(`${metaPrefix}${id}`);
-            let meta = {};
-            try { if (metaRaw) meta = JSON.parse(metaRaw); } catch { console.warn('data-sync: invalid meta JSON for', id); }
-
-            fn(meta.__category || guessCategory(), String(id), fav, viewed, meta);
-        }
-    };
-
-    const getUsername = () => {
-        const user = window.AppSupabase?.getCurrentUserSync?.() || null;
-        if (!user) return "Invitado";
-        return (
-            user.user_metadata?.username ||
-            user.user_metadata?.name ||
-            user.user_metadata?.full_name ||
-            (user.email ? user.email.split("@")[0] : "") ||
-            user.id ||
-            "Invitado"
-        );
-    };
-
-    const guessCategory = () => {
-        const path = String(window.location.pathname || "").toLowerCase();
-        if (path.includes("anime")) return "anime";
-        if (path.includes("manga")) return "manga";
-        if (path.includes("novelas")) return "novelas";
-        return document.body.getAttribute("data-page") || "unknown";
-    };
-
-    // ─── Exportar scheduleSync para uso externo ──────────────────
-    window.__dataSyncSchedule = AnimeDestiny.internals.__dataSyncSchedule = scheduleSync;
-
-})();
+})(window);
 
 
 /* ========================================== */
@@ -1313,17 +1752,6 @@ async function waitForSupabase() {
             }
         }
     }
-    function openUserModal() {
-        const modal = document.getElementById("userModal");
-        const input = document.getElementById("userNameInput");
-        if (!modal || !input) return;
-        input.value = "";
-        document.getElementById("userEmailInput")?.value && (document.getElementById("userEmailInput").value = "");
-        document.getElementById("userPassInput")?.value && (document.getElementById("userPassInput").value = "");
-        setMsg("");
-        modal.classList.add("is-open");
-        input.focus();
-    }
 
     function closeUserModal() {
         document.getElementById("userModal")?.classList.remove("is-open");
@@ -1333,35 +1761,13 @@ async function waitForSupabase() {
         return /^[^\s@]+@gmail\.com$/i.test(String(value || "").trim());
     }
 
-    // ─────────────────────────────────────────────
-    // Autenticación — solo Supabase
-    // ─────────────────────────────────────────────
-
-    async function signInWithGoogle() {
-        setMsg("Abriendo Google...");
-        const client = await waitForSupabase();
-        if (!client?.signInWithGoogle) {
-            setMsg("Supabase todavía no está listo. Intentá de nuevo.");
-            return;
-        }
-        try {
-            await client.signInWithGoogle();
-            // La sesión llega via onAuthStateChange; el modal se cierra solo.
-        } catch (err) {
-            console.error(err);
-            setMsg("No se pudo iniciar sesión con Google.");
-        }
-    }
-
     async function loginWithPassword(mode) {
         const username  = String(document.getElementById("userNameInput")?.value  || "").trim();
         const email     = String(document.getElementById("userEmailInput")?.value || "").trim();
         const password  = String(document.getElementById("userPassInput")?.value  || "");
 
-        // El campo "usuario" puede contener un email en modo login
         const loginEmail = email || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(username) ? username : "");
 
-        // — Validaciones —
         if (!username && !email) return setMsg("Escribí un nombre de usuario o correo.");
         if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg("El usuario debe tener al menos 3 caracteres.");
         if (mode === "create" && !isValidGmailAddress(email)) return setMsg("Usá un correo @gmail.com válido.");
@@ -1376,7 +1782,6 @@ async function waitForSupabase() {
         }
 
         if (mode === "create") {
-            // ── REGISTRO ─────────────────────────────────────────────
             try {
                 const { data, error } = await client.client.auth.signUp({
                     email,
@@ -1404,7 +1809,6 @@ async function waitForSupabase() {
                     return;
                 }
 
-                // Sesión activa inmediata (email confirmation desactivado en Supabase)
                 if (data?.session) {
                     await refreshUserUi();
                     setMsg("✅ Cuenta creada exitosamente.");
@@ -1422,7 +1826,6 @@ async function waitForSupabase() {
             return;
         }
 
-        // ── INICIO DE SESIÓN ─────────────────────────────────────────
         if (!loginEmail) {
             setMsg("Ingresá tu correo electrónico para iniciar sesión.");
             return;
@@ -1543,6 +1946,7 @@ window.getCurrentUser      = getCurrentUser;
     window.waitForSupabase     = waitForSupabase;
     window.ensureUserUi        = ensureUserUi;
     window.refreshUserUi       = refreshUserUi;
+    window.logoutUser          = logoutUser;
 
     // Ejecución segura al cargar el DOM
     document.addEventListener('DOMContentLoaded', async () => {
@@ -1554,70 +1958,6 @@ window.getCurrentUser      = getCurrentUser;
 
 
 
-
-
-/* ========================================== */
-/* === FILE: js/core/storage.js === */
-/* ========================================== */
-
-/**
- * storage.js
- * AppStorage — wrapper en memoria sobre UserStore.
- * No persiste nada en localStorage; Supabase es la única fuente de verdad.
- */
-(function (window) {
-    "use strict";
-
-    function read(key, fallback = null) {
-        const value = window.UserStore?.getItem(key) ?? null;
-        return value === null ? fallback : value;
-    }
-
-    function write(key, value) {
-        try {
-            window.UserStore?.setItem(key, String(value));
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    function readJson(key, fallback = null) {
-        const value = window.UserStore?.getItem(key) ?? null;
-        if (value === null) return fallback;
-        try {
-            return JSON.parse(value);
-        } catch {
-            return fallback;
-        }
-    }
-
-    function writeJson(key, value) {
-        try {
-            window.UserStore?.setItem(key, JSON.stringify(value));
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    function remove(key) {
-        try {
-            window.UserStore?.removeItem(key);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    window.AppStorage = Object.freeze({
-        read,
-        write,
-        readJson,
-        writeJson,
-        remove
-    });
-})(window);
 
 
 /* ========================================== */
@@ -1635,16 +1975,6 @@ window.getCurrentUser      = getCurrentUser;
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
-
-    function stripTags(value) {
-        const template = document.createElement("template");
-        template.innerHTML = String(value ?? "");
-        return template.content.textContent || "";
-    }
-
-    function sanitizeText(value) {
-        return escapeHtml(stripTags(value)).trim();
     }
 
     function safeUrl(value) {
@@ -1666,13 +1996,6 @@ window.getCurrentUser      = getCurrentUser;
         } catch (_) { }
         return "";
     }
-
-    window.AppSanitizer = Object.freeze({
-        escapeHtml,
-        stripTags,
-        sanitizeText,
-        safeUrl
-    });
 
     window.escapeHtml = escapeHtml;
     window.safeUrl = safeUrl;
@@ -1880,11 +2203,7 @@ window.getCurrentUser      = getCurrentUser;
     }
 
     const utils = {
-        formatDate,
-        truncateText,
-        parseUrlParams,
         normalizeText,
-        escapeHtml: function (v) { return window.escapeHtml ? window.escapeHtml(v) : String(v ?? ''); },
         getCurrentUserId,
         getCurrentUserIdSafe: getCurrentUserId,
         fallbackCatalogImage,
@@ -1906,63 +2225,102 @@ window.getCurrentUser      = getCurrentUser;
 
 
 /* ========================================== */
-/* === FILE: js/ui.js === */
+/* === FILE: js/ui/toast.js === */
 /* ========================================== */
 
-(function (window, document) {
+/**
+ * toast.js
+ * Componente modular de notificaciones flotantes premium (Toasts).
+ * Expone window.Toast de forma global.
+ */
+(function (window) {
     "use strict";
 
-    function showElement(element) {
-        if (element) element.hidden = false;
+    let container = null;
+
+    function getContainer() {
+        if (container) return container;
+        container = document.createElement("div");
+        container.className = "toast-container";
+        document.body.appendChild(container);
+        return container;
     }
 
-    function hideElement(element) {
-        if (element) element.hidden = true;
+    const Icons = {
+        success: "✓",
+        error: "✕",
+        info: "ℹ",
+        warning: "⚠"
+    };
+
+    function showToast(message, type = "info", duration = AnimeDestiny.Constants.TOAST_DURATION_MS || 4000) {
+        const parent = getContainer();
+
+        const toast = document.createElement("div");
+        toast.className = `toast-item toast-${type}`;
+
+        const iconEl = document.createElement("span");
+        iconEl.className = "toast-icon";
+        iconEl.textContent = Icons[type] || "•";
+        toast.appendChild(iconEl);
+
+        const msgEl = document.createElement("span");
+        msgEl.className = "toast-message";
+        msgEl.textContent = message;
+        toast.appendChild(msgEl);
+
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "toast-close";
+        closeBtn.type = "button";
+        closeBtn.innerHTML = "&times;";
+        closeBtn.ariaLabel = "Cerrar notificación";
+        closeBtn.addEventListener("click", () => dismissToast(toast));
+        toast.appendChild(closeBtn);
+
+        parent.appendChild(toast);
+
+        // Disparar animación de entrada en el siguiente frame
+        requestAnimationFrame(() => {
+            toast.classList.add("is-visible");
+        });
+
+        // Temporizador de autodestrucción
+        let timer = setTimeout(() => {
+            dismissToast(toast);
+        }, duration);
+
+        // Pausar auto-dismiss al pasar el mouse por encima
+        toast.addEventListener("mouseenter", () => clearTimeout(timer));
+        toast.addEventListener("mouseleave", () => {
+            timer = setTimeout(() => dismissToast(toast), duration / 2);
+        });
     }
 
-    function openModal(id) {
-        const modal = document.getElementById(id);
-        if (!modal) return;
-        modal.style.display = "flex";
-        modal.removeAttribute("hidden");
+    function dismissToast(toast) {
+        if (!toast || toast.classList.contains("is-leaving")) return;
+        toast.classList.remove("is-visible");
+        toast.classList.add("is-leaving");
+
+        // Remover del DOM al finalizar la animación
+        toast.addEventListener("transitionend", () => {
+            toast.remove();
+            // Limpiar el contenedor si queda vacío
+            if (container && container.childNodes.length === 0) {
+                container.remove();
+                container = null;
+            }
+        });
     }
 
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        if (!modal) return;
-        modal.style.display = "none";
-        modal.setAttribute("hidden", "");
-    }
-
-    function setLoading(element, isLoading, text = "Cargando...") {
-        if (!element) return;
-        element.setAttribute("aria-busy", isLoading ? "true" : "false");
-        if (isLoading) element.dataset.loadingText = text;
-    }
-
-    // Cargar dinámicamente estilos y script de Toasts
-    (function initToasts() {
-        if (typeof document !== "undefined" && !document.getElementById("toast-styles-link")) {
-            const link = document.createElement("link");
-            link.id = "toast-styles-link";
-            link.rel = "stylesheet";
-            link.href = "css/toast.css";
-            document.head.appendChild(link);
-            
-            const script = document.createElement("script");
-            script.src = "js/ui/toast.js";
-            document.head.appendChild(script);
-        }
-    })();
-
-    window.AppUI = Object.freeze({
-        showElement,
-        hideElement,
-        openModal,
-        closeModal,
-        setLoading
+    // Exponer API global
+    window.Toast = Object.freeze({
+        success: (msg, dur) => showToast(msg, "success", dur),
+        error:   (msg, dur) => showToast(msg, "error", dur),
+        info:    (msg, dur) => showToast(msg, "info", dur),
+        warning: (msg, dur) => showToast(msg, "warning", dur)
     });
-})(window, document);
+
+})(window);
 
 
 /* ========================================== */
@@ -2037,8 +2395,22 @@ window.getCurrentUser      = getCurrentUser;
 
     function addUserPoints(userId, delta) {
         if (!userId || userId === 'Invitado') return;
-        const next = Math.max(0, getUserPoints(userId) + delta);
+        const currentPoints = getUserPoints(userId);
+        const oldLevelInfo = levelFromPoints(currentPoints);
+
+        const next = Math.max(0, currentPoints + delta);
         UserStore.setItem(pointsKey(userId), String(next));
+
+        const newLevelInfo = levelFromPoints(next);
+        if (newLevelInfo.level > oldLevelInfo.level) {
+            if (window.Toast) {
+                const translatedMsg = window.AppI18n
+                    ? window.AppI18n.t("notification.levelup", { level: newLevelInfo.level })
+                    : `¡Subiste de Nivel! 🎉 ¡Ahora eres Nivel ${newLevelInfo.level}! 🌟`;
+                window.Toast.success(translatedMsg, 6000);
+            }
+        }
+
         const client = window.AppSupabase;
         if (!client?.addExperience) {
             enqueueSync({ type: "experience", payload: { delta } });
@@ -2142,11 +2514,6 @@ window.getCurrentUser      = getCurrentUser;
             }
         } catch (e) { console.warn('countUserStatesBoth failed:', e); }
         return { fav, viewed };
-    }
-
-    function countUserStates(userId, type) {
-        const counts = countUserStatesBoth(userId);
-        return type === 'fav' ? counts.fav : counts.viewed;
     }
 
     function getPreference(key, fallback = false) {
@@ -2299,19 +2666,34 @@ window.getCurrentUser      = getCurrentUser;
                 return;
             }
 
-            const fillEl = progressBox.querySelector('.card-back-progress-fill');
-            const pctEl = progressBox.querySelector('[data-pct-text]');
-            const pctOnlyEl = progressBox.querySelector('[data-pct-only]');
-            const metaEl = progressBox.querySelector('[data-meta-text]');
+            const dataTotal = Number(progressBox.getAttribute('data-total') || 0);
+            if (dataTotal === 0) {
+                // Caso: Progreso Libre (safeTotal === 0)
+                const noProgCard = progressBox.querySelector('.card-back-no-progress-card');
+                const viewedFooter = progressBox.querySelector('[data-viewed-footer]');
+                if (meta.pct === 100) {
+                    if (noProgCard) noProgCard.style.display = 'none';
+                    if (viewedFooter) viewedFooter.style.display = '';
+                } else {
+                    if (noProgCard) noProgCard.style.display = '';
+                    if (viewedFooter) viewedFooter.style.display = 'none';
+                }
+            } else {
+                // Caso normal con barra de progreso
+                const fillEl = progressBox.querySelector('.card-back-progress-fill');
+                const pctEl = progressBox.querySelector('[data-pct-text]');
+                const pctOnlyEl = progressBox.querySelector('[data-pct-only]');
+                const metaEl = progressBox.querySelector('[data-meta-text]');
 
-            if (fillEl) fillEl.style.width = `${meta.pct}%`;
-            if (pctEl) pctEl.textContent = `${meta.pct}% VISTO`;
-            if (pctOnlyEl) pctOnlyEl.textContent = `${meta.pct}%`;
-            if (metaEl) {
-                const pr = progressBox.getAttribute('data-prefix') || 'EP';
-                metaEl.textContent = meta.total
-                    ? `${pr} ${meta.watched}/${meta.total}`
-                    : `${meta.pct}%`;
+                if (fillEl) fillEl.style.width = `${meta.pct}%`;
+                if (pctEl) pctEl.textContent = `${meta.pct}% VISTO`;
+                if (pctOnlyEl) pctOnlyEl.textContent = `${meta.pct}%`;
+                if (metaEl) {
+                    const pr = progressBox.getAttribute('data-prefix') || 'EP';
+                    metaEl.textContent = meta.total
+                        ? `${pr} ${meta.watched}/${meta.total}`
+                        : `${meta.pct}%`;
+                }
             }
 
             progressBox.style.display = '';
@@ -2350,10 +2732,6 @@ window.getCurrentUser      = getCurrentUser;
         UserStore.setItem(`u:${userId}|item:${itemId}|ts`, new Date().toISOString());
 
         const card = btn.closest('.card-container') || btn.closest('[data-item-id]');
-        const completeInput = card?.querySelector('.card-complete-input');
-        if (completeInput && type === 'viewed') {
-            completeInput.checked = enabled;
-        }
 
         const metaKey = `u:${userId}|itemMeta:${itemId}`;
 
@@ -2421,8 +2799,6 @@ window.getCurrentUser      = getCurrentUser;
             const viewedBtn  = card.querySelector('.viewed-btn');
             if (favBtn)    favBtn.classList.toggle('active', isFav);
             if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
-            const completeInput = card.querySelector('.card-complete-input');
-            if (completeInput) completeInput.checked = isViewed;
         });
         updateCardProgressIndicators();
     }
@@ -2477,9 +2853,6 @@ window.getCurrentUser      = getCurrentUser;
             const viewedBtn = card.querySelector('.viewed-btn');
             if (favBtn)    favBtn.classList.toggle('active', isFav);
             if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
-
-            const completeInput = card.querySelector('.card-complete-input');
-            if (completeInput) completeInput.checked = isViewed;
         });
 
         updateCardProgressIndicators();
@@ -2521,29 +2894,15 @@ window.getCurrentUser      = getCurrentUser;
             if (!itemId || !action) return;
             toggleStatus(btn, action, itemId);
         });
-
-        document.addEventListener('change', function (e) {
-            var input = e.target;
-            if (!input.classList.contains('card-complete-input')) return;
-            var itemId = input.getAttribute('data-item-id');
-            if (!itemId) return;
-            if (typeof window.toggleCardComplete === 'function') {
-                window.toggleCardComplete(input, itemId);
-            }
-        });
     })();
 
     // Exports
     window.addUserPoints = addUserPoints;
     window.cargarEstadosBotones = cargarEstadosBotones;
-    window.toggleStatus = toggleStatus;
-    window.getUserStateSummary = getUserStateSummary;
     window.buildSearchIndexForItem = buildSearchIndexForItem;
     window.getCategoriaActual = getCategoriaActual;
     window.statusStorageKey = statusStorageKey;
-    window.applyUserPreferences = applyUserPreferences;
-    window.applyBackgroundPreference = applyBackgroundPreference;
-    window.updateCardProgressIndicators = updateCardProgressIndicators;
+    window.syncItemStateToSupabase = syncItemStateToSupabase;
     window.getUserPoints = getUserPoints;
     window.levelFromPoints = levelFromPoints;
     window.pointsKey = pointsKey;
@@ -2652,6 +3011,23 @@ function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
         label = 'capítulos';
     }
     const safeTotal = Number(total) > 0 ? Number(total) : 0;
+    
+    // Si no hay total, mostramos una interfaz alternativa simplificada
+    if (safeTotal === 0) {
+        return `
+        <div class="card-back-progress-wrapper" data-progress data-total="0" data-label="${label}" data-prefix="${prefix}">
+            <div class="card-back-progress-card card-back-no-progress-card">
+                <span class="no-progress-text">Progreso libre</span>
+                <span class="no-progress-subtext">Marcá como visto completo usando el botón 👁</span>
+            </div>
+            <div class="card-back-footer-status" style="display:none" data-viewed-footer>
+                <div class="footer-line"></div>
+                <span>100% VISTO</span>
+                <div class="footer-line"></div>
+            </div>
+        </div>`;
+    }
+
     return `
         <div class="card-back-progress-wrapper" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}" style="display:none">
             <div class="card-back-progress-card">
@@ -2738,14 +3114,19 @@ function resolveCatalogProgress(userId, category, itemId, card) {
     const box = card.querySelector('[data-progress]');
     const dataTotal = Number(box?.getAttribute('data-total') || 0);
     const label = box?.getAttribute('data-label') || (category === 'anime' ? 'capítulos' : 'volúmenes');
+    const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
 
     if (!dataTotal) {
         const legacyPct = getProgressPercentForItem(userId, category, itemId);
-        if (legacyPct === null) return { show: false };
-        return { show: true, pct: legacyPct, watched: 0, total: 0, label };
+        if (viewed) {
+            return { show: true, pct: 100, watched: 0, total: 0, label };
+        }
+        if (legacyPct !== null) {
+            return { show: true, pct: legacyPct, watched: 0, total: 0, label };
+        }
+        return { show: true, pct: 0, watched: 0, total: 0, label }; // Show alternative card
     }
 
-    const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
     let watched = 0;
     if (category === 'anime') {
         watched = countAnimeEpisodesWatched(userId, itemId, dataTotal);
@@ -2808,6 +3189,10 @@ function buildCatalogCardHtml(options) {
     <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="catalog-card-shell">
+            <div class="card-corner card-corner-tl"></div>
+            <div class="card-corner card-corner-tr"></div>
+            <div class="card-corner card-corner-bl"></div>
+            <div class="card-corner card-corner-br"></div>
             <div class="catalog-card-inner">
                 <div class="catalog-card-media">
                     <div class="card-inner">
@@ -2823,8 +3208,12 @@ function buildCatalogCardHtml(options) {
                                 ${statusHtml}
                             </div>
                             <div class="card-back-actions">
-                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">❤</button>
-                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">👁</button>
+                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                </button>
+                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
                             </div>
                             ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
                         </div>
@@ -2871,6 +3260,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                 item: {
                     id: item.id ?? item.mal_id,
                     titulo: item.title,
+                    imagen: getApiPoster(item),
                     info: getApiCatalogInfo(categoria, item)
                 },
                 searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
@@ -2887,6 +3277,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                     item: {
                         id: item.id ?? item.mal_id,
                         titulo: item.title,
+                        imagen: getApiPoster(item),
                         info: getApiCatalogInfo(categoria, item)
                     },
                     searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
@@ -3017,7 +3408,11 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
     } else {
         mainContainer.innerHTML = list.join('');
         window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = items.map(function (item) {
-            return { item: item, searchIndex: buildSearchIndexForItem(categoria, item) };
+            var entry = { item: item, searchIndex: buildSearchIndexForItem(categoria, item) };
+            if (!item.imagen) {
+                item.imagen = item.img || item.image || item.cover_image || '';
+            }
+            return entry;
         });
     }
 
@@ -3084,13 +3479,25 @@ function inicializarBusquedaCatalogo() {
     const mainContainer = document.getElementById('main-content');
     if (!input || !mainContainer) return;
 
+    // Inject suggestion box as sibling of .catalog-search-wrap inside the main container
+    const searchContainer = input.closest('.catalog-search-filter-container');
     const inputWrap = input.closest('.nav-search') || input.parentElement;
     let suggestionBox = document.getElementById('catalogSuggestions');
-    if (!suggestionBox && inputWrap) {
+    if (!suggestionBox && searchContainer) {
+        suggestionBox = document.createElement('div');
+        suggestionBox.id = 'catalogSuggestions';
+        suggestionBox.className = 'catalog-suggestions';
+        searchContainer.appendChild(suggestionBox);
+    } else if (!suggestionBox && inputWrap) {
         suggestionBox = document.createElement('div');
         suggestionBox.id = 'catalogSuggestions';
         suggestionBox.className = 'catalog-suggestions';
         inputWrap.appendChild(suggestionBox);
+    }
+
+    // Toggle overflow on the container when suggestions open/close
+    function setSuggestionsOpen(open) {
+        if (searchContainer) searchContainer.classList.toggle('has-suggestions', open);
     }
 
     let emptyMsg = document.getElementById('searchEmptyMsg');
@@ -3108,17 +3515,13 @@ function inicializarBusquedaCatalogo() {
         mainContainer.parentElement?.appendChild(emptyMsg);
     }
 
-    function normalize(text) {
-        return normalizeText(text);
-    }
-
     function getCatalogItems() {
         return Array.isArray(window.__catalogSearchItems) ? window.__catalogSearchItems : [];
     }
 
     function renderSuggestions(query) {
         if (!suggestionBox) return;
-        const q = normalize(query);
+        const q = normalizeText(query);
         if (!q) {
             suggestionBox.classList.remove('is-open');
             suggestionBox.innerHTML = '';
@@ -3126,26 +3529,31 @@ function inicializarBusquedaCatalogo() {
         }
 
         const matches = getCatalogItems()
-            .filter((entry) => normalize(entry.searchIndex || '').includes(q))
+            .filter((entry) => normalizeText(entry.searchIndex || '').includes(q))
             .slice(0, AnimeDestiny.Constants.SUGGESTION_LIMIT || 6);
 
         if (!matches.length) {
             suggestionBox.classList.remove('is-open');
+            setSuggestionsOpen(false);
             suggestionBox.innerHTML = '';
             return;
         }
 
         suggestionBox.innerHTML = matches.map((entry) => `
             <a class="catalog-suggestion" href="detalle.html?cat=${encodeURIComponent(categoria)}&id=${encodeURIComponent(entry.item.id)}&nombre=${encodeURIComponent(entry.item.titulo)}">
-                <span class="catalog-suggestion-title">${escapeHtml(entry.item.titulo)}</span>
-                <span class="catalog-suggestion-meta">${escapeHtml(entry.item.info || entry.item.status || '')}</span>
+                ${entry.item.imagen ? `<img class="catalog-suggestion-img" src="${entry.item.imagen}" alt="" loading="lazy">` : ''}
+                <span class="catalog-suggestion-body">
+                    <span class="catalog-suggestion-title">${escapeHtml(entry.item.titulo)}</span>
+                    <span class="catalog-suggestion-meta">${escapeHtml(entry.item.info || entry.item.status || '')}</span>
+                </span>
             </a>
         `).join('');
         suggestionBox.classList.add('is-open');
+        setSuggestionsOpen(true);
     }
 
     function applyFilter() {
-        const q = normalize(input.value);
+        const q = normalizeText(input.value);
         const cards = mainContainer.querySelectorAll('.card-container');
         const selectedGenres = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
         const stateFilter = window.__activeStateFilter || 'all';
@@ -3174,7 +3582,7 @@ function inicializarBusquedaCatalogo() {
         let visible = 0;
 
         cards.forEach(card => {
-            const indexText = normalize(card.getAttribute('data-search-index') || '');
+            const indexText = normalizeText(card.getAttribute('data-search-index') || '');
             const matchQuery = !q || indexText.includes(q);
             
             if (!matchQuery) {
@@ -3225,11 +3633,11 @@ function inicializarBusquedaCatalogo() {
 
     function renderApiSuggestions(rawQuery, items) {
         if (!suggestionBox) return;
-        const q = normalize(rawQuery);
+        const q = normalizeText(rawQuery);
         if (!q) return;
 
         const prev = suggestionBox.querySelector('.catalog-suggestion-api-section');
-        const filtered = items.filter(item => normalize(item.title || '').includes(q)).slice(0, AnimeDestiny.Constants.API_SUGGESTION_LIMIT || 8);
+        const filtered = items.filter(item => normalizeText(item.title || '').includes(q)).slice(0, AnimeDestiny.Constants.API_SUGGESTION_LIMIT || 8);
         if (!filtered.length) { if (prev) prev.remove(); return; }
 
         const section = prev || document.createElement('div');
@@ -3254,10 +3662,14 @@ function inicializarBusquedaCatalogo() {
 
         if (!section.children.length) { if (prev) prev.remove(); return; }
         if (!prev) suggestionBox.appendChild(section);
+        if (suggestionBox.classList.contains('is-open') || section.children.length) {
+            suggestionBox.classList.add('is-open');
+            setSuggestionsOpen(true);
+        }
     }
 
     async function fetchApiSuggestions(rawQuery) {
-        const q = normalize(rawQuery);
+        const q = normalizeText(rawQuery);
         if (!q || q.length < 1) return;
 
         const prev = suggestionBox.querySelector('.catalog-suggestion-api-section');
@@ -3278,7 +3690,7 @@ function inicializarBusquedaCatalogo() {
                     }
                 } catch (_) {}
             }
-            if (normalize(input.value) !== q) return;
+            if (normalizeText(input.value) !== q) return;
             if (Array.isArray(resultados) && resultados.length) {
                 renderApiSuggestions(rawQuery, resultados);
             }
@@ -3291,7 +3703,7 @@ function inicializarBusquedaCatalogo() {
         if (apiSearchTimer) clearTimeout(apiSearchTimer);
         const q = input.value;
         lastApiQuery = q;
-        if (!normalize(q)) {
+        if (!normalizeText(q)) {
             const s = suggestionBox?.querySelector('.catalog-suggestion-api-section');
             if (s) s.remove();
             return;
@@ -3377,7 +3789,10 @@ function inicializarBusquedaCatalogo() {
     input.addEventListener('focus', () => renderSuggestions(input.value));
     input.addEventListener('blur', () => {
         window.setTimeout(() => {
-            if (suggestionBox) suggestionBox.classList.remove('is-open');
+            if (suggestionBox) {
+                suggestionBox.classList.remove('is-open');
+                setSuggestionsOpen(false);
+            }
         }, 180);
     });
 
@@ -3443,10 +3858,6 @@ function inicializarGeneroWidgets() {
     const mainContainer = document.getElementById('main-content');
     if (!categoria || !mainContainer) return;
 
-    function normalize(text) {
-        return normalizeText(text);
-    }
-
     const counts = new Map();
 
     const cardGenreRows = [...mainContainer.querySelectorAll('.card-container[data-genres]')]
@@ -3468,7 +3879,7 @@ function inicializarGeneroWidgets() {
 
     rows.forEach((genres) => {
         genres.forEach((g) => {
-            const key = normalize(g);
+            const key = normalizeText(g);
             if (!key) return;
             counts.set(key, { label: g, count: (counts.get(key)?.count || 0) + 1 });
         });
@@ -3604,7 +4015,7 @@ function inicializarGeneroWidgets() {
         return mangas;
     })();
     fixedGenres.forEach(function(g) {
-        var key = normalize(g);
+        var key = normalizeText(g);
         if (!counts.has(key)) {
             counts.set(key, { label: g, count: 0 });
         }
@@ -3827,10 +4238,6 @@ async function inicializarPagina() {
         return;
     }
 
-    function normalize(text) {
-        return normalizeText(text);
-    }
-
     function getGenres(item) {
         return String(item?.info || "").split("/").map(function (s) { return s.trim(); }).filter(Boolean);
     }
@@ -3840,7 +4247,7 @@ async function inicializarPagina() {
 
     mainContainer.innerHTML = batch.map(function (item) {
         const genres = getGenres(item);
-        const genresNorm = genres.map(function (g) { return normalize(g); }).join("|");
+        const genresNorm = genres.map(function (g) { return normalizeText(g); }).join("|");
         const searchIndex = buildSearchIndexForItem(categoria, item);
         const detailUrl = "detalle.html?cat=" + encodeURIComponent(categoria) + "&id=" + encodeURIComponent(item.id) + "&nombre=" + encodeURIComponent(item.titulo);
         const hasDetail = typeof obtenerDetalleItem === "function" && !!obtenerDetalleItem(categoria, item.id);
@@ -3928,14 +4335,6 @@ window.addEventListener("supabase-auth-changed", function () {
         path.includes("top") ? "top" :
         "index";
 
-    const ensureSkipLink = () => {
-        if (document.querySelector('.skip-link')) return;
-        const skip = document.createElement('a');
-        skip.className = 'skip-link';
-        skip.href = '#main-content';
-        skip.textContent = 'Saltar al contenido';
-        document.body.prepend(skip);
-    };
 
     const ensureMainTarget = () => {
         if (document.getElementById('main-content')) return;
@@ -4004,11 +4403,11 @@ window.addEventListener("supabase-auth-changed", function () {
         if (isIndex) activePage = null;
 
         const links = [
-            { id: "anime", href: "anime.html", icon: "\uD83C\uDFAC", label: "Anime" },
-            { id: "manga", href: "manga.html", icon: "\uD83D\uDCDA", label: "Manga" },
-            { id: "novelas", href: "novelas.html", icon: "\uD83D\uDCD6", label: "Novelas" },
-            { id: "mis-listas", href: "mis-listas.html", icon: "\uD83D\uDC96", label: "Mis Listas" },
-            { id: "top", href: "top.html", icon: "\uD83C\uDFC6", label: "Ranking" }
+            { id: "anime", href: "anime.html", icon: "clapperboard", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
+            { id: "manga", href: "manga.html", icon: "book-open", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
+            { id: "novelas", href: "novelas.html", icon: "book", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
+            { id: "mis-listas", href: "mis-listas.html", icon: "heart", label: window.AppI18n ? window.AppI18n.t("nav.mis_listas") : "Mis Listas" },
+            { id: "top", href: "top.html", icon: "trophy", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Ranking" }
         ];
 
         let html = "";
@@ -4025,10 +4424,90 @@ window.addEventListener("supabase-auth-changed", function () {
                 dataCat = ` data-nav-cat="${l.id}"`;
             }
             html += `<a href="${l.href}" class="${cls}"${current}${dataCat}>
-<span class="nav-icon" aria-hidden="true">${l.icon}</span><span>${l.label}</span>
+<span class="nav-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="nav.${l.id.replace('-', '_')}">${l.label}</span>
 </a>`;
         }
-        el.innerHTML = `<div class="nav-links" aria-label="Navegaci\u00F3n principal">${html}</div>`;
+        el.innerHTML = `<div class="nav-links" aria-label="Navegación principal">${html}</div>`;
+    };
+
+    // ── MOBILE BOTTOM NAV ──
+    const injectMobileBottomNav = () => {
+        if (document.querySelector('.mobile-bottom-nav')) return;
+
+        // No inyectar en páginas de auth/legal/usuario
+        const skipPages = ["login", "configuracion", "usuario", "privacidad", "terminos"];
+        for (let i = 0; i < skipPages.length; i++) {
+            if (path.includes(skipPages[i])) return;
+        }
+        if (path.includes("404")) return;
+
+        const isAnime = path.includes("anime");
+        const isManga = path.includes("manga");
+        const isNovelas = path.includes("novelas");
+        const isMisListas = path.includes("mis-listas");
+
+        const isTop = path.includes("top");
+        const isIndex = path.endsWith("index.html") || path.endsWith("/") || path === "";
+
+        let activePage = isAnime ? "anime" : isManga ? "manga" : isNovelas ? "novelas" : isMisListas ? "mis-listas" : isTop ? "top" : null;
+        if (isIndex) activePage = null;
+
+        const tabs = [
+            { id: "anime", href: "anime.html", icon: "clapperboard", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
+            { id: "manga", href: "manga.html", icon: "book-open", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
+            { id: "novelas", href: "novelas.html", icon: "book", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
+            { id: "mis-listas", href: "mis-listas.html", icon: "heart", label: window.AppI18n ? window.AppI18n.t("nav.mis_listas") : "Listas" },
+            { id: "top", href: "top.html", icon: "trophy", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Top" }
+        ];
+
+        let html = '';
+        for (let i = 0; i < tabs.length; i++) {
+            const t = tabs[i];
+            const activeClass = t.id === activePage ? ' active' : '';
+            const currentAttr = t.id === activePage ? ' aria-current="page"' : '';
+            html += `<a href="${t.href}" class="bottom-tab${activeClass}"${currentAttr}>
+<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="${t.icon}"></i></span>
+<span data-i18n="nav.${t.id.replace('-', '_')}">${t.label}</span>
+</a>`;
+        }
+
+        const searchText = window.AppI18n ? window.AppI18n.t("nav.menu") : "Menú";
+        html += `<button class="bottom-tab-search" aria-label="Buscar" type="button">
+<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="menu"></i></span>
+<span data-i18n="nav.menu">${searchText}</span>
+</button>`;
+
+        const nav = document.createElement('nav');
+        nav.className = 'mobile-bottom-nav';
+        nav.setAttribute('aria-label', 'Navegación móvil');
+        nav.innerHTML = html;
+        document.body.appendChild(nav);
+        document.body.classList.add('has-bottom-nav');
+
+        // Cerrar navbar top al hacer click en cualquier link del bottom bar
+        nav.addEventListener('click', (e) => {
+            const link = e.target.closest('.bottom-tab');
+            if (!link) return;
+            const navbar = document.querySelector('.destiny-navbar');
+            if (navbar) navbar.classList.remove('is-open');
+            const searchBtn = nav.querySelector('.bottom-tab-search');
+            if (searchBtn) searchBtn.classList.remove('is-open');
+        });
+
+        // Search toggle: show top navbar search
+        const searchBtn = nav.querySelector('.bottom-tab-search');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                const navbar = document.querySelector('.destiny-navbar');
+                if (!navbar) return;
+                const isOpen = navbar.classList.toggle('is-open');
+                searchBtn.classList.toggle('is-open', isOpen);
+                if (isOpen) {
+                    const input = navbar.querySelector('.nav-search-input');
+                    if (input) setTimeout(() => input.focus(), 100);
+                }
+            });
+        }
     };
 
     // ── LOGIN / USER AREA ──
@@ -4037,11 +4516,13 @@ window.addEventListener("supabase-auth-changed", function () {
         if (!el) return;
         if (path.includes("login")) return;
 
+        const ingresarText = window.AppI18n ? window.AppI18n.t("nav.ingresar") : "Ingresar";
+        const invitadoText = window.AppI18n ? window.AppI18n.t("nav.usuario_invitado") : "...";
         el.innerHTML = `<div class="nav-user" id="nav-user">
 <div id="nav-user-avatar" class="nav-user-avatar"></div>
 <div class="nav-user-info">
-<span id="nav-user-name" class="nav-user-name">Invitado</span>
-<a id="nav-user-btn" href="Login.html" class="nav-user-btn">Ingresar</a>
+<span id="nav-user-name" class="nav-user-name" data-i18n="nav.usuario_invitado">${invitadoText}</span>
+<a id="nav-user-btn" href="Login.html" class="nav-user-btn" data-i18n="nav.ingresar">${ingresarText}</a>
 </div>
 </div>`;
 
@@ -4049,6 +4530,13 @@ window.addEventListener("supabase-auth-changed", function () {
         if (typeof window.refreshUserUi === 'function') {
             window.refreshUserUi();
         }
+
+        // Cuando Supabase cargue, actualizar la UI del usuario
+        window.addEventListener('supabase-ready', () => {
+            if (typeof window.refreshUserUi === 'function') {
+                window.refreshUserUi();
+            }
+        }, { once: true });
     };
 
     // ── FOOTER ──
@@ -4100,6 +4588,13 @@ window.addEventListener("supabase-auth-changed", function () {
         const el = document.getElementById("footer-container");
         if (!el) return;
 
+        const lang = window.AppI18n ? window.AppI18n.getLang() : "es";
+
+        // Translate static footer titles/links
+        const redesTitle = lang === "en" ? "Social" : "Redes";
+        const privacidadText = lang === "en" ? "Privacy" : "Privacidad";
+        const terminosText = lang === "en" ? "Terms" : "Términos";
+
         const data = FOOTER_DATA[pageKey];
         if (!data) return;
 
@@ -4108,15 +4603,78 @@ window.addEventListener("supabase-auth-changed", function () {
 
         for (let i = 0; i < entries.length; i++) {
             const c = entries[i];
+            let title = c.title;
+            let text = c.text;
+
+            // Apply translations dynamically for footer if language is set to English
+            if (lang === "en") {
+                if (title === "Tips" || title === "Tip" || title === "Consejo") title = "Tips";
+                else if (title === "Cuenta") title = "Account";
+                else if (title === "Contacto") title = "Contact";
+                else if (title === "PROGRESO") title = "PROGRESS";
+                else if (title === "LISTAS") title = "LISTS";
+                else if (title === "Configuraci\u00F3n" || title === "Configuracion") title = "Settings";
+                else if (title === "Seguridad") title = "Security";
+                else if (title === "Perfil") title = "Profile";
+                else if (title === "Acciones") title = "Actions";
+                else if (title === "Tus listas") title = "Your lists";
+                else if (title === "Ranking") title = "Ranking";
+                else if (title === "F2P / P2W") title = "F2P / P2W";
+
+                if (text.includes("b\u00FAsqueda para filtrar")) {
+                    text = "Use search to filter quickly and open \"Detail\" to track chapters.";
+                } else if (text.includes("Entr\u00E1 desde el bot\u00F3n")) {
+                    text = "Log in using the <strong>Account</strong> button to save your lists.";
+                } else if (text.includes("marcar vol\u00FAmenes")) {
+                    text = "Open \"Detail\" to mark green volumes and track progress.";
+                } else if (text.includes("guardar tus listas, inici\u00E1 sesi\u00F3n")) {
+                    text = "If you want to save your lists, log in from <strong>Account</strong>.";
+                } else if (text.includes("filtrar por t\u00EDtulo")) {
+                    text = "Use search to filter by title.";
+                } else if (text.includes("guardar tus \"Me gusta\"")) {
+                    text = "Log in to save your \"Likes\" and \"Watched\" items.";
+                } else if (text.includes("Cat\u00E1logo de anime")) {
+                    text = "Anime, manga and novel catalog with detail, progress and lists per user.";
+                } else if (text.includes("contacto@animedestiny")) {
+                    text = "Support: contacto@animedestiny.local<br>Buenos Aires, AR";
+                } else if (text.includes("comparar t\u00EDtulos de distintas")) {
+                    text = "You can compare titles of different categories.";
+                } else if (text.includes("comparaci\u00F3n pod\u00E9s abrir")) {
+                    text = "From the comparison you can open the detail of each.";
+                } else if (text.includes("cuadrados (vol\u00FAmenes")) {
+                    text = "Tap the squares (volumes/chapters) to mark them green.";
+                } else if (text.includes(" cards para armar")) {
+                    text = "Use \u2764 and \uD83D\uDC41 on cards to build your lists.";
+                } else if (text.includes("guardan localmente")) {
+                    text = "Your changes are saved locally in this browser.";
+                } else if (text.includes("cards compactas si quer\u00E9s")) {
+                    text = "Enable compact cards if you want to see more titles without scrolling.";
+                } else if (text.includes("elimin\u00E1s el usuario")) {
+                    text = "If you delete the user, their session and local progress are deleted.";
+                } else if (text.includes("Gestion\u00E1 tu informaci\u00F3n")) {
+                    text = "Manage your info, preferences, and usage statistics.";
+                } else if (text.includes("comparador para analizar")) {
+                    text = "Use My lists to review saved items and comparison to analyze two titles.";
+                } else if (text.includes("Revis\u00E1 tus Me gusta")) {
+                    text = "Review your Likes, Watched and progress of chapters/volumes.";
+                } else if (text.includes("Supabase. Nunca perd\u00E9s")) {
+                    text = "Everything is saved to your Supabase account. You never lose your progress.";
+                } else if (text.includes("nivel y experiencia total acumulada")) {
+                    text = "Players sorted by level and total accumulated experience.";
+                } else if (text.includes("categor\u00EDas de ranking")) {
+                    text = "More ranking categories coming soon.";
+                }
+            }
+
             cols += `<div class="app-footer-col">
-<div class="app-footer-title">${c.title}</div>
-<p class="app-footer-text">${c.text}</p>
+<div class="app-footer-title">${title}</div>
+<p class="app-footer-text">${text}</p>
 </div>`;
         }
 
         if (!data.col3) {
             cols += `<div class="app-footer-col">
-<div class="app-footer-title">Redes</div>
+<div class="app-footer-title">${redesTitle}</div>
 <div class="app-footer-social">
 <a class="app-footer-icon" href="#" aria-label="X">\uD835\uDD4F</a>
 <a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
@@ -4130,9 +4688,9 @@ window.addEventListener("supabase-auth-changed", function () {
 <div class="app-footer-bottom">
     <span>© 2026 Anime Destiny</span>
     <span style="margin: 0 10px;">•</span>
-    <a class="app-footer-link app-footer-link-cyan" href="privacidad.html">Privacidad</a>
+    <a class="app-footer-link app-footer-link-cyan" href="privacidad.html">${privacidadText}</a>
     <span style="margin: 0 10px;">•</span>
-    <a class="app-footer-link app-footer-link-purple" href="terminos.html">Términos</a>
+    <a class="app-footer-link app-footer-link-purple" href="terminos.html">${terminosText}</a>
 </div>
 </footer>`;
     };
@@ -4159,12 +4717,10 @@ window.addEventListener("supabase-auth-changed", function () {
             '--text-muted':   '#b0b0b0'
         };
         const root = document.documentElement;
-        let hasCustom = false;
         for (const name in colorKeys) {
             if (colorKeys.hasOwnProperty(name)) {
                 const val = r(colorKeys[name], defaults[name]);
                 root.style.setProperty(name, val);
-                if (val !== defaults[name]) hasCustom = true;
             }
         }
         const navAccent = root.style.getPropertyValue('--nav-accent') || defaults['--nav-accent'];
@@ -4241,17 +4797,13 @@ window.addEventListener("supabase-auth-changed", function () {
             }
         }, true);
     };
-    ensureSkipLink();
     ensureMainTarget();
     injectNavBrand();
     injectNavToggle();
     injectNavLinks();
+    injectMobileBottomNav();
     injectLoginButton();
     injectFooter();
     installSecurityHandlers();
 
 })();
-
-
-
-

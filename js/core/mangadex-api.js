@@ -193,15 +193,6 @@
         });
     }
 
-    window.buscarEnMangaDex = async function (query, type) {
-        try {
-            return await searchMangaDex(query, AnimeDestiny.Constants.MANGADEX_SEARCH_LIMIT || 5);
-        } catch (err) {
-            console.warn('MangaDex search error:', err);
-            return [];
-        }
-    };
-
     window.getMangaDexById = async function (id) {
         try {
             var json = await mdFetch('/manga/' + encodeURIComponent(id) + '?includes[]=cover_art');

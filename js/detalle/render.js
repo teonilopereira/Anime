@@ -26,7 +26,7 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     // Marcar el botón activo del navbar según la categoría del detalle
     try {
-        const nav = document.querySelector('.navbar');
+        const nav = document.querySelector('.destiny-navbar');
         if (nav) {
             nav.querySelectorAll('.nav-btn').forEach(a => a.classList.remove('active'));
             const map = { manga: 'manga.html', anime: 'anime.html', novelas: 'novelas.html' };
@@ -50,6 +50,17 @@ function renderDetalle(item, nombreUrl, categoria) {
     const pageTitle = `Detalle - ${item.titulo}`;
     document.title = pageTitle;
 
+    function setMetaTag(name, content, attrName = 'name') {
+        if (!content) return;
+        let meta = document.querySelector(`meta[${attrName}="${name}"]`);
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.setAttribute(attrName, name);
+            document.head.appendChild(meta);
+        }
+        meta.setAttribute('content', content);
+    }
+
     const isManga = categoria === 'manga' || !categoria;
     const isNovela = categoria === 'novelas';
     const isAnime = categoria === 'anime';
@@ -58,7 +69,17 @@ function renderDetalle(item, nombreUrl, categoria) {
     const score = item.score ?? item.puntaje ?? item.calificacion ?? 'N/A';
     const countLabel = isMangaOrNovela ? 'Volúmenes' : isAnime ? 'Capítulos' : 'Capítulos';
     const countValue = isMangaOrNovela ? (volumenes || 'No especificado') : isAnime ? (item.capitulos || item.episodios || item.episodes || 'No especificado') : 'No especificado';
+
     const summaryText = resumen || item.sinopsis || item.descripcion || item.info || 'Sin sinopsis disponible.';
+
+    setMetaTag('description', summaryText);
+    setMetaTag('og:title', pageTitle, 'property');
+    setMetaTag('og:description', summaryText, 'property');
+    setMetaTag('og:image', item.img, 'property');
+    setMetaTag('og:url', window.location.href, 'property');
+    setMetaTag('twitter:title', pageTitle);
+    setMetaTag('twitter:description', summaryText);
+    setMetaTag('twitter:image', item.img);
 
     const demografiaHtml = item.demografia
         ? `<span class="card-demographic demographic-${escapeHtml(item.demografia)}">${escapeHtml(item.demografia)}</span>`
@@ -71,19 +92,19 @@ function renderDetalle(item, nombreUrl, categoria) {
     const detailStatsHtml = `
         <div class="detail-stat-grid">
             <div class="detail-stat">
-                <div class="detail-stat-icon">📚</div>
+                <div class="detail-stat-icon"><i data-lucide="book-open"></i></div>
                 <div class="detail-stat-content"><span>${escapeHtml(countLabel)}</span><strong>${escapeHtml(String(countValue))}</strong></div>
             </div>
             <div class="detail-stat">
-                <div class="detail-stat-icon">📖</div>
+                <div class="detail-stat-icon"><i data-lucide="book"></i></div>
                 <div class="detail-stat-content"><span>Vol.</span><strong>${isMangaOrNovela ? escapeHtml(String(volumenes || '1')) : '—'}</strong></div>
             </div>
             <div class="detail-stat">
-                <div class="detail-stat-icon">✓</div>
+                <div class="detail-stat-icon"><i data-lucide="check-circle"></i></div>
                 <div class="detail-stat-content"><span>Estado</span><strong>${escapeHtml(status)}</strong></div>
             </div>
             <div class="detail-stat">
-                <div class="detail-stat-icon">⭐</div>
+                <div class="detail-stat-icon"><i data-lucide="star"></i></div>
                 <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong></div>
             </div>
         </div>
@@ -156,12 +177,6 @@ function renderDetalle(item, nombreUrl, categoria) {
                 <div class="detail-progress-meta">${watchedEpisodes} de ${totalEps || 0} capítulos marcados</div>
             </div>
         `;
-        const counts = {
-            temporadas: animeStructure.temporadasCount,
-            ovas: animeStructure.ovas,
-            peliculas: animeStructure.peliculas,
-            capitulos: animeStructure.capitulos
-        };
 
         const tabs = temporadasCount > 1
             ? temporadas.map((t, idx) => {
@@ -234,7 +249,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             <div class="detail-info">
                 ${demografiaHtml}
                 <h1 class="detail-title">${escapeHtml(item.titulo)}</h1>
-                <div class="detail-status"><span>✓</span> ${escapeHtml(status)}</div>
+                <div class="detail-status"><span><i data-lucide="check-circle"></i></span> ${escapeHtml(status)}</div>
                 ${detailStatsHtml}
 
                 <div class="detail-section detail-section-synopsis">
@@ -251,9 +266,9 @@ function renderDetalle(item, nombreUrl, categoria) {
                 ${extraBlockHtml}
 
                 <div class="detail-actions-bar">
-                    <button class="action-btn share-btn" type="button" aria-label="Compartir" title="Compartir">🔗</button>
-                    <button class="action-btn fav-btn" type="button" aria-label="Favorito">❤</button>
-                    <button class="action-btn viewed-btn" type="button" aria-label="Marcar como visto">👁</button>
+                    <button class="action-btn share-btn" type="button" aria-label="Compartir" title="Compartir"><i data-lucide="share-2"></i></button>
+                    <button class="action-btn fav-btn" type="button" aria-label="Favorito"><i data-lucide="heart"></i></button>
+                    <button class="action-btn viewed-btn" type="button" aria-label="Marcar como visto"><i data-lucide="eye"></i></button>
                 </div>
 
                 <div class="detail-actions">

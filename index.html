@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -23,11 +23,12 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css">
+        <link rel="stylesheet" href="css/bundle.css?v=3">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
 </head>
 <body class="menu-page" data-page="index">
 
@@ -44,60 +45,61 @@
     <main id="main-content">
     <!-- Hero -->
     <header class="hero-menu">
-        <p class="hero-eyebrow">Base de datos • v2026</p>
+        <p class="hero-eyebrow" data-i18n="index.eyebrow">Base de datos • v2026</p>
         <h1 class="glitch-text">ANIME DESTINY</h1>
-        <p class="hero-subtitle">Explorá el catálogo, guardá tu progreso y construí tus listas.</p>
+        <p class="hero-subtitle" data-i18n="index.subtitle">Explorá el catálogo, guardá tu progreso y construí tus listas.</p>
     </header>
 
     <!-- Cards de navegación -->
     <nav class="menu-container" aria-label="Menú principal">
         <a href="anime.html" class="menu-item">
-            <span class="icon">🎬</span>
+            <span class="icon"><i data-lucide="clapperboard"></i></span>
             <h2>ANIME</h2>
-            <p class="menu-item-desc">Series y películas</p>
+            <p class="menu-item-desc" data-i18n="index.card.anime">Series y películas</p>
             <span class="border-glow"></span>
         </a>
         <a href="manga.html" class="menu-item">
-            <span class="icon">📚</span>
+            <span class="icon"><i data-lucide="book-open"></i></span>
             <h2>MANGA</h2>
-            <p class="menu-item-desc">Cómics y tankobon</p>
+            <p class="menu-item-desc" data-i18n="index.card.manga">Cómics y tankobon</p>
             <span class="border-glow"></span>
         </a>
         <a href="novelas.html" class="menu-item">
-            <span class="icon">📖</span>
+            <span class="icon"><i data-lucide="book"></i></span>
             <h2>NOVELAS</h2>
-            <p class="menu-item-desc">Light novels y más</p>
+            <p class="menu-item-desc" data-i18n="index.card.novelas">Light novels y más</p>
             <span class="border-glow"></span>
         </a>
         <a href="mis-listas.html" class="menu-item">
-            <span class="icon">💖</span>
+            <span class="icon"><i data-lucide="heart"></i></span>
             <h2>MIS LISTAS</h2>
-            <p class="menu-item-desc">Favoritos y vistos</p>
+            <p class="menu-item-desc" data-i18n="index.card.listas">Favoritos y vistos</p>
             <span class="border-glow"></span>
         </a>
         <a href="top.html" class="menu-item">
-            <span class="icon">🏆</span>
+            <span class="icon"><i data-lucide="trophy"></i></span>
             <h2>RANKING</h2>
-            <p class="menu-item-desc">Rankings F2P y P2W</p>
+            <p class="menu-item-desc" data-i18n="index.card.ranking">Rankings F2P y P2W</p>
             <span class="border-glow"></span>
         </a>
     </nav>
 
     <!-- Destacados -->
-    <div class="section-divider"><span>Destacados</span></div>
+    <div class="section-divider"><span data-i18n="index.destacados">Destacados</span></div>
     <section class="featured" id="featuredBanner" data-featured="all"></section>
 
     <!-- Continuar viendo -->
-    <div class="section-divider" id="continueWatchingDivider" style="display:none"><span>Continuar viendo</span></div>
+    <div class="section-divider" id="continueWatchingDivider" style="display:none"><span data-i18n="index.continuar">Continuar viendo</span></div>
     <section class="featured" id="continueWatching" aria-label="Continuá viendo"></section>
     </main>
 
     <div id="footer-container"></div>
 
     <script src="js/core/config.js"></script>
+    <script src="js/core/i18n.js"></script>
     <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js" async></script>
-    <script src="js/core-bundle.min.js" defer></script>
+    <script src="js/core-bundle.min.js?v=3" defer></script>
     <script src="js/pages/script.js" defer></script>
 </body>
 </html>

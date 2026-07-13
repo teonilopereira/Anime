@@ -43,13 +43,25 @@ function inicializarBusquedaCatalogo() {
     const mainContainer = document.getElementById('main-content');
     if (!input || !mainContainer) return;
 
+    // Inject suggestion box as sibling of .catalog-search-wrap inside the main container
+    const searchContainer = input.closest('.catalog-search-filter-container');
     const inputWrap = input.closest('.nav-search') || input.parentElement;
     let suggestionBox = document.getElementById('catalogSuggestions');
-    if (!suggestionBox && inputWrap) {
+    if (!suggestionBox && searchContainer) {
+        suggestionBox = document.createElement('div');
+        suggestionBox.id = 'catalogSuggestions';
+        suggestionBox.className = 'catalog-suggestions';
+        searchContainer.appendChild(suggestionBox);
+    } else if (!suggestionBox && inputWrap) {
         suggestionBox = document.createElement('div');
         suggestionBox.id = 'catalogSuggestions';
         suggestionBox.className = 'catalog-suggestions';
         inputWrap.appendChild(suggestionBox);
+    }
+
+    // Toggle overflow on the container when suggestions open/close
+    function setSuggestionsOpen(open) {
+        if (searchContainer) searchContainer.classList.toggle('has-suggestions', open);
     }
 
     let emptyMsg = document.getElementById('searchEmptyMsg');
@@ -67,17 +79,13 @@ function inicializarBusquedaCatalogo() {
         mainContainer.parentElement?.appendChild(emptyMsg);
     }
 
-    function normalize(text) {
-        return normalizeText(text);
-    }
-
     function getCatalogItems() {
         return Array.isArray(window.__catalogSearchItems) ? window.__catalogSearchItems : [];
     }
 
     function renderSuggestions(query) {
         if (!suggestionBox) return;
-        const q = normalize(query);
+        const q = normalizeText(query);
         if (!q) {
             suggestionBox.classList.remove('is-open');
             suggestionBox.innerHTML = '';
@@ -85,26 +93,31 @@ function inicializarBusquedaCatalogo() {
         }
 
         const matches = getCatalogItems()
-            .filter((entry) => normalize(entry.searchIndex || '').includes(q))
+            .filter((entry) => normalizeText(entry.searchIndex || '').includes(q))
             .slice(0, AnimeDestiny.Constants.SUGGESTION_LIMIT || 6);
 
         if (!matches.length) {
             suggestionBox.classList.remove('is-open');
+            setSuggestionsOpen(false);
             suggestionBox.innerHTML = '';
             return;
         }
 
         suggestionBox.innerHTML = matches.map((entry) => `
             <a class="catalog-suggestion" href="detalle.html?cat=${encodeURIComponent(categoria)}&id=${encodeURIComponent(entry.item.id)}&nombre=${encodeURIComponent(entry.item.titulo)}">
-                <span class="catalog-suggestion-title">${escapeHtml(entry.item.titulo)}</span>
-                <span class="catalog-suggestion-meta">${escapeHtml(entry.item.info || entry.item.status || '')}</span>
+                ${entry.item.imagen ? `<img class="catalog-suggestion-img" src="${entry.item.imagen}" alt="" loading="lazy">` : ''}
+                <span class="catalog-suggestion-body">
+                    <span class="catalog-suggestion-title">${escapeHtml(entry.item.titulo)}</span>
+                    <span class="catalog-suggestion-meta">${escapeHtml(entry.item.info || entry.item.status || '')}</span>
+                </span>
             </a>
         `).join('');
         suggestionBox.classList.add('is-open');
+        setSuggestionsOpen(true);
     }
 
     function applyFilter() {
-        const q = normalize(input.value);
+        const q = normalizeText(input.value);
         const cards = mainContainer.querySelectorAll('.card-container');
         const selectedGenres = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
         const stateFilter = window.__activeStateFilter || 'all';
@@ -133,7 +146,7 @@ function inicializarBusquedaCatalogo() {
         let visible = 0;
 
         cards.forEach(card => {
-            const indexText = normalize(card.getAttribute('data-search-index') || '');
+            const indexText = normalizeText(card.getAttribute('data-search-index') || '');
             const matchQuery = !q || indexText.includes(q);
             
             if (!matchQuery) {
@@ -184,11 +197,11 @@ function inicializarBusquedaCatalogo() {
 
     function renderApiSuggestions(rawQuery, items) {
         if (!suggestionBox) return;
-        const q = normalize(rawQuery);
+        const q = normalizeText(rawQuery);
         if (!q) return;
 
         const prev = suggestionBox.querySelector('.catalog-suggestion-api-section');
-        const filtered = items.filter(item => normalize(item.title || '').includes(q)).slice(0, AnimeDestiny.Constants.API_SUGGESTION_LIMIT || 8);
+        const filtered = items.filter(item => normalizeText(item.title || '').includes(q)).slice(0, AnimeDestiny.Constants.API_SUGGESTION_LIMIT || 8);
         if (!filtered.length) { if (prev) prev.remove(); return; }
 
         const section = prev || document.createElement('div');
@@ -213,10 +226,14 @@ function inicializarBusquedaCatalogo() {
 
         if (!section.children.length) { if (prev) prev.remove(); return; }
         if (!prev) suggestionBox.appendChild(section);
+        if (suggestionBox.classList.contains('is-open') || section.children.length) {
+            suggestionBox.classList.add('is-open');
+            setSuggestionsOpen(true);
+        }
     }
 
     async function fetchApiSuggestions(rawQuery) {
-        const q = normalize(rawQuery);
+        const q = normalizeText(rawQuery);
         if (!q || q.length < 1) return;
 
         const prev = suggestionBox.querySelector('.catalog-suggestion-api-section');
@@ -237,7 +254,7 @@ function inicializarBusquedaCatalogo() {
                     }
                 } catch (_) {}
             }
-            if (normalize(input.value) !== q) return;
+            if (normalizeText(input.value) !== q) return;
             if (Array.isArray(resultados) && resultados.length) {
                 renderApiSuggestions(rawQuery, resultados);
             }
@@ -250,7 +267,7 @@ function inicializarBusquedaCatalogo() {
         if (apiSearchTimer) clearTimeout(apiSearchTimer);
         const q = input.value;
         lastApiQuery = q;
-        if (!normalize(q)) {
+        if (!normalizeText(q)) {
             const s = suggestionBox?.querySelector('.catalog-suggestion-api-section');
             if (s) s.remove();
             return;
@@ -336,7 +353,10 @@ function inicializarBusquedaCatalogo() {
     input.addEventListener('focus', () => renderSuggestions(input.value));
     input.addEventListener('blur', () => {
         window.setTimeout(() => {
-            if (suggestionBox) suggestionBox.classList.remove('is-open');
+            if (suggestionBox) {
+                suggestionBox.classList.remove('is-open');
+                setSuggestionsOpen(false);
+            }
         }, 180);
     });
 
@@ -402,10 +422,6 @@ function inicializarGeneroWidgets() {
     const mainContainer = document.getElementById('main-content');
     if (!categoria || !mainContainer) return;
 
-    function normalize(text) {
-        return normalizeText(text);
-    }
-
     const counts = new Map();
 
     const cardGenreRows = [...mainContainer.querySelectorAll('.card-container[data-genres]')]
@@ -427,7 +443,7 @@ function inicializarGeneroWidgets() {
 
     rows.forEach((genres) => {
         genres.forEach((g) => {
-            const key = normalize(g);
+            const key = normalizeText(g);
             if (!key) return;
             counts.set(key, { label: g, count: (counts.get(key)?.count || 0) + 1 });
         });
@@ -563,7 +579,7 @@ function inicializarGeneroWidgets() {
         return mangas;
     })();
     fixedGenres.forEach(function(g) {
-        var key = normalize(g);
+        var key = normalizeText(g);
         if (!counts.has(key)) {
             counts.set(key, { label: g, count: 0 });
         }

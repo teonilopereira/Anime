@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -18,12 +18,13 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css">
+        <link rel="stylesheet" href="css/bundle.css?v=3">
 
     <link rel="stylesheet" href="css/configuracion.css">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
 </head>
 <body data-page="configuracion">
     <nav class="destiny-navbar">
@@ -36,8 +37,8 @@
 
     <main class="cfg-page" id="main-content">
         <header class="cfg-page-header">
-            <h1>CONFIGURACIÓN</h1>
-            <p>Personalizá tu experiencia, información y preferencias de la app.</p>
+            <h1 data-i18n="config.titulo">CONFIGURACIÓN</h1>
+            <p data-i18n="config.subtitulo">Personalizá tu experiencia, información y preferencias de la app.</p>
         </header>
 
         <!-- Barra de usuario -->
@@ -45,11 +46,11 @@
             <div class="cfg-user-info">
                 <div class="cfg-user-avatar" id="cfgAvatar">?</div>
                 <div>
-                    <div class="cfg-user-label">Usuario activo</div>
+                    <div class="cfg-user-label" data-i18n="config.usuario_activo">Usuario activo</div>
                 <div class="cfg-user-name" id="cfgUserName">?</div>
                 </div>
             </div>
-            <a href="usuario.html" class="cfg-back-btn">← Volver al perfil</a>
+            <a href="usuario.html" class="cfg-back-btn" data-i18n="config.volver_perfil">← Volver al perfil</a>
         </div>
 
         <div class="cfg-sections">
@@ -57,14 +58,14 @@
             <!-- -- INFORMACIÓN PERSONAL -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">📋</span> INFORMACIÓN PERSONAL
+                    <span class="cfg-panel-icon">📋</span> <span data-i18n="config.info_personal">INFORMACIÓN PERSONAL</span>
                 </div>
                 <div class="cfg-field">
-                    <label for="cfgEmail">Correo electrónico</label>
+                    <label for="cfgEmail" data-i18n="config.email">Correo electrónico</label>
                     <input type="email" id="cfgEmail" placeholder="tucorreo@email.com" autocomplete="email">
                 </div>
                 <div class="cfg-field">
-                    <label for="cfgPais">País / Región</label>
+                    <label for="cfgPais" data-i18n="config.pais">País / Región</label>
                     <select id="cfgPais">
                         <option value="Argentina">Argentina 🇦🇷</option>
                         <option value="México">México 🇲🇽</option>
@@ -81,16 +82,14 @@
                     </select>
                 </div>
                 <div class="cfg-field">
-                    <label for="cfgIdioma">Idioma</label>
+                    <label for="cfgIdioma" data-i18n="config.idioma">Idioma</label>
                     <select id="cfgIdioma">
-                        <option value="Español">Español</option>
-                        <option value="English">English</option>
-                        <option value="Portugués">Portugués</option>
-                        <option value="日本語">日本語 🇯🇵</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="en">🇺🇸 English</option>
                     </select>
                 </div>
                 <div class="cfg-field">
-                    <label for="cfgZona">Zona horaria</label>
+                    <label for="cfgZona" data-i18n="config.zona">Zona horaria</label>
                     <select id="cfgZona">
                         <option value="GMT-3 (Buenos Aires)">GMT-3 (Buenos Aires)</option>
                         <option value="GMT-5 (Lima/Bogotá)">GMT-5 (Lima/Bogotá)</option>
@@ -99,18 +98,18 @@
                         <option value="GMT+9 (Tokio)">GMT+9 (Tokio)</option>
                     </select>
                 </div>
-                <button class="cfg-btn cfg-btn-primary" id="saveInfoPersonal">💾 GUARDAR INFORMACIÓN</button>
+                <button class="cfg-btn cfg-btn-primary" id="saveInfoPersonal" data-i18n="config.guardar_info">💾 GUARDAR INFORMACIÓN</button>
             </div>
 
             <!-- -- PREFERENCIAS -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">⚙️</span> PREFERENCIAS
+                    <span class="cfg-panel-icon">⚙️</span> <span data-i18n="config.preferencias">PREFERENCIAS</span>
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Notificaciones</div>
-                        <div class="cfg-toggle-desc">Recibir alertas y novedades de la app.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.notif.titulo">Notificaciones</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.notif.desc">Recibir alertas y novedades de la app.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="prefNotif">
@@ -119,8 +118,8 @@
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Contenido sugerido personalizado</div>
-                        <div class="cfg-toggle-desc">Recomendaciones basadas en tus gustos.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.sugerido.titulo">Contenido sugerido personalizado</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.sugerido.desc">Recomendaciones basadas en tus gustos.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="prefContenido">
@@ -129,8 +128,8 @@
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Cards compactas</div>
-                        <div class="cfg-toggle-desc">Reduce el tamaño de las cards para ver más contenido.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.compact.titulo">Cards compactas</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.compact.desc">Reduce el tamaño de las cards para ver más contenido.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="prefCompact">
@@ -139,8 +138,8 @@
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Reducir animaciones</div>
-                        <div class="cfg-toggle-desc">Menos efectos visuales para navegación más suave.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.motion.titulo">Reducir animaciones</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.motion.desc">Menos efectos visuales para navegación más suave.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="prefReduceMotion">
@@ -149,8 +148,8 @@
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Barra de progreso visible</div>
-                        <div class="cfg-toggle-desc">Muestra siempre el progreso en cards y detalles.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.progress.titulo">Barra de progreso visible</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.progress.desc">Muestra siempre el progreso en cards y detalles.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="prefShowProgress">
@@ -159,8 +158,8 @@
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Perfil público</div>
-                        <div class="cfg-toggle-desc">Permitir que otros usuarios vean tu perfil.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.public.titulo">Perfil público</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.public.desc">Permitir que otros usuarios vean tu perfil.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="prefPublic">
@@ -169,8 +168,8 @@
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Mostrar contenido NSFW</div>
-                        <div class="cfg-toggle-desc">Activar para ver contenido para adultos en el catálogo.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.nsfw.titulo">Mostrar contenido NSFW</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.nsfw.desc">Activar para ver contenido para adultos en el catálogo.</div>
                     </div>
                     <label class="cfg-switch">
                         <input type="checkbox" id="prefNsfw">
@@ -187,7 +186,7 @@
                         </select>
                     </div>
                 </div>
-                <button class="cfg-btn cfg-btn-primary" id="savePreferencias">💾 GUARDAR PREFERENCIAS</button>
+                <button class="cfg-btn cfg-btn-primary" id="savePreferencias">💾 <span data-i18n="config.guardar_pref">GUARDAR PREFERENCIAS</span></button>
             </div>
 
             <!-- -- COLORES DE LA APP -- -->
@@ -358,6 +357,7 @@
                 </div>
                 <div class="cfg-action-stack">
                     <button class="cfg-btn cfg-btn-secondary cfg-btn-full" id="exportData">📥 EXPORTAR MIS DATOS (JSON)</button>
+                    <button class="cfg-btn cfg-btn-primary cfg-btn-full" id="logoutBtn">🚪 CERRAR SESION</button>
                     <button class="cfg-btn cfg-btn-danger cfg-btn-full" id="deleteUserBtn">🗑️ ELIMINAR USUARIO</button>
                     <button class="cfg-btn cfg-btn-danger cfg-btn-full" id="clearAllBtn">⚠️ BORRAR TODO EL ALMACENAMIENTO</button>
                 </div>
@@ -399,8 +399,20 @@
 
     <script src="js/pages/configuracion.js" defer></script>
     <script src="js/core/common-ui.js" defer></script>
+    <script>
+    // Wiring del selector de idioma
+    document.addEventListener('DOMContentLoaded', function () {
+        var sel = document.getElementById('cfgIdioma');
+        if (!sel) return;
+        // Marcar el idioma activo
+        var current = (localStorage.getItem('pref:lang') || 'es');
+        sel.value = current;
+        sel.addEventListener('change', function () {
+            if (window.AppI18n) {
+                window.AppI18n.setLang(sel.value);
+            }
+        });
+    });
+    </script>
 </body>
 </html>
-
-
-

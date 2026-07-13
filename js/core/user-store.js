@@ -35,8 +35,6 @@
             this._data.clear();
         }
 
-        key(index)      { var keys = Array.from(this._data.keys()); return keys[index] || null; }
-        get length()    { return this._data.size; }
         keys()          { return Array.from(this._data.keys()); }
 
         _notify(key, value) {

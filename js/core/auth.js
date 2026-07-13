@@ -102,17 +102,6 @@ async function waitForSupabase() {
             }
         }
     }
-    function openUserModal() {
-        const modal = document.getElementById("userModal");
-        const input = document.getElementById("userNameInput");
-        if (!modal || !input) return;
-        input.value = "";
-        document.getElementById("userEmailInput")?.value && (document.getElementById("userEmailInput").value = "");
-        document.getElementById("userPassInput")?.value && (document.getElementById("userPassInput").value = "");
-        setMsg("");
-        modal.classList.add("is-open");
-        input.focus();
-    }
 
     function closeUserModal() {
         document.getElementById("userModal")?.classList.remove("is-open");
@@ -122,35 +111,13 @@ async function waitForSupabase() {
         return /^[^\s@]+@gmail\.com$/i.test(String(value || "").trim());
     }
 
-    // ─────────────────────────────────────────────
-    // Autenticación — solo Supabase
-    // ─────────────────────────────────────────────
-
-    async function signInWithGoogle() {
-        setMsg("Abriendo Google...");
-        const client = await waitForSupabase();
-        if (!client?.signInWithGoogle) {
-            setMsg("Supabase todavía no está listo. Intentá de nuevo.");
-            return;
-        }
-        try {
-            await client.signInWithGoogle();
-            // La sesión llega via onAuthStateChange; el modal se cierra solo.
-        } catch (err) {
-            console.error(err);
-            setMsg("No se pudo iniciar sesión con Google.");
-        }
-    }
-
     async function loginWithPassword(mode) {
         const username  = String(document.getElementById("userNameInput")?.value  || "").trim();
         const email     = String(document.getElementById("userEmailInput")?.value || "").trim();
         const password  = String(document.getElementById("userPassInput")?.value  || "");
 
-        // El campo "usuario" puede contener un email en modo login
         const loginEmail = email || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(username) ? username : "");
 
-        // — Validaciones —
         if (!username && !email) return setMsg("Escribí un nombre de usuario o correo.");
         if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg("El usuario debe tener al menos 3 caracteres.");
         if (mode === "create" && !isValidGmailAddress(email)) return setMsg("Usá un correo @gmail.com válido.");
@@ -165,7 +132,6 @@ async function waitForSupabase() {
         }
 
         if (mode === "create") {
-            // ── REGISTRO ─────────────────────────────────────────────
             try {
                 const { data, error } = await client.client.auth.signUp({
                     email,
@@ -193,7 +159,6 @@ async function waitForSupabase() {
                     return;
                 }
 
-                // Sesión activa inmediata (email confirmation desactivado en Supabase)
                 if (data?.session) {
                     await refreshUserUi();
                     setMsg("✅ Cuenta creada exitosamente.");
@@ -211,7 +176,6 @@ async function waitForSupabase() {
             return;
         }
 
-        // ── INICIO DE SESIÓN ─────────────────────────────────────────
         if (!loginEmail) {
             setMsg("Ingresá tu correo electrónico para iniciar sesión.");
             return;
@@ -332,6 +296,7 @@ window.getCurrentUser      = getCurrentUser;
     window.waitForSupabase     = waitForSupabase;
     window.ensureUserUi        = ensureUserUi;
     window.refreshUserUi       = refreshUserUi;
+    window.logoutUser          = logoutUser;
 
     // Ejecución segura al cargar el DOM
     document.addEventListener('DOMContentLoaded', async () => {

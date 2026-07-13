@@ -1,5 +1,10 @@
 /* Navbar estilo Anime Destiny para manga.html. */
 
+/* ── Mobile Bottom Tab Bar (base, oculto en desktop) ── */
+.mobile-bottom-nav {
+    display: none;
+}
+
 /* ── Área de usuario en navbar (avatar + nombre + botón) ── */
 .destiny-navbar .nav-user-info {
     display: flex;
@@ -323,94 +328,113 @@
 }
 
 @media (max-width: 700px) {
+    /* ── Ocultar top navbar en mobile ── */
     .destiny-navbar {
-        top: 8px;
-        width: calc(100% - 16px);
-        grid-template-columns: 1fr;
-        gap: 10px;
-        padding: 10px;
-        border-radius: 10px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0 20px;
+        border-radius: 0;
+        transform: translateY(-110%);
+        pointer-events: none;
+        z-index: 1001;
+    }
+
+    .destiny-navbar.is-open {
+        transform: translateY(0);
+        pointer-events: auto;
     }
 
     .destiny-navbar.is-scrolled {
-        padding: 10px;
-    }
-
-    .destiny-navbar .nav-brand {
-        gap: 10px;
-    }
-
-    .nav-brand-mark {
-        width: 56px;
-        height: 46px;
+        padding: 0 20px;
     }
 
     .destiny-navbar .nav-toggle {
-        display: inline-flex;
-        width: 100%;
-        order: 2;
+        display: none !important;
     }
 
-    .destiny-navbar:not(.is-open) .nav-links,
-    .destiny-navbar:not(.is-open) .nav-actions {
-        display: none;
+    /* ── Mostrar bottom tab bar ── */
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        min-height: 60px;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: rgba(10, 10, 20, 0.95);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-top: 1px solid var(--nav-accent-soft);
+        justify-content: space-around;
+        align-items: center;
     }
 
-    .destiny-navbar.is-open .nav-links,
-    .destiny-navbar.is-open .nav-actions {
+    .mobile-bottom-nav .bottom-tab {
         display: flex;
         flex-direction: column;
-        width: 100%;
-        animation: drawerSlideIn 0.25s ease-out;
+        align-items: center;
+        gap: 2px;
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.62rem;
+        font-weight: 600;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.04em;
+        padding: 6px 0;
+        min-width: 52px;
+        transition: color 0.2s;
+        -webkit-tap-highlight-color: transparent;
     }
 
-    @keyframes drawerSlideIn {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: translateY(0); }
+    .mobile-bottom-nav .bottom-tab .bottom-tab-icon {
+        font-size: 1.3rem;
+        line-height: 1;
     }
 
-    .destiny-navbar .nav-links {
-        grid-template-columns: 1fr 1fr;
-        min-height: auto;
-        padding: 6px;
-        border-radius: 8px;
-        order: 3;
+    .mobile-bottom-nav .bottom-tab.active {
+        color: var(--nav-accent);
     }
 
-    .destiny-navbar .nav-btn,
-    .destiny-navbar .nav-btn.active {
-        min-height: 56px;
-        margin: 0;
-        border-radius: 6px;
+    .mobile-bottom-nav .bottom-tab.active .bottom-tab-icon {
+        filter: drop-shadow(0 0 6px currentColor);
     }
 
-    .destiny-navbar .nav-btn.active::after {
-        display: none;
-    }
-
-    .destiny-navbar .nav-actions {
-        order: 4;
+    .mobile-bottom-nav .bottom-tab-search {
+        display: flex;
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
+        gap: 2px;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.62rem;
+        font-weight: 600;
+        font-family: 'Orbitron', sans-serif;
+        letter-spacing: 0.04em;
+        padding: 6px 0;
+        min-width: 52px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.2s;
     }
 
-    .destiny-navbar .nav-search {
-        max-width: none;
-        min-width: 0;
-        width: 100%;
+    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+        font-size: 1.3rem;
+        line-height: 1;
     }
 
-    .destiny-navbar .nav-user {
-        width: 100%;
-        justify-content: center;
-        padding: 10px 0 0;
-        border-left: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
+    .mobile-bottom-nav .bottom-tab-search.is-open {
+        color: var(--nav-accent);
     }
 
-    .destiny-navbar .nav-user-avatar {
-        width: 34px;
-        height: 34px;
+    .mobile-bottom-nav .bottom-tab-search.is-open .bottom-tab-icon {
+        filter: drop-shadow(0 0 6px currentColor);
     }
 }
 

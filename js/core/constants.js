@@ -46,7 +46,8 @@
         MODAL_CLOSE_LONG_DELAY_MS: 2500,
         COMMENT_MAX_LENGTH: 2000,
         COMMENTS_PER_PAGE: 20,
-        COMMENT_RATE_LIMIT_MS: 5000
+        COMMENT_RATE_LIMIT_MS: 5000,
+        COMMENT_REF_TYPES: { EPISODE: 'episode', VOLUME: 'volume', CHAPTER: 'chapter' }
     };
     window.AnimeDestiny = window.AnimeDestiny || {};
     window.AnimeDestiny.Constants = C;

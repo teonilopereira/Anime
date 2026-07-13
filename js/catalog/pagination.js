@@ -135,10 +135,6 @@ async function inicializarPagina() {
         return;
     }
 
-    function normalize(text) {
-        return normalizeText(text);
-    }
-
     function getGenres(item) {
         return String(item?.info || "").split("/").map(function (s) { return s.trim(); }).filter(Boolean);
     }
@@ -148,7 +144,7 @@ async function inicializarPagina() {
 
     mainContainer.innerHTML = batch.map(function (item) {
         const genres = getGenres(item);
-        const genresNorm = genres.map(function (g) { return normalize(g); }).join("|");
+        const genresNorm = genres.map(function (g) { return normalizeText(g); }).join("|");
         const searchIndex = buildSearchIndexForItem(categoria, item);
         const detailUrl = "detalle.html?cat=" + encodeURIComponent(categoria) + "&id=" + encodeURIComponent(item.id) + "&nombre=" + encodeURIComponent(item.titulo);
         const hasDetail = typeof obtenerDetalleItem === "function" && !!obtenerDetalleItem(categoria, item.id);

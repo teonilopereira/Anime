@@ -11,9 +11,9 @@
     padding: 36px 0 28px;
 }
 .perfil-page-header h1 {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: clamp(1.8rem, 4vw, 2.6rem);
-    background: linear-gradient(90deg, #bc13fe, #00f2ff);
+    background: linear-gradient(90deg, var(--neon-purple), var(--accent-cyan));
     -webkit-background-clip: text;
     -moz-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -25,7 +25,7 @@
     color: rgba(255,255,255,0.65);
     font-size: 1rem;
     margin: 0;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 
 /* ── BLOQUE SUPERIOR: avatar + info + tarjetas ── */
@@ -62,10 +62,15 @@
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #bc13fe, #00f2ff);
+    background: linear-gradient(135deg, var(--neon-purple), var(--accent-cyan));
     padding: 3px;
     position: relative;
     cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
+}
+.perfil-avatar-ring:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 8px var(--accent-cyan));
 }
 .perfil-avatar-ring:hover .perfil-avatar-overlay { opacity: 1; }
 .perfil-avatar-inner {
@@ -76,10 +81,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 2.2rem;
     font-weight: 700;
-    color: #bc13fe;
+    color: var(--neon-purple);
     overflow: hidden;
     position: relative;
 }
@@ -98,7 +103,7 @@
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     color: #fff;
     opacity: 0;
     transition: opacity 0.2s;
@@ -112,7 +117,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #bc13fe, #6a0dad);
+    background: linear-gradient(135deg, var(--neon-purple), #6a0dad);
     border: 2px solid #000;
     display: flex;
     align-items: center;
@@ -127,7 +132,7 @@
     gap: 6px;
     font-size: 0.78rem;
     color: rgba(255,255,255,0.7);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
     letter-spacing: 0.5px;
 }
@@ -146,7 +151,7 @@
 .perfil-cambiar-img-label {
     font-size: 0.72rem;
     color: rgba(255,255,255,0.45);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     text-align: center;
 }
 
@@ -168,11 +173,11 @@
     text-transform: uppercase;
     letter-spacing: 2px;
     color: rgba(255,255,255,0.4);
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     margin-bottom: 4px;
 }
 .perfil-user-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 1.9rem;
     font-weight: 700;
     color: #fff;
@@ -182,7 +187,7 @@
 }
 .perfil-edit-icon {
     font-size: 0.9rem;
-    color: #00f2ff;
+    color: var(--accent-cyan);
     cursor: pointer;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -191,7 +196,7 @@
 .perfil-since {
     font-size: 0.85rem;
     color: rgba(255,255,255,0.5);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     margin-top: 2px;
 }
 .perfil-since strong {
@@ -210,8 +215,8 @@
     border-radius: 8px;
     border: 1px solid rgba(0,242,255,0.3);
     background: rgba(0,242,255,0.07);
-    color: #00f2ff;
-    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-cyan);
+    font-family: var(--font-display);
     font-size: 0.7rem;
     text-decoration: none;
     letter-spacing: 1px;
@@ -229,8 +234,8 @@
     border-radius: 8px;
     border: 1px solid rgba(188,19,254,0.4);
     background: rgba(188,19,254,0.1);
-    color: #bc13fe;
-    font-family: 'Orbitron', sans-serif;
+    color: var(--neon-purple);
+    font-family: var(--font-display);
     font-size: 0.7rem;
     text-decoration: none;
     letter-spacing: 1px;
@@ -248,8 +253,8 @@
     border-radius: 8px;
     border: 1px solid rgba(0,242,255,0.3);
     background: rgba(0,242,255,0.06);
-    color: #00f2ff;
-    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-cyan);
+    font-family: var(--font-display);
     font-size: 0.68rem;
     text-decoration: none;
     letter-spacing: 1px;
@@ -286,7 +291,7 @@
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: rgba(255,255,255,0.4);
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
 }
 .perfil-card-value-row {
     display: flex;
@@ -297,7 +302,7 @@
     font-size: 1.4rem;
 }
 .perfil-card-num {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 1.7rem;
     font-weight: 700;
     color: #fff;
@@ -305,7 +310,7 @@
 .perfil-card-sublabel {
     font-size: 0.72rem;
     color: rgba(255,255,255,0.4);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 .perfil-level-bar-wrap {
     margin-top: 2px;
@@ -318,15 +323,16 @@
 }
 .perfil-level-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #bc13fe, #00f2ff);
+    background: linear-gradient(90deg, var(--neon-purple), var(--accent-cyan));
     border-radius: 3px;
-    transition: width 0.8s ease;
+    box-shadow: 0 0 8px var(--accent-cyan);
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .perfil-level-pct-text {
     font-size: 0.68rem;
     color: rgba(255,255,255,0.4);
     margin-top: 3px;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 
 /* ── GRID INFERIOR ── */
@@ -349,7 +355,7 @@
     gap: 0;
 }
 .perfil-panel-title {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.78rem;
     letter-spacing: 2px;
     color: #fff;
@@ -361,7 +367,7 @@
 }
 .perfil-panel-title .pp-icon {
     font-size: 1rem;
-    color: #bc13fe;
+    color: var(--neon-purple);
 }
 .perfil-panel-footer {
     margin-top: auto;
@@ -373,8 +379,8 @@
     border-radius: 8px;
     border: 1px solid rgba(0,242,255,0.25);
     background: transparent;
-    color: #00f2ff;
-    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-cyan);
+    font-family: var(--font-display);
     font-size: 0.68rem;
     letter-spacing: 1px;
     cursor: pointer;
@@ -391,7 +397,7 @@
 }
 .perfil-panel-btn.purple {
     border-color: rgba(188,19,254,0.3);
-    color: #bc13fe;
+    color: var(--neon-purple);
 }
 .perfil-panel-btn.purple:hover {
     background: rgba(188,19,254,0.1);
@@ -414,7 +420,7 @@
     gap: 12px;
     color: rgba(255,255,255,0.6);
     font-size: 0.88rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 .perfil-info-row-left .pir-icon {
     font-size: 1rem;
@@ -425,7 +431,7 @@
 .perfil-info-row-val {
     font-size: 0.88rem;
     color: rgba(255,255,255,0.85);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
     text-align: right;
 }
@@ -462,19 +468,19 @@
 .perfil-stat-label {
     font-size: 0.88rem;
     color: #fff;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
 }
 .perfil-stat-sublabel {
     font-size: 0.72rem;
     color: rgba(255,255,255,0.4);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 .perfil-stat-val {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 1rem;
     font-weight: 700;
-    color: #bc13fe;
+    color: var(--neon-purple);
 }
 
 /* ── PREFERENCIAS ── */
@@ -493,7 +499,7 @@
     gap: 12px;
     color: rgba(255,255,255,0.65);
     font-size: 0.88rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 .perfil-pref-icon {
     font-size: 1rem;
@@ -503,9 +509,9 @@
 }
 .perfil-pref-val {
     font-size: 0.85rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
-    color: #00f2ff;
+    color: var(--accent-cyan);
     display: flex;
     align-items: center;
     gap: 5px;
@@ -527,7 +533,7 @@
     margin-bottom: 18px;
 }
 .perfil-activity-head-title {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.78rem;
     letter-spacing: 2px;
     color: #fff;
@@ -536,11 +542,11 @@
     align-items: center;
     gap: 10px;
 }
-.perfil-activity-head-title .pp-icon { color: #bc13fe; }
+.perfil-activity-head-title .pp-icon { color: var(--neon-purple); }
 .perfil-activity-link {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.65rem;
-    color: #00f2ff;
+    color: var(--accent-cyan);
     text-decoration: none;
     letter-spacing: 1px;
     padding: 6px 14px;
@@ -590,7 +596,7 @@
 .perfil-activity-info { flex: 1; min-width: 0; }
 .perfil-activity-title {
     font-size: 0.85rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
     color: #fff;
     white-space: nowrap;
@@ -600,7 +606,7 @@
 .perfil-activity-time {
     font-size: 0.72rem;
     color: rgba(255,255,255,0.4);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
 }
 .perfil-activity-arrow {
     font-size: 0.75rem;
@@ -617,7 +623,7 @@
     margin-top: 30px;
     font-size: 0.78rem;
     color: rgba(255,255,255,0.3);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -626,8 +632,8 @@
 .perfil-footer-dot {
     width: 4px; height: 4px;
     border-radius: 50%;
-    background: #bc13fe;
-    box-shadow: 0 0 8px #bc13fe;
+    background: var(--neon-purple);
+    box-shadow: 0 0 8px var(--neon-purple);
 }
 
 /* Responsive */
@@ -744,7 +750,7 @@
     border: 1.5px solid rgba(168, 85, 247, 0.6);
     border-radius: 8px;
     color: #fff;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.9rem;
     padding: 6px 10px;
     outline: none;
@@ -770,7 +776,7 @@
 }
 
 .perfil-import-header {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.85rem;
     letter-spacing: 1.5px;
     padding: 1rem 1.5rem;
@@ -798,13 +804,13 @@
 }
 
 .perfil-import-upload input[type="file"] {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.7);
 }
 
 .perfil-btn-import-preview {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -812,7 +818,7 @@
     border: 1px solid rgba(0, 242, 255, 0.3);
     border-radius: 6px;
     background: rgba(0, 242, 255, 0.06);
-    color: #00f2ff;
+    color: var(--accent-cyan);
     cursor: pointer;
     transition: background 0.2s;
 }
@@ -823,7 +829,7 @@
 
 /* Preview */
 .mal-preview-header {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.8rem;
     font-weight: 600;
     letter-spacing: 1px;
@@ -850,9 +856,9 @@
 
 .mal-preview-num {
     display: block;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 1.4rem;
-    color: #00f2ff;
+    color: var(--accent-cyan);
 }
 
 .mal-preview-label {
@@ -881,7 +887,7 @@
 
 .mal-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #00f2ff, #bc13fe);
+    background: linear-gradient(90deg, var(--accent-cyan), var(--neon-purple));
     border-radius: 3px;
     transition: width 0.3s ease;
 }
@@ -902,7 +908,7 @@
 }
 
 .mal-result-title {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 0.5rem;

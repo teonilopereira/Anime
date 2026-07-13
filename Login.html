@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -20,11 +20,12 @@
     <meta name="twitter:title" content="Anime Destiny | Cuenta">
     <meta name="twitter:description" content="Iniciá sesión o creá tu cuenta en Anime Destiny para guardar favoritos, progreso y listas personalizadas.">
 
-        <link rel="stylesheet" href="css/bundle.min.css">
+        <link rel="stylesheet" href="css/bundle.css?v=3">
 
     <link rel="stylesheet" href="css/login.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
 </head>
 <body class="login-page" data-page="login">
     <nav class="destiny-navbar">
@@ -37,46 +38,46 @@
 
     <main class="login-shell" id="main-content">
         <section class="login-copy" aria-label="Anime Destiny">
-            <p class="login-kicker">Tu cuenta</p>
+            <p class="login-kicker" data-i18n="login.kicker">Tu cuenta</p>
             <h1 class="login-title">Anime Destiny</h1>
-            <p class="login-text">Entrá para guardar favoritos, progreso y listas en tu perfil.</p>
+            <p class="login-text" data-i18n="login.copy">Entrá para guardar favoritos, progreso y listas en tu perfil.</p>
         </section>
 
         <section class="login-panel" aria-label="Formulario de cuenta">
-            <h1 id="loginTitle">Iniciar sesión</h1>
+            <h1 id="loginTitle" data-i18n="login.titulo">Iniciar sesión</h1>
             <div class="login-tabs" role="group" aria-label="Modo de cuenta">
-                <button class="login-tab is-active" id="tabLogin" type="button">Iniciar</button>
-                <button class="login-tab" id="tabRegister" type="button">Crear cuenta</button>
+                <button class="login-tab is-active" id="tabLogin" type="button" data-i18n="login.tab.login">Iniciar</button>
+                <button class="login-tab" id="tabRegister" type="button" data-i18n="login.tab.crear">Crear cuenta</button>
             </div>
 
             <form id="loginForm">
                 <div class="login-field is-hidden" id="usernameField">
-                    <label for="usernameInput">Usuario</label>
-                    <input id="usernameInput" type="text" autocomplete="nickname" placeholder="Ej: NarutoFan">
+                    <label for="usernameInput" data-i18n="login.usuario">Usuario</label>
+                    <input id="usernameInput" type="text" autocomplete="nickname" placeholder="Ej: NarutoFan" data-i18n="login.placeholder.usuario" data-i18n-attr="placeholder">
                 </div>
 
                 <div class="login-field">
-                    <label for="emailInput">Correo</label>
-                    <input id="emailInput" type="email" autocomplete="email" placeholder="tuusuario@gmail.com" required>
+                    <label for="emailInput" data-i18n="login.email">Correo</label>
+                    <input id="emailInput" type="email" autocomplete="email" placeholder="tuusuario@gmail.com" data-i18n="login.placeholder.email" data-i18n-attr="placeholder" required>
                 </div>
 
                 <div class="login-field">
-                    <label for="passwordInput">Contraseña</label>
-                    <input id="passwordInput" type="password" autocomplete="current-password" placeholder="********" required>
+                    <label for="passwordInput" data-i18n="login.contrasena">Contraseña</label>
+                    <input id="passwordInput" type="password" autocomplete="current-password" placeholder="********" data-i18n="login.placeholder.password" data-i18n-attr="placeholder" required>
                 </div>
 
                 <p class="login-status" id="loginStatus" aria-live="polite"></p>
 
                 <div class="login-actions">
-                    <button class="login-btn primary" id="submitBtn" type="submit">Entrar</button>
-                    <button class="login-btn" id="googleBtn" type="button">Continuar con Google</button>
-                    <button class="login-btn" id="logoutBtn" type="button">Cerrar sesión</button>
+                    <button class="login-btn primary" id="submitBtn" type="submit" data-i18n="login.ingresar">Entrar</button>
+                    <button class="login-btn" id="googleBtn" type="button" data-i18n="login.google">Continuar con Google</button>
+                    <button class="login-btn" id="logoutBtn" type="button" data-i18n="login.cerrar">Cerrar sesión</button>
                 </div>
             </form>
 
             <div class="login-links">
-                <a href="index.html">Volver al inicio</a>
-                <a href="mis-listas.html">Ver mis listas</a>
+                <a href="index.html" data-i18n="login.volver">Volver al inicio</a>
+                <a href="mis-listas.html" data-i18n="login.mis_listas">Ver mis listas</a>
             </div>
         </section>
     </main>

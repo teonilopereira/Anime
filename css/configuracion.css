@@ -10,9 +10,9 @@
     padding: 36px 0 28px;
 }
 .cfg-page-header h1 {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-    background: linear-gradient(90deg, #bc13fe, #00f2ff);
+    background: linear-gradient(90deg, var(--neon-purple), var(--accent-cyan));
     -webkit-background-clip: text;
     -moz-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -49,11 +49,11 @@
     width: 46px;
     height: 46px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #bc13fe, #00f2ff);
+    background: linear-gradient(135deg, var(--neon-purple), var(--accent-cyan));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 1rem;
     font-weight: 700;
     color: #fff;
@@ -64,12 +64,12 @@
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: rgba(255,255,255,0.4);
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
 }
 .cfg-user-name {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 1.1rem;
-    color: #00f2ff;
+    color: var(--accent-cyan);
 }
 .cfg-back-btn {
     display: inline-flex;
@@ -79,8 +79,8 @@
     border-radius: 8px;
     border: 1px solid rgba(0,242,255,0.3);
     background: rgba(0,242,255,0.07);
-    color: #00f2ff;
-    font-family: 'Orbitron', sans-serif;
+    color: var(--accent-cyan);
+    font-family: var(--font-display);
     font-size: 0.68rem;
     text-decoration: none;
     letter-spacing: 1px;
@@ -108,9 +108,14 @@
     border-radius: 16px;
     padding: 22px 24px;
     backdrop-filter: blur(10px);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.cfg-panel:hover {
+    border-color: rgba(188,19,254,0.35);
+    box-shadow: 0 8px 32px var(--neon-purple-glow);
 }
 .cfg-panel-title {
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.78rem;
     letter-spacing: 2px;
     color: #fff;
@@ -122,7 +127,7 @@
     padding-bottom: 12px;
     border-bottom: 1px solid rgba(255,255,255,0.07);
 }
-.cfg-panel-icon { color: #bc13fe; font-size: 1rem; }
+.cfg-panel-icon { color: var(--neon-purple); font-size: 1rem; }
 
 /* Campo de formulario */
 .cfg-field {
@@ -134,7 +139,7 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     color: rgba(255,255,255,0.5);
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     margin-bottom: 6px;
 }
 .cfg-field input,
@@ -147,16 +152,16 @@
     border: 1px solid rgba(0,242,255,0.18);
     background: rgba(0,0,0,0.4);
     color: #fff;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.95rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 .cfg-field input:focus,
 .cfg-field select:focus,
 .cfg-field textarea:focus {
-    border-color: rgba(0,242,255,0.5);
-    box-shadow: 0 0 0 3px rgba(0,242,255,0.08);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px var(--accent-cyan-18);
 }
 .cfg-field select option {
     background: #0a051a;
@@ -181,14 +186,19 @@
 .cfg-toggle-left { flex: 1; }
 .cfg-toggle-label {
     font-size: 0.9rem;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-weight: 600;
     color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
 }
 .cfg-toggle-desc {
     font-size: 0.78rem;
     color: rgba(255,255,255,0.4);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     margin-top: 2px;
 }
 .cfg-switch {
@@ -224,7 +234,7 @@
 }
 .cfg-switch input:checked + .cfg-switch-slider::before {
     transform: translateX(22px);
-    background: #00f2ff;
+    background: var(--accent-cyan);
 }
 
 /* Fondo */
@@ -240,7 +250,7 @@
     border: 1px solid rgba(255,255,255,0.1);
     background: rgba(255,255,255,0.03);
     color: rgba(255,255,255,0.6);
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.65rem;
     letter-spacing: 1px;
     cursor: pointer;
@@ -251,7 +261,7 @@
 .cfg-bg-mode-btn:hover {
     border-color: rgba(0,242,255,0.4);
     background: rgba(0,242,255,0.08);
-    color: #00f2ff;
+    color: var(--accent-cyan);
 }
 .cfg-bg-mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
 
@@ -269,7 +279,7 @@
     padding: 11px 22px;
     border-radius: 10px;
     border: none;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.72rem;
     letter-spacing: 1px;
     cursor: pointer;
@@ -278,7 +288,7 @@
 .cfg-btn-primary {
     background: linear-gradient(135deg, rgba(0,242,255,0.2), rgba(188,19,254,0.2));
     border: 1px solid rgba(0,242,255,0.3);
-    color: #00f2ff;
+    color: var(--accent-cyan);
 }
 .cfg-btn-primary:hover {
     background: linear-gradient(135deg, rgba(0,242,255,0.3), rgba(188,19,254,0.3));
@@ -314,10 +324,10 @@
     border: 1px solid rgba(0,242,255,0.3);
     border-radius: 12px;
     padding: 12px 24px;
-    font-family: 'Orbitron', sans-serif;
+    font-family: var(--font-display);
     font-size: 0.75rem;
     letter-spacing: 1px;
-    color: #00f2ff;
+    color: var(--accent-cyan);
     z-index: 9999;
     opacity: 0;
     transition: opacity 0.3s, transform 0.3s;
@@ -337,7 +347,7 @@
 .cfg-note {
     font-size: 0.8rem;
     color: rgba(255,255,255,0.4);
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     margin-top: 10px;
     line-height: 1.5;
 }
@@ -361,7 +371,7 @@
     border-radius: 10px;
 }
 .cfg-color-item label {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.78rem;
     color: rgba(255,255,255,0.7);
     text-align: center;
@@ -392,16 +402,6 @@
 /* Cards-per-row */
 .cfg-flex-row {
     display: flex;
-}
-.cfg-toggle-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
-    color: rgba(255,255,255,0.8);
-    user-select: none;
 }
 .cfg-toggle-label input[type="checkbox"] {
     display: none;
@@ -437,7 +437,7 @@
 .cfg-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 .cfg-slider-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cfg-range { flex: 1; min-width: 120px; accent-color: #a855f7; }
-.cfg-cpr-value { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #fff; min-width: 24px; text-align: center; }
+.cfg-cpr-value { font-family: var(--font-display); font-size: 1rem; color: #fff; min-width: 24px; text-align: center; }
 .cfg-slider-wrap { margin-top: 10px; }
 .cfg-cpr-actions { margin-top: 8px; gap: 10px; flex-wrap: wrap; }
 .cfg-note-sm { margin-top: 6px; }
@@ -445,8 +445,8 @@
 .cfg-action-stack { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
 .cfg-btn-full { width: 100%; justify-content: center; }
 .cfg-flex-between { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
-.cfg-save-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: #fff; margin-bottom: 4px; }
-.cfg-save-desc { font-size: 0.82rem; color: rgba(255,255,255,0.45); font-family: 'Rajdhani', sans-serif; }
+.cfg-save-title { font-family: var(--font-display); font-size: 0.8rem; color: #fff; margin-bottom: 4px; }
+.cfg-save-desc { font-size: 0.82rem; color: rgba(255,255,255,0.45); font-family: var(--font-body); }
 
 /* Responsive */
 @media (max-width: 768px) {

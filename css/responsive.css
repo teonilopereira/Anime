@@ -61,32 +61,12 @@ body[data-page="novelas"] .catalog-neon-card:hover {
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), filter 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-body[data-page="manga"] .catalog-card-shell,
-body[data-page="anime"] .catalog-card-shell,
-body[data-page="novelas"] .catalog-card-shell {
-    padding: 3px;
-    background:
-        linear-gradient(135deg, var(--accent-cyan) 0 18px, transparent 18px) top left / 50% 50% no-repeat,
-        linear-gradient(225deg, rgba(255, 255, 255, 0.92) 0 16px, transparent 16px) top right / 50% 50% no-repeat,
-        linear-gradient(315deg, var(--neon-purple) 0 20px, transparent 20px) bottom right / 50% 50% no-repeat,
-        linear-gradient(145deg, rgba(0, 242, 255, 0.95), rgba(188, 19, 254, 0.92));
-    clip-path: polygon(18px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 18px);
-    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.18), 0 0 24px rgba(0, 242, 255, 0.18);
-}
-
-body[data-page="manga"] .catalog-card-inner,
-body[data-page="anime"] .catalog-card-inner,
-body[data-page="novelas"] .catalog-card-inner {
-    clip-path: polygon(15px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 0 100%, 0 15px);
-    background: #02040b;
-}
-
 body[data-page="manga"] .catalog-card-media,
 body[data-page="anime"] .catalog-card-media,
 body[data-page="novelas"] .catalog-card-media {
-    aspect-ratio: 2 / 3.15;
+    aspect-ratio: 2 / 2.5;
     min-height: 0;
-    border-bottom: 2px solid rgba(0, 242, 255, 0.72);
+    border-bottom: 1px solid rgba(0, 242, 255, 0.18);
 }
 
 body[data-page="manga"] .catalog-card-poster img,
@@ -114,12 +94,10 @@ body[data-page="novelas"] .catalog-neon-card .catalog-card-media .card-inner {
 body[data-page="manga"] .catalog-card-bar,
 body[data-page="anime"] .catalog-card-bar,
 body[data-page="novelas"] .catalog-card-bar {
-    min-height: 62px;
+    min-height: 48px;
     padding: 10px 14px;
-    background:
-        linear-gradient(90deg, rgba(0, 242, 255, 0.14), transparent 35%),
-        #030307;
-    border-top: 1px solid rgba(0, 242, 255, 0.55);
+    background: #000;
+    border-top: 1px solid rgba(0, 242, 255, 0.25);
 }
 
 body[data-page="manga"] .catalog-card-title,
@@ -137,10 +115,10 @@ body[data-page="novelas"] .catalog-card-title {
 body[data-page="manga"] .catalog-card-flip-btn,
 body[data-page="anime"] .catalog-card-flip-btn,
 body[data-page="novelas"] .catalog-card-flip-btn {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border-color: rgba(188, 19, 254, 0.85);
+    border-color: rgba(255, 255, 255, 0.25);
     background: rgba(0, 0, 0, 0.9);
 }
 
@@ -153,8 +131,8 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
     border-radius: 0;
     border: 0;
     background:
-        radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.18), transparent 42%),
-        linear-gradient(180deg, #050812 0%, #07020f 100%);
+        radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.1), transparent 42%),
+        linear-gradient(180deg, #040610 0%, #030508 100%);
 }
 
 @media (min-width: 1500px) {
@@ -190,7 +168,7 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
     body[data-page="manga"] .catalog-card-bar,
     body[data-page="anime"] .catalog-card-bar,
     body[data-page="novelas"] .catalog-card-bar {
-        min-height: 52px;
+        min-height: 44px;
         padding: 8px 10px;
     }
 }
@@ -674,7 +652,7 @@ body[data-page="listas"] .lists-empty {
     font-family: 'Orbitron', sans-serif;
     font-size: 0.85rem;
     text-decoration: none;
-    background: rgba(188, 19, 254, 0.15);
+    background: var(--neon-purple-15);
     border: 1px solid rgba(188, 19, 254, 0.4);
     color: #fff;
     transition: all 0.3s ease;
@@ -682,7 +660,7 @@ body[data-page="listas"] .lists-empty {
 
 .lists-profile-btn:hover {
     background: rgba(188, 19, 254, 0.3);
-    border-color: #bc13fe;
+    border-color: var(--neon-purple);
     box-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
 }
 
@@ -732,7 +710,7 @@ body[data-page="listas"] .lists-empty {
     font-family: 'Orbitron', sans-serif;
     font-size: 1.3rem;
     font-weight: 700;
-    color: #bc13fe;
+    color: var(--neon-purple);
     line-height: 1;
 }
 
@@ -762,8 +740,8 @@ body[data-page="listas"] .lists-empty {
 
 .sidebar-link.active {
     background-color: rgba(188, 19, 254, 0.1);
-    color: #bc13fe;
-    border-left: 3px solid #bc13fe;
+    color: var(--neon-purple);
+    border-left: 3px solid var(--neon-purple);
 }
 
 .sidebar-quote-box {
@@ -844,8 +822,8 @@ body[data-page="listas"] .lists-empty {
 }
 
 .res-tab.active {
-    background: rgba(188, 19, 254, 0.15);
-    border-color: #bc13fe;
+    background: var(--neon-purple-15);
+    border-color: var(--neon-purple);
     color: #fff;
     box-shadow: 0 0 15px rgba(188, 19, 254, 0.2);
 }
@@ -966,6 +944,14 @@ body[data-page="listas"] .lists-empty {
     }
     .sidebar-quote-box {
         display: none;
+    }
+}
+
+/* Mobile: quitar padding-top del navbar oculto */
+@media (max-width: 700px) {
+    .lists-layout {
+        padding-top: 0;
+        min-height: 100vh;
     }
 }
 
@@ -1160,23 +1146,6 @@ body[data-page="listas"] .lists-empty {
     .app-footer-bottom { font-size: 0.65rem; padding-top: 12px; margin-top: 12px; }
 }
 
-/* ── Detail skeleton mobile ── */
-@media (max-width: 520px) {
-    .detail-skeleton-hero {
-        flex-direction: column;
-        align-items: center;
-    }
-    .detail-skeleton-poster {
-        width: 160px;
-    }
-    .detail-skeleton-body {
-        flex-direction: column;
-    }
-    .detail-skeleton-body-right {
-        width: 100%;
-    }
-}
-
 /* ── Very small screens (<400px) ── */
 @media (max-width: 400px) {
     /* General text overflow safety */
@@ -1277,7 +1246,7 @@ body[data-page="listas"] .lists-empty {
 
     /* Config page */
     .cfg-page {
-        padding: 0 10px 40px;
+        padding: 0 10px 0;
     }
     .cfg-panel {
         padding: 14px 16px;
@@ -1288,7 +1257,7 @@ body[data-page="listas"] .lists-empty {
 
     /* Perfil page */
     .perfil-page {
-        padding: 0 10px 40px;
+        padding: 0 10px 0;
     }
     .perfil-top {
         padding: 16px;
@@ -1636,5 +1605,56 @@ input, select, textarea, button {
     .destiny-navbar .nav-toggle {
         padding: 4px 8px;
         min-width: 0;
+    }
+}
+
+/* ==========================================
+   MOBILE BOTTOM TAB BAR — Responsive
+   ========================================== */
+@media (max-width: 480px) {
+    .mobile-bottom-nav {
+        min-height: 54px;
+    }
+
+    .mobile-bottom-nav .bottom-tab {
+        min-width: 46px;
+        font-size: 0.56rem;
+    }
+
+    .mobile-bottom-nav .bottom-tab .bottom-tab-icon {
+        font-size: 1.15rem;
+    }
+
+    .mobile-bottom-nav .bottom-tab-search {
+        min-width: 46px;
+        font-size: 0.56rem;
+    }
+
+    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+        font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .mobile-bottom-nav {
+        min-height: 50px;
+    }
+
+    .mobile-bottom-nav .bottom-tab {
+        min-width: 42px;
+        font-size: 0.52rem;
+    }
+
+    .mobile-bottom-nav .bottom-tab .bottom-tab-icon {
+        font-size: 1.05rem;
+    }
+
+    .mobile-bottom-nav .bottom-tab-search {
+        min-width: 42px;
+        font-size: 0.52rem;
+    }
+
+    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+        font-size: 1.05rem;
     }
 }

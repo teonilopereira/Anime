@@ -376,16 +376,19 @@ async function loadAllProgress() {
 }
 
 // ─── Comentarios ────────────────────────────────────────────────
-async function loadComments(category, itemId) {
-    const user = await getCurrentUserAsync();
-    if (!user) return [];
-
-    const { data, error } = await supabase
+async function loadComments(category, itemId, refFilter) {
+    let query = supabase
         .from("comments")
-        .select("id, user_id, body, parent_id, created_at, updated_at")
+        .select("id, user_id, body, parent_id, ref_type, ref_number, created_at, updated_at")
         .eq("category", category)
         .eq("item_id", String(itemId))
         .order("created_at", { ascending: false });
+
+    if (refFilter && refFilter.type && refFilter.number) {
+        query = query.eq("ref_type", refFilter.type).eq("ref_number", refFilter.number);
+    }
+
+    const { data, error } = await query;
 
     if (error) { console.warn("loadComments:", error.message); return []; }
     if (!data || !data.length) return [];
@@ -407,7 +410,7 @@ async function loadComments(category, itemId) {
     }));
 }
 
-async function addComment(category, itemId, body, parentId = null) {
+async function addComment(category, itemId, body, parentId, refType, refNumber) {
     const user = await getCurrentUserAsync();
     if (!user) throw new Error("Debés iniciar sesión para comentar");
 
@@ -418,9 +421,11 @@ async function addComment(category, itemId, body, parentId = null) {
             category:  category,
             item_id:   String(itemId),
             body:      body.trim(),
-            parent_id: parentId || null
+            parent_id: parentId || null,
+            ref_type:  refType || null,
+            ref_number: refNumber || null
         })
-        .select("id, user_id, body, parent_id, created_at, updated_at")
+        .select("id, user_id, body, parent_id, ref_type, ref_number, created_at, updated_at")
         .single();
 
     if (error) {

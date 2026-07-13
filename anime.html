@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -22,12 +22,13 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css">
+        <link rel="stylesheet" href="css/bundle.css?v=3">
 
     <link rel="stylesheet" href="css/advanced-filter.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
 </head>
 <body data-page="anime">
     <nav class="destiny-navbar">
@@ -39,16 +40,16 @@
     </nav>
 
     <header class="page-header">
-        <h1 class="page-title">CATÁLOGO DE ANIME</h1>
-        <p class="page-subtitle">Explorá, descubrí y guardá tus animes favoritos.</p>
+        <h1 class="page-title" data-i18n="catalog.title.anime">CATÁLOGO DE ANIME</h1>
+        <p class="page-subtitle" data-i18n="catalog.subtitle.anime">Explorá, descubrí y guardá tus animes favoritos.</p>
         
-        <div class="catalog-search-filter-container" style="display: flex; flex-direction: column; align-items: stretch; gap: 15px; max-width: 800px; margin: 0 auto;">
-            <div class="catalog-search-wrap" style="width: 100%; display: flex; gap: 10px;">
-                <div style="position:relative; flex:1;">
-                    <span class="catalog-search-icon">🎬</span>
-                    <input id="catalogSearch" class="catalog-search-input" type="search" placeholder="Buscar anime..." autocomplete="off">
+        <div class="catalog-search-filter-container">
+            <div class="catalog-search-wrap">
+                <div class="catalog-search-inner">
+                    <span class="catalog-search-icon"><i data-lucide="search"></i></span>
+                    <input id="catalogSearch" class="catalog-search-input" type="search" placeholder="Buscar anime..." data-i18n="catalog.buscar.anime" data-i18n-attr="placeholder" autocomplete="off">
                 </div>
-                <button id="mainFilterToggle" type="button" class="advanced-filter-toggle" aria-label="Abrir filtros">
+                <button id="mainFilterToggle" type="button" class="advanced-filter-toggle" data-i18n="catalog.abrir_filtros" data-i18n-attr="aria-label" aria-label="Abrir filtros">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                 </button>
             </div>
@@ -60,9 +61,9 @@
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                         </div>
                         <div class="filter-header-content">
-                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                <h2>FILTROS ADICIONALES</h2>
-                                <button id="clearFiltersBtn" class="clear-filters-btn">Limpiar Filtros</button>
+                            <div class="filter-header-row-inner">
+                                <h2 data-i18n="catalog.filtros">FILTROS ADICIONALES</h2>
+                                <button id="clearFiltersBtn" class="clear-filters-btn" data-i18n="catalog.limpiar">Limpiar Filtros</button>
                             </div>
                             
                             <label class="nsfw-row-label">
@@ -71,10 +72,10 @@
                                     <div class="nsfw-checkbox-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                                 </div>
                                 <div class="nsfw-text-block">
-                                    <div class="nsfw-title">Mostrar NSFW</div>
-                                    <div class="nsfw-desc">Activa para mostrar contenido para adultos.</div>
+                                    <div class="nsfw-title" data-i18n="catalog.nsfw.titulo">Mostrar NSFW</div>
+                                    <div class="nsfw-desc" data-i18n="catalog.nsfw.desc">Activa para mostrar contenido para adultos.</div>
                                 </div>
-                                <div style="margin-left: auto; color: rgba(255,255,255,0.4);"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+                                <div class="filter-chevron"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
                             </label>
                         </div>
                     </div>
@@ -82,7 +83,7 @@
                     <div class="filter-section-divider">
                         <span class="fsd-line"></span>
                         <span class="fsd-dot"></span>
-                        <span class="fsd-text">GÉNERO</span>
+                        <span class="fsd-text" data-i18n="catalog.genero">GÉNERO</span>
                         <span class="fsd-dot"></span>
                         <span class="fsd-line"></span>
                     </div>
@@ -103,9 +104,10 @@
 
     <div id="footer-container"></div>
     <script src="js/core/config.js"></script>
+    <script src="js/core/i18n.js"></script>
     <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js" async></script>
-    <script src="js/core-bundle.min.js" defer></script>
+    <script src="js/core-bundle.min.js?v=3" defer></script>
     <script src="js/pages/script.js" defer></script>
 </body>
 </html>

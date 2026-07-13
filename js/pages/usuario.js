@@ -2,9 +2,6 @@
 function read(key, fallback = '') {
     try { return localStorage.getItem(key) || fallback; } catch { return fallback; }
 }
-function write(key, val) {
-    try { localStorage.setItem(key, val); } catch {}
-}
 
 function sanitizeBgUrl(url) {
     if (!url || typeof url !== 'string') return '';
@@ -86,7 +83,7 @@ applyBackgroundPreference();
 /* Volver al origen */
 document.getElementById('backBtn').addEventListener('click', function(e) {
     e.preventDefault();
-    if (document.referrer && document.referrer !== location.href) {
+    if (window.history.length > 1) {
         history.back();
     } else {
         location.href = 'index.html';
@@ -371,7 +368,6 @@ document.getElementById('cambiarInfoBtn').addEventListener('click', function() {
 
 /* ── Cambio de avatar local (file) ── */
 var avatarInput = document.getElementById('avatarInput');
-var avatarInner = document.getElementById('avatarInner');
 
 document.getElementById('avatarRing').addEventListener('click', function() { avatarInput.click(); });
 document.getElementById('changeImgBtn').addEventListener('click', function(e) { e.stopPropagation(); avatarInput.click(); });
