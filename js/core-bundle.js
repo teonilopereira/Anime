@@ -15,7 +15,10 @@
     const config = {
         supabaseUrl:     "https://llytokoztnjuczuppzgs.supabase.co",
         supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxseXRva296dG5qdWN6dXBwemdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwMTE2MTcsImV4cCI6MjA5NTU4NzYxN30.jKU5ZoweR3v5TPyn_4TNs6W01Cns3xEZOkleZGg1UNg",
-        debug:           false
+        defaultPageSize: 40,
+        maxCatalogItems: 40,
+        debug:           false,
+        cachePrefix:     "animeDestiny"
     };
 
     window.AppConfig = Object.freeze(config);
@@ -709,6 +712,7 @@
         window.addEventListener('load', function () {
             navigator.serviceWorker.register('/sw.js').then(function (reg) {
                 console.log('[AnimeDestiny:PWA] Service Worker registrado con éxito:', reg.scope);
+                reg.update();
             }).catch(function (err) {
                 console.warn('[AnimeDestiny:PWA] Error al registrar Service Worker:', err);
             });
@@ -3189,17 +3193,13 @@ function buildCatalogCardHtml(options) {
     <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="catalog-card-shell">
-            <div class="card-corner card-corner-tl"></div>
             <div class="card-corner card-corner-tr"></div>
-            <div class="card-corner card-corner-bl"></div>
             <div class="card-corner card-corner-br"></div>
             <div class="catalog-card-inner">
                 <div class="catalog-card-media">
-                    <div class="card-inner">
+                    <div class="catalog-card-poster card-inner">
                         <div class="card-front">
-                            <div class="catalog-card-poster">
-                                <img src="${safeImg}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
-                            </div>
+                            <img src="${safeImg}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
                         </div>
                         <div class="card-back card-back-neon">
                             <h2 class="card-back-title">${escapeHtml(title)}</h2>

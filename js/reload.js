@@ -1,0 +1,1 @@
+new EventSource("/__reload").onmessage=function(){location.reload()}

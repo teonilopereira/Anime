@@ -273,17 +273,13 @@ function buildCatalogCardHtml(options) {
     <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="catalog-card-shell">
-            <div class="card-corner card-corner-tl"></div>
             <div class="card-corner card-corner-tr"></div>
-            <div class="card-corner card-corner-bl"></div>
             <div class="card-corner card-corner-br"></div>
             <div class="catalog-card-inner">
                 <div class="catalog-card-media">
-                    <div class="card-inner">
+                    <div class="catalog-card-poster card-inner">
                         <div class="card-front">
-                            <div class="catalog-card-poster">
-                                <img src="${safeImg}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
-                            </div>
+                            <img src="${safeImg}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
                         </div>
                         <div class="card-back card-back-neon">
                             <h2 class="card-back-title">${escapeHtml(title)}</h2>

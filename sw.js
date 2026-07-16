@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-v13';
+const CACHE_NAME = 'anime-destiny-v16';
 const ASSETS = [
   '/',
   '/index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
   '/privacidad.html',
   '/terminos.html',
   '/404.html',
+  '/css/bundle.css',
   '/css/bundle.min.css',
   '/js/core-bundle.min.js',
   '/manifest.json'
@@ -44,12 +45,32 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignorar peticiones a Supabase / Anilist / APIs externas para almacenamiento directo
   if (
     event.request.url.includes('supabase.co') ||
     event.request.url.includes('graphql.anilist.co') ||
     event.request.url.includes('api.mangadex.org')
   ) {
+    return;
+  }
+
+  var url = event.request.url;
+  var isCSS = url.includes('.css');
+  var isJS = url.includes('.js');
+
+  if (isCSS || isJS) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          var responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      }).catch(() => {
+        return caches.match(event.request);
+      })
+    );
     return;
   }
 
@@ -59,14 +80,13 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
       return fetch(event.request).then((response) => {
-        // Guardar peticiones exitosas de recursos locales en caché
         if (
           response &&
           response.status === 200 &&
           response.type === 'basic' &&
-          (event.request.url.includes('.css') || event.request.url.includes('.js') || event.request.url.includes('.png'))
+          event.request.url.includes('.png')
         ) {
-          const responseToCache = response.clone();
+          var responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
@@ -74,7 +94,6 @@ self.addEventListener('fetch', (event) => {
         return response;
       });
     }).catch(() => {
-      // Fallback offline para navegación si falla la red y no está en caché
       if (event.request.mode === 'navigate') {
         return caches.match('/404.html');
       }

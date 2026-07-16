@@ -1,4 +1,5 @@
-﻿/* === Anime Destiny\css\base.css === */
+﻿/* ===== base.css ===== */
+
 /* Base: reset minimo, tipografias globales y variables compartidas. */
 :root {
     --primary-purple: #6a0dad;
@@ -129,7 +130,9 @@ textarea:focus-visible,
     outline-offset: 2px;
 }
 
-/* === Anime Destiny\css\theme.css === */
+
+/* ===== theme.css ===== */
+
 /* Theme: paleta cyberpunk y variaciones por modulo. */
 :root {
     color-scheme: dark;
@@ -161,8 +164,10 @@ body[data-page="novelas"] {
     --nav-accent-soft: rgba(244, 63, 94, 0.18);
 }
 
-/* === Anime Destiny\css\components.css === */
-/* nav-accent overrides are defined in theme.css â€” no duplicates here. */
+
+/* ===== components.css ===== */
+
+/* nav-accent overrides are defined in theme.css — no duplicates here. */
 
 body {
     margin: 0;
@@ -183,10 +188,10 @@ h2,
 main { padding-bottom: 24px; }
 
 /* ==========================================
-   BARRA DE NAVEGACIÃ“N (NAVBAR)
+   BARRA DE NAVEGACIÓN (NAVBAR)
 ========================================== */
 
-/* Sidebar de gÃ©neros (catÃ¡logo) */
+/* Sidebar de géneros (catálogo) */
 .catalog-layout {
     width: min(1180px, 100%);
     margin: 14px auto 0;
@@ -808,7 +813,7 @@ main { padding-bottom: 24px; }
     letter-spacing: 0.6px;
 }
 
-/* â”€â”€ Compare page base styles â”€â”€ */
+/* ── Compare page base styles ── */
 .compare-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1009,7 +1014,7 @@ main { padding-bottom: 24px; }
     }
 }
 
-/* â”€â”€ Mobile: compensar bottom tab bar â”€â”€ */
+/* ── Mobile: compensar bottom tab bar ── */
 @media (max-width: 700px) {
     body.has-bottom-nav main {
         padding-bottom: calc(24px + 60px + env(safe-area-inset-bottom, 0px));
@@ -1079,7 +1084,7 @@ main { padding-bottom: 24px; }
 }
 
 /* ==========================================
-   PÃGINA PRINCIPAL (INDEX / HERO MENU)
+   PÁGINA PRINCIPAL (INDEX / HERO MENU)
 ========================================== */
 .menu-page {
     padding: 0;
@@ -1239,10 +1244,10 @@ main { padding-bottom: 24px; }
 
 /* ==========================================
    UNIFIED CATALOG SEARCH & FILTER BAR
-   (Como en la imagen de diseÃ±o premium)
+   (Como en la imagen de diseño premium)
    ========================================== */
 /* =============================================
-   SEARCH BAR â€” wide container, flat inner layout
+   SEARCH BAR — wide container, flat inner layout
    Structure: container > wrap (row) + dropdown
    ============================================= */
 .catalog-search-filter-container {
@@ -1263,7 +1268,7 @@ main { padding-bottom: 24px; }
     overflow: hidden;
 }
 
-/* Fila superior: icon + input (expande) + separador | + botÃ³n filtro */
+/* Fila superior: icon + input (expande) + separador | + botón filtro */
 .catalog-search-wrap {
     width: 100%;
     display: flex;
@@ -1272,7 +1277,7 @@ main { padding-bottom: 24px; }
     box-sizing: border-box;
 }
 
-/* Wrapper del input â€” crece para ocupar todo el espacio disponible */
+/* Wrapper del input — crece para ocupar todo el espacio disponible */
 .catalog-search-inner {
     position: relative;
     flex: 1;
@@ -1320,7 +1325,7 @@ main { padding-bottom: 24px; }
     color: rgba(255, 255, 255, 0.2);
 }
 
-/* Separador vertical antes del botÃ³n filtro */
+/* Separador vertical antes del botón filtro */
 .catalog-search-wrap::after {
     content: '';
     display: block;
@@ -1411,7 +1416,7 @@ main { padding-bottom: 24px; }
     align-items: center;
 }
 
-/* category-card.actividad â€” targets the actividad modifier class used in mis-listas.html */
+/* category-card.actividad — targets the actividad modifier class used in mis-listas.html */
 .category-card--actividad,
 .category-card.actividad {
     margin-bottom: 28px;
@@ -1434,7 +1439,9 @@ main { padding-bottom: 24px; }
     pointer-events: none;
 }
 
-/* === Anime Destiny\css\cards.css === */
+
+/* ===== cards.css ===== */
+
 /* ==========================================
    CARDS, PROGRESS Y BOTONES DE DETALLE
 ========================================== */
@@ -1458,15 +1465,18 @@ main { padding-bottom: 24px; }
 .skeleton-card-shell {
     border: 1px solid rgba(0, 242, 255, 0.12);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+    height: 440px;
 }
 
 .skeleton-card-inner {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 0;
+    height: 100%;
 }
 
 .skeleton-card-poster {
-    aspect-ratio: 2 / 3.2;
+    flex: 0 0 80%;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     background: linear-gradient(110deg, #090b14 30%, #11172a 50%, #090b14 70%);
@@ -1475,6 +1485,7 @@ main { padding-bottom: 24px; }
 }
 
 .skeleton-card-bar {
+    flex: 0 0 20%;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2142,8 +2153,8 @@ main { padding-bottom: 24px; }
 }
 
 /* ==========================================
-   CATALOG CARD â€” FUTURISTIC / HUD STYLE
-   SegÃºn Analisis_Diseno_Card_Futurista.txt
+   CATALOG CARD — FUTURISTIC / HUD STYLE
+   Según Analisis_Diseno_Card_Futurista.txt
 ========================================== */
 
 .catalog-neon-card {
@@ -2157,105 +2168,113 @@ main { padding-bottom: 24px; }
 
 .catalog-neon-card:hover {
     transform: translateY(-8px) scale(1.02);
-    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.4));
+}
+
+.catalog-neon-card:hover .catalog-card-shell {
+    filter: drop-shadow(0 0 12px rgba(0, 242, 255, 0.35)) drop-shadow(0 0 30px rgba(188, 19, 254, 0.22)) drop-shadow(0 0 50px rgba(0, 242, 255, 0.10));
 }
 
 .catalog-card-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+    background: #02040b;
+    border: 1.5px solid rgba(0, 242, 255, 0.18);
 }
 
 .catalog-card-shell {
     position: relative;
+    height: 440px;
     padding: 6px;
-    background: #0a0a0f;
-    clip-path: polygon(18px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 18px);
-    box-shadow:
-        0 0 0 1px rgba(0, 242, 255, 0.1),
-        0 0 20px rgba(188, 19, 254, 0.15),
-        0 0 50px rgba(188, 19, 254, 0.08);
+    background: linear-gradient(180deg, #0c0c14 0%, #060610 50%, #0a061a 100%);
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
+    filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.15)) drop-shadow(0 0 20px rgba(188, 19, 254, 0.10));
+    transition: filter 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* â”€â”€ Corner decorations (DOM elements) â”€â”€ */
+.catalog-card-shell::before,
+.catalog-card-shell::after {
+    display: none;
+}
+
+/* ── Corner decorations (DOM elements) ── */
 .card-corner {
     position: absolute;
     z-index: 2;
     pointer-events: none;
 }
 
-/* Top-left: 3 diagonal blue stripes */
-.card-corner-tl {
-    top: 10px;
-    left: 10px;
-    width: 26px;
-    height: 20px;
-    background: repeating-linear-gradient(
-        -45deg,
-        transparent,
-        transparent 3px,
-        rgba(0, 242, 255, 0.75) 3px,
-        rgba(0, 242, 255, 0.75) 5px
-    );
-    clip-path: polygon(0 0, 100% 0, 75% 100%, 0 100%);
-}
-
-/* Top-right: 4 horizontal blue bars */
+/* Top-right: 4 horizontal blue bars — tech HUD style */
 .card-corner-tr {
-    top: 10px;
-    right: 12px;
-    width: 20px;
-    height: 16px;
+    top: 8px;
+    right: 16px;
+    width: 28px;
+    height: 22px;
     background: repeating-linear-gradient(
         180deg,
-        rgba(0, 242, 255, 0.75) 0px,
-        rgba(0, 242, 255, 0.75) 2px,
+        rgba(0, 242, 255, 0.85) 0px,
+        rgba(0, 242, 255, 0.85) 2px,
         transparent 2px,
-        transparent 4px
+        transparent 5px
     );
-    clip-path: polygon(0 0, 100% 0, 100% 65%, 0 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 60%, 0 100%);
+    filter: drop-shadow(0 0 3px rgba(0, 242, 255, 0.4));
 }
 
-/* Bottom-left: discreet decorative line */
-.card-corner-bl {
-    bottom: 54px;
-    left: 14px;
-    width: 22px;
-    height: 1px;
-    background: rgba(0, 242, 255, 0.4);
-}
-
-/* Bottom-right: trapezoid with internal lines */
+/* Bottom-right: tall trapezoid connecting to circular button */
 .card-corner-br {
-    bottom: 48px;
-    right: 8px;
-    width: 20px;
-    height: 18px;
+    bottom: 0;
+    right: 6px;
+    width: 24px;
+    height: 100%;
     background:
         repeating-linear-gradient(
             135deg,
             transparent,
-            transparent 2px,
-            rgba(0, 242, 255, 0.3) 2px,
-            rgba(0, 242, 255, 0.3) 3px
+            transparent 3px,
+            rgba(0, 242, 255, 0.18) 3px,
+            rgba(0, 242, 255, 0.18) 4px
         ),
-        linear-gradient(180deg, rgba(0, 242, 255, 0.45), rgba(0, 242, 255, 0.12));
-    clip-path: polygon(25% 0, 100% 0, 100% 100%, 0 100%);
+        linear-gradient(180deg,
+            transparent 0%,
+            rgba(0, 242, 255, 0.06) 55%,
+            rgba(0, 242, 255, 0.25) 78%,
+            rgba(0, 242, 255, 0.40) 100%
+        );
+    clip-path: polygon(40% 55%, 100% 55%, 100% 100%, 0 100%);
+    filter: drop-shadow(0 0 4px rgba(0, 242, 255, 0.3));
 }
 
-/* â”€â”€ Inner frame â”€â”€ */
-.catalog-card-inner {
-    position: relative;
-    clip-path: polygon(15px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 19px), calc(100% - 19px) 100%, 0 100%, 0 15px);
-    background: #02040b;
-    border: 1px solid rgba(0, 242, 255, 0.12);
-}
-
-/* â”€â”€ Illustration area (~75%) â”€â”€ */
+/* ── Illustration area (~80%) ── */
 .catalog-card-media {
-    aspect-ratio: 2 / 2.5;
+    flex: 0 0 80%;
     min-height: 0;
     position: relative;
     overflow: hidden;
+}
+
+.catalog-card-media::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        180deg,
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 242, 255, 0.015) 3px,
+        rgba(0, 242, 255, 0.015) 4px
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.catalog-neon-card:hover .catalog-card-media::before {
+    opacity: 1;
 }
 
 .catalog-card-media::after {
@@ -2265,9 +2284,10 @@ main { padding-bottom: 24px; }
     left: 0;
     right: 0;
     height: 40%;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
     pointer-events: none;
     z-index: 1;
+    border-bottom: 1px solid rgba(0, 242, 255, 0.08);
 }
 
 .catalog-card-media .card-inner {
@@ -2295,7 +2315,7 @@ main { padding-bottom: 24px; }
     filter: brightness(1.06) saturate(1.1);
 }
 
-/* â”€â”€ Flip mechanism (CSS-only) â”€â”€ */
+/* ── Flip mechanism (CSS-only) ── */
 .flip-toggle {
     display: none;
 }
@@ -2304,19 +2324,23 @@ main { padding-bottom: 24px; }
     transform: rotateY(180deg);
 }
 
-/* â”€â”€ Bottom band â”€â”€ */
+/* ── Bottom band ── */
 .catalog-card-bar {
+    flex: 0 0 20%;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     min-height: 48px;
     padding: 8px 12px;
-    background: #000;
-    border-top: 1px solid rgba(0, 242, 255, 0.25);
+    background:
+        linear-gradient(90deg, rgba(0, 242, 255, 0.03), transparent 40%),
+        linear-gradient(180deg, #000 0%, #040408 100%);
+    border-top: 1.5px solid transparent;
+    border-image: linear-gradient(90deg, rgba(0, 242, 255, 0.50), rgba(188, 19, 254, 0.35), rgba(0, 242, 255, 0.12)) 1;
 }
 
-/* â”€â”€ Typography â”€â”€ */
+/* ── Typography ── */
 .catalog-card-title {
     flex: 1;
     min-width: 0;
@@ -2325,13 +2349,14 @@ main { padding-bottom: 24px; }
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #fff;
+    color: #e8e8f0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.15);
 }
 
-/* â”€â”€ Circular button â”€â”€ */
+/* ── Circular button ── */
 .catalog-card-flip-btn {
     flex: 0 0 auto;
     display: grid;
@@ -2341,11 +2366,13 @@ main { padding-bottom: 24px; }
     margin: 0;
     padding: 0;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    background: #000;
+    border: 1.5px solid rgba(0, 242, 255, 0.35);
+    background: radial-gradient(circle, rgba(0, 242, 255, 0.08), #000 70%);
     color: #fff;
     cursor: pointer;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    box-shadow:
+        0 0 8px rgba(0, 242, 255, 0.20),
+        0 0 16px rgba(0, 242, 255, 0.08);
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -2356,17 +2383,23 @@ main { padding-bottom: 24px; }
 }
 
 .catalog-card-flip-btn:hover {
-    transform: scale(1.06);
-    border-color: rgba(0, 242, 255, 0.6);
-    box-shadow: 0 0 12px rgba(0, 242, 255, 0.25);
+    transform: scale(1.10);
+    border-color: rgba(0, 242, 255, 0.75);
+    box-shadow:
+        0 0 10px rgba(0, 242, 255, 0.40),
+        0 0 24px rgba(0, 242, 255, 0.18),
+        inset 0 0 8px rgba(0, 242, 255, 0.10);
 }
 
 .catalog-neon-card .flip-toggle:checked ~ .catalog-card-shell .catalog-card-flip-btn {
-    border-color: rgba(0, 242, 255, 0.6);
-    box-shadow: 0 0 10px rgba(0, 242, 255, 0.25);
+    border-color: rgba(0, 242, 255, 0.75);
+    box-shadow:
+        0 0 10px rgba(0, 242, 255, 0.35),
+        0 0 20px rgba(0, 242, 255, 0.12),
+        inset 0 0 6px rgba(0, 242, 255, 0.08);
 }
 
-/* â”€â”€ Card back â”€â”€ */
+/* ── Card back ── */
 .card-back-neon {
     justify-content: flex-start;
     gap: 10px;
@@ -2456,6 +2489,191 @@ main { padding-bottom: 24px; }
     height: 8px;
 }
 
+/* ==========================================
+   HUD EXTRAS — extra style layer
+========================================== */
+
+/* ── Flip button: rotating pulse ring ── */
+@keyframes btn-ring-rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes btn-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(0, 242, 255, 0.20), 0 0 16px rgba(0, 242, 255, 0.08); }
+    50%      { box-shadow: 0 0 12px rgba(0, 242, 255, 0.35), 0 0 24px rgba(0, 242, 255, 0.14); }
+}
+
+.catalog-card-flip-btn {
+    position: relative;
+    animation: btn-pulse 2.8s ease-in-out infinite;
+}
+
+.catalog-card-flip-btn::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1px dashed rgba(0, 242, 255, 0.22);
+    animation: btn-ring-rotate 8s linear infinite;
+    pointer-events: none;
+    opacity: 0.6;
+    transition: opacity 0.3s, border-color 0.3s;
+}
+
+.catalog-card-flip-btn:hover::before {
+    opacity: 1;
+    border-color: rgba(0, 242, 255, 0.50);
+}
+
+/* ── Animated scan line sweeping down the shell ── */
+@keyframes hud-scanline {
+    0%   { top: -2px; opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { top: calc(100% + 2px); opacity: 0; }
+}
+
+.catalog-card-inner::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 10;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent 0%, rgba(0, 242, 255, 0.55) 20%, rgba(188, 19, 254, 0.40) 80%, transparent 100%);
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.45), 0 0 18px rgba(0, 242, 255, 0.20);
+    animation: hud-scanline 4s linear infinite;
+    animation-delay: 0s;
+    opacity: 0;
+}
+
+.catalog-neon-card:hover .catalog-card-inner::before {
+    animation-duration: 2.8s;
+}
+
+/* ── Corner TR glow intensifies on hover ── */
+.catalog-neon-card:hover .card-corner-tr {
+    filter: drop-shadow(0 0 6px rgba(0, 242, 255, 0.65));
+    background: repeating-linear-gradient(
+        180deg,
+        rgba(0, 242, 255, 1) 0px,
+        rgba(0, 242, 255, 1) 2px,
+        transparent 2px,
+        transparent 5px
+    );
+}
+
+/* ── Corner BR glow intensifies on hover ── */
+.catalog-neon-card:hover .card-corner-br {
+    filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.50));
+    background:
+        repeating-linear-gradient(
+            135deg,
+            transparent,
+            transparent 3px,
+            rgba(0, 242, 255, 0.30) 3px,
+            rgba(0, 242, 255, 0.30) 4px
+        ),
+        linear-gradient(180deg,
+            transparent 0%,
+            rgba(0, 242, 255, 0.10) 55%,
+            rgba(0, 242, 255, 0.40) 78%,
+            rgba(0, 242, 255, 0.60) 100%
+        );
+}
+
+/* ── Bar scan-line texture (always on) ── */
+.catalog-card-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        180deg,
+        transparent 0px,
+        transparent 2px,
+        rgba(0, 242, 255, 0.02) 2px,
+        rgba(0, 242, 255, 0.02) 3px
+    );
+}
+
+/* ── Bar left accent line ── */
+.catalog-card-bar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, rgba(0, 242, 255, 0.0), rgba(0, 242, 255, 0.40) 40%, rgba(188, 19, 254, 0.30) 100%);
+    pointer-events: none;
+}
+
+.catalog-card-bar {
+    position: relative;
+}
+
+/* ── Card entrance animation ── */
+@keyframes card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.catalog-neon-card {
+    animation: card-enter 0.5s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+.catalog-neon-card:nth-child(1)  { animation-delay: 0.00s; }
+.catalog-neon-card:nth-child(2)  { animation-delay: 0.04s; }
+.catalog-neon-card:nth-child(3)  { animation-delay: 0.08s; }
+.catalog-neon-card:nth-child(4)  { animation-delay: 0.12s; }
+.catalog-neon-card:nth-child(5)  { animation-delay: 0.16s; }
+.catalog-neon-card:nth-child(6)  { animation-delay: 0.20s; }
+.catalog-neon-card:nth-child(7)  { animation-delay: 0.24s; }
+.catalog-neon-card:nth-child(8)  { animation-delay: 0.28s; }
+.catalog-neon-card:nth-child(9)  { animation-delay: 0.32s; }
+.catalog-neon-card:nth-child(10) { animation-delay: 0.36s; }
+.catalog-neon-card:nth-child(11) { animation-delay: 0.40s; }
+.catalog-neon-card:nth-child(12) { animation-delay: 0.44s; }
+
+/* ── Image HUD color tint (subtle blue overlay) ── */
+.catalog-card-poster::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        rgba(0, 242, 255, 0.04) 0%,
+        transparent 40%,
+        transparent 70%,
+        rgba(188, 19, 254, 0.06) 100%
+    );
+    mix-blend-mode: screen;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+}
+
+.catalog-neon-card:hover .catalog-card-poster::after {
+    opacity: 1;
+    background: linear-gradient(
+        180deg,
+        rgba(0, 242, 255, 0.08) 0%,
+        transparent 35%,
+        transparent 65%,
+        rgba(188, 19, 254, 0.10) 100%
+    );
+}
+
 @media (max-width: 1100px) {
     .card-container:not(.catalog-neon-card) {
         width: 180px;
@@ -2475,7 +2693,12 @@ main { padding-bottom: 24px; }
         padding: 9px 12px;
     }
 
+    .catalog-card-shell {
+        height: 380px;
+    }
+
     .catalog-card-bar {
+        flex: 0 0 auto;
         min-height: 44px;
         padding: 8px 10px;
     }
@@ -2483,9 +2706,25 @@ main { padding-bottom: 24px; }
     .catalog-card-title {
         font-size: 0.64rem;
     }
+
+    .catalog-card-inner::before {
+        animation: none;
+        display: none;
+    }
+
+    .catalog-card-flip-btn::before {
+        animation: none;
+        display: none;
+    }
+
+    .catalog-card-flip-btn {
+        animation: none;
+    }
 }
 
-/* === Anime Destiny\css\responsive.css === */
+
+/* ===== responsive.css ===== */
+
 /* Responsive */
 @media (max-width: 640px) {
     .modal-overlay {
@@ -2541,18 +2780,29 @@ body[data-page="novelas"] .catalog-neon-card {
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), filter 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+body[data-page="manga"] .catalog-card-shell,
+body[data-page="anime"] .catalog-card-shell,
+body[data-page="novelas"] .catalog-card-shell {
+    height: 440px;
+}
+
 body[data-page="manga"] .catalog-neon-card:hover,
 body[data-page="anime"] .catalog-neon-card:hover,
 body[data-page="novelas"] .catalog-neon-card:hover {
     transform: translateY(-8px) scale(1.02);
-    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.4));
     transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), filter 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+body[data-page="manga"] .catalog-neon-card:hover .catalog-card-shell,
+body[data-page="anime"] .catalog-neon-card:hover .catalog-card-shell,
+body[data-page="novelas"] .catalog-neon-card:hover .catalog-card-shell {
+    filter: drop-shadow(0 0 12px rgba(0, 242, 255, 0.35)) drop-shadow(0 0 30px rgba(188, 19, 254, 0.22)) drop-shadow(0 0 50px rgba(0, 242, 255, 0.10));
 }
 
 body[data-page="manga"] .catalog-card-media,
 body[data-page="anime"] .catalog-card-media,
 body[data-page="novelas"] .catalog-card-media {
-    aspect-ratio: 2 / 2.5;
+    flex: 0 0 80%;
     min-height: 0;
     border-bottom: 1px solid rgba(0, 242, 255, 0.18);
 }
@@ -2582,10 +2832,14 @@ body[data-page="novelas"] .catalog-neon-card .catalog-card-media .card-inner {
 body[data-page="manga"] .catalog-card-bar,
 body[data-page="anime"] .catalog-card-bar,
 body[data-page="novelas"] .catalog-card-bar {
+    flex: 0 0 20%;
     min-height: 48px;
     padding: 10px 14px;
-    background: #000;
-    border-top: 1px solid rgba(0, 242, 255, 0.25);
+    background:
+        linear-gradient(90deg, rgba(0, 242, 255, 0.03), transparent 40%),
+        linear-gradient(180deg, #000 0%, #040408 100%);
+    border-top: 1.5px solid transparent;
+    border-image: linear-gradient(90deg, rgba(0, 242, 255, 0.50), rgba(188, 19, 254, 0.35), rgba(0, 242, 255, 0.12)) 1;
 }
 
 body[data-page="manga"] .catalog-card-title,
@@ -2606,8 +2860,11 @@ body[data-page="novelas"] .catalog-card-flip-btn {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border-color: rgba(255, 255, 255, 0.25);
-    background: rgba(0, 0, 0, 0.9);
+    border: 1.5px solid rgba(0, 242, 255, 0.35);
+    background: radial-gradient(circle, rgba(0, 242, 255, 0.08), #000 70%);
+    box-shadow:
+        0 0 8px rgba(0, 242, 255, 0.20),
+        0 0 16px rgba(0, 242, 255, 0.08);
 }
 
 body[data-page="manga"] .catalog-neon-card .card-back-neon,
@@ -2653,9 +2910,16 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
         padding-right: 4px;
     }
 
+    body[data-page="manga"] .catalog-card-shell,
+    body[data-page="anime"] .catalog-card-shell,
+    body[data-page="novelas"] .catalog-card-shell {
+        height: 360px;
+    }
+
     body[data-page="manga"] .catalog-card-bar,
     body[data-page="anime"] .catalog-card-bar,
     body[data-page="novelas"] .catalog-card-bar {
+        flex: 0 0 auto;
         min-height: 44px;
         padding: 8px 10px;
     }
@@ -3163,7 +3427,7 @@ body[data-page="listas"] .lists-empty {
     box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
 }
 
-/* â”€â”€ Sidebar avatar (mis-listas) â”€â”€ */
+/* ── Sidebar avatar (mis-listas) ── */
 .sidebar-avatar-wrap {
     display: flex;
     justify-content: center;
@@ -3460,7 +3724,7 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
-/* Fixed cards-per-row override â€” solo desktop, fuerza override de selectores de pÃ¡gina */
+/* Fixed cards-per-row override — solo desktop, fuerza override de selectores de página */
 @media (min-width: 769px) {
     body.fixed-cards-row .gallery {
         grid-template-columns: repeat(var(--cards-per-row, 4), minmax(0, 1fr)) !important;
@@ -3468,10 +3732,10 @@ body[data-page="listas"] .lists-empty {
 }
 
 /* ==========================================
-   RESPONSIVE COMPLETO â€” TODAS LAS PÃGINAS
+   RESPONSIVE COMPLETO — TODAS LAS PÁGINAS
    ========================================== */
 
-/* â”€â”€ Index/Hero page â”€â”€ */
+/* ── Index/Hero page ── */
 @media (max-width: 860px) {
     body.menu-page .hero-menu {
         padding: 32px 20px;
@@ -3509,7 +3773,7 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
-/* â”€â”€ Advanced filter â”€â”€ */
+/* ── Advanced filter ── */
 @media (max-width: 640px) {
     .advanced-filter-dropdown {
         padding: 14px;
@@ -3525,7 +3789,7 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
-/* â”€â”€ Comparison page â”€â”€ */
+/* ── Comparison page ── */
 @media (max-width: 480px) {
     .compare-controls {
         gap: 12px;
@@ -3563,7 +3827,7 @@ body[data-page="listas"] .lists-empty {
     .compare-grid { grid-template-columns: 1fr; gap: 10px; }
 }
 
-/* â”€â”€ Ranking page â”€â”€ */
+/* ── Ranking page ── */
 @media (max-width: 480px) {
     .ranking-container {
         padding: 0 12px;
@@ -3586,7 +3850,7 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
-/* â”€â”€ Legal/static pages responsive â”€â”€ */
+/* ── Legal/static pages responsive ── */
 @media (max-width: 768px) {
     .legal-container {
         padding: 20px 18px;
@@ -3612,7 +3876,7 @@ body[data-page="listas"] .lists-empty {
     .legal-container p, .legal-container li { font-size: 0.85rem; }
 }
 
-/* â”€â”€ Footer responsive â”€â”€ */
+/* ── Footer responsive ── */
 @media (max-width: 640px) {
     .app-footer-inner {
         grid-template-columns: 1fr;
@@ -3634,7 +3898,7 @@ body[data-page="listas"] .lists-empty {
     .app-footer-bottom { font-size: 0.65rem; padding-top: 12px; margin-top: 12px; }
 }
 
-/* â”€â”€ Very small screens (<400px) â”€â”€ */
+/* ── Very small screens (<400px) ── */
 @media (max-width: 400px) {
     /* General text overflow safety */
     h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, label,
@@ -3676,6 +3940,7 @@ body[data-page="listas"] .lists-empty {
     body[data-page="anime"] .catalog-card-bar,
     body[data-page="manga"] .catalog-card-bar,
     body[data-page="novelas"] .catalog-card-bar {
+        flex: 0 0 auto;
         min-height: 44px;
         padding: 6px 8px;
     }
@@ -3771,7 +4036,7 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
-/* â”€â”€ Tiny screens (<340px) â”€â”€ */
+/* ── Tiny screens (<340px) ── */
 @media (max-width: 340px) {
     body[data-page="anime"] .gallery,
     body[data-page="manga"] .gallery,
@@ -3793,7 +4058,7 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
-/* â”€â”€ Prevent fixed-width overflow anywhere â”€â”€ */
+/* ── Prevent fixed-width overflow anywhere ── */
 img, video, canvas, svg, iframe {
     max-width: 100%;
     height: auto;
@@ -3813,7 +4078,7 @@ input, select, textarea, button {
     box-sizing: border-box;
 }
 
-/* â”€â”€ Destiny navbar responsive â”€â”€ */
+/* ── Destiny navbar responsive ── */
 @media (max-width: 1180px) {
     .destiny-navbar.is-scrolled {
         padding: 14px;
@@ -3996,7 +4261,7 @@ input, select, textarea, button {
     }
 }
 
-/* ===== 340px â€“ ultra small screens ===== */
+/* ===== 340px – ultra small screens ===== */
 @media (max-width: 340px) {
     .destiny-navbar {
         padding: 4px 6px;
@@ -4067,7 +4332,7 @@ input, select, textarea, button {
     }
 }
 
-/* ===== 320px â€“ absolute minimum ===== */
+/* ===== 320px – absolute minimum ===== */
 @media (max-width: 320px) {
     .destiny-navbar {
         border-radius: 4px;
@@ -4097,7 +4362,7 @@ input, select, textarea, button {
 }
 
 /* ==========================================
-   MOBILE BOTTOM TAB BAR â€” Responsive
+   MOBILE BOTTOM TAB BAR — Responsive
    ========================================== */
 @media (max-width: 480px) {
     .mobile-bottom-nav {
@@ -4147,15 +4412,17 @@ input, select, textarea, button {
     }
 }
 
-/* === Anime Destiny\css\destiny-navbar.css === */
+
+/* ===== destiny-navbar.css ===== */
+
 /* Navbar estilo Anime Destiny para manga.html. */
 
-/* â”€â”€ Mobile Bottom Tab Bar (base, oculto en desktop) â”€â”€ */
+/* ── Mobile Bottom Tab Bar (base, oculto en desktop) ── */
 .mobile-bottom-nav {
     display: none;
 }
 
-/* â”€â”€ Ãrea de usuario en navbar (avatar + nombre + botÃ³n) â”€â”€ */
+/* ── Área de usuario en navbar (avatar + nombre + botón) ── */
 .destiny-navbar .nav-user-info {
     display: flex;
     flex-direction: column;
@@ -4478,7 +4745,7 @@ input, select, textarea, button {
 }
 
 @media (max-width: 700px) {
-    /* â”€â”€ Ocultar top navbar en mobile â”€â”€ */
+    /* ── Ocultar top navbar en mobile ── */
     .destiny-navbar {
         position: fixed;
         top: 0;
@@ -4507,7 +4774,7 @@ input, select, textarea, button {
         display: none !important;
     }
 
-    /* â”€â”€ Mostrar bottom tab bar â”€â”€ */
+    /* ── Mostrar bottom tab bar ── */
     .mobile-bottom-nav {
         display: flex;
         position: fixed;
@@ -4752,3 +5019,5 @@ input, select, textarea, button {
         gap: 6px;
     }
 }
+
+
