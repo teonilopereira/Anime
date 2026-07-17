@@ -75,9 +75,8 @@ body[data-page="novelas"] .catalog-neon-card:hover .catalog-card-shell {
 body[data-page="manga"] .catalog-card-media,
 body[data-page="anime"] .catalog-card-media,
 body[data-page="novelas"] .catalog-card-media {
-    flex: 0 0 80%;
+    flex: 1 1 auto;
     min-height: 0;
-    border-bottom: 1px solid rgba(0, 242, 255, 0.18);
 }
 
 body[data-page="manga"] .catalog-card-poster img,
@@ -105,14 +104,9 @@ body[data-page="novelas"] .catalog-neon-card .catalog-card-media .card-inner {
 body[data-page="manga"] .catalog-card-bar,
 body[data-page="anime"] .catalog-card-bar,
 body[data-page="novelas"] .catalog-card-bar {
-    flex: 0 0 20%;
-    min-height: 48px;
-    padding: 10px 14px;
-    background:
-        linear-gradient(90deg, rgba(0, 242, 255, 0.03), transparent 40%),
-        linear-gradient(180deg, #000 0%, #040408 100%);
-    border-top: 1.5px solid transparent;
-    border-image: linear-gradient(90deg, rgba(0, 242, 255, 0.50), rgba(188, 19, 254, 0.35), rgba(0, 242, 255, 0.12)) 1;
+    flex: 0 0 52px;
+    min-height: 52px;
+    padding: 0 8px 0 14px;
 }
 
 body[data-page="manga"] .catalog-card-title,
@@ -130,14 +124,12 @@ body[data-page="novelas"] .catalog-card-title {
 body[data-page="manga"] .catalog-card-flip-btn,
 body[data-page="anime"] .catalog-card-flip-btn,
 body[data-page="novelas"] .catalog-card-flip-btn {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    border: 1.5px solid rgba(0, 242, 255, 0.35);
-    background: radial-gradient(circle, rgba(0, 242, 255, 0.08), #000 70%);
-    box-shadow:
-        0 0 8px rgba(0, 242, 255, 0.20),
-        0 0 16px rgba(0, 242, 255, 0.08);
+    border: 1.5px solid rgba(235, 242, 255, 0.85);
+    background: radial-gradient(circle, #0b1533 0%, #05060f 75%);
+    box-shadow: 0 0 6px rgba(3, 8, 30, 0.6);
 }
 
 body[data-page="manga"] .catalog-neon-card .card-back-neon,
@@ -192,9 +184,9 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
     body[data-page="manga"] .catalog-card-bar,
     body[data-page="anime"] .catalog-card-bar,
     body[data-page="novelas"] .catalog-card-bar {
-        flex: 0 0 auto;
+        flex: 0 0 44px;
         min-height: 44px;
-        padding: 8px 10px;
+        padding: 0 6px 0 10px;
     }
 }
 
@@ -1213,9 +1205,9 @@ body[data-page="listas"] .lists-empty {
     body[data-page="anime"] .catalog-card-bar,
     body[data-page="manga"] .catalog-card-bar,
     body[data-page="novelas"] .catalog-card-bar {
-        flex: 0 0 auto;
-        min-height: 44px;
-        padding: 6px 8px;
+        flex: 0 0 40px;
+        min-height: 40px;
+        padding: 0 4px 0 8px;
     }
 
     /* Detail page ultra-compact */

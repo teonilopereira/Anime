@@ -325,6 +325,7 @@
         const cards = mainContainer.querySelectorAll('.card-container[data-item-id]');
 
         cards.forEach((card) => {
+            try {
             const itemId = card.getAttribute('data-item-id');
             if (!itemId) return;
             const progressBox = card.querySelector('[data-progress]');
@@ -368,6 +369,9 @@
             }
 
             progressBox.style.display = '';
+            } catch (e) {
+                console.warn('updateCardProgressIndicators: card failed:', e);
+            }
         });
     }
 
@@ -570,6 +574,7 @@
     // Exports
     window.addUserPoints = addUserPoints;
     window.cargarEstadosBotones = cargarEstadosBotones;
+    window.getProgressPercentForItem = getProgressPercentForItem;
     window.buildSearchIndexForItem = buildSearchIndexForItem;
     window.getCategoriaActual = getCategoriaActual;
     window.statusStorageKey = statusStorageKey;

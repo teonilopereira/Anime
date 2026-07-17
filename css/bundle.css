@@ -2153,11 +2153,14 @@ main { padding-bottom: 24px; }
 }
 
 /* ==========================================
-   CATALOG CARD — FUTURISTIC / HUD STYLE
-   Según Analisis_Diseno_Card_Futurista.txt
+   CATALOG CARD — FUTURISTIC / HUD FRAME
+   Marco oscuro + acentos azules (ref. imagen)
 ========================================== */
 
 .catalog-neon-card {
+    --card-hud-blue: #2f6bff;
+    --card-hud-blue-bright: #4d86ff;
+    --card-hud-blue-deep: #1c46f0;
     width: 100%;
     max-width: 326px;
     perspective: 1400px;
@@ -2171,33 +2174,59 @@ main { padding-bottom: 24px; }
 }
 
 .catalog-neon-card:hover .catalog-card-shell {
-    filter: drop-shadow(0 0 12px rgba(0, 242, 255, 0.35)) drop-shadow(0 0 30px rgba(188, 19, 254, 0.22)) drop-shadow(0 0 50px rgba(0, 242, 255, 0.10));
+    filter: drop-shadow(0 0 14px rgba(47, 107, 255, 0.35)) drop-shadow(0 0 34px rgba(47, 107, 255, 0.16));
+    border-color: rgba(120, 150, 255, 0.45);
 }
 
 .catalog-card-inner {
     position: relative;
     display: flex;
     flex-direction: column;
+    gap: 10px;
     height: 100%;
-    border-radius: var(--radius-lg);
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
-    background: #02040b;
-    border: 1.5px solid rgba(0, 242, 255, 0.18);
+    background: transparent;
+    border: 0;
 }
 
 .catalog-card-shell {
     position: relative;
     height: 440px;
-    padding: 6px;
-    background: linear-gradient(180deg, #0c0c14 0%, #060610 50%, #0a061a 100%);
-    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%);
-    filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.15)) drop-shadow(0 0 20px rgba(188, 19, 254, 0.10));
-    transition: filter 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    padding: 30px 12px 28px;
+    background: linear-gradient(180deg, #14111f 0%, #0a0814 55%, #0e0a1c 100%);
+    border: 1px solid rgba(130, 122, 190, 0.30);
+    border-radius: 16px;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 10px rgba(47, 107, 255, 0.10));
+    transition: filter 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.4s ease;
 }
 
-.catalog-card-shell::before,
+/* ── Barra azul inclinada superior izquierda ── */
+.catalog-card-shell::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    width: 36%;
+    height: 9px;
+    background: linear-gradient(90deg, var(--card-hud-blue-bright), var(--card-hud-blue-deep));
+    clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+    filter: drop-shadow(0 0 5px rgba(47, 107, 255, 0.55));
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* ── Barra azul pequeña inferior izquierda ── */
 .catalog-card-shell::after {
-    display: none;
+    content: "";
+    position: absolute;
+    bottom: 10px;
+    left: 14px;
+    width: 62px;
+    height: 8px;
+    background: linear-gradient(90deg, var(--card-hud-blue-bright), var(--card-hud-blue-deep));
+    clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+    filter: drop-shadow(0 0 4px rgba(47, 107, 255, 0.45));
+    pointer-events: none;
+    z-index: 2;
 }
 
 /* ── Corner decorations (DOM elements) ── */
@@ -2207,53 +2236,39 @@ main { padding-bottom: 24px; }
     pointer-events: none;
 }
 
-/* Top-right: 4 horizontal blue bars — tech HUD style */
+/* Top-right: franjas azules diagonales "////" */
 .card-corner-tr {
-    top: 8px;
-    right: 16px;
-    width: 28px;
-    height: 22px;
+    top: 9px;
+    right: 14px;
+    width: 64px;
+    height: 12px;
     background: repeating-linear-gradient(
-        180deg,
-        rgba(0, 242, 255, 0.85) 0px,
-        rgba(0, 242, 255, 0.85) 2px,
-        transparent 2px,
-        transparent 5px
+        115deg,
+        var(--card-hud-blue-bright) 0px,
+        var(--card-hud-blue-bright) 7px,
+        transparent 7px,
+        transparent 14px
     );
-    clip-path: polygon(0 0, 100% 0, 100% 60%, 0 100%);
-    filter: drop-shadow(0 0 3px rgba(0, 242, 255, 0.4));
+    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    filter: drop-shadow(0 0 4px rgba(47, 107, 255, 0.45));
 }
 
-/* Bottom-right: tall trapezoid connecting to circular button */
+/* Bottom-right: reemplazado por la placa azul del botón en la barra */
 .card-corner-br {
-    bottom: 0;
-    right: 6px;
-    width: 24px;
-    height: 100%;
-    background:
-        repeating-linear-gradient(
-            135deg,
-            transparent,
-            transparent 3px,
-            rgba(0, 242, 255, 0.18) 3px,
-            rgba(0, 242, 255, 0.18) 4px
-        ),
-        linear-gradient(180deg,
-            transparent 0%,
-            rgba(0, 242, 255, 0.06) 55%,
-            rgba(0, 242, 255, 0.25) 78%,
-            rgba(0, 242, 255, 0.40) 100%
-        );
-    clip-path: polygon(40% 55%, 100% 55%, 100% 100%, 0 100%);
-    filter: drop-shadow(0 0 4px rgba(0, 242, 255, 0.3));
+    display: none;
 }
 
-/* ── Illustration area (~80%) ── */
+/* ── Illustration area ── */
 .catalog-card-media {
-    flex: 0 0 80%;
+    flex: 1 1 auto;
     min-height: 0;
     position: relative;
     overflow: hidden;
+    border-radius: 6px;
+    border: 1px solid rgba(90, 140, 255, 0.55);
+    box-shadow:
+        0 0 12px rgba(47, 107, 255, 0.22),
+        inset 0 0 8px rgba(47, 107, 255, 0.10);
 }
 
 .catalog-card-media::before {
@@ -2266,8 +2281,8 @@ main { padding-bottom: 24px; }
         180deg,
         transparent 0px,
         transparent 3px,
-        rgba(0, 242, 255, 0.015) 3px,
-        rgba(0, 242, 255, 0.015) 4px
+        rgba(80, 130, 255, 0.02) 3px,
+        rgba(80, 130, 255, 0.02) 4px
     );
     opacity: 0;
     transition: opacity 0.4s ease;
@@ -2283,11 +2298,10 @@ main { padding-bottom: 24px; }
     bottom: 0;
     left: 0;
     right: 0;
-    height: 40%;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
+    height: 28%;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
     pointer-events: none;
     z-index: 1;
-    border-bottom: 1px solid rgba(0, 242, 255, 0.08);
 }
 
 .catalog-card-media .card-inner {
@@ -2326,38 +2340,70 @@ main { padding-bottom: 24px; }
 
 /* ── Bottom band ── */
 .catalog-card-bar {
-    flex: 0 0 20%;
+    position: relative;
+    flex: 0 0 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    min-height: 48px;
-    padding: 8px 12px;
-    background:
-        linear-gradient(90deg, rgba(0, 242, 255, 0.03), transparent 40%),
-        linear-gradient(180deg, #000 0%, #040408 100%);
-    border-top: 1.5px solid transparent;
-    border-image: linear-gradient(90deg, rgba(0, 242, 255, 0.50), rgba(188, 19, 254, 0.35), rgba(0, 242, 255, 0.12)) 1;
+    min-height: 52px;
+    padding: 0 8px 0 14px;
+    background: linear-gradient(180deg, #08090f 0%, #030409 100%);
+    border: 1px solid rgba(95, 110, 190, 0.38);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Textura scan-line sutil de la barra */
+.catalog-card-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        180deg,
+        transparent 0px,
+        transparent 2px,
+        rgba(80, 130, 255, 0.02) 2px,
+        rgba(80, 130, 255, 0.02) 3px
+    );
+}
+
+/* Placa azul (paralelogramo) detrás del botón circular */
+.catalog-card-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 62px;
+    background: linear-gradient(135deg, var(--card-hud-blue-bright) 0%, var(--card-hud-blue-deep) 100%);
+    clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%);
+    pointer-events: none;
 }
 
 /* ── Typography ── */
 .catalog-card-title {
     flex: 1;
     min-width: 0;
+    position: relative;
+    z-index: 1;
     font-family: var(--font-display);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #e8e8f0;
+    color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-shadow: 0 0 8px rgba(0, 242, 255, 0.15);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 /* ── Circular button ── */
 .catalog-card-flip-btn {
+    position: relative;
+    z-index: 1;
     flex: 0 0 auto;
     display: grid;
     place-items: center;
@@ -2366,13 +2412,11 @@ main { padding-bottom: 24px; }
     margin: 0;
     padding: 0;
     border-radius: 50%;
-    border: 1.5px solid rgba(0, 242, 255, 0.35);
-    background: radial-gradient(circle, rgba(0, 242, 255, 0.08), #000 70%);
+    border: 1.5px solid rgba(235, 242, 255, 0.85);
+    background: radial-gradient(circle, #0b1533 0%, #05060f 75%);
     color: #fff;
     cursor: pointer;
-    box-shadow:
-        0 0 8px rgba(0, 242, 255, 0.20),
-        0 0 16px rgba(0, 242, 255, 0.08);
+    box-shadow: 0 0 6px rgba(3, 8, 30, 0.6);
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -2383,20 +2427,14 @@ main { padding-bottom: 24px; }
 }
 
 .catalog-card-flip-btn:hover {
-    transform: scale(1.10);
-    border-color: rgba(0, 242, 255, 0.75);
-    box-shadow:
-        0 0 10px rgba(0, 242, 255, 0.40),
-        0 0 24px rgba(0, 242, 255, 0.18),
-        inset 0 0 8px rgba(0, 242, 255, 0.10);
+    transform: scale(1.10) rotate(20deg);
+    border-color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
 }
 
 .catalog-neon-card .flip-toggle:checked ~ .catalog-card-shell .catalog-card-flip-btn {
-    border-color: rgba(0, 242, 255, 0.75);
-    box-shadow:
-        0 0 10px rgba(0, 242, 255, 0.35),
-        0 0 20px rgba(0, 242, 255, 0.12),
-        inset 0 0 6px rgba(0, 242, 255, 0.08);
+    border-color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.30);
 }
 
 /* ── Card back ── */
@@ -2411,7 +2449,7 @@ main { padding-bottom: 24px; }
     scrollbar-width: thin;
     scrollbar-color: rgba(188, 19, 254, 0.4) transparent;
     background:
-        radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.1), transparent 40%),
+        radial-gradient(circle at 50% 0%, rgba(47, 107, 255, 0.12), transparent 40%),
         linear-gradient(180deg, #040610 0%, #030508 100%);
 }
 
@@ -2493,40 +2531,7 @@ main { padding-bottom: 24px; }
    HUD EXTRAS — extra style layer
 ========================================== */
 
-/* ── Flip button: rotating pulse ring ── */
-@keyframes btn-ring-rotate {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-}
-
-@keyframes btn-pulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(0, 242, 255, 0.20), 0 0 16px rgba(0, 242, 255, 0.08); }
-    50%      { box-shadow: 0 0 12px rgba(0, 242, 255, 0.35), 0 0 24px rgba(0, 242, 255, 0.14); }
-}
-
-.catalog-card-flip-btn {
-    position: relative;
-    animation: btn-pulse 2.8s ease-in-out infinite;
-}
-
-.catalog-card-flip-btn::before {
-    content: "";
-    position: absolute;
-    inset: -5px;
-    border-radius: 50%;
-    border: 1px dashed rgba(0, 242, 255, 0.22);
-    animation: btn-ring-rotate 8s linear infinite;
-    pointer-events: none;
-    opacity: 0.6;
-    transition: opacity 0.3s, border-color 0.3s;
-}
-
-.catalog-card-flip-btn:hover::before {
-    opacity: 1;
-    border-color: rgba(0, 242, 255, 0.50);
-}
-
-/* ── Animated scan line sweeping down the shell ── */
+/* ── Animated scan line sweeping down the media ── */
 @keyframes hud-scanline {
     0%   { top: -2px; opacity: 0; }
     5%   { opacity: 1; }
@@ -2542,8 +2547,8 @@ main { padding-bottom: 24px; }
     height: 2px;
     z-index: 10;
     pointer-events: none;
-    background: linear-gradient(90deg, transparent 0%, rgba(0, 242, 255, 0.55) 20%, rgba(188, 19, 254, 0.40) 80%, transparent 100%);
-    box-shadow: 0 0 8px rgba(0, 242, 255, 0.45), 0 0 18px rgba(0, 242, 255, 0.20);
+    background: linear-gradient(90deg, transparent 0%, rgba(77, 134, 255, 0.55) 20%, rgba(47, 107, 255, 0.40) 80%, transparent 100%);
+    box-shadow: 0 0 8px rgba(77, 134, 255, 0.45), 0 0 18px rgba(47, 107, 255, 0.20);
     animation: hud-scanline 4s linear infinite;
     animation-delay: 0s;
     opacity: 0;
@@ -2553,66 +2558,14 @@ main { padding-bottom: 24px; }
     animation-duration: 2.8s;
 }
 
-/* ── Corner TR glow intensifies on hover ── */
+/* ── Acentos azules se intensifican en hover ── */
 .catalog-neon-card:hover .card-corner-tr {
-    filter: drop-shadow(0 0 6px rgba(0, 242, 255, 0.65));
-    background: repeating-linear-gradient(
-        180deg,
-        rgba(0, 242, 255, 1) 0px,
-        rgba(0, 242, 255, 1) 2px,
-        transparent 2px,
-        transparent 5px
-    );
+    filter: drop-shadow(0 0 7px rgba(77, 134, 255, 0.75));
 }
 
-/* ── Corner BR glow intensifies on hover ── */
-.catalog-neon-card:hover .card-corner-br {
-    filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.50));
-    background:
-        repeating-linear-gradient(
-            135deg,
-            transparent,
-            transparent 3px,
-            rgba(0, 242, 255, 0.30) 3px,
-            rgba(0, 242, 255, 0.30) 4px
-        ),
-        linear-gradient(180deg,
-            transparent 0%,
-            rgba(0, 242, 255, 0.10) 55%,
-            rgba(0, 242, 255, 0.40) 78%,
-            rgba(0, 242, 255, 0.60) 100%
-        );
-}
-
-/* ── Bar scan-line texture (always on) ── */
-.catalog-card-bar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-        180deg,
-        transparent 0px,
-        transparent 2px,
-        rgba(0, 242, 255, 0.02) 2px,
-        rgba(0, 242, 255, 0.02) 3px
-    );
-}
-
-/* ── Bar left accent line ── */
-.catalog-card-bar::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: linear-gradient(180deg, rgba(0, 242, 255, 0.0), rgba(0, 242, 255, 0.40) 40%, rgba(188, 19, 254, 0.30) 100%);
-    pointer-events: none;
-}
-
-.catalog-card-bar {
-    position: relative;
+.catalog-neon-card:hover .catalog-card-shell::before,
+.catalog-neon-card:hover .catalog-card-shell::after {
+    filter: drop-shadow(0 0 8px rgba(77, 134, 255, 0.75));
 }
 
 /* ── Card entrance animation ── */
@@ -2653,10 +2606,10 @@ main { padding-bottom: 24px; }
     pointer-events: none;
     background: linear-gradient(
         180deg,
-        rgba(0, 242, 255, 0.04) 0%,
+        rgba(77, 134, 255, 0.05) 0%,
         transparent 40%,
         transparent 70%,
-        rgba(188, 19, 254, 0.06) 100%
+        rgba(28, 70, 240, 0.07) 100%
     );
     mix-blend-mode: screen;
     opacity: 0.7;
@@ -2667,10 +2620,10 @@ main { padding-bottom: 24px; }
     opacity: 1;
     background: linear-gradient(
         180deg,
-        rgba(0, 242, 255, 0.08) 0%,
+        rgba(77, 134, 255, 0.09) 0%,
         transparent 35%,
         transparent 65%,
-        rgba(188, 19, 254, 0.10) 100%
+        rgba(28, 70, 240, 0.11) 100%
     );
 }
 
@@ -2695,30 +2648,47 @@ main { padding-bottom: 24px; }
 
     .catalog-card-shell {
         height: 380px;
+        padding: 24px 9px 22px;
+    }
+
+    .catalog-card-shell::before {
+        top: 8px;
+        left: 11px;
+        height: 7px;
+    }
+
+    .catalog-card-shell::after {
+        bottom: 8px;
+        left: 11px;
+        width: 48px;
+        height: 6px;
+    }
+
+    .card-corner-tr {
+        top: 7px;
+        right: 11px;
+        width: 50px;
+        height: 10px;
     }
 
     .catalog-card-bar {
-        flex: 0 0 auto;
+        flex: 0 0 44px;
         min-height: 44px;
-        padding: 8px 10px;
+        padding: 0 6px 0 10px;
+    }
+
+    .catalog-card-bar::after {
+        width: 52px;
+        clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%);
     }
 
     .catalog-card-title {
-        font-size: 0.64rem;
+        font-size: 0.66rem;
     }
 
     .catalog-card-inner::before {
         animation: none;
         display: none;
-    }
-
-    .catalog-card-flip-btn::before {
-        animation: none;
-        display: none;
-    }
-
-    .catalog-card-flip-btn {
-        animation: none;
     }
 }
 
@@ -2802,9 +2772,8 @@ body[data-page="novelas"] .catalog-neon-card:hover .catalog-card-shell {
 body[data-page="manga"] .catalog-card-media,
 body[data-page="anime"] .catalog-card-media,
 body[data-page="novelas"] .catalog-card-media {
-    flex: 0 0 80%;
+    flex: 1 1 auto;
     min-height: 0;
-    border-bottom: 1px solid rgba(0, 242, 255, 0.18);
 }
 
 body[data-page="manga"] .catalog-card-poster img,
@@ -2832,14 +2801,9 @@ body[data-page="novelas"] .catalog-neon-card .catalog-card-media .card-inner {
 body[data-page="manga"] .catalog-card-bar,
 body[data-page="anime"] .catalog-card-bar,
 body[data-page="novelas"] .catalog-card-bar {
-    flex: 0 0 20%;
-    min-height: 48px;
-    padding: 10px 14px;
-    background:
-        linear-gradient(90deg, rgba(0, 242, 255, 0.03), transparent 40%),
-        linear-gradient(180deg, #000 0%, #040408 100%);
-    border-top: 1.5px solid transparent;
-    border-image: linear-gradient(90deg, rgba(0, 242, 255, 0.50), rgba(188, 19, 254, 0.35), rgba(0, 242, 255, 0.12)) 1;
+    flex: 0 0 52px;
+    min-height: 52px;
+    padding: 0 8px 0 14px;
 }
 
 body[data-page="manga"] .catalog-card-title,
@@ -2857,14 +2821,12 @@ body[data-page="novelas"] .catalog-card-title {
 body[data-page="manga"] .catalog-card-flip-btn,
 body[data-page="anime"] .catalog-card-flip-btn,
 body[data-page="novelas"] .catalog-card-flip-btn {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    border: 1.5px solid rgba(0, 242, 255, 0.35);
-    background: radial-gradient(circle, rgba(0, 242, 255, 0.08), #000 70%);
-    box-shadow:
-        0 0 8px rgba(0, 242, 255, 0.20),
-        0 0 16px rgba(0, 242, 255, 0.08);
+    border: 1.5px solid rgba(235, 242, 255, 0.85);
+    background: radial-gradient(circle, #0b1533 0%, #05060f 75%);
+    box-shadow: 0 0 6px rgba(3, 8, 30, 0.6);
 }
 
 body[data-page="manga"] .catalog-neon-card .card-back-neon,
@@ -2919,9 +2881,9 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
     body[data-page="manga"] .catalog-card-bar,
     body[data-page="anime"] .catalog-card-bar,
     body[data-page="novelas"] .catalog-card-bar {
-        flex: 0 0 auto;
+        flex: 0 0 44px;
         min-height: 44px;
-        padding: 8px 10px;
+        padding: 0 6px 0 10px;
     }
 }
 
@@ -3940,9 +3902,9 @@ body[data-page="listas"] .lists-empty {
     body[data-page="anime"] .catalog-card-bar,
     body[data-page="manga"] .catalog-card-bar,
     body[data-page="novelas"] .catalog-card-bar {
-        flex: 0 0 auto;
-        min-height: 44px;
-        padding: 6px 8px;
+        flex: 0 0 40px;
+        min-height: 40px;
+        padding: 0 4px 0 8px;
     }
 
     /* Detail page ultra-compact */

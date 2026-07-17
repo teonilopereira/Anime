@@ -201,7 +201,9 @@ function resolveCatalogProgress(userId, category, itemId, card) {
     const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
 
     if (!dataTotal) {
-        const legacyPct = getProgressPercentForItem(userId, category, itemId);
+        const legacyPct = (typeof getProgressPercentForItem === 'function')
+            ? getProgressPercentForItem(userId, category, itemId)
+            : null;
         if (viewed) {
             return { show: true, pct: 100, watched: 0, total: 0, label };
         }

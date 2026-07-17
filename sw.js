@@ -48,7 +48,8 @@ self.addEventListener('fetch', (event) => {
   if (
     event.request.url.includes('supabase.co') ||
     event.request.url.includes('graphql.anilist.co') ||
-    event.request.url.includes('api.mangadex.org')
+    event.request.url.includes('api.mangadex.org') ||
+    event.request.url.includes('/__reload')
   ) {
     return;
   }
