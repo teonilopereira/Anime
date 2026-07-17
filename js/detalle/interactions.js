@@ -89,7 +89,10 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
                 </div>
             `;
 
-            if (hasMangaDexSource && typeof window.resolveMangaDexCoverForVolume === 'function') {
+            const canResolveCover = typeof window.resolveMangaDexCoverForVolume === 'function'
+                && (categoria === 'manga' || hasMangaDexSource);
+
+            if (canResolveCover) {
                 try {
                     const coverUrl = await window.resolveMangaDexCoverForVolume(item, epNum);
                     if (coverUrl) {
