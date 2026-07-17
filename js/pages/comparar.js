@@ -22,19 +22,36 @@ async function getItem(cat, id) {
     return null;
 }
 
+// Los items pueden venir del catálogo local ({titulo, img, info}) o de la
+// API AniList/MangaDex ({title, images, ...}) — normalizamos los campos acá.
+function compareItemTitle(item) {
+    return item?.titulo || item?.title || 'Sin título';
+}
+
+function compareItemImage(item) {
+    return item?.img || item?.imagen || item?.image
+        || (typeof getApiPoster === 'function' ? getApiPoster(item) : '')
+        || '';
+}
+
+function compareItemInfo(cat, item) {
+    if (typeof item?.info === 'string' && item.info) return item.info;
+    return (typeof getApiCatalogInfo === 'function') ? getApiCatalogInfo(cat, item) : '';
+}
+
 async function buildOptionList(cat, selectEl) {
     const list = (typeof obtenerItemsCategoria === 'function')
         ? await obtenerItemsCategoria(cat)
         : [];
     selectEl.innerHTML = list
         .slice()
-        .sort((a, b) => String(a.titulo).localeCompare(String(b.titulo)))
-        .map((it) => `<option value="${escapeHtml(it.id)}">${escapeHtml(it.titulo)}</option>`)
+        .sort((a, b) => compareItemTitle(a).localeCompare(compareItemTitle(b)))
+        .map((it) => `<option value="${escapeHtml(it.id ?? it.mal_id)}">${escapeHtml(compareItemTitle(it))}</option>`)
         .join('');
 }
 
 function detailLink(cat, item) {
-    return `detalle.html?cat=${encodeURIComponent(cat)}&id=${encodeURIComponent(item.id)}&nombre=${encodeURIComponent(item.titulo)}`;
+    return `detalle.html?cat=${encodeURIComponent(cat)}&id=${encodeURIComponent(item.id)}&nombre=${encodeURIComponent(compareItemTitle(item))}`;
 }
 
 async function renderCompareCard(host, cat, item) {
@@ -44,15 +61,21 @@ async function renderCompareCard(host, cat, item) {
         return;
     }
     const det = (await getDetallesFor(cat, item.id)) || {};
-    const generos = (typeof item.info === 'string') ? item.info.split('/').map(s => s.trim()).filter(Boolean) : [];
+    const titulo = compareItemTitle(item);
+    const img = compareItemImage(item);
+    const info = compareItemInfo(cat, item);
+    const coverHtml = img
+        ? `<img src="${safeUrl(img)}" alt="${escapeHtml(titulo)}">`
+        : `<span class="compare-cover-empty">Sin imagen</span>`;
+    const generos = (typeof info === 'string') ? info.split('/').map(s => s.trim()).filter(Boolean) : [];
     const chips = generos.length ? generos.map(g => `<span class="detail-chip">${escapeHtml(g)}</span>`).join('') : '';
 
     const common = `
-        <div class="compare-cover"><img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}"></div>
+        <div class="compare-cover">${coverHtml}</div>
         <div class="compare-body">
             <div class="compare-cat">${escapeHtml(cat)}</div>
-            <div class="compare-title">${escapeHtml(item.titulo)}</div>
-            <div class="compare-info">${escapeHtml(item.info || '')}</div>
+            <div class="compare-title">${escapeHtml(titulo)}</div>
+            <div class="compare-info">${escapeHtml(info || '')}</div>
             <div class="detail-chips">${chips}</div>
             <div class="compare-meta">
                 <div><strong>Estado:</strong> ${escapeHtml(item.status || 'No especificado')}</div>

@@ -207,15 +207,55 @@
         return typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
     }
 
+    function normalizeVolKey(value) {
+        if (value === null || value === undefined) return '';
+        var num = Number(value);
+        if (!isNaN(num)) return String(num);
+        return String(value).trim().toLowerCase();
+    }
+
+    // El endpoint /cover de MangaDex no filtra por volumen, así que
+    // traemos la lista de portadas del manga y armamos un mapa volumen → archivo.
+    async function fetchMangaDexCoverMap(mangaId) {
+        var map = {};
+        var PAGE = 100;
+        var MAX_COVERS = 300;
+        var offset = 0;
+        var total = 0;
+        do {
+            var json = await mdFetch('/cover?manga[]=' + encodeURIComponent(mangaId) + '&limit=' + PAGE + '&offset=' + offset + '&order[volume]=asc');
+            var items = json?.data || [];
+            total = Number(json?.total || 0);
+            for (var i = 0; i < items.length; i++) {
+                var attrs = items[i]?.attributes || {};
+                var volKey = normalizeVolKey(attrs.volume);
+                if (volKey && attrs.fileName && !(volKey in map)) {
+                    map[volKey] = attrs.fileName;
+                }
+            }
+            if (!items.length) break;
+            offset += PAGE;
+        } while (offset < total && offset < MAX_COVERS);
+        return map;
+    }
+
     async function getMangaDexVolumeCover(mangaId, volNum) {
         if (!mangaId || !volNum) return null;
         try {
-            var json = await mdFetch('/cover?manga[]=' + encodeURIComponent(mangaId) + '&volume[]=' + encodeURIComponent(String(volNum)) + '&limit=1');
-            var items = json?.data || [];
-            if (items.length > 0) {
-                var fileName = items[0]?.attributes?.fileName;
-                if (fileName) return MD_COVER_BASE + '/' + mangaId + '/' + fileName;
+            var mapKey = 'md_cov_map_' + mangaId;
+            var map = null;
+            try {
+                var cachedMap = localStorage.getItem(mapKey);
+                if (cachedMap) map = JSON.parse(cachedMap);
+            } catch (_) { map = null; }
+
+            if (!map) {
+                map = await fetchMangaDexCoverMap(mangaId);
+                safeCacheSet(mapKey, JSON.stringify(map));
             }
+
+            var fileName = map[normalizeVolKey(volNum)];
+            if (fileName) return MD_COVER_BASE + '/' + mangaId + '/' + fileName;
         } catch (err) {
             console.warn('getMangaDexVolumeCover error:', err);
         }

@@ -113,8 +113,9 @@
     const injectMobileBottomNav = () => {
         if (document.querySelector('.mobile-bottom-nav')) return;
 
-        // No inyectar en páginas de auth/legal/usuario
-        const skipPages = ["login", "configuracion", "usuario", "privacidad", "terminos"];
+        // No inyectar en páginas de auth (en el resto siempre debe haber
+        // navegación visible: en mobile la navbar superior queda oculta)
+        const skipPages = ["login"];
         for (let i = 0; i < skipPages.length; i++) {
             if (path.includes(skipPages[i])) return;
         }
@@ -131,12 +132,14 @@
         let activePage = isAnime ? "anime" : isManga ? "manga" : isNovelas ? "novelas" : isMisListas ? "mis-listas" : isTop ? "top" : null;
         if (isIndex) activePage = null;
 
+        // "mis-listas" usa la clave corta nav.listas: "Mis Listas" no entra
+        // en una línea y desalinea el icono del tab en pantallas chicas
         const tabs = [
-            { id: "anime", href: "anime.html", icon: "clapperboard", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
-            { id: "manga", href: "manga.html", icon: "book-open", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
-            { id: "novelas", href: "novelas.html", icon: "book", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
-            { id: "mis-listas", href: "mis-listas.html", icon: "heart", label: window.AppI18n ? window.AppI18n.t("nav.mis_listas") : "Listas" },
-            { id: "top", href: "top.html", icon: "trophy", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Top" }
+            { id: "anime", href: "anime.html", icon: "clapperboard", i18n: "nav.anime", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
+            { id: "manga", href: "manga.html", icon: "book-open", i18n: "nav.manga", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
+            { id: "novelas", href: "novelas.html", icon: "book", i18n: "nav.novelas", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
+            { id: "mis-listas", href: "mis-listas.html", icon: "heart", i18n: "nav.listas", label: window.AppI18n ? window.AppI18n.t("nav.listas") : "Listas" },
+            { id: "top", href: "top.html", icon: "trophy", i18n: "nav.top", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Top" }
         ];
 
         let html = '';
@@ -146,7 +149,7 @@
             const currentAttr = t.id === activePage ? ' aria-current="page"' : '';
             html += `<a href="${t.href}" class="bottom-tab${activeClass}"${currentAttr}>
 <span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="${t.icon}"></i></span>
-<span data-i18n="nav.${t.id.replace('-', '_')}">${t.label}</span>
+<span data-i18n="${t.i18n}">${t.label}</span>
 </a>`;
         }
 
