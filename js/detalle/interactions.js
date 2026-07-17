@@ -1,3 +1,99 @@
+// Sinopsis por episodio desde Jikan (MyAnimeList). Cachea también el
+// "sin datos" para no repetir requests (límite Jikan: 3 req/s, 60/min).
+var JIKAN_EP_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+
+async function fetchJikanEpisode(malId, ep) {
+    if (!malId || !ep) return null;
+    var cacheKey = 'jikan_ep_' + malId + '_' + ep;
+    try {
+        var cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            var parsed = JSON.parse(cached);
+            if (Date.now() < parsed.expiry) return parsed.data;
+        }
+    } catch (_) {}
+
+    try {
+        var resp = await fetch('https://api.jikan.moe/v4/anime/' + encodeURIComponent(malId) + '/episodes/' + encodeURIComponent(ep));
+        if (!resp.ok) return null;
+        var json = await resp.json();
+        var d = json?.data || null;
+        var data = d ? {
+            title: d.title || '',
+            synopsis: d.synopsis || '',
+            filler: !!d.filler,
+            recap: !!d.recap
+        } : null;
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify({ data: data, expiry: Date.now() + JIKAN_EP_CACHE_TTL }));
+        } catch (_) {}
+        return data;
+    } catch (err) {
+        console.warn('fetchJikanEpisode error:', err);
+        return null;
+    }
+}
+
+// Fallback: sinopsis por episodio desde Kitsu (cuando Jikan/MAL está caído).
+// Kitsu no tiene datos de relleno/recap, solo título y sinopsis.
+async function resolveKitsuAnimeId(anilistId) {
+    if (!anilistId) return null;
+    var cacheKey = 'kitsu_id_' + anilistId;
+    try {
+        var cached = localStorage.getItem(cacheKey);
+        if (cached) return cached === 'null' ? null : cached;
+    } catch (_) {}
+
+    try {
+        var resp = await fetch('https://kitsu.io/api/edge/mappings?filter%5BexternalSite%5D=anilist/anime&filter%5BexternalId%5D=' + encodeURIComponent(anilistId) + '&include=item', {
+            headers: { 'Accept': 'application/vnd.api+json' }
+        });
+        if (!resp.ok) return null;
+        var json = await resp.json();
+        var kitsuId = json?.included?.[0]?.type === 'anime' ? String(json.included[0].id) : null;
+        try { localStorage.setItem(cacheKey, kitsuId || 'null'); } catch (_) {}
+        return kitsuId;
+    } catch (err) {
+        console.warn('resolveKitsuAnimeId error:', err);
+        return null;
+    }
+}
+
+async function fetchKitsuEpisode(anilistId, ep) {
+    if (!anilistId || !ep) return null;
+    var kitsuId = await resolveKitsuAnimeId(anilistId);
+    if (!kitsuId) return null;
+
+    var cacheKey = 'kitsu_ep_' + kitsuId + '_' + ep;
+    try {
+        var cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            var parsed = JSON.parse(cached);
+            if (Date.now() < parsed.expiry) return parsed.data;
+        }
+    } catch (_) {}
+
+    try {
+        var resp = await fetch('https://kitsu.io/api/edge/anime/' + encodeURIComponent(kitsuId) + '/episodes?filter%5Bnumber%5D=' + encodeURIComponent(ep), {
+            headers: { 'Accept': 'application/vnd.api+json' }
+        });
+        if (!resp.ok) return null;
+        var json = await resp.json();
+        var attrs = json?.data?.[0]?.attributes || null;
+        var data = attrs ? {
+            title: attrs.titles?.en_us || attrs.canonicalTitle || '',
+            synopsis: attrs.synopsis || attrs.description || ''
+        } : null;
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify({ data: data, expiry: Date.now() + JIKAN_EP_CACHE_TTL }));
+        } catch (_) {}
+        return data;
+    } catch (err) {
+        console.warn('fetchKitsuEpisode error:', err);
+        return null;
+    }
+}
+
 async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
     const modal = document.getElementById('resumenModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -31,22 +127,52 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
             let title = `Episodio ${epNum}`;
             let synopsis = 'Sin resumen individual disponible. Marcá tu progreso y completá el anime.';
             let thumbnail = '';
-            let url = '';
             let site = '';
 
             if (streamEp) {
                 title = streamEp.title || `Episodio ${epNum}`;
                 thumbnail = streamEp.thumbnail || '';
-                url = streamEp.url || '';
                 site = streamEp.site || '';
-                synopsis = `Este episodio está disponible para ver oficialmente en ${site}. Podés reproducirlo haciendo clic en el enlace de streaming abajo.`;
-                if (typeof translateText === 'function' && streamEp.title && !streamEp.title.startsWith('Episodio')) {
-                    try { title = await translateText(streamEp.title); } catch (_) {}
-                }
+                synopsis = `Este episodio está disponible oficialmente en ${site}. Marcá tu progreso y completá el anime.`;
             }
 
-            const fillerLabel = 'No especificado (Canon probable)';
-            const fillerColor = '#22c55e';
+            // Sinopsis real del episodio: Jikan (MAL) primero, Kitsu de fallback
+            let fillerLabel = 'No especificado (Canon probable)';
+            let fillerColor = '#22c55e';
+            let epSynopsis = '';
+            const jikanEp = await fetchJikanEpisode(item?.mal_id, epNum);
+            if (jikanEp) {
+                if (jikanEp.title) title = jikanEp.title;
+                if (jikanEp.synopsis) epSynopsis = jikanEp.synopsis;
+                if (jikanEp.filler) {
+                    fillerLabel = 'Relleno';
+                    fillerColor = '#f59e0b';
+                } else if (jikanEp.recap) {
+                    fillerLabel = 'Recap';
+                    fillerColor = '#94a3b8';
+                } else {
+                    fillerLabel = 'Canon';
+                }
+            }
+            if (!epSynopsis) {
+                const kitsuEp = await fetchKitsuEpisode(item?.id, epNum);
+                if (kitsuEp) {
+                    if (kitsuEp.title && (!jikanEp || !jikanEp.title)) title = kitsuEp.title;
+                    if (kitsuEp.synopsis) epSynopsis = kitsuEp.synopsis;
+                }
+            }
+            if (epSynopsis) {
+                synopsis = epSynopsis.replace(/\s*\(Source:.*?\)\s*$/i, '').trim();
+            }
+
+            if (typeof translateText === 'function') {
+                if (title && !title.startsWith('Episodio')) {
+                    try { title = await translateText(title); } catch (_) {}
+                }
+                if (epSynopsis) {
+                    try { synopsis = await translateText(synopsis); } catch (_) {}
+                }
+            }
 
             html = `
                 <div class="modal-episode-info" style="display: flex; flex-direction: column; gap: 15px;">
@@ -62,14 +188,9 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
                         ${site ? `<p style="margin: 4px 0;"><strong>Streaming Oficial:</strong> <span style="color: #fff; padding: 2px 6px; background: rgba(0, 242, 255, 0.1); border-radius: 4px; border: 1px solid var(--accent-cyan);">${escapeHtml(site)}</span></p>` : ''}
                     </div>
                     <div class="modal-synopsis" style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; margin-top: 5px;">
-                        <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 1rem;">INFORMACIÓN</h4>
+                        <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 1rem;">${epSynopsis ? 'RESUMEN' : 'INFORMACIÓN'}</h4>
                         <p style="margin: 0; color: #ccc; line-height: 1.5; font-size: 0.95rem;">${escapeHtml(synopsis)}</p>
                     </div>
-                    ${url ? `
-                        <a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer" class="details-btn" style="text-align: center; margin-top: 10px; display: block; background: linear-gradient(90deg, #bc13fe, #00f2ff); border: none; color: white; padding: 12px; border-radius: 6px; font-weight: bold; text-decoration: none; box-shadow: 0 0 15px rgba(0, 242, 255, 0.35); text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease-in-out;">
-                            Reproducir en ${escapeHtml(site)} ↗
-                        </a>
-                    ` : ''}
                 </div>
             `;
         } else {

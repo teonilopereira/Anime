@@ -295,8 +295,9 @@ main { padding-bottom: 24px; }
 .catalog-suggestions.is-open { display: grid; gap: 6px; }
 
 .catalog-suggestion {
-    display: grid;
-    gap: 2px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
     padding: 10px 12px;
     border-radius: 12px;
     text-decoration: none;
@@ -1104,6 +1105,12 @@ main { padding-bottom: 24px; }
     position: relative;
     z-index: 95;
     overflow: hidden;
+}
+
+/* Con sugerencias abiertas el JS agrega .has-suggestions: sin esto el
+   overflow:hidden del contenedor recorta el dropdown y nunca se ve */
+.catalog-search-filter-container.has-suggestions {
+    overflow: visible;
 }
 
 /* Fila superior: icon + input (expande) + separador | + botón filtro */

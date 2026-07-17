@@ -675,6 +675,144 @@
     font-weight: 700;
     width: fit-content;
 }
+
+/* ── En emisión / en publicación ── */
+@keyframes airing-pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(34, 197, 94, 0.7); }
+    50%      { opacity: 0.5; box-shadow: 0 0 2px rgba(34, 197, 94, 0.4); }
+}
+
+.detail-status.is-airing {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    color: #4ade80;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.18);
+}
+
+.detail-status.is-airing::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: airing-pulse 1.6s ease-in-out infinite;
+}
+
+/* ── Próximo episodio (anime en emisión) ── */
+.next-episode-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 12px 0 4px;
+    padding: 12px 18px;
+    border-radius: var(--radius-lg);
+    background:
+        linear-gradient(90deg, rgba(0, 242, 255, 0.06), transparent 65%),
+        rgba(5, 8, 18, 0.85);
+    border: 1px solid rgba(0, 242, 255, 0.30);
+    box-shadow: 0 0 16px rgba(0, 242, 255, 0.12), inset 0 0 12px rgba(0, 242, 255, 0.04);
+}
+
+.next-episode-card .next-ep-dot {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.8);
+    animation: airing-pulse 1.6s ease-in-out infinite;
+}
+
+.next-episode-card .next-ep-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.next-episode-card .next-ep-label {
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.next-episode-card .next-ep-num {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.35);
+}
+
+.next-episode-card .next-ep-when {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.next-episode-card .next-ep-countdown {
+    margin-left: auto;
+    padding-left: 14px;
+    border-left: 1px solid rgba(0, 242, 255, 0.18);
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .next-episode-card {
+        width: 100%;
+        gap: 10px;
+        padding: 10px 14px;
+    }
+
+    .next-episode-card .next-ep-countdown {
+        font-size: 0.9rem;
+    }
+}
+
+/* ── Cuadraditos de episodios en emisión ── */
+@keyframes next-ep-pulse {
+    0%, 100% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.25); border-color: rgba(0, 242, 255, 0.55); }
+    50%      { box-shadow: 0 0 16px rgba(0, 242, 255, 0.55); border-color: rgba(0, 242, 255, 0.95); }
+}
+
+.cuadrado-item.is-next-ep {
+    border-color: rgba(0, 242, 255, 0.7);
+    animation: next-ep-pulse 1.8s ease-in-out infinite;
+    cursor: default;
+    opacity: 1;
+}
+
+.cuadrado-item.is-next-ep:hover {
+    transform: none;
+}
+
+.cuadrado-item .prox-tag {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 6px rgba(0, 242, 255, 0.5);
+}
+
+.cuadrado-item.is-unaired {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.cuadrado-item.is-unaired:hover {
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+}
 .card-demographic {
     display: inline-flex;
     padding: 3px 10px;

@@ -175,6 +175,8 @@
             source: item.source || null,
             duration: item.duration || null,
             countryOfOrigin: item.countryOfOrigin || null,
+            nextAiringEpisode: item.nextAiringEpisode || null,
+            streamingEpisodes: item.streamingEpisodes || [],
             seasons: buildSeasonsFromItem(item, type)
         };
     }
@@ -379,6 +381,8 @@
                 id idMal title { romaji english } coverImage { extraLarge large }
                 episodes chapters volumes status genres averageScore description type format
                 season seasonYear source duration countryOfOrigin
+                nextAiringEpisode { airingAt timeUntilAiring episode }
+                streamingEpisodes { title thumbnail url site }
                 studios { nodes { name } }
                 relations {
                     edges {
