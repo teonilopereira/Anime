@@ -1034,6 +1034,35 @@
     padding: 3px 8px;
 }
 
+/* Select de estado de seguimiento en el dorso */
+.watch-status-select {
+    width: 100%;
+    min-height: 30px;
+    margin-top: 8px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(77, 134, 255, 0.35);
+    background: rgba(6, 9, 20, 0.9);
+    color: rgba(255, 255, 255, 0.85);
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.watch-status-select:hover,
+.watch-status-select:focus {
+    border-color: rgba(77, 134, 255, 0.65);
+    box-shadow: 0 0 10px rgba(77, 134, 255, 0.2);
+    outline: none;
+}
+
+.watch-status-select option {
+    background: #060914;
+    color: #fff;
+}
+
 .card-back-neon .card-back-actions {
     display: flex;
     justify-content: center;

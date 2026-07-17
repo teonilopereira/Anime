@@ -1258,6 +1258,52 @@ main { padding-bottom: 24px; }
    SEARCH BAR — wide container, flat inner layout
    Structure: container > wrap (row) + dropdown
    ============================================= */
+/* ── Tabs de descubrimiento del catálogo ── */
+.catalog-browse-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0 0;
+}
+
+.browse-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.65);
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.browse-tab:hover {
+    border-color: rgba(77, 134, 255, 0.5);
+    color: #7ea8ff;
+    background: rgba(77, 134, 255, 0.08);
+}
+
+.browse-tab.is-active {
+    border-color: rgba(77, 134, 255, 0.65);
+    background: rgba(77, 134, 255, 0.14);
+    color: #7ea8ff;
+    box-shadow: 0 0 12px rgba(77, 134, 255, 0.18);
+}
+
+@media (max-width: 640px) {
+    .browse-tab {
+        padding: 6px 11px;
+        font-size: 0.58rem;
+    }
+}
+
 .catalog-search-filter-container {
     display: flex;
     flex-direction: column;
@@ -2492,6 +2538,35 @@ main { padding-bottom: 24px; }
     padding: 3px 8px;
 }
 
+/* Select de estado de seguimiento en el dorso */
+.watch-status-select {
+    width: 100%;
+    min-height: 30px;
+    margin-top: 8px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(77, 134, 255, 0.35);
+    background: rgba(6, 9, 20, 0.9);
+    color: rgba(255, 255, 255, 0.85);
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.watch-status-select:hover,
+.watch-status-select:focus {
+    border-color: rgba(77, 134, 255, 0.65);
+    box-shadow: 0 0 10px rgba(77, 134, 255, 0.2);
+    outline: none;
+}
+
+.watch-status-select option {
+    background: #060914;
+    color: #fff;
+}
+
 .card-back-neon .card-back-actions {
     display: flex;
     justify-content: center;
@@ -2905,8 +2980,8 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
    MIS LISTAS: GRID RESPONSIVE Y PERFIL
 ========================================== */
 body[data-page="listas"] {
-    --nav-accent: #a855f7;
-    --nav-accent-soft: rgba(168, 85, 247, 0.18);
+    --nav-accent: #4d86ff;
+    --nav-accent-soft: rgba(77, 134, 255, 0.18);
 }
 
 body[data-page="listas"] .lists-header {

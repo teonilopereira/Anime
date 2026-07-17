@@ -253,7 +253,12 @@ async function signInWithEmail(email, password) {
 }
 
 // ─── Estados de ítems (fav / viewed) ─────────────────────────────
-async function saveItemState({ category, itemId, fav = false, viewed = false, meta = {} }) {
+// save_item_state_v3 agrega watch_status (viendo/pendiente/pausado/abandonado).
+// Si la función no existe en la base (migración no aplicada), cae a v2 y el
+// estado de seguimiento queda solo en el almacenamiento local.
+let _rpcV3Available = true;
+
+async function saveItemState({ category, itemId, fav = false, viewed = false, meta = {}, watchStatus }) {
     const user = await getCurrentUserAsync();
     if (!user) throw new Error("Tenés que iniciar sesión.");
 
@@ -261,15 +266,30 @@ async function saveItemState({ category, itemId, fav = false, viewed = false, me
     // item_states.meta ya no se usa (la función SQL guarda '{}' directamente).
     const itemData = (meta && typeof meta === 'object' && meta.titulo) ? meta : null;
 
-    const { error } = await supabase.rpc('save_item_state_v2', {
+    const baseParams = {
         p_user_id:   user.id,
         p_category:  String(category || ""),
         p_item_id:   String(itemId   || ""),
         p_fav:       !!fav,
         p_viewed:    !!viewed,
         p_item_data: itemData
-    });
+    };
 
+    if (_rpcV3Available && watchStatus !== undefined) {
+        const { error } = await supabase.rpc('save_item_state_v3', {
+            ...baseParams,
+            p_watch_status: String(watchStatus || "")
+        });
+        if (!error) return;
+        // 42883 = undefined_function; PGRST202 = function not found en PostgREST
+        if (error.code === '42883' || error.code === 'PGRST202' || /save_item_state_v3/.test(String(error.message || ''))) {
+            _rpcV3Available = false;
+        } else {
+            throw error;
+        }
+    }
+
+    const { error } = await supabase.rpc('save_item_state_v2', baseParams);
     if (error) throw error;
 }
 
@@ -277,13 +297,20 @@ async function loadItemStates(category = "") {
     const user = await getCurrentUserAsync();
     if (!user) return [];
 
-    let query = supabase
-        .from("item_states_with_details")
-        .select("id, category, fav, viewed, titulo, img, info, status, updated_at");
+    // watch_status solo existe si se aplicó la migración; si la columna
+    // no está en la vista, reintentar sin ella.
+    const buildQuery = (withWatchStatus) => {
+        const cols = "id, category, fav, viewed, titulo, img, info, status, updated_at"
+            + (withWatchStatus ? ", watch_status" : "");
+        let q = supabase.from("item_states_with_details").select(cols);
+        if (category) q = q.eq("category", category);
+        return q;
+    };
 
-    if (category) query = query.eq("category", category);
-
-    const { data, error } = await query;
+    let { data, error } = await buildQuery(true);
+    if (error && /watch_status/.test(String(error.message || ''))) {
+        ({ data, error } = await buildQuery(false));
+    }
     if (error) { console.warn("loadItemStates:", error.message); return []; }
 
     return (data || []).map((row) => ({
@@ -291,6 +318,7 @@ async function loadItemStates(category = "") {
         category:  row.category || '',
         fav:       row.fav    ? 1 : 0,
         viewed:    row.viewed ? 1 : 0,
+        watch_status: row.watch_status || '',
         meta:      { titulo: row.titulo, img: row.img, info: row.info, status: row.status },
         updated_at: row.updated_at
     }));

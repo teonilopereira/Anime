@@ -1089,6 +1089,52 @@ main { padding-bottom: 24px; }
    SEARCH BAR — wide container, flat inner layout
    Structure: container > wrap (row) + dropdown
    ============================================= */
+/* ── Tabs de descubrimiento del catálogo ── */
+.catalog-browse-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0 0;
+}
+
+.browse-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.65);
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.browse-tab:hover {
+    border-color: rgba(77, 134, 255, 0.5);
+    color: #7ea8ff;
+    background: rgba(77, 134, 255, 0.08);
+}
+
+.browse-tab.is-active {
+    border-color: rgba(77, 134, 255, 0.65);
+    background: rgba(77, 134, 255, 0.14);
+    color: #7ea8ff;
+    box-shadow: 0 0 12px rgba(77, 134, 255, 0.18);
+}
+
+@media (max-width: 640px) {
+    .browse-tab {
+        padding: 6px 11px;
+        font-size: 0.58rem;
+    }
+}
+
 .catalog-search-filter-container {
     display: flex;
     flex-direction: column;

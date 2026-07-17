@@ -194,8 +194,8 @@ body[data-page="novelas"] .catalog-neon-card .card-back-neon {
    MIS LISTAS: GRID RESPONSIVE Y PERFIL
 ========================================== */
 body[data-page="listas"] {
-    --nav-accent: #a855f7;
-    --nav-accent-soft: rgba(168, 85, 247, 0.18);
+    --nav-accent: #4d86ff;
+    --nav-accent-soft: rgba(77, 134, 255, 0.18);
 }
 
 body[data-page="listas"] .lists-header {
