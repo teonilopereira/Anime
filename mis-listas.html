@@ -20,7 +20,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.css?v=14">
+        <link rel="stylesheet" href="css/bundle.css?v=16">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
@@ -34,8 +34,10 @@
 
         /* Sidebar */
         .lists-sidebar {
-            background: rgba(5,2,15,0.92);
-            border-right: 1px solid rgba(188,19,254,0.18);
+            background:
+                repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80,130,255,0.012) 3px, rgba(80,130,255,0.012) 4px),
+                linear-gradient(180deg, rgba(6,8,18,0.95), rgba(4,5,12,0.95));
+            border-right: 1px solid rgba(77,134,255,0.2);
             padding: 24px 16px;
             display: flex;
             flex-direction: column;
@@ -43,16 +45,30 @@
         }
         .lists-sidebar::-webkit-scrollbar { width: 4px; }
         .lists-sidebar::-webkit-scrollbar-track { background: transparent; }
-        .lists-sidebar::-webkit-scrollbar-thumb { background: rgba(188,19,254,0.3); border-radius: 2px; }
+        .lists-sidebar::-webkit-scrollbar-thumb { background: rgba(77,134,255,0.3); border-radius: 2px; }
 
         .sidebar-profile {
             background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(188,19,254,0.2);
+            border: 1px solid rgba(77,134,255,0.25);
             border-radius: 14px;
             padding: 16px;
-            transition: border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .sidebar-profile:hover { border-color: rgba(188,19,254,0.4); }
+        .sidebar-profile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 12px;
+            width: 42%; height: 3px;
+            background: linear-gradient(90deg, #4d86ff, #1c46f0);
+            clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+            filter: drop-shadow(0 0 4px rgba(77,134,255,0.5));
+        }
+        .sidebar-profile:hover {
+            border-color: rgba(77,134,255,0.5);
+            box-shadow: 0 0 18px rgba(77,134,255,0.12);
+        }
         .sidebar-avatar-wrap {
             display: flex;
             flex-direction: column;
@@ -64,7 +80,7 @@
             width: 68px;
             height: 68px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #bc13fe, #00f2ff, #bc13fe);
+            background: linear-gradient(135deg, #2f6bff, #00f2ff, #2f6bff);
             background-size: 200% 200%;
             animation: avatarGlow 3s ease infinite;
             display: flex;
@@ -102,7 +118,7 @@
             width: 52px;
             height: 52px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #bc13fe, #00f2ff);
+            background: linear-gradient(135deg, #2f6bff, #00f2ff);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -137,7 +153,7 @@
         }
         .lists-profile-fill {
             height: 100%;
-            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            background: linear-gradient(90deg, #2f6bff, #00f2ff);
             border-radius: 3px;
             transition: width 0.6s ease;
         }
@@ -171,13 +187,13 @@
             border-color: rgba(0,242,255,0.5);
         }
         .lists-profile-btn.secondary {
-            border-color: rgba(188,19,254,0.25);
-            background: rgba(188,19,254,0.06);
-            color: #bc13fe;
+            border-color: rgba(77,134,255,0.3);
+            background: rgba(77,134,255,0.06);
+            color: #7ea8ff;
         }
         .lists-profile-btn.secondary:hover {
-            background: rgba(188,19,254,0.14);
-            border-color: rgba(188,19,254,0.5);
+            background: rgba(77,134,255,0.14);
+            border-color: rgba(77,134,255,0.55);
         }
 
         /* Invitado sidebar */
@@ -193,11 +209,11 @@
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            border: 2px solid rgba(168,85,247,0.5);
+            border: 2px solid rgba(77,134,255,0.55);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(145deg, #1c1032, #7c3aed);
+            background: linear-gradient(145deg, #0e1a3a, #2f6bff);
         }
         .sidebar-guest-icon svg { width: 32px; height: 32px; }
         .sidebar-guest-text { color: rgba(255,255,255,0.5); font-size: 0.8rem; font-family: 'Rajdhani', sans-serif; margin: 0 0 4px; }
@@ -207,22 +223,22 @@
             align-items: center;
             gap: 8px;
             padding: 10px 22px;
-            border: 1.5px solid rgba(168,85,247,0.7);
+            border: 1.5px solid rgba(77,134,255,0.7);
             border-radius: 999px;
-            background: linear-gradient(135deg, rgba(91,33,182,0.4), rgba(168,85,247,0.2));
-            color: #e2d9f3;
+            background: linear-gradient(135deg, rgba(28,70,240,0.4), rgba(77,134,255,0.2));
+            color: #d9e4ff;
             font-family: 'Rajdhani', sans-serif;
             font-size: 0.9rem;
             font-weight: 700;
             text-decoration: none;
             letter-spacing: 0.04em;
             transition: all 0.2s;
-            box-shadow: 0 0 14px rgba(168,85,247,0.25);
+            box-shadow: 0 0 14px rgba(77,134,255,0.25);
         }
         .sidebar-login-btn:hover {
-            background: linear-gradient(135deg, rgba(124,58,237,0.6), rgba(168,85,247,0.4));
+            background: linear-gradient(135deg, rgba(28,70,240,0.6), rgba(77,134,255,0.4));
             color: #fff;
-            box-shadow: 0 0 20px rgba(168,85,247,0.4);
+            box-shadow: 0 0 20px rgba(77,134,255,0.4);
         }
         .sidebar-login-btn svg { width: 16px; height: 16px; }
 
@@ -251,11 +267,25 @@
             color: #fff;
             border-color: rgba(255,255,255,0.08);
         }
+        .sidebar-link {
+            position: relative;
+        }
         .sidebar-link.active {
-            background: rgba(188,19,254,0.12);
-            border-color: rgba(188,19,254,0.25);
-            color: #bc13fe;
-            box-shadow: 0 0 12px rgba(188,19,254,0.08);
+            background: rgba(77,134,255,0.12);
+            border-color: rgba(77,134,255,0.3);
+            color: #7ea8ff;
+            box-shadow: 0 0 12px rgba(77,134,255,0.1);
+        }
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
+            background: linear-gradient(180deg, #4d86ff, #1c46f0);
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(77,134,255,0.7);
         }
         .sidebar-icon { font-size: 1rem; width: 20px; text-align: center; }
 
@@ -264,7 +294,7 @@
             padding: 14px;
             border-radius: 12px;
             border: 1px solid rgba(188,19,254,0.15);
-            background: linear-gradient(135deg, rgba(188,19,254,0.05), rgba(0,242,255,0.03));
+            background: linear-gradient(135deg, rgba(77,134,255,0.05), rgba(0,242,255,0.03));
             position: relative;
             overflow: hidden;
         }
@@ -273,7 +303,7 @@
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(188,19,254,0.4), transparent);
+            background: linear-gradient(90deg, transparent, rgba(77,134,255,0.5), transparent);
         }
         .quote-text {
             font-size: 0.82rem;
@@ -284,7 +314,7 @@
         }
         .quote-author {
             font-size: 0.75rem;
-            color: rgba(188,19,254,0.7);
+            color: rgba(126,168,255,0.8);
             margin-top: 6px;
             font-family: 'Orbitron', sans-serif;
         }
@@ -305,7 +335,7 @@
         .lists-title {
             font-family: 'Orbitron', sans-serif;
             font-size: clamp(1.3rem, 3vw, 1.8rem);
-            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            background: linear-gradient(90deg, #4d86ff, #00f2ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -322,13 +352,29 @@
         /* Puntos / nivel */
         .points-new { margin-bottom: 20px; }
         .points-card {
-            background: rgba(10,5,25,0.8);
-            border: 1px solid rgba(0,242,255,0.2);
+            background:
+                linear-gradient(90deg, rgba(77,134,255,0.05), transparent 55%),
+                rgba(6,9,20,0.85);
+            border: 1px solid rgba(77,134,255,0.28);
             border-radius: 14px;
             padding: 16px 20px;
-            transition: border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .points-card:hover { border-color: rgba(0,242,255,0.35); }
+        .points-card::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 14px;
+            width: 52px; height: 8px;
+            background: repeating-linear-gradient(115deg, rgba(77,134,255,0.85) 0px, rgba(77,134,255,0.85) 6px, transparent 6px, transparent 12px);
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            filter: drop-shadow(0 0 4px rgba(77,134,255,0.45));
+        }
+        .points-card:hover {
+            border-color: rgba(77,134,255,0.5);
+            box-shadow: 0 0 18px rgba(77,134,255,0.12);
+        }
         .points-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .points-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #fff; }
         .points-value { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #00f2ff; }
@@ -340,7 +386,7 @@
         }
         .points-fill {
             height: 100%;
-            background: linear-gradient(90deg, #bc13fe, #00f2ff);
+            background: linear-gradient(90deg, #2f6bff, #00f2ff);
             border-radius: 3px;
             transition: width 0.8s ease;
         }
@@ -383,8 +429,8 @@
             color: #00f2ff;
             box-shadow: 0 0 12px rgba(0,242,255,0.1);
         }
-        .lists-chip.export-btn { border-color: rgba(188,19,254,0.25); color: #bc13fe; }
-        .lists-chip.export-btn:hover { background: rgba(188,19,254,0.1); }
+        .lists-chip.export-btn { border-color: rgba(77,134,255,0.3); color: #7ea8ff; }
+        .lists-chip.export-btn:hover { background: rgba(77,134,255,0.1); border-color: rgba(77,134,255,0.5); }
         .chip-icon { font-size: 0.9rem; }
 
         /* ? CARDS DE CATEGORÍA ? */
@@ -395,8 +441,10 @@
             margin-bottom: 28px;
         }
         .category-card {
-            background: rgba(10,5,25,0.82);
-            border: 1px solid rgba(188,19,254,0.18);
+            background:
+                repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80,130,255,0.01) 3px, rgba(80,130,255,0.01) 4px),
+                linear-gradient(180deg, rgba(10,12,24,0.9), rgba(5,6,14,0.9));
+            border: 1px solid rgba(77,134,255,0.18);
             border-radius: 16px;
             padding: 20px;
             display: flex;
@@ -406,6 +454,21 @@
             transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
             position: relative;
             overflow: hidden;
+        }
+        /* Barra superior inclinada en el color de la categoría */
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 14px;
+            width: 34%; height: 3px;
+            background: var(--cat-accent, linear-gradient(90deg, #4d86ff, #1c46f0));
+            clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+            opacity: 0.85;
+            transition: opacity 0.25s, filter 0.25s;
+        }
+        .category-card:hover::before {
+            opacity: 1;
+            filter: drop-shadow(0 0 5px currentColor);
         }
         .category-card::after {
             content: '';
@@ -420,26 +483,30 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 24px rgba(0,0,0,0.3);
         }
-        .category-card.anime { border-color: rgba(0,242,255,0.2); }
+        .category-card.anime { border-color: rgba(0,242,255,0.2); --cat-accent: linear-gradient(90deg, #00f2ff, #0891b2); color: #00f2ff; }
         .category-card.anime:hover {
             border-color: rgba(0,242,255,0.5);
             box-shadow: 0 6px 24px rgba(0,242,255,0.08);
         }
-        .category-card.manga { border-color: rgba(34,197,94,0.2); }
+        .category-card.manga { border-color: rgba(34,197,94,0.2); --cat-accent: linear-gradient(90deg, #22c55e, #15803d); color: #22c55e; }
         .category-card.manga:hover {
             border-color: rgba(34,197,94,0.5);
             box-shadow: 0 6px 24px rgba(34,197,94,0.08);
         }
-        .category-card.novelas { border-color: rgba(244,63,94,0.2); }
+        .category-card.novelas { border-color: rgba(244,63,94,0.2); --cat-accent: linear-gradient(90deg, #f43f5e, #be123c); color: #f43f5e; }
         .category-card.novelas:hover {
             border-color: rgba(244,63,94,0.5);
             box-shadow: 0 6px 24px rgba(244,63,94,0.08);
         }
-        .category-card.actividad { border-color: rgba(188,19,254,0.2); }
+        .category-card.actividad { border-color: rgba(77,134,255,0.22); --cat-accent: linear-gradient(90deg, #4d86ff, #1c46f0); color: #4d86ff; }
         .category-card.actividad:hover {
-            border-color: rgba(188,19,254,0.5);
-            box-shadow: 0 6px 24px rgba(188,19,254,0.08);
+            border-color: rgba(77,134,255,0.5);
+            box-shadow: 0 6px 24px rgba(77,134,255,0.1);
         }
+        /* El color de la card es solo para acentos; restaurar texto */
+        .category-card .cat-card-label,
+        .category-card .cat-card-count { color: #fff; }
+        .category-card .cat-card-sublabel { color: rgba(255,255,255,0.4); }
 
         .cat-card-head {
             display: flex;
@@ -459,7 +526,7 @@
         .cat-card-icon.cyan { background: rgba(0,242,255,0.15); }
         .cat-card-icon.green { background: rgba(34,197,94,0.15); }
         .cat-card-icon.pink { background: rgba(244,63,94,0.15); }
-        .cat-card-icon.purple { background: rgba(188,19,254,0.15); }
+        .cat-card-icon.purple { background: rgba(77,134,255,0.15); }
         .cat-card-label {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.7rem;
@@ -575,11 +642,27 @@
             padding: 12px 16px;
             transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
         }
-        .list-row-card:hover {
-            border-color: rgba(188,19,254,0.3);
-            transform: translateX(4px);
-            box-shadow: 0 2px 16px rgba(188,19,254,0.06);
+        .list-row-card {
+            position: relative;
         }
+        .list-row-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 18%;
+            bottom: 18%;
+            width: 2px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, #4d86ff, #1c46f0);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .list-row-card:hover {
+            border-color: rgba(77,134,255,0.35);
+            transform: translateX(4px);
+            box-shadow: 0 2px 16px rgba(77,134,255,0.08);
+        }
+        .list-row-card:hover::before { opacity: 1; }
         .row-rank {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.78rem;
@@ -627,8 +710,8 @@
             display: inline-block;
             padding: 1px 7px;
             border-radius: 999px;
-            background: rgba(188,19,254,0.12);
-            border: 1px solid rgba(188,19,254,0.18);
+            background: rgba(77,134,255,0.1);
+            border: 1px solid rgba(77,134,255,0.22);
             color: rgba(255,255,255,0.7);
             font-family: 'Rajdhani', sans-serif;
             font-size: 0.68rem;
@@ -639,8 +722,8 @@
             transition: background 0.2s, border-color 0.2s;
         }
         .row-desc .genre-chip:hover {
-            background: rgba(188,19,254,0.2);
-            border-color: rgba(188,19,254,0.35);
+            background: rgba(77,134,255,0.2);
+            border-color: rgba(77,134,255,0.4);
             color: #fff;
         }
         .row-status {
@@ -743,7 +826,7 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1.2rem;
             font-weight: 700;
-            color: #bc13fe;
+            color: #4d86ff;
         }
         .achievement-title {
             font-family: 'Orbitron', sans-serif;
@@ -779,8 +862,9 @@
             transition: border-color 0.2s, transform 0.2s;
         }
         .stat-card:hover {
-            border-color: rgba(188,19,254,0.2);
+            border-color: rgba(77,134,255,0.3);
             transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(77,134,255,0.08);
         }
         .stat-icon { font-size: 1.6rem; }
         .stat-value {
@@ -792,6 +876,71 @@
             font-size: 0.78rem;
             color: rgba(255,255,255,0.45);
             font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* ? CALENDARIO DE EMISIÓN ? */
+        .calendar-grid { display: flex; flex-direction: column; gap: 22px; }
+        .calendar-day-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #7ea8ff;
+            margin: 0 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(77,134,255,0.25);
+        }
+        .calendar-row {
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background: rgba(10,12,24,0.8);
+            border: 1px solid rgba(255,255,255,0.07);
+            text-decoration: none;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+        .calendar-row:hover {
+            border-color: rgba(77,134,255,0.4);
+            transform: translateX(4px);
+            box-shadow: 0 2px 16px rgba(77,134,255,0.1);
+        }
+        .calendar-cover {
+            width: 44px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(77,134,255,0.25);
+            display: block;
+        }
+        .calendar-cover--empty { background: rgba(255,255,255,0.05); }
+        .calendar-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .calendar-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.82rem;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .calendar-meta {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .calendar-countdown {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #7ea8ff;
+            white-space: nowrap;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(77,134,255,0.3);
+            background: rgba(77,134,255,0.08);
         }
 
         /* Responsive */
@@ -872,6 +1021,9 @@
             <nav class="sidebar-nav">
                 <a href="#mis-listas" class="sidebar-link active" data-tab="mis-listas">
                     <span class="sidebar-icon"><i data-lucide="clipboard-list"></i></span> <span data-i18n="lists.sidebar.mis_listas">Mis Listas</span>
+                </a>
+                <a href="#calendario" class="sidebar-link" data-tab="calendario">
+                    <span class="sidebar-icon"><i data-lucide="calendar-days"></i></span> <span>Calendario</span>
                 </a>
                 <a href="#actividad" class="sidebar-link" data-tab="actividad">
                     <span class="sidebar-icon"><i data-lucide="activity"></i></span> <span data-i18n="lists.sidebar.actividad">Actividad</span>
@@ -962,6 +1114,9 @@
                     <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon"><i data-lucide="clipboard-list"></i></span> <span data-i18n="lists.filter.todo">Todo</span></button>
                     <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon"><i data-lucide="heart"></i></span> <span data-i18n="lists.filter.me_gusta">Me gusta</span></button>
                     <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon"><i data-lucide="eye"></i></span> <span data-i18n="lists.filter.vistos">Vistos</span></button>
+                    <button class="lists-chip" id="filterWatching" type="button"><span class="chip-icon"><i data-lucide="play"></i></span> <span>Viendo</span></button>
+                    <button class="lists-chip" id="filterPlanned" type="button"><span class="chip-icon"><i data-lucide="clock"></i></span> <span>Pendiente</span></button>
+                    <button class="lists-chip" id="filterDropped" type="button"><span class="chip-icon"><i data-lucide="x-circle"></i></span> <span>Abandonado</span></button>
                     <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon"><i data-lucide="download"></i></span> <span data-i18n="lists.filter.exportar">Exportar JSON</span></button>
                 </div>
 
@@ -986,6 +1141,19 @@
                     </div>
                     <div id="recommendGrid" class="recommend-grid-vertical" aria-live="polite"></div>
                 </section>
+            </div>
+
+            <!-- ? CALENDARIO ? -->
+            <div id="tab-calendario" class="tab-content">
+                <header class="lists-header-new">
+                    <h1 class="lists-title">CALENDARIO DE EMISIÓN</h1>
+                    <p class="lists-subtitle">Próximos episodios de tus animes favoritos y en seguimiento.</p>
+                </header>
+                <div id="calendarGrid" class="calendar-grid" aria-live="polite">
+                    <div class="lists-empty">
+                        <h3>Cargando calendario...</h3>
+                    </div>
+                </div>
             </div>
 
             <!-- ? ACTIVIDAD ? -->
@@ -1027,7 +1195,7 @@
     <script src="js/core/i18n.js"></script>
     <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js" async></script>
-    <script src="js/core-bundle.min.js?v=10" defer></script>
+    <script src="js/core-bundle.min.js?v=11" defer></script>
     <script src="js/pages/mis-listas.js" defer></script>
 </body>
 

@@ -71,6 +71,19 @@
         return status === 'Completed';
     }
 
+    // MAL my_status → estado de seguimiento de la app
+    function malStatusToWatchStatus(status) {
+        switch (status) {
+            case 'Watching':
+            case 'Reading':       return 'viendo';
+            case 'Plan to Watch':
+            case 'Plan to Read':  return 'pendiente';
+            case 'On-Hold':       return 'pausado';
+            case 'Dropped':       return 'abandonado';
+            default:              return '';
+        }
+    }
+
     function batchLookupAnilistIds(entries, mediaType) {
         if (!entries.length) return Promise.resolve({});
         var ids = entries.map(function (e) { return e.malId; });
@@ -90,13 +103,14 @@
         }, Promise.resolve({}));
     }
 
-    function saveItemState(supabase, category, anilistId, viewed) {
+    function saveItemState(supabase, category, anilistId, viewed, watchStatus) {
         return supabase.saveItemState({
             category: category,
             itemId: String(anilistId),
             fav: false,
             viewed: viewed,
-            meta: {}
+            meta: {},
+            watchStatus: watchStatus || ''
         });
     }
 
@@ -257,7 +271,16 @@
                         return;
                     }
                     var viewed = shouldMarkViewed(item.entry.status);
-                    return saveItemState(supabase, item.category, anilistId, viewed).then(function () {
+                    var wstatus = malStatusToWatchStatus(item.entry.status);
+                    if (wstatus) {
+                        // Copia local para que el estado se vea aunque la
+                        // migración watch_status no esté aplicada en Supabase
+                        try {
+                            var uid = (typeof getCurrentUserId === 'function') ? getCurrentUserId() : null;
+                            if (uid && uid !== 'Invitado') UserStore.setItem('u:' + uid + '|item:' + anilistId + '|wstatus', wstatus);
+                        } catch (_) {}
+                    }
+                    return saveItemState(supabase, item.category, anilistId, viewed, wstatus).then(function () {
                         results.ok++;
                         done++;
                         var title = item.entry.title;

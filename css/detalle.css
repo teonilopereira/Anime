@@ -776,6 +776,44 @@
     }
 }
 
+/* ── Estado de seguimiento (pills en detalle) ── */
+.watch-status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 4px;
+}
+
+.watch-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.65);
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.watch-status-pill:hover {
+    border-color: rgba(77, 134, 255, 0.5);
+    color: #7ea8ff;
+    background: rgba(77, 134, 255, 0.08);
+}
+
+.watch-status-pill.is-active {
+    border-color: rgba(77, 134, 255, 0.65);
+    background: rgba(77, 134, 255, 0.14);
+    color: #7ea8ff;
+    box-shadow: 0 0 12px rgba(77, 134, 255, 0.18);
+}
+
 /* ── Cuadraditos de episodios en emisión ── */
 @keyframes next-ep-pulse {
     0%, 100% { box-shadow: 0 0 5px rgba(0, 242, 255, 0.25); border-color: rgba(0, 242, 255, 0.55); }

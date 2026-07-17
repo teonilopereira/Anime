@@ -363,6 +363,13 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <button class="action-btn viewed-btn" type="button" aria-label="Marcar como visto"><i data-lucide="eye"></i></button>
                 </div>
 
+                <div class="watch-status-bar" role="group" aria-label="Estado de seguimiento">
+                    <button class="watch-status-pill" type="button" data-wstatus="viendo">Viendo</button>
+                    <button class="watch-status-pill" type="button" data-wstatus="pendiente">Pendiente</button>
+                    <button class="watch-status-pill" type="button" data-wstatus="pausado">En pausa</button>
+                    <button class="watch-status-pill" type="button" data-wstatus="abandonado">Abandonado</button>
+                </div>
+
                 <div class="detail-actions">
                     <a class="detail-back" href="${escapeHtml(backHref)}" data-restore-catalog="1">Volver al catálogo</a>
                 </div>
@@ -373,6 +380,32 @@ function renderDetalle(item, nombreUrl, categoria) {
     `;
 
     startNextEpCountdown(localLayout);
+
+    // ── Estado de seguimiento (pills) ──
+    const wsBar = localLayout.querySelector('.watch-status-bar');
+    if (wsBar && typeof window.getWatchStatus === 'function') {
+        const syncPills = () => {
+            const current = window.getWatchStatus(getCurrentUserIdSafe(), item.id);
+            wsBar.querySelectorAll('.watch-status-pill').forEach(p => {
+                p.classList.toggle('is-active', p.getAttribute('data-wstatus') === current);
+            });
+        };
+        syncPills();
+        wsBar.addEventListener('click', (e) => {
+            const pill = e.target.closest('.watch-status-pill');
+            if (!pill) return;
+            const status = pill.getAttribute('data-wstatus');
+            const current = window.getWatchStatus(getCurrentUserIdSafe(), item.id);
+            window.setWatchStatus(item.id, current === status ? '' : status, {
+                titulo: item.titulo,
+                img: item.img,
+                info: item.info || '',
+                total: totalVols || item.episodes || 0,
+                __category: categoria || 'manga'
+            });
+            syncPills();
+        });
+    }
 
     const favBtn = localLayout.querySelector('.fav-btn');
     const viewedBtn = localLayout.querySelector('.viewed-btn');

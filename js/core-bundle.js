@@ -1121,7 +1121,13 @@
 
         // Build variable declarations
         var varDecls = ['$page: Int', '$perPage: Int'];
-        var mediaArgs = ['type: ' + type, 'sort: POPULARITY_DESC'];
+        var sort = /^[A-Z_]+$/.test(String(opts.sort || '')) ? opts.sort : 'POPULARITY_DESC';
+        var mediaArgs = ['type: ' + type, 'sort: ' + sort];
+
+        if (isAnime && /^(WINTER|SPRING|SUMMER|FALL)$/.test(String(opts.season || '')) && Number(opts.seasonYear) > 1950) {
+            mediaArgs.push('season: ' + opts.season);
+            mediaArgs.push('seasonYear: ' + Number(opts.seasonYear));
+        }
 
         if (opts.search) {
             varDecls.push('$search: String');
@@ -1152,6 +1158,26 @@
         }
 
         return 'query (' + varDecls.join(', ') + ') { Page(page: $page, perPage: $perPage) { media(' + mediaArgs.join(', ') + ') { ' + fields + ' } } }';
+    }
+
+    // ─── Modos de descubrimiento del catálogo ───
+    function getCurrentSeason() {
+        var now = new Date();
+        var m = now.getMonth() + 1;
+        var season = m <= 3 ? 'WINTER' : (m <= 6 ? 'SPRING' : (m <= 9 ? 'SUMMER' : 'FALL'));
+        return { season: season, year: now.getFullYear() };
+    }
+    window.getCurrentSeason = getCurrentSeason;
+
+    // browse: 'populares' (default) | 'tendencias' | 'puntuados' | 'temporada' (solo anime)
+    function browseToQueryOpts(browse, isAnime) {
+        if (browse === 'tendencias') return { sort: 'TRENDING_DESC' };
+        if (browse === 'puntuados') return { sort: 'SCORE_DESC' };
+        if (browse === 'temporada' && isAnime) {
+            var s = getCurrentSeason();
+            return { sort: 'POPULARITY_DESC', season: s.season, seasonYear: s.year };
+        }
+        return {};
     }
 
     var MEDIA_BY_ID_QUERY = `
@@ -1254,20 +1280,21 @@
     window.getTopAnimes = async function (page, filters) {
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult);
+        var browse = filters.browse || '';
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
         var cacheKey = 'topAnimes_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
         try {
-            var query = buildDynamicQuery({
+            var query = buildDynamicQuery(Object.assign({
                 type: 'ANIME',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
                 formatIn: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC']
-            });
+            }, browseToQueryOpts(browse, true)));
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
@@ -1287,20 +1314,21 @@
     window.getTopMangas = async function (page, filters) {
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult);
+        var browse = filters.browse || '';
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
         var cacheKey = 'topMangas_mix_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
         try {
             var perPage = Math.floor(PER_PAGE / 3) || 13;
-            var baseOpts = {
+            var baseOpts = Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false
-            };
+            }, browseToQueryOpts(browse, false));
             var baseVars = {};
             if (filters.search) baseVars.search = filters.search;
             if (split.genres.length) baseVars.genre_in = split.genres;
@@ -1349,20 +1377,21 @@
     window.getTopNovelas = async function (page, filters) {
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult);
+        var browse = filters.browse || '';
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
         var cacheKey = 'novonly_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
         try {
-            var query = buildDynamicQuery({
+            var query = buildDynamicQuery(Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
                 formatIn: ['NOVEL']
-            });
+            }, browseToQueryOpts(browse, false)));
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
@@ -1404,6 +1433,61 @@
         } catch (err) {
             console.warn('AniList getAnimeById error:', err);
             return null;
+        }
+    };
+
+    // ─── Calendario de emisión: próximos episodios de un set de animes ───
+    var AIRING_QUERY = `
+        query ($ids: [Int]) {
+            Page(page: 1, perPage: 50) {
+                media(id_in: $ids, type: ANIME, status: RELEASING) {
+                    id
+                    title { romaji english }
+                    coverImage { large }
+                    nextAiringEpisode { airingAt episode }
+                }
+            }
+        }`;
+
+    window.getAiringSchedule = async function (ids) {
+        var numIds = (Array.isArray(ids) ? ids : [])
+            .map(Number)
+            .filter(function (n) { return Number.isFinite(n) && n > 0; });
+        if (!numIds.length) return [];
+
+        numIds.sort(function (a, b) { return a - b; });
+        var cacheKey = 'airing_' + numIds.join(',');
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+
+        try {
+            var chunks = [];
+            for (var i = 0; i < numIds.length; i += 50) chunks.push(numIds.slice(i, i + 50));
+
+            var pages = await Promise.all(chunks.map(function (chunk) {
+                return anilistFetch(AIRING_QUERY, { ids: chunk });
+            }));
+
+            var results = [];
+            pages.forEach(function (json) {
+                (json?.data?.Page?.media || []).forEach(function (m) {
+                    if (!m?.nextAiringEpisode?.airingAt) return;
+                    results.push({
+                        id: m.id,
+                        title: extractTitle(m.title),
+                        img: m.coverImage?.large || '',
+                        episode: Number(m.nextAiringEpisode.episode) || 0,
+                        airingAt: Number(m.nextAiringEpisode.airingAt) || 0
+                    });
+                });
+            });
+
+            results.sort(function (a, b) { return a.airingAt - b.airingAt; });
+            setApiCache(cacheKey, results, 30 * 60 * 1000);
+            return results;
+        } catch (err) {
+            console.warn('getAiringSchedule error:', err);
+            return [];
         }
     };
 
@@ -2390,17 +2474,85 @@ window.getCurrentUser      = getCurrentUser;
             || String(error?.code || '').toLowerCase().includes('pgrst301');
     }
 
-    function syncItemStateToSupabase(category, itemId, fav, viewed, meta = {}) {
+    function syncItemStateToSupabase(category, itemId, fav, viewed, meta = {}, watchStatus) {
         const client = window.AppSupabase;
+        const payload = { category, itemId, fav, viewed, meta };
+        if (watchStatus !== undefined) payload.watchStatus = watchStatus;
         if (!client?.saveItemState) {
-            enqueueSync({ type: "item_state", payload: { category, itemId, fav, viewed, meta } });
+            enqueueSync({ type: "item_state", payload });
             return;
         }
-        client.saveItemState({ category, itemId, fav, viewed, meta }).catch((error) => {
+        client.saveItemState(payload).catch((error) => {
             if (isSessionExpired(error)) showSyncToast('Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.', 'session-expired');
             console.warn('No se pudo sincronizar estado a Supabase:', error);
-            enqueueSync({ type: "item_state", payload: { category, itemId, fav, viewed, meta } });
+            enqueueSync({ type: "item_state", payload });
         });
+    }
+
+    // ─── Estados de seguimiento (viendo / pendiente / pausado / abandonado) ──
+    const WATCH_STATUSES = ['viendo', 'pendiente', 'pausado', 'abandonado'];
+    const WATCH_STATUS_LABELS = {
+        viendo: 'Viendo',
+        pendiente: 'Pendiente',
+        pausado: 'En pausa',
+        abandonado: 'Abandonado'
+    };
+
+    function watchStatusKey(userId, itemId) {
+        return `u:${userId}|item:${itemId}|wstatus`;
+    }
+
+    function getWatchStatus(userId, itemId) {
+        const v = UserStore.getItem(watchStatusKey(userId, itemId)) || '';
+        return WATCH_STATUSES.includes(v) ? v : '';
+    }
+
+    // status: '' para quitar. meta opcional {titulo, img, info, total, __category}.
+    function setWatchStatus(itemId, status, meta) {
+        const userId = getCurrentUserId();
+        if (userId === 'Invitado') {
+            window.location.href = 'Login.html';
+            return '';
+        }
+        const clean = WATCH_STATUSES.includes(status) ? status : '';
+        const key = watchStatusKey(userId, itemId);
+        if (clean) UserStore.setItem(key, clean);
+        else UserStore.removeItem(key);
+        UserStore.setItem(`u:${userId}|item:${itemId}|ts`, new Date().toISOString());
+
+        const metaKey = `u:${userId}|itemMeta:${itemId}`;
+        const fav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
+        const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
+
+        if (meta && meta.titulo && (clean || fav || viewed)) {
+            UserStore.setItem(metaKey, JSON.stringify({
+                id: String(itemId),
+                titulo: String(meta.titulo).trim(),
+                img: meta.img || '',
+                info: meta.info || '',
+                total: Number(meta.total || 0),
+                __category: meta.__category || getCategoriaActual() || 'listas'
+            }));
+        } else if (!clean && !fav && !viewed) {
+            UserStore.removeItem(metaKey);
+        }
+
+        var metaObj = {};
+        try {
+            var metaRaw = UserStore.getItem(metaKey);
+            if (metaRaw) metaObj = JSON.parse(metaRaw);
+        } catch { /* meta corrupta: sync sin datos de item */ }
+
+        syncItemStateToSupabase(
+            (metaObj && metaObj.__category) || 'listas',
+            String(itemId), fav, viewed, metaObj, clean
+        );
+
+        if (window.Toast) {
+            if (clean) window.Toast.success('Estado: ' + WATCH_STATUS_LABELS[clean]);
+            else window.Toast.info('Estado de seguimiento quitado');
+        }
+        return clean;
     }
 
     function addUserPoints(userId, delta) {
@@ -2752,12 +2904,13 @@ window.getCurrentUser      = getCurrentUser;
         if (card && userId !== 'Invitado') {
             const fav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
             const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
+            const wstatus = getWatchStatus(userId, itemId);
             const category = card.getAttribute('data-category') || getCategoriaActual() || '';
             const img = card.getAttribute('data-img') || card.querySelector('img')?.getAttribute('src') || '';
             const titulo = card.getAttribute('data-title') || card.querySelector('.catalog-card-title, .card-back-title')?.textContent || itemId;
             const info = card.getAttribute('data-genres') || card.getAttribute('data-search-index') || '';
 
-            if (fav || viewed) {
+            if (fav || viewed || wstatus) {
                 var total = card.getAttribute('data-total') || '0';
                 var finalCat = String(category);
                 if (!finalCat) finalCat = 'listas';
@@ -2784,7 +2937,8 @@ window.getCurrentUser      = getCurrentUser;
             String(itemId),
             !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav')),
             !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed')),
-            metaObj
+            metaObj,
+            getWatchStatus(userId, itemId)
         );
 
         updateCardProgressIndicators();
@@ -2829,6 +2983,9 @@ window.getCurrentUser      = getCurrentUser;
                 if (!key) return;
                 if (state.fav)    UserStore.setItem(statusStorageKey(userId, key, 'fav'), '1');
                 if (state.viewed) UserStore.setItem(statusStorageKey(userId, key, 'viewed'), '1');
+                if (state.watch_status && WATCH_STATUSES.includes(state.watch_status)) {
+                    UserStore.setItem(watchStatusKey(userId, key), state.watch_status);
+                }
             });
             applyRemoteStateToCards(cards, userId);
         }).catch((error) => {
@@ -2867,6 +3024,9 @@ window.getCurrentUser      = getCurrentUser;
             const viewedBtn = card.querySelector('.viewed-btn');
             if (favBtn)    favBtn.classList.toggle('active', isFav);
             if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
+
+            const statusSel = card.querySelector('.watch-status-select');
+            if (statusSel) statusSel.value = getWatchStatus(userId, itemId);
         });
 
         updateCardProgressIndicators();
@@ -2908,6 +3068,25 @@ window.getCurrentUser      = getCurrentUser;
             if (!itemId || !action) return;
             toggleStatus(btn, action, itemId);
         });
+
+        // Select de estado de seguimiento en el dorso de las cards
+        document.addEventListener('change', function (e) {
+            var sel = e.target;
+            if (!sel || !sel.classList || !sel.classList.contains('watch-status-select')) return;
+            var itemId = sel.getAttribute('data-item-id');
+            if (!itemId) return;
+            // parentElement: el select también tiene data-item-id y closest lo matchearía
+            var card = sel.parentElement ? sel.parentElement.closest('[data-item-id]') : null;
+            var meta = card ? {
+                titulo: card.getAttribute('data-title') || card.querySelector('.catalog-card-title, .card-back-title')?.textContent || itemId,
+                img: card.querySelector('img')?.getAttribute('src') || '',
+                info: card.getAttribute('data-genres') || '',
+                total: card.getAttribute('data-total') || 0,
+                __category: card.getAttribute('data-category') || getCategoriaActual() || ''
+            } : null;
+            var applied = setWatchStatus(itemId, sel.value, meta);
+            if (applied !== sel.value) sel.value = applied;
+        });
     })();
 
     // Exports
@@ -2921,6 +3100,10 @@ window.getCurrentUser      = getCurrentUser;
     window.getUserPoints = getUserPoints;
     window.levelFromPoints = levelFromPoints;
     window.pointsKey = pointsKey;
+    window.setWatchStatus = setWatchStatus;
+    window.getWatchStatus = getWatchStatus;
+    window.WATCH_STATUSES = WATCH_STATUSES;
+    window.WATCH_STATUS_LABELS = WATCH_STATUS_LABELS;
 
 })(window);
 
@@ -3220,6 +3403,13 @@ function buildCatalogCardHtml(options) {
                                 ${detailBtn}
                                 ${statusHtml}
                             </div>
+                            <select class="watch-status-select" data-item-id="${safeId}" aria-label="Estado de seguimiento">
+                                <option value="">— Seguimiento —</option>
+                                <option value="viendo">Viendo</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="pausado">En pausa</option>
+                                <option value="abandonado">Abandonado</option>
+                            </select>
                             <div class="card-back-actions">
                                 <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
                                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -3453,7 +3643,27 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
 // ==========================================
 
 window.__activeStateFilter = AnimeDestiny.internals.__activeStateFilter = 'all';
-window.__catalogFilters = { search: '', genres: [], isAdult: false };
+window.__catalogFilters = { search: '', genres: [], isAdult: false, browse: '' };
+
+// Modo de descubrimiento persistido por categoría
+function getBrowsePref(categoria) {
+    try {
+        var v = localStorage.getItem('pref:browse:' + categoria) || '';
+        return ['tendencias', 'puntuados', 'temporada'].includes(v) ? v : '';
+    } catch (_) { return ''; }
+}
+
+function setBrowsePref(categoria, value) {
+    try {
+        if (value) localStorage.setItem('pref:browse:' + categoria, value);
+        else localStorage.removeItem('pref:browse:' + categoria);
+    } catch (_) {}
+}
+
+// Aplicar el modo guardado antes de la primera carga del catálogo
+try {
+    window.__catalogFilters.browse = getBrowsePref(document.body?.getAttribute('data-page') || '');
+} catch (_) {}
 var _genreWidgetsListenersAdded = false;
 var _searchListenersAdded = false;
 
@@ -3739,7 +3949,8 @@ function inicializarBusquedaCatalogo() {
         window.__catalogFilters = {
             search: input.value.trim() || '',
             genres: Array.isArray(window.__selectedGenres) ? [...window.__selectedGenres] : [],
-            isAdult: nsfwCheck ? nsfwCheck.checked : false
+            isAdult: nsfwCheck ? nsfwCheck.checked : false,
+            browse: getBrowsePref(cat)
         };
 
         // Reset pagination and reload
@@ -3785,6 +3996,25 @@ function inicializarBusquedaCatalogo() {
                 if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
                 else applyFilter();
             }
+        });
+    }
+
+    // ── Modos de descubrimiento (Populares / Tendencias / etc.) ──
+    var browseTabs = document.getElementById('browseTabs');
+    if (browseTabs) {
+        var syncBrowseTabs = function () {
+            var current = getBrowsePref(categoria);
+            browseTabs.querySelectorAll('.browse-tab').forEach(function (tab) {
+                tab.classList.toggle('is-active', (tab.getAttribute('data-browse') || '') === current);
+            });
+        };
+        syncBrowseTabs();
+        browseTabs.addEventListener('click', function (e) {
+            var tab = e.target.closest('.browse-tab');
+            if (!tab) return;
+            setBrowsePref(categoria, tab.getAttribute('data-browse') || '');
+            syncBrowseTabs();
+            reloadCatalog();
         });
     }
 

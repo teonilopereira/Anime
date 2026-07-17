@@ -342,7 +342,13 @@
 
         // Build variable declarations
         var varDecls = ['$page: Int', '$perPage: Int'];
-        var mediaArgs = ['type: ' + type, 'sort: POPULARITY_DESC'];
+        var sort = /^[A-Z_]+$/.test(String(opts.sort || '')) ? opts.sort : 'POPULARITY_DESC';
+        var mediaArgs = ['type: ' + type, 'sort: ' + sort];
+
+        if (isAnime && /^(WINTER|SPRING|SUMMER|FALL)$/.test(String(opts.season || '')) && Number(opts.seasonYear) > 1950) {
+            mediaArgs.push('season: ' + opts.season);
+            mediaArgs.push('seasonYear: ' + Number(opts.seasonYear));
+        }
 
         if (opts.search) {
             varDecls.push('$search: String');
@@ -373,6 +379,26 @@
         }
 
         return 'query (' + varDecls.join(', ') + ') { Page(page: $page, perPage: $perPage) { media(' + mediaArgs.join(', ') + ') { ' + fields + ' } } }';
+    }
+
+    // ─── Modos de descubrimiento del catálogo ───
+    function getCurrentSeason() {
+        var now = new Date();
+        var m = now.getMonth() + 1;
+        var season = m <= 3 ? 'WINTER' : (m <= 6 ? 'SPRING' : (m <= 9 ? 'SUMMER' : 'FALL'));
+        return { season: season, year: now.getFullYear() };
+    }
+    window.getCurrentSeason = getCurrentSeason;
+
+    // browse: 'populares' (default) | 'tendencias' | 'puntuados' | 'temporada' (solo anime)
+    function browseToQueryOpts(browse, isAnime) {
+        if (browse === 'tendencias') return { sort: 'TRENDING_DESC' };
+        if (browse === 'puntuados') return { sort: 'SCORE_DESC' };
+        if (browse === 'temporada' && isAnime) {
+            var s = getCurrentSeason();
+            return { sort: 'POPULARITY_DESC', season: s.season, seasonYear: s.year };
+        }
+        return {};
     }
 
     var MEDIA_BY_ID_QUERY = `
@@ -475,20 +501,21 @@
     window.getTopAnimes = async function (page, filters) {
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult);
+        var browse = filters.browse || '';
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
         var cacheKey = 'topAnimes_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
         try {
-            var query = buildDynamicQuery({
+            var query = buildDynamicQuery(Object.assign({
                 type: 'ANIME',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
                 formatIn: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC']
-            });
+            }, browseToQueryOpts(browse, true)));
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
@@ -508,20 +535,21 @@
     window.getTopMangas = async function (page, filters) {
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult);
+        var browse = filters.browse || '';
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
         var cacheKey = 'topMangas_mix_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
         try {
             var perPage = Math.floor(PER_PAGE / 3) || 13;
-            var baseOpts = {
+            var baseOpts = Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false
-            };
+            }, browseToQueryOpts(browse, false));
             var baseVars = {};
             if (filters.search) baseVars.search = filters.search;
             if (split.genres.length) baseVars.genre_in = split.genres;
@@ -570,20 +598,21 @@
     window.getTopNovelas = async function (page, filters) {
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult);
+        var browse = filters.browse || '';
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
         var cacheKey = 'novonly_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
         try {
-            var query = buildDynamicQuery({
+            var query = buildDynamicQuery(Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
                 formatIn: ['NOVEL']
-            });
+            }, browseToQueryOpts(browse, false)));
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
@@ -625,6 +654,61 @@
         } catch (err) {
             console.warn('AniList getAnimeById error:', err);
             return null;
+        }
+    };
+
+    // ─── Calendario de emisión: próximos episodios de un set de animes ───
+    var AIRING_QUERY = `
+        query ($ids: [Int]) {
+            Page(page: 1, perPage: 50) {
+                media(id_in: $ids, type: ANIME, status: RELEASING) {
+                    id
+                    title { romaji english }
+                    coverImage { large }
+                    nextAiringEpisode { airingAt episode }
+                }
+            }
+        }`;
+
+    window.getAiringSchedule = async function (ids) {
+        var numIds = (Array.isArray(ids) ? ids : [])
+            .map(Number)
+            .filter(function (n) { return Number.isFinite(n) && n > 0; });
+        if (!numIds.length) return [];
+
+        numIds.sort(function (a, b) { return a - b; });
+        var cacheKey = 'airing_' + numIds.join(',');
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+
+        try {
+            var chunks = [];
+            for (var i = 0; i < numIds.length; i += 50) chunks.push(numIds.slice(i, i + 50));
+
+            var pages = await Promise.all(chunks.map(function (chunk) {
+                return anilistFetch(AIRING_QUERY, { ids: chunk });
+            }));
+
+            var results = [];
+            pages.forEach(function (json) {
+                (json?.data?.Page?.media || []).forEach(function (m) {
+                    if (!m?.nextAiringEpisode?.airingAt) return;
+                    results.push({
+                        id: m.id,
+                        title: extractTitle(m.title),
+                        img: m.coverImage?.large || '',
+                        episode: Number(m.nextAiringEpisode.episode) || 0,
+                        airingAt: Number(m.nextAiringEpisode.airingAt) || 0
+                    });
+                });
+            });
+
+            results.sort(function (a, b) { return a.airingAt - b.airingAt; });
+            setApiCache(cacheKey, results, 30 * 60 * 1000);
+            return results;
+        } catch (err) {
+            console.warn('getAiringSchedule error:', err);
+            return [];
         }
     };
 

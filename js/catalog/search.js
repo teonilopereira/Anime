@@ -4,7 +4,27 @@
 // ==========================================
 
 window.__activeStateFilter = AnimeDestiny.internals.__activeStateFilter = 'all';
-window.__catalogFilters = { search: '', genres: [], isAdult: false };
+window.__catalogFilters = { search: '', genres: [], isAdult: false, browse: '' };
+
+// Modo de descubrimiento persistido por categoría
+function getBrowsePref(categoria) {
+    try {
+        var v = localStorage.getItem('pref:browse:' + categoria) || '';
+        return ['tendencias', 'puntuados', 'temporada'].includes(v) ? v : '';
+    } catch (_) { return ''; }
+}
+
+function setBrowsePref(categoria, value) {
+    try {
+        if (value) localStorage.setItem('pref:browse:' + categoria, value);
+        else localStorage.removeItem('pref:browse:' + categoria);
+    } catch (_) {}
+}
+
+// Aplicar el modo guardado antes de la primera carga del catálogo
+try {
+    window.__catalogFilters.browse = getBrowsePref(document.body?.getAttribute('data-page') || '');
+} catch (_) {}
 var _genreWidgetsListenersAdded = false;
 var _searchListenersAdded = false;
 
@@ -290,7 +310,8 @@ function inicializarBusquedaCatalogo() {
         window.__catalogFilters = {
             search: input.value.trim() || '',
             genres: Array.isArray(window.__selectedGenres) ? [...window.__selectedGenres] : [],
-            isAdult: nsfwCheck ? nsfwCheck.checked : false
+            isAdult: nsfwCheck ? nsfwCheck.checked : false,
+            browse: getBrowsePref(cat)
         };
 
         // Reset pagination and reload
@@ -336,6 +357,25 @@ function inicializarBusquedaCatalogo() {
                 if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
                 else applyFilter();
             }
+        });
+    }
+
+    // ── Modos de descubrimiento (Populares / Tendencias / etc.) ──
+    var browseTabs = document.getElementById('browseTabs');
+    if (browseTabs) {
+        var syncBrowseTabs = function () {
+            var current = getBrowsePref(categoria);
+            browseTabs.querySelectorAll('.browse-tab').forEach(function (tab) {
+                tab.classList.toggle('is-active', (tab.getAttribute('data-browse') || '') === current);
+            });
+        };
+        syncBrowseTabs();
+        browseTabs.addEventListener('click', function (e) {
+            var tab = e.target.closest('.browse-tab');
+            if (!tab) return;
+            setBrowsePref(categoria, tab.getAttribute('data-browse') || '');
+            syncBrowseTabs();
+            reloadCatalog();
         });
     }
 

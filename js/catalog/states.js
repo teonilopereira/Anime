@@ -51,17 +51,85 @@
             || String(error?.code || '').toLowerCase().includes('pgrst301');
     }
 
-    function syncItemStateToSupabase(category, itemId, fav, viewed, meta = {}) {
+    function syncItemStateToSupabase(category, itemId, fav, viewed, meta = {}, watchStatus) {
         const client = window.AppSupabase;
+        const payload = { category, itemId, fav, viewed, meta };
+        if (watchStatus !== undefined) payload.watchStatus = watchStatus;
         if (!client?.saveItemState) {
-            enqueueSync({ type: "item_state", payload: { category, itemId, fav, viewed, meta } });
+            enqueueSync({ type: "item_state", payload });
             return;
         }
-        client.saveItemState({ category, itemId, fav, viewed, meta }).catch((error) => {
+        client.saveItemState(payload).catch((error) => {
             if (isSessionExpired(error)) showSyncToast('Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.', 'session-expired');
             console.warn('No se pudo sincronizar estado a Supabase:', error);
-            enqueueSync({ type: "item_state", payload: { category, itemId, fav, viewed, meta } });
+            enqueueSync({ type: "item_state", payload });
         });
+    }
+
+    // ─── Estados de seguimiento (viendo / pendiente / pausado / abandonado) ──
+    const WATCH_STATUSES = ['viendo', 'pendiente', 'pausado', 'abandonado'];
+    const WATCH_STATUS_LABELS = {
+        viendo: 'Viendo',
+        pendiente: 'Pendiente',
+        pausado: 'En pausa',
+        abandonado: 'Abandonado'
+    };
+
+    function watchStatusKey(userId, itemId) {
+        return `u:${userId}|item:${itemId}|wstatus`;
+    }
+
+    function getWatchStatus(userId, itemId) {
+        const v = UserStore.getItem(watchStatusKey(userId, itemId)) || '';
+        return WATCH_STATUSES.includes(v) ? v : '';
+    }
+
+    // status: '' para quitar. meta opcional {titulo, img, info, total, __category}.
+    function setWatchStatus(itemId, status, meta) {
+        const userId = getCurrentUserId();
+        if (userId === 'Invitado') {
+            window.location.href = 'Login.html';
+            return '';
+        }
+        const clean = WATCH_STATUSES.includes(status) ? status : '';
+        const key = watchStatusKey(userId, itemId);
+        if (clean) UserStore.setItem(key, clean);
+        else UserStore.removeItem(key);
+        UserStore.setItem(`u:${userId}|item:${itemId}|ts`, new Date().toISOString());
+
+        const metaKey = `u:${userId}|itemMeta:${itemId}`;
+        const fav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
+        const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
+
+        if (meta && meta.titulo && (clean || fav || viewed)) {
+            UserStore.setItem(metaKey, JSON.stringify({
+                id: String(itemId),
+                titulo: String(meta.titulo).trim(),
+                img: meta.img || '',
+                info: meta.info || '',
+                total: Number(meta.total || 0),
+                __category: meta.__category || getCategoriaActual() || 'listas'
+            }));
+        } else if (!clean && !fav && !viewed) {
+            UserStore.removeItem(metaKey);
+        }
+
+        var metaObj = {};
+        try {
+            var metaRaw = UserStore.getItem(metaKey);
+            if (metaRaw) metaObj = JSON.parse(metaRaw);
+        } catch { /* meta corrupta: sync sin datos de item */ }
+
+        syncItemStateToSupabase(
+            (metaObj && metaObj.__category) || 'listas',
+            String(itemId), fav, viewed, metaObj, clean
+        );
+
+        if (window.Toast) {
+            if (clean) window.Toast.success('Estado: ' + WATCH_STATUS_LABELS[clean]);
+            else window.Toast.info('Estado de seguimiento quitado');
+        }
+        return clean;
     }
 
     function addUserPoints(userId, delta) {
@@ -413,12 +481,13 @@
         if (card && userId !== 'Invitado') {
             const fav = !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav'));
             const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
+            const wstatus = getWatchStatus(userId, itemId);
             const category = card.getAttribute('data-category') || getCategoriaActual() || '';
             const img = card.getAttribute('data-img') || card.querySelector('img')?.getAttribute('src') || '';
             const titulo = card.getAttribute('data-title') || card.querySelector('.catalog-card-title, .card-back-title')?.textContent || itemId;
             const info = card.getAttribute('data-genres') || card.getAttribute('data-search-index') || '';
 
-            if (fav || viewed) {
+            if (fav || viewed || wstatus) {
                 var total = card.getAttribute('data-total') || '0';
                 var finalCat = String(category);
                 if (!finalCat) finalCat = 'listas';
@@ -445,7 +514,8 @@
             String(itemId),
             !!UserStore.getItem(statusStorageKey(userId, itemId, 'fav')),
             !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed')),
-            metaObj
+            metaObj,
+            getWatchStatus(userId, itemId)
         );
 
         updateCardProgressIndicators();
@@ -490,6 +560,9 @@
                 if (!key) return;
                 if (state.fav)    UserStore.setItem(statusStorageKey(userId, key, 'fav'), '1');
                 if (state.viewed) UserStore.setItem(statusStorageKey(userId, key, 'viewed'), '1');
+                if (state.watch_status && WATCH_STATUSES.includes(state.watch_status)) {
+                    UserStore.setItem(watchStatusKey(userId, key), state.watch_status);
+                }
             });
             applyRemoteStateToCards(cards, userId);
         }).catch((error) => {
@@ -528,6 +601,9 @@
             const viewedBtn = card.querySelector('.viewed-btn');
             if (favBtn)    favBtn.classList.toggle('active', isFav);
             if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
+
+            const statusSel = card.querySelector('.watch-status-select');
+            if (statusSel) statusSel.value = getWatchStatus(userId, itemId);
         });
 
         updateCardProgressIndicators();
@@ -569,6 +645,25 @@
             if (!itemId || !action) return;
             toggleStatus(btn, action, itemId);
         });
+
+        // Select de estado de seguimiento en el dorso de las cards
+        document.addEventListener('change', function (e) {
+            var sel = e.target;
+            if (!sel || !sel.classList || !sel.classList.contains('watch-status-select')) return;
+            var itemId = sel.getAttribute('data-item-id');
+            if (!itemId) return;
+            // parentElement: el select también tiene data-item-id y closest lo matchearía
+            var card = sel.parentElement ? sel.parentElement.closest('[data-item-id]') : null;
+            var meta = card ? {
+                titulo: card.getAttribute('data-title') || card.querySelector('.catalog-card-title, .card-back-title')?.textContent || itemId,
+                img: card.querySelector('img')?.getAttribute('src') || '',
+                info: card.getAttribute('data-genres') || '',
+                total: card.getAttribute('data-total') || 0,
+                __category: card.getAttribute('data-category') || getCategoriaActual() || ''
+            } : null;
+            var applied = setWatchStatus(itemId, sel.value, meta);
+            if (applied !== sel.value) sel.value = applied;
+        });
     })();
 
     // Exports
@@ -582,5 +677,9 @@
     window.getUserPoints = getUserPoints;
     window.levelFromPoints = levelFromPoints;
     window.pointsKey = pointsKey;
+    window.setWatchStatus = setWatchStatus;
+    window.getWatchStatus = getWatchStatus;
+    window.WATCH_STATUSES = WATCH_STATUSES;
+    window.WATCH_STATUS_LABELS = WATCH_STATUS_LABELS;
 
 })(window);

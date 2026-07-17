@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-v16';
+const CACHE_NAME = 'anime-destiny-v17';
 const ASSETS = [
   '/',
   '/index.html',
