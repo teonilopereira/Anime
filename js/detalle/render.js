@@ -1,9 +1,63 @@
+// Traduce los enums de estado de AniList/MangaDex para mostrarlos.
+// Cualquier valor no reconocido (datos locales viejos ya en español) pasa tal cual.
+function formatMediaStatus(status, categoria) {
+    const enPublicacion = categoria === 'manga' || categoria === 'novelas';
+    const map = {
+        RELEASING: enPublicacion ? 'En publicación' : 'En emisión',
+        FINISHED: 'Finalizado',
+        NOT_YET_RELEASED: 'Próximamente',
+        HIATUS: 'En pausa',
+        CANCELLED: 'Cancelado'
+    };
+    return map[String(status || '').toUpperCase()] || status;
+}
+
+// Countdown del próximo episodio (un solo timer vivo por página)
+function formatCountdown(msLeft) {
+    const totalMin = Math.max(0, Math.floor(msLeft / 60000));
+    const d = Math.floor(totalMin / 1440);
+    const h = Math.floor((totalMin % 1440) / 60);
+    const m = totalMin % 60;
+    if (d > 0) return `${d}d ${h}h ${m}m`;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+}
+
+function startNextEpCountdown(localLayout) {
+    if (window.__nextEpTimer) {
+        clearInterval(window.__nextEpTimer);
+        window.__nextEpTimer = null;
+    }
+    const el = localLayout.querySelector('[data-airing-at]');
+    if (!el) return;
+    const airingMs = Number(el.getAttribute('data-airing-at')) * 1000;
+    if (!airingMs) return;
+
+    function tick() {
+        const left = airingMs - Date.now();
+        if (left <= 0) {
+            el.textContent = '¡Ya disponible!';
+            clearInterval(window.__nextEpTimer);
+            window.__nextEpTimer = null;
+            return;
+        }
+        el.textContent = formatCountdown(left);
+    }
+    tick();
+    window.__nextEpTimer = setInterval(tick, 30000);
+}
+
 function renderDetalle(item, nombreUrl, categoria) {
     window.__lastRenderedItem = AnimeDestiny.internals.__lastRenderedItem = item;
     window.__lastRenderedCategory = AnimeDestiny.internals.__lastRenderedCategory = categoria;
 
     const localLayout = document.getElementById('detail-local-layout');
     if (!localLayout) return;
+
+    if (window.__nextEpTimer) {
+        clearInterval(window.__nextEpTimer);
+        window.__nextEpTimer = null;
+    }
 
     setDetailViewState('local');
 
@@ -65,7 +119,41 @@ function renderDetalle(item, nombreUrl, categoria) {
     const isNovela = categoria === 'novelas';
     const isAnime = categoria === 'anime';
     const isMangaOrNovela = isManga || isNovela;
-    const status = item.status || item.estado || 'No especificado';
+    const rawStatus = item.status || item.estado || '';
+    const isAiring = String(rawStatus).toUpperCase() === 'RELEASING';
+    const status = formatMediaStatus(rawStatus, categoria) || 'No especificado';
+
+    // Próximo episodio (solo anime en emisión; airingAt es epoch absoluto,
+    // así el countdown queda bien aunque el detalle venga del cache de 1h)
+    const nextEp = item.nextAiringEpisode || null;
+    const nextEpMs = nextEp && Number(nextEp.airingAt) ? Number(nextEp.airingAt) * 1000 : 0;
+    let nextEpHtml = '';
+    if (isAnime && isAiring && nextEp && nextEpMs > Date.now()) {
+        const fecha = new Date(nextEpMs).toLocaleString('es-AR', {
+            weekday: 'short', day: 'numeric', month: 'short',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        });
+        nextEpHtml = `
+            <div class="next-episode-card">
+                <span class="next-ep-dot" aria-hidden="true"></span>
+                <div class="next-ep-body">
+                    <span class="next-ep-label">Próximo episodio</span>
+                    <strong class="next-ep-num">EP ${Number(nextEp.episode) || '?'}</strong>
+                    <span class="next-ep-when">${escapeHtml(fecha)} hs</span>
+                </div>
+                <div class="next-ep-countdown" data-airing-at="${Number(nextEp.airingAt)}"></div>
+            </div>
+        `;
+    }
+
+    // Cuadraditos en emisión: si conocemos el próximo episodio sabemos cuántos
+    // salieron, aunque AniList no publique el total (episodes: null en emisión).
+    // Solo aplica con una única temporada: la numeración de nextAiringEpisode
+    // es propia de esta entrada de AniList.
+    const nextEpNum = (isAnime && isAiring && nextEp && nextEpMs > Date.now())
+        ? (Number(nextEp.episode) || 0)
+        : 0;
+    const airedCount = nextEpNum > 0 ? nextEpNum - 1 : 0;
     const score = item.score ?? item.puntaje ?? item.calificacion ?? 'N/A';
     const countLabel = isMangaOrNovela ? 'Volúmenes' : isAnime ? 'Capítulos' : 'Capítulos';
     const countValue = isMangaOrNovela ? (volumenes || 'No especificado') : isAnime ? (item.capitulos || item.episodios || item.episodes || 'No especificado') : 'No especificado';
@@ -155,10 +243,13 @@ function renderDetalle(item, nombreUrl, categoria) {
         const animeStructure = getAnimeStructure(item);
         const temporadas = animeStructure.temporadas;
         const temporadasCount = temporadas.length;
-        const totalEps = Number(animeStructure.capitulos) || 0;
+        // En emisión sin total publicado: usar los episodios ya emitidos
+        const singleSeason = temporadasCount <= 1;
+        const totalEps = Number(animeStructure.capitulos)
+            || (singleSeason ? airedCount : 0);
         let watchedEpisodes = 0;
         temporadas.forEach((season, seasonIdx) => {
-            const eps = Number(season.episodios) || 0;
+            const eps = Number(season.episodios) || (singleSeason ? airedCount : 0);
             for (let ep = 1; ep <= eps; ep++) {
                 const key = episodeStorageKey(userId, item.id, seasonIdx, ep);
                 if (UserStore.getItem(key)) watchedEpisodes++;
@@ -249,7 +340,8 @@ function renderDetalle(item, nombreUrl, categoria) {
             <div class="detail-info">
                 ${demografiaHtml}
                 <h1 class="detail-title">${escapeHtml(item.titulo)}</h1>
-                <div class="detail-status"><span><i data-lucide="check-circle"></i></span> ${escapeHtml(status)}</div>
+                <div class="detail-status${isAiring ? ' is-airing' : ''}"><span><i data-lucide="${isAiring ? 'radio' : 'check-circle'}"></i></span> ${escapeHtml(status)}</div>
+                ${nextEpHtml}
                 ${detailStatsHtml}
 
                 <div class="detail-section detail-section-synopsis">
@@ -279,6 +371,8 @@ function renderDetalle(item, nombreUrl, categoria) {
         ${relatedHtml}
         <div id="comments-section"></div>
     `;
+
+    startNextEpCountdown(localLayout);
 
     const favBtn = localLayout.querySelector('.fav-btn');
     const viewedBtn = localLayout.querySelector('.viewed-btn');
@@ -467,10 +561,14 @@ function renderDetalle(item, nombreUrl, categoria) {
  
         if (isAnime) {
             const temporadas = parseTemporadas(item);
-            const totalEps = temporadas.reduce((acc, t) => acc + (Number(t.episodios) || 0), 0);
+            const singleSeason = temporadas.length <= 1;
+            // En emisión sin total publicado: usar los episodios ya emitidos
+            const totalEps = temporadas.reduce((acc, t) => acc + (Number(t.episodios) || 0), 0)
+                || (singleSeason ? airedCount : 0);
             let watchedEpisodes = 0;
-            temporadas.forEach((season, seasonIdx) => {
-                const eps = Number(season.episodios) || 0;
+            const seasonList = temporadas.length ? temporadas : [{ episodios: 0 }];
+            seasonList.forEach((season, seasonIdx) => {
+                const eps = Number(season.episodios) || (singleSeason ? airedCount : 0);
                 for (let ep = 1; ep <= eps; ep++) {
                     const key = episodeStorageKey(uId, item.id, seasonIdx, ep);
                     if (UserStore.getItem(key)) watchedEpisodes++;
@@ -538,7 +636,11 @@ function renderDetalle(item, nombreUrl, categoria) {
         function renderEpisodes(seasonIndex) {
             if (!epGrid) return;
             const season = seasons[seasonIndex] || seasons[0];
-            const eps = Number(season.episodios) || 0;
+            const rawEps = Number(season.episodios) || 0;
+
+            // En emisión: mostrar hasta el próximo episodio aunque no haya total
+            const applyAiring = nextEpNum > 0 && seasons.length === 1;
+            const eps = applyAiring ? Math.max(rawEps, nextEpNum) : rawEps;
 
             if (!eps) {
                 epGrid.innerHTML = `<span class="detail-chip detail-chip-muted">Episodios no especificados</span>`;
@@ -549,18 +651,34 @@ function renderDetalle(item, nombreUrl, categoria) {
                 const ep = i + 1;
                 const key = episodeStorageKey(getCurrentUserIdSafe(), item.id, seasonIndex, ep);
                 const active = UserStore.getItem(key) ? ' is-active' : '';
+
+                let airingCls = '';
+                let disabledAttr = '';
+                let proxTag = '';
+                let ariaExtra = '';
+                if (applyAiring && ep === nextEpNum) {
+                    airingCls = ' is-next-ep';
+                    disabledAttr = ' disabled';
+                    proxTag = '<span class="prox-tag">PRÓX.</span>';
+                    ariaExtra = ' (próximo episodio, aún no emitido)';
+                } else if (applyAiring && ep > nextEpNum) {
+                    airingCls = ' is-unaired';
+                    disabledAttr = ' disabled';
+                    ariaExtra = ' (aún no emitido)';
+                }
+
                 return `
 <div class="cuadrado-wrapper">
-    <button 
-        class="ep-btn cuadrado-item ${active ? 'is-active' : ''}" 
-        type="button"
+    <button
+        class="ep-btn cuadrado-item ${active ? 'is-active' : ''}${airingCls}"
+        type="button"${disabledAttr}
         data-season="${seasonIndex}"
         data-ep="${ep}"
-        aria-label="Episodio ${ep}">
-        ${String(ep).padStart(2, '0')}
+        aria-label="Episodio ${ep}${ariaExtra}">
+        ${String(ep).padStart(2, '0')}${proxTag}
     </button>
-    <button 
-        class="btn-resumen" 
+    <button
+        class="btn-resumen"
         data-season="${seasonIndex}"
         data-ep="${ep}">
         Resumen
