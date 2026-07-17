@@ -843,6 +843,13 @@ main { padding-bottom: 24px; }
     object-fit: cover;
     display: block;
 }
+.compare-cover-empty {
+    color: rgba(255, 255, 255, 0.35);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 .compare-empty {
     display: flex;
     align-items: center;
@@ -4981,5 +4988,3 @@ input, select, textarea, button {
         gap: 6px;
     }
 }
-
-
