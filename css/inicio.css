@@ -1,4 +1,41 @@
-/* inicio.css — carruseles de "Más populares" de la portada. */
+/* inicio.css — portada: separadores de seccion y carruseles. */
+
+/* ── Separador de sección ──
+   No tenia ningun estilo base: se renderizaba como texto plano del navegador
+   (16px, peso 400, alineado a la izquierda), desentonando con el resto. */
+.section-divider {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 3vw, 22px);
+    max-width: 1560px;
+    margin: 26px auto 4px;
+    padding: 0 clamp(12px, 3vw, 28px);
+}
+
+.section-divider::before,
+.section-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.38));
+}
+
+.section-divider::after {
+    background: linear-gradient(270deg, transparent, rgba(0, 242, 255, 0.38));
+}
+
+.section-divider span {
+    flex-shrink: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.82rem, 2vw, 1.02rem);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 16px rgba(0, 242, 255, 0.4);
+    white-space: nowrap;
+}
+
 
 .home-carousel {
     max-width: 1560px;
