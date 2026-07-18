@@ -1,5 +1,4 @@
-﻿/* ===== base.css ===== */
-
+/* ===== base.css ===== */
 /* Base: reset minimo, tipografias globales y variables compartidas. */
 :root {
     --primary-purple: #6a0dad;
@@ -130,9 +129,7 @@ textarea:focus-visible,
     outline-offset: 2px;
 }
 
-
 /* ===== theme.css ===== */
-
 /* Theme: paleta cyberpunk y variaciones por modulo. */
 :root {
     color-scheme: dark;
@@ -164,9 +161,7 @@ body[data-page="novelas"] {
     --nav-accent-soft: rgba(244, 63, 94, 0.18);
 }
 
-
 /* ===== components.css ===== */
-
 /* nav-accent overrides are defined in theme.css — no duplicates here. */
 
 body {
@@ -1499,9 +1494,7 @@ main { padding-bottom: 24px; }
     pointer-events: none;
 }
 
-
 /* ===== cards.css ===== */
-
 /* ==========================================
    CARDS, PROGRESS Y BOTONES DE DETALLE
 ========================================== */
@@ -2781,9 +2774,7 @@ main { padding-bottom: 24px; }
     }
 }
 
-
 /* ===== responsive.css ===== */
-
 /* Responsive */
 @media (max-width: 640px) {
     .modal-overlay {
@@ -4292,10 +4283,6 @@ input, select, textarea, button {
         display: none;
     }
 
-    .destiny-navbar .nav-user-grade {
-        display: none;
-    }
-
     .destiny-navbar .nav-user-btn {
         padding: 2px 8px;
         min-height: 20px;
@@ -4467,9 +4454,7 @@ input, select, textarea, button {
     }
 }
 
-
 /* ===== destiny-navbar.css ===== */
-
 /* Navbar estilo Anime Destiny para manga.html. */
 
 /* ── Mobile Bottom Tab Bar (base, oculto en desktop) ── */
@@ -4524,16 +4509,44 @@ input, select, textarea, button {
 .destiny-navbar::before {
     inset: 0;
     border-radius: inherit;
-    background:
+    background-image:
         linear-gradient(90deg, transparent 0%, rgba(77, 134, 255, 0.06) 15%, transparent 30%, transparent 70%, rgba(77, 134, 255, 0.06) 85%, transparent 100%),
-        repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80, 130, 255, 0.012) 3px, rgba(80, 130, 255, 0.012) 4px);
+        repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80, 130, 255, 0.012) 3px, rgba(80, 130, 255, 0.012) 4px),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
+        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55));
+    background-size:
+        100% 100%, 100% 100%,
+        14px 2px, 2px 14px,
+        14px 2px, 2px 14px,
+        14px 2px, 2px 14px,
+        14px 2px, 2px 14px;
+    background-position:
+        0 0, 0 0,
+        8px 6px, 8px 6px,
+        calc(100% - 8px) 6px, calc(100% - 8px) 6px,
+        8px calc(100% - 6px), 8px calc(100% - 6px),
+        calc(100% - 8px) calc(100% - 6px), calc(100% - 8px) calc(100% - 6px);
+    background-repeat: no-repeat;
 }
 
 .destiny-navbar::after {
     inset: auto 22px -1px 22px;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.75) 35%, rgba(77, 134, 255, 0.85) 65%, transparent);
+    background-size: 200% 100%;
     filter: drop-shadow(0 0 10px rgba(77, 134, 255, 0.9));
+    animation: nav-edge-sweep 7s linear infinite;
+}
+
+@keyframes nav-edge-sweep {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 .nav-brand {
@@ -4553,6 +4566,12 @@ input, select, textarea, button {
     display: grid;
     place-items: center;
     filter: drop-shadow(0 0 12px rgba(77, 134, 255, 0.55));
+    transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.nav-brand:hover .nav-brand-mark {
+    filter: drop-shadow(0 0 18px rgba(0, 242, 255, 0.75));
+    transform: scale(1.05);
 }
 
 .nav-brand-mark img {
@@ -4586,7 +4605,18 @@ input, select, textarea, button {
 
 .nav-brand-destiny {
     color: #4d86ff;
-    text-shadow: 0 0 14px rgba(77, 134, 255, 0.5);
+    background: linear-gradient(100deg, #4d86ff 0%, #4d86ff 35%, #9db8ff 46%, #00f2ff 50%, #9db8ff 54%, #4d86ff 65%, #4d86ff 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(77, 134, 255, 0.45));
+    animation: nav-brand-shimmer 7s linear infinite;
+}
+
+@keyframes nav-brand-shimmer {
+    0% { background-position: 230% 0; }
+    100% { background-position: -30% 0; }
 }
 
 .destiny-navbar .nav-links {
@@ -4629,6 +4659,26 @@ input, select, textarea, button {
     background: rgba(77, 134, 255, 0.12);
 }
 
+/* Subrayado que se expande desde el centro al pasar el mouse */
+.destiny-navbar .nav-btn:not(.active)::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    right: 50%;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(0, 242, 255, 0.8), var(--nav-accent));
+    border-radius: 2px;
+    opacity: 0;
+    transition: left 0.25s ease, right 0.25s ease, opacity 0.25s ease;
+}
+
+.destiny-navbar .nav-btn:not(.active):hover::after {
+    left: 25%;
+    right: 25%;
+    opacity: 1;
+}
+
 .destiny-navbar .nav-btn.active {
     min-height: 60px;
     margin: 0;
@@ -4639,6 +4689,12 @@ input, select, textarea, button {
     border: 1px solid rgba(77, 134, 255, 0.5);
     box-shadow: inset 0 0 20px rgba(77, 134, 255, 0.1);
     z-index: 2;
+    animation: nav-active-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes nav-active-breathe {
+    0%, 100% { box-shadow: inset 0 0 20px rgba(77, 134, 255, 0.10); }
+    50% { box-shadow: inset 0 0 28px rgba(77, 134, 255, 0.22); }
 }
 
 .destiny-navbar .nav-btn.active::after {
@@ -4659,6 +4715,12 @@ input, select, textarea, button {
     line-height: 1;
     color: currentColor;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.18));
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.destiny-navbar .nav-btn:hover .nav-icon {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 10px rgba(77, 134, 255, 0.9));
 }
 
 .destiny-navbar .nav-actions {
@@ -4746,12 +4808,18 @@ input, select, textarea, button {
 }
 .destiny-navbar .nav-user-grade[hidden] { display: none; }
 
+.destiny-navbar .nav-user:hover .nav-user-avatar {
+    border-color: rgba(0, 242, 255, 0.85);
+    box-shadow: 0 0 20px rgba(77, 134, 255, 0.6);
+}
+
 .destiny-navbar .nav-user-avatar {
     width: 42px;
     height: 42px;
     flex: 0 0 auto;
     border-radius: 50%;
     border: 2px solid rgba(77, 134, 255, 0.7);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
     background:
         radial-gradient(circle at 50% 35%, #fff 0 10px, transparent 11px),
         radial-gradient(ellipse at 50% 75%, #fff 0 22px, transparent 23px),
@@ -4928,6 +4996,7 @@ input, select, textarea, button {
         background: linear-gradient(90deg, #4d86ff, #1c46f0);
         clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
         box-shadow: 0 0 8px rgba(77, 134, 255, 0.8);
+        animation: nav-tab-glow 2.6s ease-in-out infinite;
     }
 
     .mobile-bottom-nav .bottom-tab-search {
@@ -5129,5 +5198,28 @@ input, select, textarea, button {
 
     .destiny-navbar .nav-actions {
         gap: 6px;
+    }
+}
+
+/* Pulso del indicador del tab activo (mobile) */
+@keyframes nav-tab-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(77, 134, 255, 0.8); }
+    50% { box-shadow: 0 0 15px rgba(0, 242, 255, 0.9); }
+}
+
+/* Accesibilidad: sin animaciones si el usuario las desactivó */
+@media (prefers-reduced-motion: reduce) {
+    .destiny-navbar::after,
+    .nav-brand-destiny,
+    .destiny-navbar .nav-btn.active,
+    .mobile-bottom-nav .bottom-tab.active::before {
+        animation: none;
+    }
+
+    .nav-brand-mark,
+    .nav-icon,
+    .destiny-navbar .nav-btn:not(.active)::after,
+    .destiny-navbar .nav-user-avatar {
+        transition: none;
     }
 }

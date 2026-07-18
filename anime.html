@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -22,9 +22,9 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.css?v=17">
+        <link rel="stylesheet" href="css/bundle.min.css?v=43fdea0a">
 
-    <link rel="stylesheet" href="css/advanced-filter.css">
+    <link rel="stylesheet" href="css/advanced-filter.css?v=43fdea0a">
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
@@ -95,7 +95,14 @@
                         <span class="fsd-line"></span>
                     </div>
 
+                    <div class="filter-genre-search">
+                        <svg class="filter-genre-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="search" id="filterGenreSearch" class="filter-genre-search-input" placeholder="Buscar género..." data-i18n="catalog.buscar_genero" data-i18n-attr="placeholder" autocomplete="off">
+                    </div>
+
                     <div class="fancy-filter-genres" id="filterGenres"></div>
+
+                    <button type="button" id="toggleGenresBtn" class="toggle-genres-btn" hidden>Ver todos ▼</button>
                 </div>
             </div>
         </div>
@@ -114,7 +121,7 @@
     <script src="js/core/i18n.js"></script>
     <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js" async></script>
-    <script src="js/core-bundle.min.js?v=12" defer></script>
+    <script src="js/core-bundle.min.js?v=43fdea0a" defer></script>
     <script src="js/pages/script.js" defer></script>
 </body>
 </html>

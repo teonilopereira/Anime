@@ -164,11 +164,98 @@
     letter-spacing: 0.05em;
     font-size: 1.1rem;
 }
+/* Buscador de géneros */
+.filter-genre-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 0 14px 0;
+}
+.filter-genre-search-icon {
+    position: absolute;
+    left: 14px;
+    color: rgba(168, 85, 247, 0.9);
+    pointer-events: none;
+}
+.filter-genre-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px 10px 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(168, 85, 247, 0.28);
+    background: rgba(255, 255, 255, 0.03);
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.filter-genre-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+.filter-genre-search-input:focus {
+    outline: none;
+    border-color: rgba(168, 85, 247, 0.7);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
+}
+
 .fancy-filter-genres {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    justify-content: center;
+    justify-content: flex-start;
+    max-height: 264px;
+    overflow-y: auto;
+    padding: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.5) transparent;
+}
+.fancy-filter-genres::-webkit-scrollbar {
+    width: 8px;
+}
+.fancy-filter-genres::-webkit-scrollbar-thumb {
+    background: rgba(168, 85, 247, 0.4);
+    border-radius: 4px;
+}
+.fancy-filter-genres::-webkit-scrollbar-thumb:hover {
+    background: rgba(168, 85, 247, 0.65);
+}
+
+.ff-genre-empty {
+    width: 100%;
+    padding: 16px 4px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.45);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+}
+
+/* Botón "Ver todos / Ver menos" */
+.toggle-genres-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin: 14px auto 0;
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(168, 85, 247, 0.35);
+    background: rgba(168, 85, 247, 0.08);
+    color: #c084fc;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.toggle-genres-btn:hover {
+    background: rgba(168, 85, 247, 0.16);
+    border-color: rgba(168, 85, 247, 0.6);
+    color: #fff;
+}
+.toggle-genres-btn[hidden] {
+    display: none;
 }
 .ff-genre-chip {
     display: inline-flex;
