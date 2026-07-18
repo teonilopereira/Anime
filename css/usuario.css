@@ -945,3 +945,79 @@
     margin: 0.5rem 0 0;
 }
 
+/* ── Estado sin sesión ── */
+.perfil-guest {
+    max-width: 520px;
+    margin: 60px auto;
+    padding: 48px 40px;
+    text-align: center;
+    background: rgba(10, 5, 25, 0.82);
+    border: 1px solid rgba(188, 19, 254, 0.25);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 40px rgba(188, 19, 254, 0.08);
+}
+.perfil-guest-icon {
+    font-size: 3rem;
+    width: 92px;
+    height: 92px;
+    margin: 0 auto 20px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(188, 19, 254, 0.1);
+    border: 1px solid rgba(188, 19, 254, 0.35);
+}
+.perfil-guest-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    color: #fff;
+    margin: 0 0 12px;
+}
+.perfil-guest-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0 0 28px;
+}
+.perfil-guest-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+.perfil-guest-btn-login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 280px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(188, 19, 254, 0.85), rgba(120, 10, 200, 0.85));
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    text-decoration: none;
+    box-shadow: 0 4px 18px rgba(188, 19, 254, 0.35);
+    transition: all 0.2s;
+}
+.perfil-guest-btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(188, 19, 254, 0.5);
+}
+.perfil-guest-btn-back {
+    color: rgba(255, 255, 255, 0.55);
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.perfil-guest-btn-back:hover {
+    color: var(--accent-cyan);
+}
+

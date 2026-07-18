@@ -50,6 +50,17 @@
             <span class="app-loader-text">Cargando perfil...</span>
         </div>
 
+        <!-- Estado sin sesión -->
+        <section class="perfil-guest" id="perfilGuest" hidden>
+            <div class="perfil-guest-icon">👤</div>
+            <h2 class="perfil-guest-title">TU PERFIL TE ESPERA</h2>
+            <p class="perfil-guest-text">Inicia sesión para ver tu nivel, tus puntos, tus favoritos y tu actividad reciente.</p>
+            <div class="perfil-guest-btns">
+                <a href="Login.html" class="perfil-guest-btn-login">🚀 INICIAR SESIÓN</a>
+                <a href="index.html" class="perfil-guest-btn-back">← VOLVER AL INICIO</a>
+            </div>
+        </section>
+
         <div id="perfilContent" class="perfil-init-hidden">
             <!-- Bloque superior -->
             <section class="perfil-top" id="perfilTop">
@@ -76,11 +87,11 @@
                         <div>
                             <div class="perfil-user-label">USUARIO</div>
                             <div class="perfil-user-name">
-                                <span id="userName">?</span>
+                                <span id="userName">—</span>
                                 <span class="perfil-edit-icon" title="Editar nombre">✏️</span>
                             </div>
                             <div class="perfil-apodo" id="perfilApodo" hidden></div>
-                            <div class="perfil-since">Miembro desde <strong id="memberSince">?</strong></div>
+                            <div class="perfil-since">Miembro desde <strong id="memberSince">—</strong></div>
                             <a href="#" class="perfil-btn-edit" id="editProfileBtn">✏️ EDITAR PERFIL</a>
                         </div>
                         <div class="perfil-action-btns">
@@ -145,7 +156,7 @@
                         <div class="perfil-info-row-left">
                             <span class="pir-icon">✉️</span> Correo electrónico
                         </div>
-                        <div class="perfil-info-row-val" id="infoEmail">?</div>
+                        <div class="perfil-info-row-val" id="infoEmail">—</div>
                     </div>
                     <div class="perfil-info-row">
                         <div class="perfil-info-row-left">
@@ -183,7 +194,7 @@
                                 <div class="perfil-stat-sublabel">Total de uso</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statTiempo">?</div>
+                        <div class="perfil-stat-val" id="statTiempo">0m</div>
                     </div>
                     <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
@@ -193,7 +204,7 @@
                                 <div class="perfil-stat-sublabel">Sesiones iniciadas</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statSesiones">?</div>
+                        <div class="perfil-stat-val" id="statSesiones">0</div>
                     </div>
                     <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
@@ -203,7 +214,7 @@
                                 <div class="perfil-stat-sublabel">Elementos vistos</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statExplorado">?</div>
+                        <div class="perfil-stat-val" id="statExplorado">0</div>
                     </div>
                     <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
@@ -213,10 +224,10 @@
                                 <div class="perfil-stat-sublabel">Minutos por sesión</div>
                             </div>
                         </div>
-                        <div class="perfil-stat-val" id="statPromedio">?</div>
+                        <div class="perfil-stat-val" id="statPromedio">0m</div>
                     </div>
                     <div class="perfil-panel-footer">
-                        <button class="perfil-panel-btn">📊 VER ESTADÍSTICAS DETALLADAS</button>
+                        <a href="mis-listas.html" class="perfil-panel-btn">📊 VER ESTADÍSTICAS DETALLADAS</a>
                     </div>
                 </div>
 
@@ -261,7 +272,7 @@
                     <div class="perfil-activity-head-title">
                         <span class="pp-icon">📋</span> ACTIVIDAD RECIENTE
                     </div>
-                    <a href="#" class="perfil-activity-link">VER TODA LA ACTIVIDAD →</a>
+                    <a href="javascript:void(0)" class="perfil-activity-link" id="verActividadBtn">VER TODA LA ACTIVIDAD →</a>
                 </div>
                 <div class="perfil-activity-cards" id="activityCards">
                     <!-- Generado por JS -->
