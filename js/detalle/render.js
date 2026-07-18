@@ -416,6 +416,13 @@ function renderDetalle(item, nombreUrl, categoria) {
         });
     }
 
+    // El detalle se inyecta despues de que corre createIcons() en el arranque,
+    // asi que hay que redibujar o los <i data-lucide> quedan vacios (estado,
+    // compartir, favorito, visto, puntuacion...).
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch (e) { /* no bloquear el render */ }
+    }
+
     const favBtn = localLayout.querySelector('.fav-btn');
     const viewedBtn = localLayout.querySelector('.viewed-btn');
     const shareBtn = localLayout.querySelector('.share-btn');

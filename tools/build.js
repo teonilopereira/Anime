@@ -57,15 +57,16 @@ const JS_SOURCES = [
 // Se copian desde node_modules para que la version quede fijada por package.json
 // (antes se traia "npm/lucide" sin version ni SRI desde jsDelivr: el codigo podia
 // cambiar solo y tenia acceso al JWT en localStorage).
-const VENDOR = [
-    { from: 'node_modules/lucide/dist/umd/lucide.min.js', to: 'js/vendor/lucide.min.js' },
-];
+const VENDOR = [];
 
 // Dependencias que hay que empaquetar (no traen un build listo para el navegador).
 // api/supabase-config.js importaba el SDK desde jsDelivr; al cerrar el CSP a
 // script-src 'self' ese import quedaba bloqueado, asi que se sirve local.
 const VENDOR_BUNDLES = [
-    { entry: '@supabase/supabase-js', to: 'js/vendor/supabase.esm.js' },
+    { entry: '@supabase/supabase-js', to: 'js/vendor/supabase.esm.js', format: 'esm' },
+    // Subconjunto de Lucide: el UMD completo trae todos los iconos (~402 KB) y
+    // la app usa ~22. Se sirve como IIFE porque se carga con <script> plano.
+    { entry: 'tools/lucide-entry.js', to: 'js/vendor/lucide.min.js', format: 'iife' },
 ];
 
 // ── Utilidades ───────────────────────────────────────────────────────────
@@ -118,13 +119,13 @@ for (const { from, to } of VENDOR) {
     vendorContents.push(fs.readFileSync(abs(to)));
 }
 
-for (const { entry, to } of VENDOR_BUNDLES) {
+for (const { entry, to, format } of VENDOR_BUNDLES) {
     fs.mkdirSync(path.dirname(abs(to)), { recursive: true });
     await esbuild.build({
-        entryPoints: [entry],
+        entryPoints: [entry.startsWith('tools/') ? abs(entry) : entry],
         outfile: abs(to),
         bundle: true,
-        format: 'esm',
+        format: format,
         platform: 'browser',
         target: 'es2020',
         minify: true,
@@ -133,6 +134,57 @@ for (const { entry, to } of VENDOR_BUNDLES) {
     });
     vendorContents.push(fs.readFileSync(abs(to)));
 }
+
+// ── Validar que todo icono usado este en el subconjunto de Lucide ─────────
+// Si falta uno, Lucide simplemente no lo dibuja: fallo silencioso. Mejor
+// romper el build.
+(function validarIconos() {
+    const entrada = readSource('tools/lucide-entry.js');
+    const bloque = entrada.match(/const icons = \{([\s\S]*?)\};/);
+    if (!bloque) throw new Error('No se pudo leer la lista de iconos de tools/lucide-entry.js');
+    const disponibles = new Set(
+        bloque[1]
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+            // PascalCase -> kebab-case, como hace Lucide con data-lucide.
+            // Contempla siglas (XCircle -> x-circle) y digitos (Share2 -> share-2).
+            .map((n) => n
+                .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+                .replace(/([a-z])([A-Z])/g, '$1-$2')
+                .replace(/([A-Za-z])(\d)/g, '$1-$2')
+                .toLowerCase()),
+    );
+
+    const archivos = [
+        ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html')).map((f) => f),
+        ...JS_SOURCES,
+        'js/pages/script.js',
+        'js/detalle/render.js',
+    ];
+
+    const usados = new Set();
+    for (const rel of archivos) {
+        if (!fs.existsSync(abs(rel))) continue;
+        const txt = fs.readFileSync(abs(rel), 'utf8');
+        // Estaticos: data-lucide="nombre"
+        for (const m of txt.matchAll(/data-lucide="([a-z][a-z0-9-]*)"/g)) usados.add(m[1]);
+        // Dinamicos: data-lucide="${cond ? 'a' : 'b'}" -> literales de adentro
+        for (const m of txt.matchAll(/data-lucide="\$\{[^}]*\}"/g)) {
+            for (const lit of m[0].matchAll(/'([a-z][a-z0-9-]*)'/g)) usados.add(lit[1]);
+        }
+        // Configs tipo { icon: "clapperboard" } (los emoji no matchean).
+        for (const m of txt.matchAll(/\bicon:\s*["']([a-z][a-z0-9-]{2,})["']/g)) usados.add(m[1]);
+    }
+
+    const faltantes = [...usados].filter((n) => !disponibles.has(n)).sort();
+    if (faltantes.length) {
+        throw new Error(
+            'Iconos usados que faltan en tools/lucide-entry.js: ' + faltantes.join(', ') +
+            '\nAgregalos a ese archivo (en PascalCase) o no se van a dibujar.',
+        );
+    }
+})();
 
 const cssBundle = concatCss();
 const jsBundle = concatJs();
@@ -149,14 +201,39 @@ writeUtf8('css/bundle.min.css', cssMin);
 writeUtf8('js/core-bundle.js', jsBundle);
 writeUtf8('js/core-bundle.min.js', jsMin);
 
-// Versión = hash de contenido (solo cambia cuando cambia lo servido).
-const hash = crypto.createHash('sha256').update(jsMin).update(cssMin);
-for (const buf of vendorContents) hash.update(buf);
+// ── Versión ──────────────────────────────────────────────────────────────
+
+const htmlFiles = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'));
+
+// Expresion unica: identifica los assets locales tanto para calcular la version
+// como para estamparla. Asi no pueden desincronizarse.
+const ASSET_RE = /(src|href)="((?:css|js|api)\/[^"?]+\.(?:css|js))(?:\?v=[^"]*)?"/g;
+
+// La version es el hash de TODO asset local referenciado por los HTML, no solo
+// del bundle: los CSS/JS por pagina (usuario.css, script.js, i18n.js...) tambien
+// se sirven con ?v=, asi que si no entraran en el hash cambiarian sin que la
+// version se moviera y los usuarios seguirian recibiendo la copia cacheada.
+const assetPaths = new Set();
+for (const file of htmlFiles) {
+    const src = fs.readFileSync(abs(file), 'utf8');
+    for (const m of src.matchAll(ASSET_RE)) {
+        // bundle.css se reescribe a bundle.min.css al estampar.
+        assetPaths.add(m[2] === 'css/bundle.css' ? 'css/bundle.min.css' : m[2]);
+    }
+}
+
+// Las dependencias vendorizadas que se importan como modulo (no via <script>)
+// no aparecen en los HTML, asi que se suman a mano.
+for (const { to } of VENDOR_BUNDLES) assetPaths.add(to);
+
+const hash = crypto.createHash('sha256');
+for (const rel of [...assetPaths].sort()) {
+    if (fs.existsSync(abs(rel))) hash.update(rel).update(fs.readFileSync(abs(rel)));
+}
 const version = hash.digest('hex').slice(0, 8);
 
 // ── Estampar versión en los HTML ─────────────────────────────────────────
 
-const htmlFiles = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'));
 let stampedHtml = 0;
 
 for (const file of htmlFiles) {
@@ -170,10 +247,7 @@ for (const file of htmlFiles) {
     // Estampar la version en TODO asset local (css/, js/, api/). Una sola regla
     // cubre el bundle, los CSS y JS por pagina, y las dependencias vendorizadas,
     // para que ninguno quede sin cache-busting al agregarse en el futuro.
-    src = src.replace(
-        /(src|href)="((?:css|js|api)\/[^"?]+\.(?:css|js))(?:\?v=[^"]*)?"/g,
-        (_m, attr, ruta) => `${attr}="${ruta}?v=${version}"`,
-    );
+    src = src.replace(ASSET_RE, (_m, attr, ruta) => `${attr}="${ruta}?v=${version}"`);
 
     if (src !== before) {
         fs.writeFileSync(p, src, 'utf8');
