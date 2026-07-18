@@ -57,15 +57,16 @@ const JS_SOURCES = [
 // Se copian desde node_modules para que la version quede fijada por package.json
 // (antes se traia "npm/lucide" sin version ni SRI desde jsDelivr: el codigo podia
 // cambiar solo y tenia acceso al JWT en localStorage).
-const VENDOR = [
-    { from: 'node_modules/lucide/dist/umd/lucide.min.js', to: 'js/vendor/lucide.min.js' },
-];
+const VENDOR = [];
 
 // Dependencias que hay que empaquetar (no traen un build listo para el navegador).
 // api/supabase-config.js importaba el SDK desde jsDelivr; al cerrar el CSP a
 // script-src 'self' ese import quedaba bloqueado, asi que se sirve local.
 const VENDOR_BUNDLES = [
-    { entry: '@supabase/supabase-js', to: 'js/vendor/supabase.esm.js' },
+    { entry: '@supabase/supabase-js', to: 'js/vendor/supabase.esm.js', format: 'esm' },
+    // Subconjunto de Lucide: el UMD completo trae todos los iconos (~402 KB) y
+    // la app usa ~22. Se sirve como IIFE porque se carga con <script> plano.
+    { entry: 'tools/lucide-entry.js', to: 'js/vendor/lucide.min.js', format: 'iife' },
 ];
 
 // ── Utilidades ───────────────────────────────────────────────────────────
@@ -118,13 +119,13 @@ for (const { from, to } of VENDOR) {
     vendorContents.push(fs.readFileSync(abs(to)));
 }
 
-for (const { entry, to } of VENDOR_BUNDLES) {
+for (const { entry, to, format } of VENDOR_BUNDLES) {
     fs.mkdirSync(path.dirname(abs(to)), { recursive: true });
     await esbuild.build({
-        entryPoints: [entry],
+        entryPoints: [entry.startsWith('tools/') ? abs(entry) : entry],
         outfile: abs(to),
         bundle: true,
-        format: 'esm',
+        format: format,
         platform: 'browser',
         target: 'es2020',
         minify: true,
@@ -133,6 +134,57 @@ for (const { entry, to } of VENDOR_BUNDLES) {
     });
     vendorContents.push(fs.readFileSync(abs(to)));
 }
+
+// ── Validar que todo icono usado este en el subconjunto de Lucide ─────────
+// Si falta uno, Lucide simplemente no lo dibuja: fallo silencioso. Mejor
+// romper el build.
+(function validarIconos() {
+    const entrada = readSource('tools/lucide-entry.js');
+    const bloque = entrada.match(/const icons = \{([\s\S]*?)\};/);
+    if (!bloque) throw new Error('No se pudo leer la lista de iconos de tools/lucide-entry.js');
+    const disponibles = new Set(
+        bloque[1]
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+            // PascalCase -> kebab-case, como hace Lucide con data-lucide.
+            // Contempla siglas (XCircle -> x-circle) y digitos (Share2 -> share-2).
+            .map((n) => n
+                .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+                .replace(/([a-z])([A-Z])/g, '$1-$2')
+                .replace(/([A-Za-z])(\d)/g, '$1-$2')
+                .toLowerCase()),
+    );
+
+    const archivos = [
+        ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html')).map((f) => f),
+        ...JS_SOURCES,
+        'js/pages/script.js',
+        'js/detalle/render.js',
+    ];
+
+    const usados = new Set();
+    for (const rel of archivos) {
+        if (!fs.existsSync(abs(rel))) continue;
+        const txt = fs.readFileSync(abs(rel), 'utf8');
+        // Estaticos: data-lucide="nombre"
+        for (const m of txt.matchAll(/data-lucide="([a-z][a-z0-9-]*)"/g)) usados.add(m[1]);
+        // Dinamicos: data-lucide="${cond ? 'a' : 'b'}" -> literales de adentro
+        for (const m of txt.matchAll(/data-lucide="\$\{[^}]*\}"/g)) {
+            for (const lit of m[0].matchAll(/'([a-z][a-z0-9-]*)'/g)) usados.add(lit[1]);
+        }
+        // Configs tipo { icon: "clapperboard" } (los emoji no matchean).
+        for (const m of txt.matchAll(/\bicon:\s*["']([a-z][a-z0-9-]{2,})["']/g)) usados.add(m[1]);
+    }
+
+    const faltantes = [...usados].filter((n) => !disponibles.has(n)).sort();
+    if (faltantes.length) {
+        throw new Error(
+            'Iconos usados que faltan en tools/lucide-entry.js: ' + faltantes.join(', ') +
+            '\nAgregalos a ese archivo (en PascalCase) o no se van a dibujar.',
+        );
+    }
+})();
 
 const cssBundle = concatCss();
 const jsBundle = concatJs();
