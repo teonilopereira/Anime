@@ -201,11 +201,12 @@
         const ingresarText = window.AppI18n ? window.AppI18n.t("nav.ingresar") : "Ingresar";
         const invitadoText = window.AppI18n ? window.AppI18n.t("nav.usuario_invitado") : "...";
         el.innerHTML = `<div class="nav-user" id="nav-user">
-<div id="nav-user-avatar" class="nav-user-avatar"></div>
 <div class="nav-user-info">
 <span id="nav-user-name" class="nav-user-name" data-i18n="nav.usuario_invitado">${invitadoText}</span>
+<span id="nav-user-grade" class="nav-user-grade" hidden></span>
 <a id="nav-user-btn" href="Login.html" class="nav-user-btn" data-i18n="nav.ingresar">${ingresarText}</a>
 </div>
+<div id="nav-user-avatar" class="nav-user-avatar"></div>
 </div>`;
 
         // Refrescar la UI del usuario si auth.js ya cargó

@@ -1092,6 +1092,31 @@ async function waitForSupabase() {
         return user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
     }
 
+    // Etiquetas de apodo (grado) para el badge del navbar. Debe seguir en
+    // sincronía con APODOS en js/pages/mis-listas.js.
+    const APODO_LABELS = {
+        novato: 'Novato',
+        corazon: 'Corazón de Otaku',
+        coleccionista: 'Coleccionista',
+        observador: 'Observador',
+        devorador: 'Devorador de Mundos',
+        primer_paso: 'Un Pasito',
+        maratonista: 'Maratonista',
+        veterano: 'Veterano',
+        leyenda: 'Leyenda Destiny'
+    };
+
+    async function resolveGrade(profile) {
+        // 1) Del perfil global si ya está cargado (usuario.html)
+        let apodoId = (profile && profile.apodo) || null;
+        // 2) Si no, intentar traerlo desde Supabase (consulta liviana)
+        if (!apodoId && window.AppSupabase && typeof window.AppSupabase.loadApodo === 'function') {
+            try { apodoId = await window.AppSupabase.loadApodo(); } catch (_) { apodoId = null; }
+        }
+        if (!apodoId) return '';
+        return APODO_LABELS[apodoId] || '';
+    }
+
   async function refreshUserUi() {
         const user = await getCurrentUser();
         // Intentar usar perfil guardado globalmente (lo setea usuario.html)
@@ -1113,6 +1138,7 @@ async function waitForSupabase() {
         const nameEl = document.getElementById('nav-user-name');
         const btnEl = document.getElementById('nav-user-btn');
         const avatarEl = document.getElementById('nav-user-avatar');
+        const gradeEl = document.getElementById('nav-user-grade');
         if (nameEl && btnEl && avatarEl) {
             if (user) {
                 nameEl.textContent = username;
@@ -1128,6 +1154,18 @@ async function waitForSupabase() {
                     avatarEl.classList.remove('has-image');
                     avatarEl.style.removeProperty('background-image');
                 }
+                // Badge de grado (apodo). Se resuelve async para no demorar el nombre.
+                if (gradeEl) {
+                    resolveGrade(profile).then(function (label) {
+                        if (label) {
+                            gradeEl.textContent = 'GRADO: ' + label.toUpperCase();
+                            gradeEl.hidden = false;
+                        } else {
+                            gradeEl.hidden = true;
+                            gradeEl.textContent = '';
+                        }
+                    });
+                }
             } else {
                 nameEl.textContent = 'Invitado';
                 btnEl.textContent = 'Ingresar';
@@ -1135,6 +1173,7 @@ async function waitForSupabase() {
                 btnEl.setAttribute('aria-label', 'Iniciar sesión');
                 avatarEl.classList.remove('has-image');
                 avatarEl.style.removeProperty('background-image');
+                if (gradeEl) { gradeEl.hidden = true; gradeEl.textContent = ''; }
             }
         }
     }
@@ -1859,6 +1898,9 @@ window.getCurrentUser      = getCurrentUser;
         const oldLevelInfo = levelFromPoints(currentPoints);
 
         const next = Math.max(0, currentPoints + delta);
+        // Delta efectivo: clamp a 0 para que la EXP nunca baje de 0 en el server
+        // (evita romper el CHECK exp >= 0 al restar EXP por desmarcar).
+        const effectiveDelta = next - currentPoints;
         UserStore.setItem(pointsKey(userId), String(next));
 
         const newLevelInfo = levelFromPoints(next);
@@ -1871,14 +1913,16 @@ window.getCurrentUser      = getCurrentUser;
             }
         }
 
+        if (effectiveDelta === 0) return; // nada real que sincronizar
+
         const client = window.AppSupabase;
         if (!client?.addExperience) {
-            enqueueSync({ type: "experience", payload: { delta } });
+            enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
             return;
         }
-        client.addExperience(delta).catch((error) => {
+        client.addExperience(effectiveDelta).catch((error) => {
             if (isSessionExpired(error)) showSyncToast('Sesión expirada. La experiencia se sincronizará al reconectar.', 'session-expired');
-            enqueueSync({ type: "experience", payload: { delta } });
+            enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
         });
     }
 
@@ -2173,20 +2217,25 @@ window.getCurrentUser      = getCurrentUser;
 
         const storageKey = statusStorageKey(userId, itemId, type);
 
+        const xp = type === 'viewed'
+            ? (AnimeDestiny.Constants.XP_VIEWED || 10)
+            : (AnimeDestiny.Constants.XP_FAV || 5);
+
         const enabled = !UserStore.getItem(storageKey);
         if (enabled) {
             UserStore.setItem(storageKey, '1');
             if (typeof window._invalidateProgressIndex === 'function') window._invalidateProgressIndex();
-            addUserPoints(userId, type === 'viewed' ? (AnimeDestiny.Constants.XP_VIEWED || 10) : (AnimeDestiny.Constants.XP_FAV || 5));
+            addUserPoints(userId, xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.success("¡Agregado a Favoritos! ❤️");
-                if (type === 'viewed') window.Toast.success("¡Marcado como Visto! 👁️ (+10 EXP)");
+                if (type === 'fav') window.Toast.success(`¡Agregado a Favoritos! ❤️ (+${xp} EXP)`);
+                if (type === 'viewed') window.Toast.success(`¡Marcado como Visto! 👁️ (+${xp} EXP)`);
             }
         } else {
             UserStore.removeItem(storageKey);
+            addUserPoints(userId, -xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.info("Quitado de Favoritos");
-                if (type === 'viewed') window.Toast.info("Marcado como no visto");
+                if (type === 'fav') window.Toast.info(`Quitado de Favoritos (-${xp} EXP)`);
+                if (type === 'viewed') window.Toast.info(`Marcado como no visto (-${xp} EXP)`);
             }
         }
 
@@ -3767,7 +3816,8 @@ async function inicializarPagina() {
     const mainContainer = document.getElementById("main-content");
     if (!mainContainer) return;
     const categoria = document.body.getAttribute("data-page");
-    if (["listas", "top", "comparar", "detalle", "index"].indexOf(categoria) !== -1) return;
+    // Páginas que NO son catálogo: no deben ser sobreescritas por el catálogo.
+    if (["listas", "top", "comparar", "detalle", "index", "usuario", "configuracion", "login"].indexOf(categoria) !== -1) return;
     currentPage = 1;
     const usaCatalogoApi = categoria === "anime" || categoria === "manga" || categoria === "novelas";
 
@@ -4073,11 +4123,12 @@ window.addEventListener("supabase-auth-changed", function () {
         const ingresarText = window.AppI18n ? window.AppI18n.t("nav.ingresar") : "Ingresar";
         const invitadoText = window.AppI18n ? window.AppI18n.t("nav.usuario_invitado") : "...";
         el.innerHTML = `<div class="nav-user" id="nav-user">
-<div id="nav-user-avatar" class="nav-user-avatar"></div>
 <div class="nav-user-info">
 <span id="nav-user-name" class="nav-user-name" data-i18n="nav.usuario_invitado">${invitadoText}</span>
+<span id="nav-user-grade" class="nav-user-grade" hidden></span>
 <a id="nav-user-btn" href="Login.html" class="nav-user-btn" data-i18n="nav.ingresar">${ingresarText}</a>
 </div>
+<div id="nav-user-avatar" class="nav-user-avatar"></div>
 </div>`;
 
         // Refrescar la UI del usuario si auth.js ya cargó

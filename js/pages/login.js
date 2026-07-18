@@ -33,6 +33,39 @@
         setStatus("");
     }
 
+    function userDisplayName(user) {
+        if (!user) return "";
+        return user.user_metadata?.username
+            || user.user_metadata?.name
+            || user.user_metadata?.full_name
+            || (user.email ? user.email.split("@")[0] : "")
+            || "Usuario";
+    }
+
+    // Adapta el panel según haya sesión o no: invitado ve el formulario y
+    // NO ve "Cerrar sesión"; logueado ve solo su estado + "Cerrar sesión".
+    function applyAuthState(user) {
+        const loggedIn = !!user;
+        const tabsEl = document.querySelector(".login-tabs");
+        const emailField = emailInput ? emailInput.closest(".login-field") : null;
+        const passField = passwordInput ? passwordInput.closest(".login-field") : null;
+
+        if (tabsEl) tabsEl.style.display = loggedIn ? "none" : "";
+        if (usernameField) usernameField.style.display = loggedIn ? "none" : "";
+        if (emailField) emailField.style.display = loggedIn ? "none" : "";
+        if (passField) passField.style.display = loggedIn ? "none" : "";
+        submitBtn.style.display = loggedIn ? "none" : "";
+        googleBtn.style.display = loggedIn ? "none" : "";
+        logoutBtn.style.display = loggedIn ? "" : "none";
+
+        if (loggedIn) {
+            title.textContent = "Tu cuenta";
+            setStatus("Conectado como " + userDisplayName(user) + ".");
+        } else {
+            title.textContent = mode === "register" ? "Crear cuenta" : "Iniciar sesión";
+        }
+    }
+
     async function getClient() {
         if (window.AppSupabase) return window.AppSupabase;
         if (window.AppSupabaseReady) return await window.AppSupabaseReady;
@@ -168,6 +201,7 @@
             if (client?.signOutGoogle) await client.signOutGoogle();
         } finally {
             if (typeof window.refreshUserUi === "function") window.refreshUserUi();
+            applyAuthState(null);
             setStatus("Sesión cerrada.");
         }
     });
@@ -176,15 +210,18 @@
         setStatus("⚠️ Estás usando file://. Usá un servidor local: node tools/serve.js");
     }
 
-    if (window.AppSupabaseReady) {
-        window.AppSupabaseReady.then((client) => {
-            client?.onAuthChange?.((detail) => {
+    // Reaccionar al estado de sesión (se dispara de inmediato con el estado actual)
+    getClient().then((client) => {
+        if (client?.onAuthChange) {
+            client.onAuthChange((detail) => {
+                applyAuthState(detail?.user || null);
                 if (detail?.user) saveLocalUser();
             });
-        });
-    }
+        }
+    });
 
     setMode("login");
+    applyAuthState(null); // por defecto: vista de invitado (oculta "Cerrar sesión")
 })();
 
 
