@@ -14,6 +14,13 @@
     function safeUrl(value) {
         if (!value) return "";
         var url = String(value).trim();
+        // Rechazar caracteres que rompen un atributo src="..." entrecomillado
+        // o el tag (defensa XSS por breakout). Se permiten espacios y comillas
+        // simples porque los data:image/svg de fallback los usan y son inocuos
+        // dentro de un atributo con comillas dobles.
+        if (/["`<>\\]/.test(url) || /[\x00-\x1f\x7f]/.test(url)) {
+            return "";
+        }
         // Permitir rutas relativas locales y data URIs de imagen usadas como fallback.
         if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
             return url;
@@ -34,4 +41,3 @@
     window.escapeHtml = escapeHtml;
     window.safeUrl = safeUrl;
 })(window);
-

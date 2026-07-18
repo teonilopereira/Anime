@@ -281,7 +281,7 @@ function buildCatalogCardHtml(options) {
                 <div class="catalog-card-media">
                     <div class="catalog-card-poster card-inner">
                         <div class="card-front">
-                            <img src="${safeImg}" alt="${escapeHtml(title)}" loading="lazy"${imageExtraAttrs}>
+                            <img src="${safeImg}" alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
                         </div>
                         <div class="card-back card-back-neon">
                             <h2 class="card-back-title">${escapeHtml(title)}</h2>

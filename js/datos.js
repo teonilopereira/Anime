@@ -12,6 +12,10 @@ if (typeof window.safeUrl !== 'function') {
     window.safeUrl = function(value) {
         if (!value) return '';
         var url = String(value).trim();
+        // Rechazar caracteres que rompen un atributo src="..." (XSS breakout)
+        if (/["`<>\\]/.test(url) || /[\x00-\x1f\x7f]/.test(url)) {
+            return '';
+        }
         if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
             return url;
         }

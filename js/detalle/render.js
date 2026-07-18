@@ -201,6 +201,18 @@ function renderDetalle(item, nombreUrl, categoria) {
     let extraBlockHtml = '';
     let progressPanelHtml = '';
 
+    // Builder de un cuadradito de volumen (compartido: render inicial + "Mostrar más")
+    const VOL_CHUNK = 120;
+    const buildVolButton = (v) => {
+        const active = UserStore.getItem(volumeStorageKey(userId, item.id, v, categoria)) ? ' is-active' : '';
+        return `
+                <div class="cuadrado-wrapper">
+                    <button class="vol-btn cuadrado-item${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">${String(v).padStart(2, '0')}</button>
+                    <button class="btn-resumen" type="button" data-vol="${v}" aria-label="Ver resumen del volumen ${v}">RESUMEN</button>
+                </div>
+            `;
+    };
+
     if (isMangaOrNovela && totalVols > 0) {
         const markedVolumes = Array.from({ length: totalVols }, (_, i) => {
             const v = i + 1;
@@ -219,22 +231,19 @@ function renderDetalle(item, nombreUrl, categoria) {
                 <div class="detail-progress-meta">${markedVolumes} de ${totalVols} volúmenes marcados</div>
             </div>
         `;
-        const buttons = Array.from({ length: totalVols }, (_, i) => {
-            const v = i + 1;
-            const active = UserStore.getItem(volumeStorageKey(userId, item.id, v, categoria)) ? ' is-active' : '';
-            return `
-                <div class="cuadrado-wrapper">
-                    <button class="vol-btn cuadrado-item${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">${String(v).padStart(2, '0')}</button>
-                    <button class="btn-resumen" type="button" data-vol="${v}" aria-label="Ver resumen del volumen ${v}">RESUMEN</button>
-                </div>
-            `;
-        }).join('');
+        // Render por bloques para no inyectar cientos de nodos de una
+        const firstChunk = Math.min(VOL_CHUNK, totalVols);
+        let buttons = '';
+        for (let v = 1; v <= firstChunk; v++) buttons += buildVolButton(v);
+        if (totalVols > firstChunk) {
+            buttons += `<button type="button" class="vol-grid-more">Mostrar más (${totalVols - firstChunk} restantes)</button>`;
+        }
 
         extraBlockHtml = `
             <div class="detail-section">
                 <h2 class="detail-h2">Volúmenes</h2>
                 <p class="detail-help">Tocá un volumen para marcarlo en verde (guardado por usuario).</p>
-                <div class="vol-grid" data-manga-id="${escapeHtml(item.id)}">${buttons}</div>
+                <div class="vol-grid" data-manga-id="${escapeHtml(item.id)}" data-total-vols="${totalVols}">${buttons}</div>
             </div>
         `;
     }
@@ -335,7 +344,7 @@ function renderDetalle(item, nombreUrl, categoria) {
     localLayout.innerHTML = `
         <div class="detail-grid">
             <div class="detail-cover">
-                <img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" loading="lazy" data-fallback-catalog="1" data-title="${escapeHtml(item.titulo)}">
+                <img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" width="460" height="690" decoding="async" fetchpriority="high" data-fallback-catalog="1" data-title="${escapeHtml(item.titulo)}">
             </div>
             <div class="detail-info">
                 ${demografiaHtml}
@@ -634,6 +643,18 @@ function renderDetalle(item, nombreUrl, categoria) {
             });
 
             grid.addEventListener('click', (e) => {
+                const moreBtn = e.target instanceof HTMLElement ? e.target.closest('.vol-grid-more') : null;
+                if (moreBtn) {
+                    const rendered = grid.querySelectorAll('button.vol-btn').length;
+                    const to = Math.min(rendered + VOL_CHUNK, totalVols);
+                    let html = '';
+                    for (let v = rendered + 1; v <= to; v++) html += buildVolButton(v);
+                    moreBtn.insertAdjacentHTML('beforebegin', html);
+                    if (to < totalVols) moreBtn.textContent = `Mostrar más (${totalVols - to} restantes)`;
+                    else moreBtn.remove();
+                    return;
+                }
+
                 const resumenBtn = e.target instanceof HTMLElement ? e.target.closest('button.btn-resumen') : null;
                 if (resumenBtn) {
                     const vol = Number.parseInt(resumenBtn.getAttribute('data-vol') || '', 10);
@@ -665,6 +686,8 @@ function renderDetalle(item, nombreUrl, categoria) {
         const epGrid = localLayout.querySelector('#epGrid');
         const tabsEl = localLayout.querySelector('.season-tabs');
         const seasons = temporadas.length ? temporadas : [{ nombre: 'Temporada 1', episodios: 0 }];
+        const GRID_CHUNK = 120;
+        let _epRenderMore = null;
 
         function renderEpisodes(seasonIndex) {
             if (!epGrid) return;
@@ -677,12 +700,13 @@ function renderDetalle(item, nombreUrl, categoria) {
 
             if (!eps) {
                 epGrid.innerHTML = `<span class="detail-chip detail-chip-muted">Episodios no especificados</span>`;
+                _epRenderMore = null;
                 return;
             }
 
-            const buttons = Array.from({ length: eps }, (_, i) => {
-                const ep = i + 1;
-                const key = episodeStorageKey(getCurrentUserIdSafe(), item.id, seasonIndex, ep);
+            const uid = getCurrentUserIdSafe();
+            function buildEpButton(ep) {
+                const key = episodeStorageKey(uid, item.id, seasonIndex, ep);
                 const active = UserStore.getItem(key) ? ' is-active' : '';
 
                 let airingCls = '';
@@ -718,9 +742,25 @@ function renderDetalle(item, nombreUrl, categoria) {
     </button>
 </div>
 `;
-            }).join('');
+            }
 
-            epGrid.innerHTML = buttons;
+            // Render por bloques para no inyectar miles de nodos de una (One Piece ~1170 eps)
+            epGrid.innerHTML = '';
+            let rendered = 0;
+            function renderChunk() {
+                epGrid.querySelector('.ep-grid-more')?.remove();
+                const to = Math.min(rendered + GRID_CHUNK, eps);
+                let html = '';
+                for (let ep = rendered + 1; ep <= to; ep++) html += buildEpButton(ep);
+                epGrid.insertAdjacentHTML('beforeend', html);
+                rendered = to;
+                if (rendered < eps) {
+                    epGrid.insertAdjacentHTML('beforeend',
+                        `<button type="button" class="ep-grid-more">Mostrar más (${eps - rendered} restantes)</button>`);
+                }
+            }
+            _epRenderMore = renderChunk;
+            renderChunk();
         }
 
         function setActiveTab(seasonIndex) {
@@ -749,6 +789,8 @@ function renderDetalle(item, nombreUrl, categoria) {
 
         if (epGrid) {
             epGrid.addEventListener('click', (e) => {
+                const moreBtn = e.target instanceof HTMLElement ? e.target.closest('.ep-grid-more') : null;
+                if (moreBtn) { if (typeof _epRenderMore === 'function') _epRenderMore(); return; }
                 const btn = e.target instanceof HTMLElement ? e.target.closest('button.ep-btn') : null;
                 if (!btn) return;
                 const seasonIndex = Number.parseInt(btn.getAttribute('data-season') || '0', 10);

@@ -1,11 +1,11 @@
 # Script para generar el bundle unificado de JavaScript core-bundle.js
 # Ordenado según dependencias de inicialización
 
+# NOTA: config.js, i18n.js y namespace.js NO se incluyen aquí: las 9 páginas
+# que cargan el bundle ya los cargan sueltos y temprano (antes del bundle).
+# Incluirlos acá haría que se ejecutaran dos veces (i18n son ~430 líneas).
 $jsFiles = @(
-    "js/core/config.js",
-    "js/core/i18n.js",
     "js/core/constants.js",
-    "js/core/namespace.js",
     "js/core/api.js",
     "js/datos.js",
     "js/core/user-store.js",

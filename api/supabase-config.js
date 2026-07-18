@@ -341,6 +341,27 @@ async function loadProfile() {
     if (error) { console.warn("loadProfile:", error.message); return null; }
     return data || null;
 }
+
+// ─── Apodo equipado ───────────────────────────────────────────────
+// Consulta separada y resiliente: si la columna 'apodo' todavía no existe
+// en la tabla, solo avisa por consola sin romper la carga del perfil.
+async function loadApodo() {
+    const user = await getCurrentUserAsync();
+    if (!user) return null;
+    const { data, error } = await supabase
+        .from('profiles').select('apodo').eq('id', user.id).single();
+    if (error) { console.warn("loadApodo:", error.message); return null; }
+    return (data && data.apodo) || null;
+}
+
+async function saveApodo(apodo) {
+    const user = await getCurrentUserAsync();
+    if (!user) return;
+    const { error } = await supabase
+        .from('profiles')
+        .upsert({ id: user.id, apodo: String(apodo || ''), updated_at: new Date().toISOString() }, { onConflict: 'id' });
+    if (error) console.warn("saveApodo:", error.message);
+}
 // ─── Progreso (episodios / capítulos) ─────────────────────────────
 async function setProgress({ category, itemId, key, value }) {
     const user = await getCurrentUserAsync();
@@ -517,6 +538,8 @@ const AppSupabase = Object.freeze({
 
     loadItemStates,
     loadProfile,
+    loadApodo,
+    saveApodo,
     loadProgress,
     loadAllProgress,
     saveItemState,

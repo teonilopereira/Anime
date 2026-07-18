@@ -101,4 +101,29 @@ describe('safeUrl', () => {
   it('bloquea ftp:', () => {
     expect(safeUrl('ftp://files.example.com/archivo')).toBe('');
   });
+
+  // ── XSS por breakout de atributo src="..." ──
+  it('bloquea comillas dobles (breakout de src)', () => {
+    expect(safeUrl('x" onerror="alert(1)')).toBe('');
+    expect(safeUrl('https://ok.com/a.jpg" onerror="alert(1)')).toBe('');
+  });
+
+  it('bloquea < y > (breakout de tag)', () => {
+    expect(safeUrl('https://ok.com/<svg onload=alert(1)>')).toBe('');
+  });
+
+  it('bloquea backtick y backslash', () => {
+    expect(safeUrl('https://ok.com/a`b.jpg')).toBe('');
+    expect(safeUrl('https://ok.com/a\\b.jpg')).toBe('');
+  });
+
+  it('bloquea saltos de línea y caracteres de control', () => {
+    expect(safeUrl('https://ok.com/a\nb.jpg')).toBe('');
+    expect(safeUrl('https://ok.com/a\tb.jpg')).toBe('');
+  });
+
+  it('permite el data:image/svg de fallback (con espacios y comillas simples)', () => {
+    const svg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200'%3E%3C/svg%3E";
+    expect(safeUrl(svg)).toBe(svg);
+  });
 });

@@ -21,6 +21,39 @@ const CATEGORY_LABELS = Object.freeze({
     novelas: 'Novelas'
 });
 
+// Géneros oficiales de AniList (para filtrar del campo info lo que sí es un género)
+const KNOWN_GENRES = Object.freeze([
+    'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 'Horror',
+    'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance',
+    'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller'
+]);
+
+function extractGenresFromInfo(info) {
+    if (!info) return [];
+    return String(info)
+        .split(/[|/,]/)
+        .map(function (g) { return g.trim(); })
+        .filter(Boolean)
+        .map(function (g) {
+            return KNOWN_GENRES.find(function (k) { return k.toLowerCase() === g.toLowerCase(); }) || null;
+        })
+        .filter(Boolean);
+}
+
+// Devuelve los géneros más frecuentes entre las entradas dadas, ordenados por peso.
+function topGenresFromEntries(entries) {
+    const counts = {};
+    entries.forEach(function (e) {
+        // "Visto" pesa más que "Me gusta" para el perfil de gustos
+        const weight = e.viewed ? 2 : 1;
+        extractGenresFromInfo(e.item && e.item.info).forEach(function (g) {
+            counts[g] = (counts[g] || 0) + weight;
+        });
+    });
+    return Object.keys(counts)
+        .sort(function (a, b) { return counts[b] - counts[a]; });
+}
+
 function renderGenres(info) {
     if (!info) return '';
     var genres = String(info).split(/[|/]/).map(function (g) { return g.trim(); }).filter(Boolean);
@@ -162,7 +195,7 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
             <article class="list-row-card">
                 <div class="row-rank">${index}</div>
                 <a href="${escapeHtml(link)}">
-                    <img class="row-cover" src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" loading="lazy" data-fallback-catalog="1">
+                    <img class="row-cover" src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" width="42" height="60" decoding="async" loading="lazy" data-fallback-catalog="1">
                 </a>
                 <div class="row-info">
                     <div class="row-title">${escapeHtml(item.titulo)}</div>
@@ -191,7 +224,7 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
                     <div class="card-inner">
                         <div class="card-front">
                             <div class="catalog-card-poster">
-                                <img src="${safeUrl(item.img)}" alt="${title}" loading="lazy" data-fallback-catalog="1">
+                                <img src="${safeUrl(item.img)}" alt="${title}" width="230" height="345" decoding="async" loading="lazy" data-fallback-catalog="1">
                             </div>
                         </div>
                         <div class="card-back card-back-neon">
@@ -327,7 +360,7 @@ async function renderCalendario() {
                     const link = 'detalle.html?cat=anime&id=' + encodeURIComponent(ep.id);
                     return `
                     <a class="calendar-row" href="${escapeHtml(link)}">
-                        ${ep.img ? `<img class="calendar-cover" src="${safeUrl(ep.img)}" alt="" loading="lazy">` : '<span class="calendar-cover calendar-cover--empty"></span>'}
+                        ${ep.img ? `<img class="calendar-cover" src="${safeUrl(ep.img)}" alt="" width="44" height="60" decoding="async" loading="lazy">` : '<span class="calendar-cover calendar-cover--empty"></span>'}
                         <span class="calendar-info">
                             <span class="calendar-title">${escapeHtml(ep.title)}</span>
                             <span class="calendar-meta">EP ${ep.episode || '?'} • ${escapeHtml(hora)} hs</span>
@@ -444,13 +477,43 @@ function renderAchievements() {
         });
     }
 
+    // Conteo por categoría para logros temáticos (anime / manga / novelas)
+    const catViewed = { anime: 0, manga: 0, novelas: 0 };
+    if (userId !== 'Invitado') {
+        getAllItems().forEach(function (item) {
+            const cat = item.__category;
+            if (catViewed[cat] === undefined) return;
+            if (UserStore.getItem('u:' + userId + '|item:' + item.id + '|viewed')) catViewed[cat]++;
+        });
+    }
+
     const rules = [
-        { id: 'fav1', title: 'Corazón de Otaku', desc: 'Marcá 1 título como "Me gusta"', req: lists.fav >= 1, icon: '❤' },
-        { id: 'fav10', title: 'Coleccionista', desc: 'Marca 10 títulos como "Me gusta"', req: lists.fav >= 10, icon: '🌟', secret: true },
-        { id: 'view1', title: 'Primer Vistazo', desc: 'Marca 1 título como "Visto"', req: lists.viewed >= 1, icon: '👁️' },
-        { id: 'view50', title: 'Devorador de Mundos', desc: 'Marca 50 títulos como "Visto"', req: lists.viewed >= 50, icon: '🔥', secret: true },
-        { id: 'ep1', title: 'Un Pasito', desc: 'Marca tu primer capítulo o episodio', req: lists.eps >= 1, icon: '🎬' },
-        { id: 'ep100', title: 'Maratonista', desc: 'Marca 100 capítulos o episodios', req: lists.eps >= 100, icon: '🏃', secret: true }
+        // — Me gusta —
+        { id: 'fav1',  title: 'Corazón de Otaku',     desc: 'Marcá 1 título como "Me gusta".',   req: lists.fav >= 1,  icon: '❤️' },
+        { id: 'fav5',  title: 'Nakama',                desc: 'Marcá 5 títulos como "Me gusta".',  req: lists.fav >= 5,  icon: '🤝' },
+        { id: 'fav10', title: 'Coleccionista',         desc: 'Marcá 10 títulos como "Me gusta".', req: lists.fav >= 10, icon: '🌟' },
+        { id: 'fav25', title: 'Corazón Gentil',        desc: 'Marcá 25 títulos como "Me gusta".', req: lists.fav >= 25, icon: '💗', secret: true },
+        { id: 'fav50', title: 'Rey de los Piratas',    desc: 'Marcá 50 títulos como "Me gusta".', req: lists.fav >= 50, icon: '🏴‍☠️', secret: true },
+
+        // — Vistos —
+        { id: 'view1',   title: 'Primer Vistazo',      desc: 'Marcá 1 título como "Visto".',   req: lists.viewed >= 1,   icon: '👁️' },
+        { id: 'view10',  title: 'Cazador Novato',      desc: 'Marcá 10 títulos como "Visto".', req: lists.viewed >= 10,  icon: '🗡️' },
+        { id: 'view25',  title: 'Alquimista de Acero', desc: 'Marcá 25 títulos como "Visto".', req: lists.viewed >= 25,  icon: '⚗️' },
+        { id: 'view50',  title: 'Devorador de Mundos', desc: 'Marcá 50 títulos como "Visto".', req: lists.viewed >= 50,  icon: '🔥', secret: true },
+        { id: 'view100', title: 'Dios de la Muerte',   desc: 'Marcá 100 títulos como "Visto".', req: lists.viewed >= 100, icon: '💀', secret: true },
+
+        // — Progreso (episodios / capítulos) —
+        { id: 'ep1',   title: 'Un Pasito',        desc: 'Marcá tu primer capítulo o episodio.', req: lists.eps >= 1,   icon: '🎬' },
+        { id: 'ep10',  title: 'Ganbatte!',        desc: 'Marcá 10 capítulos o episodios.',      req: lists.eps >= 10,  icon: '💪' },
+        { id: 'ep50',  title: 'Plus Ultra',       desc: 'Marcá 50 capítulos o episodios.',      req: lists.eps >= 50,  icon: '⚡' },
+        { id: 'ep100', title: 'Maratonista',      desc: 'Marcá 100 capítulos o episodios.',     req: lists.eps >= 100, icon: '🏃', secret: true },
+        { id: 'ep500', title: 'Sennin del Binge', desc: 'Marcá 500 capítulos o episodios.',     req: lists.eps >= 500, icon: '🧙', secret: true },
+
+        // — Temáticos por categoría —
+        { id: 'anime15',  title: 'Maestro del Anime',   desc: 'Marcá 15 animes como "Visto".',   req: catViewed.anime >= 15,   icon: '📺' },
+        { id: 'manga15',  title: 'Rincón del Mangaka',  desc: 'Marcá 15 mangas como "Visto".',   req: catViewed.manga >= 15,   icon: '📖' },
+        { id: 'novela10', title: 'Isekai Trotamundos',  desc: 'Marcá 10 novelas como "Visto".',  req: catViewed.novelas >= 10, icon: '📜' },
+        { id: 'trifecta',  title: 'Camino del Héroe',   desc: 'Terminá al menos 1 anime, 1 manga y 1 novela.', req: catViewed.anime >= 1 && catViewed.manga >= 1 && catViewed.novelas >= 1, icon: '🎌', secret: true }
     ];
 
     rules.forEach(function(r) {
@@ -474,6 +537,101 @@ function renderAchievements() {
             '</div>' +
         '</div>';
     }).join('');
+}
+
+// ─── Apodos (títulos) que se desbloquean con logros ───
+const APODOS = Object.freeze([
+    { id: 'novato',        nick: 'Novato',              desc: 'Disponible desde el comienzo.',        test: function () { return true; } },
+    { id: 'corazon',       nick: 'Corazón de Otaku',    desc: 'Marcá 1 título como "Me gusta".',      test: function (s) { return s.fav >= 1; } },
+    { id: 'coleccionista', nick: 'Coleccionista',       desc: 'Marcá 10 títulos como "Me gusta".',    test: function (s) { return s.fav >= 10; } },
+    { id: 'observador',    nick: 'Observador',          desc: 'Marcá 1 título como "Visto".',         test: function (s) { return s.viewed >= 1; } },
+    { id: 'devorador',     nick: 'Devorador de Mundos', desc: 'Marcá 50 títulos como "Visto".',       test: function (s) { return s.viewed >= 50; } },
+    { id: 'primer_paso',   nick: 'Un Pasito',           desc: 'Marcá tu primer capítulo o episodio.', test: function (s) { return s.eps >= 1; } },
+    { id: 'maratonista',   nick: 'Maratonista',         desc: 'Marcá 100 capítulos o episodios.',     test: function (s) { return s.eps >= 100; } },
+    { id: 'veterano',      nick: 'Veterano',            desc: 'Alcanzá el nivel 5.',                  test: function (s) { return s.level >= 5; } },
+    { id: 'leyenda',       nick: 'Leyenda Destiny',     desc: 'Alcanzá el nivel 10.',                 test: function (s) { return s.level >= 10; } }
+]);
+
+function computeApodoStats(userId) {
+    const stats = { fav: 0, viewed: 0, eps: 0, level: 1, pts: 0 };
+    if (userId === 'Invitado') return stats;
+
+    UserStore.keys().forEach(function (key) {
+        if (!key.startsWith('u:' + userId + '|') || !UserStore.getItem(key)) return;
+        if (key.endsWith('|fav')) stats.fav++;
+        if (key.endsWith('|viewed')) stats.viewed++;
+        if (key.includes('|ep:') || key.includes('|ch:') || key.includes('|vol:')) stats.eps++;
+    });
+
+    stats.pts = (typeof getUserPoints === 'function')
+        ? getUserPoints(userId)
+        : Number(UserStore.getItem('u:' + userId + '|points') || '0');
+    const lv = (typeof levelFromPoints === 'function') ? levelFromPoints(stats.pts) : { level: 1 };
+    const dbLevel = Number(UserStore.getItem('u:' + userId + '|level') || '0');
+    stats.level = Math.max(dbLevel, lv.level);
+    return stats;
+}
+
+function getActiveApodo(userId, stats) {
+    let active = UserStore.getItem('u:' + userId + '|apodo') || 'novato';
+    const def = APODOS.find(function (a) { return a.id === active; });
+    // Si el apodo equipado ya no está desbloqueado, volver al por defecto
+    if (!def || (stats && !def.test(stats))) active = 'novato';
+    return active;
+}
+
+function getActiveApodoNick(userId) {
+    const stats = computeApodoStats(userId);
+    const active = getActiveApodo(userId, stats);
+    const def = APODOS.find(function (a) { return a.id === active; });
+    return def ? def.nick : 'Novato';
+}
+
+function renderApodos() {
+    const host = document.getElementById('apodosGrid');
+    if (!host) return;
+
+    const userId = getCurrentUserIdSafe();
+    if (userId === 'Invitado') {
+        host.innerHTML = '<div class="lists-empty" style="grid-column:1/-1"><h3>Iniciá sesión</h3><p>Entrá con tu cuenta para desbloquear y equipar apodos.</p></div>';
+        return;
+    }
+
+    const stats = computeApodoStats(userId);
+    const active = getActiveApodo(userId, stats);
+
+    host.innerHTML = APODOS.map(function (a) {
+        const unlocked = a.test(stats);
+        const isActive = unlocked && a.id === active;
+        const badge = isActive ? 'Equipado' : (unlocked ? 'Equipar' : 'Bloqueado');
+        return '<div class="apodo-card ' + (unlocked ? 'is-unlocked' : 'is-locked') + (isActive ? ' is-equipped' : '') + '"' +
+            ' data-apodo="' + escapeHtml(a.id) + '"' + (unlocked ? ' role="button" tabindex="0"' : '') + '>' +
+            '<div class="apodo-top">' +
+                '<span class="apodo-nick">' + (unlocked ? escapeHtml(a.nick) : '???') + '</span>' +
+                '<span class="apodo-badge">' + badge + '</span>' +
+            '</div>' +
+            '<div class="apodo-desc">' + escapeHtml(a.desc) + '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function equipApodo(apodoId) {
+    const userId = getCurrentUserIdSafe();
+    if (userId === 'Invitado') return;
+    const stats = computeApodoStats(userId);
+    const def = APODOS.find(function (a) { return a.id === apodoId; });
+    if (!def || !def.test(stats)) return; // no equipar bloqueados
+    UserStore.setItem('u:' + userId + '|apodo', apodoId);
+    renderApodos();
+    renderProfileSummary();
+    if (typeof showToast === 'function') showToast('Apodo equipado: ' + def.nick, 'success');
+
+    // Persistir en Supabase (si hay sesión y la columna existe)
+    if (window.AppSupabase && typeof window.AppSupabase.saveApodo === 'function') {
+        Promise.resolve(window.AppSupabase.saveApodo(apodoId)).catch(function (e) {
+            console.warn('[mis-listas] No se pudo guardar el apodo en Supabase:', e);
+        });
+    }
 }
 
 function renderPoints() {
@@ -572,6 +730,7 @@ function renderProfileSummary() {
         <div class="lists-profile-main">
             <span class="lists-profile-label">Perfil</span>
             <strong class="lists-profile-name">${escapeHtml(displayName)}</strong>
+            <span class="lists-profile-apodo">${escapeHtml(getActiveApodoNick(userId))}</span>
             <div class="lists-profile-track" aria-label="Progreso de nivel">
                 <div class="lists-profile-fill" style="width:${pct}%"></div>
             </div>
@@ -712,7 +871,7 @@ function renderActividad() {
             <article class="list-row-card">
                 <div class="row-rank">${idx + 1}</div>
                 <a href="${escapeHtml(link)}">
-                    <img class="row-cover" src="${img}" alt="${title}" loading="lazy" data-fallback-catalog="1">
+                    <img class="row-cover" src="${img}" alt="${title}" width="42" height="60" decoding="async" loading="lazy" data-fallback-catalog="1">
                 </a>
                 <div class="row-info">
                     <div class="row-title">${title}</div>
@@ -830,21 +989,113 @@ function renderStats() {
     `).join('');
 }
 
-// Para que las recomendaciones no tiren error, agregamos una version fake simple o importamos algo si existiera
-function renderRecommendations() {
+// ─── Recomendaciones reales basadas en los géneros que mirás ───
+let _recsSignature = null;
+
+function recsMessage(text) {
+    return '<p style="color:rgba(255,255,255,0.4);font-family:Rajdhani,sans-serif;text-align:center;grid-column:1/-1;padding:40px 0">' + escapeHtml(text) + '</p>';
+}
+
+async function renderRecommendations() {
     const grid = document.getElementById('recommendGrid');
     if (!grid) return;
-    const allItems = getAllItems().sort((a, b) => {
-        const ta = String(a.titulo || '').toLowerCase();
-        const tb = String(b.titulo || '').toLowerCase();
-        return ta.localeCompare(tb);
+
+    const subEl = document.querySelector('[data-i18n="lists.recommend.subtitulo"]');
+    const setSub = function (txt) { if (subEl) subEl.textContent = txt; };
+
+    const userId = getCurrentUserIdSafe();
+    if (userId === 'Invitado') {
+        _recsSignature = null;
+        setSub('Iniciá sesión para recibir recomendaciones.');
+        grid.innerHTML = recsMessage('Iniciá sesión para ver recomendaciones personalizadas.');
+        return;
+    }
+
+    // Perfil de gustos: ítems con "Visto", "Me gusta" o estado de seguimiento
+    const profileEntries = getAllItems()
+        .map(function (item) { return getUserItemState(userId, item); })
+        .filter(function (e) { return e.viewed || e.fav || e.wstatus; });
+
+    if (!profileEntries.length) {
+        _recsSignature = null;
+        setSub('Marcá algo como "Visto" o "Me gusta" para recibir recomendaciones.');
+        grid.innerHTML = recsMessage('Agregá contenido a tus listas para ver recomendaciones.');
+        return;
+    }
+
+    const topGenres = topGenresFromEntries(profileEntries).slice(0, 3);
+
+    // Categoría preferida = la más marcada
+    const catCount = {};
+    profileEntries.forEach(function (e) {
+        const c = e.item.__category;
+        if (c) catCount[c] = (catCount[c] || 0) + 1;
     });
-    if(allItems.length > (AnimeDestiny.Constants.MAX_RECOMMENDATIONS || 5)) {
-        grid.innerHTML = allItems.slice(0, AnimeDestiny.Constants.MAX_RECOMMENDATIONS || 5).map(item => renderMediaCard({ item })).join('');
-    } else if (allItems.length > 0) {
-        grid.innerHTML = allItems.map(item => renderMediaCard({ item })).join('');
-    } else {
-        grid.innerHTML = '<p style="color:rgba(255,255,255,0.4);font-family:Rajdhani,sans-serif;text-align:center;grid-column:1/-1;padding:40px 0">Agregá contenido a tus listas para ver recomendaciones.</p>';
+    const preferredCat = Object.keys(catCount)
+        .sort(function (a, b) { return catCount[b] - catCount[a]; })[0] || 'anime';
+
+    // Evitar re-fetch si nada cambió
+    const signature = preferredCat + '|' + topGenres.join(',') + '|' + profileEntries.length;
+    if (_recsSignature === signature && grid.children.length) return;
+    _recsSignature = signature;
+
+    setSub(topGenres.length
+        ? 'Basado en tus gustos: ' + topGenres.join(', ') + '.'
+        : 'Basado en lo que marcaste.');
+    grid.innerHTML = recsMessage('Buscando recomendaciones...');
+
+    const fetchers = {
+        anime: window.getTopAnimes,
+        manga: window.getTopMangas,
+        novelas: window.getTopNovelas
+    };
+    const fetcher = fetchers[preferredCat] || window.getTopAnimes;
+    if (typeof fetcher !== 'function') {
+        grid.innerHTML = recsMessage('No se pudo cargar el catálogo de recomendaciones.');
+        return;
+    }
+
+    const savedIds = new Set(getAllItems().map(function (i) { return String(i.id); }));
+    const max = AnimeDestiny.Constants.MAX_RECOMMENDATIONS || 10;
+
+    try {
+        const results = await fetcher(1, topGenres.length ? { genres: topGenres } : {});
+        const recs = (Array.isArray(results) ? results : [])
+            .filter(function (r) { return !savedIds.has(String(r.id != null ? r.id : r.mal_id)); })
+            .slice(0, max);
+
+        if (_recsSignature !== signature) return; // otra llamada la reemplazó
+
+        if (!recs.length) {
+            grid.innerHTML = recsMessage('No encontramos títulos nuevos para recomendarte por ahora.');
+            return;
+        }
+
+        grid.innerHTML = recs.map(function (r) {
+            const img = (r.images && (
+                (r.images.webp && (r.images.webp.large_image_url || r.images.webp.image_url)) ||
+                (r.images.jpg && (r.images.jpg.large_image_url || r.images.jpg.image_url))
+            )) || r.img || '';
+            return renderMediaCard({
+                item: {
+                    id: r.id != null ? r.id : r.mal_id,
+                    titulo: r.title || r.titulo || '',
+                    img: img,
+                    info: (r.genres || []).map(function (g) { return g.name || g; }).join('|'),
+                    __category: preferredCat
+                },
+                match: topGenres[0] || ''
+            });
+        }).join('');
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+    } catch (e) {
+        console.warn('renderRecommendations error:', e);
+        if (_recsSignature === signature) {
+            grid.innerHTML = recsMessage('No se pudieron cargar las recomendaciones. Probá de nuevo en unos segundos.');
+        }
     }
 }
 
@@ -967,6 +1218,15 @@ async function cargarEstadosDesdeSupabase() {
     } catch (err) {
         console.warn('[mis-listas] Error cargando perfil desde Supabase:', err);
     }
+
+    try {
+        if (typeof client.loadApodo === 'function') {
+            const apodo = await client.loadApodo();
+            if (apodo) UserStore.setItem('u:' + userId + '|apodo', String(apodo));
+        }
+    } catch (err) {
+        console.warn('[mis-listas] Error cargando apodo desde Supabase:', err);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -976,6 +1236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProfileSummary();
         renderPoints();
         renderAchievements();
+        renderApodos();
         renderCurrentFilter();
         renderRecommendations();
         renderActividad();
@@ -1043,6 +1304,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Apodos: equipar al hacer click / Enter en una card desbloqueada
+    const apodosGrid = document.getElementById('apodosGrid');
+    if (apodosGrid) {
+        apodosGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.apodo-card.is-unlocked');
+            if (card) equipApodo(card.getAttribute('data-apodo'));
+        });
+        apodosGrid.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            const card = e.target.closest('.apodo-card.is-unlocked');
+            if (card) { e.preventDefault(); equipApodo(card.getAttribute('data-apodo')); }
+        });
+    }
 
     // Resultados tabs logic
     document.querySelectorAll('.res-tab').forEach(tab => {

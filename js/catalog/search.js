@@ -125,7 +125,7 @@ function inicializarBusquedaCatalogo() {
 
         suggestionBox.innerHTML = matches.map((entry) => `
             <a class="catalog-suggestion" href="detalle.html?cat=${encodeURIComponent(categoria)}&id=${encodeURIComponent(entry.item.id)}&nombre=${encodeURIComponent(entry.item.titulo)}">
-                ${entry.item.imagen ? `<img class="catalog-suggestion-img" src="${entry.item.imagen}" alt="" loading="lazy">` : ''}
+                ${entry.item.imagen ? `<img class="catalog-suggestion-img" src="${safeUrl(entry.item.imagen)}" alt="" width="36" height="50" decoding="async" loading="lazy">` : ''}
                 <span class="catalog-suggestion-body">
                     <span class="catalog-suggestion-title">${escapeHtml(entry.item.titulo)}</span>
                     <span class="catalog-suggestion-meta">${escapeHtml(entry.item.info || entry.item.status || '')}</span>
