@@ -3630,14 +3630,52 @@ function inicializarGeneroWidgets() {
 
     // ── Populate dropdown genre chips ──
     const filterGenresContainer = document.getElementById('filterGenres');
+    const genreSearchInput = document.getElementById('filterGenreSearch');
+    const genreToggleBtn = document.getElementById('toggleGenresBtn');
+    // Con >100 géneros, mostrar todos de golpe abruma. Colapsamos a los más
+    // populares (ya vienen ordenados por conteo desc) y ofrecemos "Ver todos".
+    const GENRE_COLLAPSED_COUNT = 24;
 
     function renderDropdownGenres() {
         if (!filterGenresContainer) return;
         const arr = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
-        filterGenresContainer.innerHTML = filterGenres.map((g) => {
-            const active = arr.includes(g.key) ? ' is-active' : '';
-            return `<button class="ff-genre-chip${active}" type="button" data-genre="${escapeHtml(g.key)}" aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(g.label)}</button>`;
-        }).join('');
+        const q = (window.__genreQuery || '').trim().toLowerCase();
+
+        // Filtrado por texto del buscador (coincide con la etiqueta).
+        const list = q
+            ? filterGenres.filter((g) => g.label.toLowerCase().includes(q))
+            : filterGenres;
+
+        // Colapsar salvo que se esté buscando o el usuario haya expandido.
+        const canCollapse = !q && !window.__genreExpanded && list.length > GENRE_COLLAPSED_COUNT;
+        let visible = canCollapse ? list.slice(0, GENRE_COLLAPSED_COUNT) : list;
+
+        // Los géneros ya seleccionados siempre se muestran, aunque queden fuera
+        // del recorte colapsado.
+        if (canCollapse && arr.length) {
+            const shownKeys = new Set(visible.map((g) => g.key));
+            visible = visible.concat(list.filter((g) => arr.includes(g.key) && !shownKeys.has(g.key)));
+        }
+
+        if (!visible.length) {
+            filterGenresContainer.innerHTML = '<div class="ff-genre-empty">Sin géneros que coincidan.</div>';
+        } else {
+            filterGenresContainer.innerHTML = visible.map((g) => {
+                const active = arr.includes(g.key) ? ' is-active' : '';
+                return `<button class="ff-genre-chip${active}" type="button" data-genre="${escapeHtml(g.key)}" aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(g.label)}</button>`;
+            }).join('');
+        }
+
+        if (genreToggleBtn) {
+            if (q || list.length <= GENRE_COLLAPSED_COUNT) {
+                genreToggleBtn.hidden = true;
+            } else {
+                genreToggleBtn.hidden = false;
+                genreToggleBtn.textContent = window.__genreExpanded
+                    ? 'Ver menos ▲'
+                    : 'Ver todos · ' + list.length + ' géneros ▼';
+            }
+        }
     }
 
     // Expose globally so external code (e.g. on scroll-append) can sync chips
@@ -3651,13 +3689,27 @@ function inicializarGeneroWidgets() {
     }
     _genreWidgetsListenersAdded = true;
 
+    if (genreSearchInput) {
+        genreSearchInput.addEventListener('input', () => {
+            window.__genreQuery = genreSearchInput.value || '';
+            if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
+        });
+    }
+
+    if (genreToggleBtn) {
+        genreToggleBtn.addEventListener('click', () => {
+            window.__genreExpanded = !window.__genreExpanded;
+            if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
+        });
+    }
+
     const clearBtn = document.getElementById('clearFiltersBtn');
 
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = [];
             UserStore.setItem(selectedKey, JSON.stringify([]));
-            renderDropdownGenres();
+            if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
             if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
         });
     }

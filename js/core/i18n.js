@@ -55,6 +55,7 @@
             "catalog.nsfw.titulo":    "Mostrar NSFW",
             "catalog.nsfw.desc":      "Activa para mostrar contenido para adultos.",
             "catalog.genero":         "GÉNERO",
+            "catalog.buscar_genero":  "Buscar género...",
             "catalog.abrir_filtros":  "Abrir filtros",
 
             // ── Detalle ──────────────────────────────────────────────────────
@@ -282,6 +283,7 @@
             "catalog.nsfw.titulo":    "Show NSFW",
             "catalog.nsfw.desc":      "Enable to show adult content.",
             "catalog.genero":         "GENRE",
+            "catalog.buscar_genero":  "Search genre...",
             "catalog.abrir_filtros":  "Open filters",
 
             // ── Detail ───────────────────────────────────────────────────────

@@ -4,6 +4,7 @@
   "description": "Anime Destiny - App de seguimiento de anime, manga y novelas",
   "type": "module",
   "scripts": {
+    "build": "node tools/build.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -11,6 +12,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.0.0",
+    "esbuild": "^0.21.5",
     "jsdom": "^29.1.1",
     "vitest": "^2.0.0"
   }
