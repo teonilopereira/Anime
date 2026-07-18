@@ -30,6 +30,7 @@
             "index.card.listas":   "Favoritos y vistos",
             "index.card.ranking":  "Rankings F2P y P2W",
             "index.destacados":    "Destacados",
+            "index.populares":     "Más populares",
             "index.continuar":     "Continuar viendo",
 
             // ── Catálogo (anime / manga / novelas) ───────────────────────────
@@ -258,6 +259,7 @@
             "index.card.listas":   "Favorites & watched",
             "index.card.ranking":  "F2P & P2W Rankings",
             "index.destacados":    "Featured",
+            "index.populares":     "Most popular",
             "index.continuar":     "Continue watching",
 
             // ── Catalog ──────────────────────────────────────────────────────

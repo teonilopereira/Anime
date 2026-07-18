@@ -149,14 +149,39 @@ writeUtf8('css/bundle.min.css', cssMin);
 writeUtf8('js/core-bundle.js', jsBundle);
 writeUtf8('js/core-bundle.min.js', jsMin);
 
-// Versión = hash de contenido (solo cambia cuando cambia lo servido).
-const hash = crypto.createHash('sha256').update(jsMin).update(cssMin);
-for (const buf of vendorContents) hash.update(buf);
+// ── Versión ──────────────────────────────────────────────────────────────
+
+const htmlFiles = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'));
+
+// Expresion unica: identifica los assets locales tanto para calcular la version
+// como para estamparla. Asi no pueden desincronizarse.
+const ASSET_RE = /(src|href)="((?:css|js|api)\/[^"?]+\.(?:css|js))(?:\?v=[^"]*)?"/g;
+
+// La version es el hash de TODO asset local referenciado por los HTML, no solo
+// del bundle: los CSS/JS por pagina (usuario.css, script.js, i18n.js...) tambien
+// se sirven con ?v=, asi que si no entraran en el hash cambiarian sin que la
+// version se moviera y los usuarios seguirian recibiendo la copia cacheada.
+const assetPaths = new Set();
+for (const file of htmlFiles) {
+    const src = fs.readFileSync(abs(file), 'utf8');
+    for (const m of src.matchAll(ASSET_RE)) {
+        // bundle.css se reescribe a bundle.min.css al estampar.
+        assetPaths.add(m[2] === 'css/bundle.css' ? 'css/bundle.min.css' : m[2]);
+    }
+}
+
+// Las dependencias vendorizadas que se importan como modulo (no via <script>)
+// no aparecen en los HTML, asi que se suman a mano.
+for (const { to } of VENDOR_BUNDLES) assetPaths.add(to);
+
+const hash = crypto.createHash('sha256');
+for (const rel of [...assetPaths].sort()) {
+    if (fs.existsSync(abs(rel))) hash.update(rel).update(fs.readFileSync(abs(rel)));
+}
 const version = hash.digest('hex').slice(0, 8);
 
 // ── Estampar versión en los HTML ─────────────────────────────────────────
 
-const htmlFiles = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'));
 let stampedHtml = 0;
 
 for (const file of htmlFiles) {
@@ -170,10 +195,7 @@ for (const file of htmlFiles) {
     // Estampar la version en TODO asset local (css/, js/, api/). Una sola regla
     // cubre el bundle, los CSS y JS por pagina, y las dependencias vendorizadas,
     // para que ninguno quede sin cache-busting al agregarse en el futuro.
-    src = src.replace(
-        /(src|href)="((?:css|js|api)\/[^"?]+\.(?:css|js))(?:\?v=[^"]*)?"/g,
-        (_m, attr, ruta) => `${attr}="${ruta}?v=${version}"`,
-    );
+    src = src.replace(ASSET_RE, (_m, attr, ruta) => `${attr}="${ruta}?v=${version}"`);
 
     if (src !== before) {
         fs.writeFileSync(p, src, 'utf8');

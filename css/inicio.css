@@ -1,0 +1,179 @@
+/* inicio.css — carruseles de "Más populares" de la portada. */
+
+.home-carousel {
+    max-width: 1560px;
+    margin: 0 auto 34px;
+    padding: 0 clamp(12px, 3vw, 28px);
+}
+
+/* ── Encabezado ── */
+.home-carousel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.home-carousel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.home-carousel-title i,
+.home-carousel-title svg {
+    width: 20px;
+    height: 20px;
+    color: var(--accent-cyan, #00f2ff);
+    filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.5));
+}
+
+.home-carousel-more {
+    flex-shrink: 0;
+    padding: 5px 14px;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    border-radius: 999px;
+    background: rgba(0, 242, 255, 0.06);
+    color: var(--accent-cyan, #00f2ff);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.home-carousel-more:hover {
+    background: rgba(0, 242, 255, 0.14);
+    border-color: rgba(0, 242, 255, 0.6);
+    color: #fff;
+}
+
+/* Acento por categoría, alineado con el resto de la app. */
+.home-carousel[data-cat="manga"] .home-carousel-title i,
+.home-carousel[data-cat="manga"] .home-carousel-title svg { color: #22c55e; filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.5)); }
+.home-carousel[data-cat="manga"] .home-carousel-more {
+    border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.08); color: #22c55e;
+}
+.home-carousel[data-cat="manga"] .home-carousel-more:hover { background: rgba(34, 197, 94, 0.16); color: #fff; }
+
+.home-carousel[data-cat="novelas"] .home-carousel-title i,
+.home-carousel[data-cat="novelas"] .home-carousel-title svg { color: #f43f5e; filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.5)); }
+.home-carousel[data-cat="novelas"] .home-carousel-more {
+    border-color: rgba(244, 63, 94, 0.35); background: rgba(244, 63, 94, 0.08); color: #f43f5e;
+}
+.home-carousel[data-cat="novelas"] .home-carousel-more:hover { background: rgba(244, 63, 94, 0.16); color: #fff; }
+
+/* ── Pista ── */
+.home-carousel-viewport {
+    position: relative;
+}
+
+.home-carousel-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    /* overflow-x:auto obliga a recortar en vertical: el padding evita que se
+       corte el hover de la card (translateY(-8px) scale(1.02)). */
+    padding: 12px 2px 16px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.home-carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+/* Las cards del catálogo son width:100% (pensadas para grid): en el carrusel
+   necesitan un ancho fijo. */
+.home-carousel-track > * {
+    flex: 0 0 auto;
+    width: clamp(140px, 40vw, 190px);
+    max-width: none;
+    scroll-snap-align: start;
+}
+
+.home-carousel-skeleton {
+    height: 268px;
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid rgba(0, 242, 255, 0.1);
+    background: linear-gradient(110deg, #090b14 30%, #11172a 50%, #090b14 70%);
+    background-size: 200% 100%;
+    animation: home-carousel-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes home-carousel-shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+.home-carousel-empty {
+    margin: 0;
+    padding: 28px 4px;
+    color: rgba(255, 255, 255, 0.45);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.92rem;
+}
+
+/* ── Flechas ── */
+.home-carousel-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    transform: translateY(-50%);
+    border: 1px solid rgba(0, 242, 255, 0.28);
+    border-radius: 50%;
+    background: rgba(6, 8, 18, 0.9);
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.home-carousel-nav.prev { left: -6px; }
+.home-carousel-nav.next { right: -6px; }
+
+.home-carousel-nav:hover:not(:disabled) {
+    background: rgba(0, 242, 255, 0.16);
+    border-color: rgba(0, 242, 255, 0.6);
+}
+
+.home-carousel-nav:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+.home-carousel-nav[hidden] {
+    display: none;
+}
+
+/* En pantallas táctiles el gesto de scroll alcanza. */
+@media (hover: none), (max-width: 700px) {
+    .home-carousel-nav {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-carousel-skeleton {
+        animation: none;
+    }
+    .home-carousel-track {
+        scroll-behavior: auto;
+    }
+}
