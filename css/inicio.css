@@ -1,5 +1,42 @@
 /* inicio.css — portada: separadores de seccion y carruseles. */
 
+/* ── Contención de ancho ──
+   <body> es flex column con align-items:center, asi que <main> se dimensiona
+   por su CONTENIDO y no queda limitado al viewport. Los carruseles tienen un
+   max-content enorme (12 tarjetas en fila), de modo que estiraban <main> a
+   1560 px sobre pantallas mucho mas angostas: todo quedaba centrado y cortado
+   a ambos lados (el menu se iba a 1100 px con un viewport de 562).
+   width:100% lo ata al ancho disponible; el carrusel scrollea por dentro. */
+body.menu-page #main-content {
+    width: 100%;
+    min-width: 0;
+}
+
+/* .menu-container es width:90% sin margin auto, asi que quedaba pegado a la
+   izquierda dejando un hueco a la derecha. */
+body.menu-page .menu-container {
+    margin-left: auto;
+    margin-right: auto;
+    /* Con auto-fit entraban 4 columnas y las 6 tarjetas caian 4+2, dejando una
+       fila huerfana. Columnas explicitas para que 6 siempre reparta parejo:
+       3x2 en escritorio, 2x3 en tablet, 1x6 en telefono. */
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 900px) {
+    body.menu-page .menu-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+}
+
+@media (max-width: 560px) {
+    body.menu-page .menu-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
 /* ── Separador de sección ──
    No tenia ningun estilo base: se renderizaba como texto plano del navegador
    (16px, peso 400, alineado a la izquierda), desentonando con el resto. */
@@ -7,9 +44,11 @@
     display: flex;
     align-items: center;
     gap: clamp(12px, 3vw, 22px);
+    width: 100%;
     max-width: 1560px;
     margin: 26px auto 4px;
     padding: 0 clamp(12px, 3vw, 28px);
+    box-sizing: border-box;
 }
 
 .section-divider::before,
@@ -38,9 +77,11 @@
 
 
 .home-carousel {
+    width: 100%;
     max-width: 1560px;
     margin: 0 auto 34px;
     padding: 0 clamp(12px, 3vw, 28px);
+    box-sizing: border-box;
 }
 
 /* ── Encabezado ── */
@@ -112,6 +153,7 @@
 /* ── Pista ── */
 .home-carousel-viewport {
     position: relative;
+    min-width: 0;
 }
 
 .home-carousel-track {
