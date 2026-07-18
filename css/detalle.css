@@ -776,6 +776,33 @@
     }
 }
 
+/* ── Botón "Mostrar más" de las grillas de episodios/volúmenes ── */
+.ep-grid-more,
+.vol-grid-more {
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin-top: 8px;
+    padding: 9px 20px;
+    border-radius: 999px;
+    border: 1px solid rgba(77, 134, 255, 0.4);
+    background: rgba(77, 134, 255, 0.08);
+    color: #7ea8ff;
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ep-grid-more:hover,
+.vol-grid-more:hover {
+    background: rgba(77, 134, 255, 0.16);
+    border-color: rgba(77, 134, 255, 0.65);
+    box-shadow: 0 0 12px rgba(77, 134, 255, 0.2);
+}
+
 /* ── Estado de seguimiento (pills en detalle) ── */
 .watch-status-bar {
     display: flex;

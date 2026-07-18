@@ -1,5 +1,28 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-v17';
+const CACHE_NAME = 'anime-destiny-v18';
+const IMG_CACHE_NAME = 'anime-destiny-img-v1';
+const IMG_CACHE_MAX = 120;
+// CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
+const IMG_CDN_HOSTS = ['uploads.mangadex.org', 'anilist.co', 'kitsu.io', 'kitsu.app'];
+
+// Cache-first con tope FIFO para portadas remotas.
+function cacheCover(request) {
+  return caches.open(IMG_CACHE_NAME).then((cache) => {
+    return cache.match(request).then((hit) => {
+      if (hit) return hit;
+      return fetch(request).then((response) => {
+        // Respuestas opacas (no-cors) tienen status 0 pero son cacheables.
+        if (response && (response.ok || response.type === 'opaque')) {
+          cache.put(request, response.clone());
+          cache.keys().then((keys) => {
+            if (keys.length > IMG_CACHE_MAX) cache.delete(keys[0]);
+          });
+        }
+        return response;
+      });
+    });
+  });
+}
 const ASSETS = [
   '/',
   '/index.html',
@@ -35,7 +58,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
+          if (key !== CACHE_NAME && key !== IMG_CACHE_NAME) {
             return caches.delete(key);
           }
         })
@@ -55,6 +78,13 @@ self.addEventListener('fetch', (event) => {
   }
 
   var url = event.request.url;
+
+  // Portadas remotas de los CDNs conocidos: cache-first en un cache aparte.
+  if (event.request.destination === 'image' && IMG_CDN_HOSTS.some((h) => url.includes(h))) {
+    event.respondWith(cacheCover(event.request).catch(() => fetch(event.request)));
+    return;
+  }
+
   var isCSS = url.includes('.css');
   var isJS = url.includes('.js');
 

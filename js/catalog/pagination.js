@@ -32,6 +32,16 @@ async function loadNextPage() {
     const mainContainer = document.getElementById("main-content");
     if (!mainContainer) { isLoadingPage = false; return; }
 
+    // Tope de nodos: evita acumular miles de cards en el DOM al scrollear.
+    const MAX_RENDERED = AnimeDestiny.Constants.MAX_RENDERED_CARDS || 240;
+    if (document.querySelectorAll(".catalog-neon-card").length >= MAX_RENDERED) {
+        hasMorePages = false;
+        const sentinel = getSentinel();
+        sentinel.innerHTML = '<div class="scroll-end">Usá la búsqueda o los filtros para acotar los resultados.</div>';
+        isLoadingPage = false;
+        return;
+    }
+
     var skelWrapper;
     if (typeof renderSkeletonCards === "function") {
         skelWrapper = document.createElement("div");

@@ -65,7 +65,7 @@ async function renderCompareCard(host, cat, item) {
     const img = compareItemImage(item);
     const info = compareItemInfo(cat, item);
     const coverHtml = img
-        ? `<img src="${safeUrl(img)}" alt="${escapeHtml(titulo)}">`
+        ? `<img src="${safeUrl(img)}" alt="${escapeHtml(titulo)}" width="230" height="345" decoding="async" loading="lazy">`
         : `<span class="compare-cover-empty">Sin imagen</span>`;
     const generos = (typeof info === 'string') ? info.split('/').map(s => s.trim()).filter(Boolean) : [];
     const chips = generos.length ? generos.map(g => `<span class="detail-chip">${escapeHtml(g)}</span>`).join('') : '';

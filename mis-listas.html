@@ -20,7 +20,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.css?v=16">
+        <link rel="stylesheet" href="css/bundle.css?v=17">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
@@ -845,6 +845,88 @@
         }
         .achievement-card.is-locked .achievement-state { color: rgba(255,255,255,0.3); }
 
+        /* Apodo en el perfil del sidebar */
+        .lists-profile-apodo {
+            display: inline-block;
+            margin: 2px 0 8px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,242,255,0.35);
+            background: rgba(0,242,255,0.08);
+            color: #00f2ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Apodos grid */
+        .apodos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+        }
+        .apodo-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+        .apodo-card.is-unlocked {
+            cursor: pointer;
+            border-color: rgba(77,134,255,0.25);
+        }
+        .apodo-card.is-unlocked:hover {
+            transform: translateY(-2px);
+            border-color: rgba(77,134,255,0.5);
+            box-shadow: 0 4px 16px rgba(77,134,255,0.1);
+        }
+        .apodo-card.is-locked { opacity: 0.5; }
+        .apodo-card.is-equipped {
+            border-color: rgba(0,242,255,0.55);
+            background: rgba(0,242,255,0.07);
+            box-shadow: 0 0 16px rgba(0,242,255,0.12);
+        }
+        .apodo-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .apodo-nick {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: #fff;
+        }
+        .apodo-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.58rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.5);
+            white-space: nowrap;
+        }
+        .apodo-card.is-unlocked .apodo-badge {
+            border-color: rgba(77,134,255,0.4);
+            color: #7ea8ff;
+        }
+        .apodo-card.is-equipped .apodo-badge {
+            border-color: rgba(0,242,255,0.5);
+            background: rgba(0,242,255,0.12);
+            color: #00f2ff;
+        }
+        .apodo-desc {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Rajdhani', sans-serif;
+        }
+
         /* Stats grid */
         .stats-grid {
             display: grid;
@@ -1031,6 +1113,9 @@
                 <a href="#logros" class="sidebar-link" data-tab="logros">
                     <span class="sidebar-icon"><i data-lucide="trophy"></i></span> <span data-i18n="lists.sidebar.logros">Logros</span>
                 </a>
+                <a href="#apodos" class="sidebar-link" data-tab="apodos">
+                    <span class="sidebar-icon"><i data-lucide="badge-check"></i></span> <span>Apodos</span>
+                </a>
                 <a href="#estadisticas" class="sidebar-link" data-tab="estadisticas">
                     <span class="sidebar-icon"><i data-lucide="trending-up"></i></span> <span data-i18n="lists.sidebar.estadisticas">Estadísticas</span>
                 </a>
@@ -1179,6 +1264,15 @@
                 <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
             </div>
 
+            <!-- ? APODOS ? -->
+            <div id="tab-apodos" class="tab-content">
+                <header class="lists-header-new">
+                    <h1 class="lists-title">APODOS</h1>
+                    <p class="lists-subtitle">Desbloqueá apodos con tus logros y equipá el que más te guste. Aparece en tu perfil.</p>
+                </header>
+                <div id="apodosGrid" class="apodos-grid" aria-live="polite"></div>
+            </div>
+
             <!-- ? ESTADÍSTICAS ? -->
             <div id="tab-estadisticas" class="tab-content">
                 <header class="lists-header-new">
@@ -1195,7 +1289,7 @@
     <script src="js/core/i18n.js"></script>
     <script src="js/core/namespace.js"></script>
     <script type="module" src="api/supabase-config.js" async></script>
-    <script src="js/core-bundle.min.js?v=11" defer></script>
+    <script src="js/core-bundle.min.js?v=12" defer></script>
     <script src="js/pages/mis-listas.js" defer></script>
 </body>
 
