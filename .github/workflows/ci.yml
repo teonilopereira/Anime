@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      # Los bundles (css/bundle.min.css, js/core-bundle.min.js, js/vendor/) se
+      # versionan en el repo. Si alguien edita una fuente y olvida `npm run build`,
+      # produccion queda sirviendo codigo viejo. Este paso reconstruye y falla si
+      # el resultado difiere de lo commiteado.
+      - name: Verificar que los bundles esten al dia
+        run: |
+          npm run build
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Los artefactos generados no coinciden con las fuentes."
+            echo "Corré 'npm run build' y commiteá el resultado."
+            git --no-pager diff --stat
+            exit 1
+          fi
+          echo "Bundles al día."

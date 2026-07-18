@@ -5,11 +5,13 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const PORT = 8000;
 
+// Fuentes que disparan un rebuild. Incluye CSS: antes solo se vigilaba JS, asi
+// que editar un .css no regeneraba el bundle y quedaba desincronizado.
 const SRC_DIRS = [
-    "js/core", "js/catalog", "js/security", "js/utils.js", "js/ui", "js/datos.js"
+    "js/core", "js/catalog", "js/security", "js/ui", "js/utils.js", "js/datos.js",
+    "css"
 ];
 const BUNDLE_PATH = path.join(ROOT, "js/core-bundle.js");
-const BUILD_SCRIPT = path.join(ROOT, "tools/build-js-bundle.ps1");
 
 const MIME = {
     ".html": "text/html; charset=utf-8",
@@ -30,28 +32,31 @@ function rebuildBundle() {
     if (rebuildTimer) return;
     rebuildTimer = setTimeout(function () {
         rebuildTimer = null;
-        console.log("Cambio detectado, reconstruyendo bundle...");
+        console.log("Cambio detectado, reconstruyendo...");
         var cp = require("child_process");
-        cp.exec(
-            'PowerShell -ExecutionPolicy Bypass -File "' + BUILD_SCRIPT + '"',
-            { cwd: ROOT },
-            function (err, stdout, stderr) {
-                if (err) {
-                    console.error("Error al reconstruir bundle:", stderr || err.message);
-                    return;
-                }
-                console.log(stdout.trim());
-                // Ejecutar minificación automáticamente después de compilar
-                cp.exec('node tools/minify.js', { cwd: ROOT }, function (minErr, minStdout, minStderr) {
-                    if (minErr) {
-                        console.error("Error al minificar bundle:", minStderr || minErr.message);
-                    } else {
-                        console.log(minStdout.trim());
-                    }
-                });
+        // Un solo paso: tools/build.js concatena, minifica con esbuild y estampa
+        // la version. Antes esto llamaba a build-js-bundle.ps1 + minify.js, que
+        // ademas de depender de PowerShell reintroducia el bug del minificador
+        // casero (se comia espacios dentro de los strings).
+        cp.exec('node tools/build.js', { cwd: ROOT }, function (err, stdout, stderr) {
+            if (err) {
+                console.error("Error al reconstruir:", stderr || err.message);
+                return;
             }
-        );
+            console.log(stdout.trim());
+        });
     }, 300);
+}
+
+// Los bundles son SALIDA del build: si dispararan un rebuild, el watcher
+// entraria en bucle infinito (build escribe -> watcher detecta -> build...).
+var GENERADOS = ["bundle.css", "bundle.min.css", "core-bundle.js", "core-bundle.min.js"];
+
+function esFuente(filename) {
+    if (!filename) return false;
+    var base = path.basename(filename);
+    if (GENERADOS.indexOf(base) !== -1) return false;
+    return base.endsWith(".js") || base.endsWith(".css");
 }
 
 SRC_DIRS.forEach(function (p) {
@@ -59,7 +64,7 @@ SRC_DIRS.forEach(function (p) {
     try {
         if (fs.statSync(full).isDirectory()) {
             fs.watch(full, { recursive: true }, function (event, filename) {
-                if (filename && filename.endsWith(".js")) rebuildBundle();
+                if (esFuente(filename)) rebuildBundle();
             });
         } else {
             fs.watch(full, function (event, filename) {

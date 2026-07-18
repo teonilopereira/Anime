@@ -49,9 +49,9 @@ const JS_SOURCES = [
     'js/core/common-ui.js',
 ];
 
-// CSS page-specific: NO van al bundle (se cargan sueltos), pero se les estampa versión
-// para que dejen de servirse sin cache-busting.
-const PAGE_CSS = ['advanced-filter', 'detalle', 'login', 'configuracion', 'usuario'];
+// Nota: los CSS y JS especificos de cada pagina (usuario, detalle, login, etc.)
+// NO van al bundle — se cargan sueltos y el estampado de version los cubre
+// automaticamente, sin necesidad de listarlos aca.
 
 // Dependencias de terceros que se auto-hospedan en vez de cargarse desde un CDN.
 // Se copian desde node_modules para que la version quede fijada por package.json
@@ -59,6 +59,13 @@ const PAGE_CSS = ['advanced-filter', 'detalle', 'login', 'configuracion', 'usuar
 // cambiar solo y tenia acceso al JWT en localStorage).
 const VENDOR = [
     { from: 'node_modules/lucide/dist/umd/lucide.min.js', to: 'js/vendor/lucide.min.js' },
+];
+
+// Dependencias que hay que empaquetar (no traen un build listo para el navegador).
+// api/supabase-config.js importaba el SDK desde jsDelivr; al cerrar el CSP a
+// script-src 'self' ese import quedaba bloqueado, asi que se sirve local.
+const VENDOR_BUNDLES = [
+    { entry: '@supabase/supabase-js', to: 'js/vendor/supabase.esm.js' },
 ];
 
 // ── Utilidades ───────────────────────────────────────────────────────────
@@ -69,6 +76,15 @@ function assertExists(rel) {
     }
 }
 
+// Lee normalizando CRLF -> LF. Sin esto el build no es reproducible entre
+// plataformas: en Windows las fuentes se leen con CRLF y esos saltos sobreviven
+// dentro de plantillas de texto multilinea, cambiando el hash de version
+// respecto de Linux (y rompiendo el chequeo de bundles al dia en CI).
+function readSource(rel) {
+    assertExists(rel);
+    return fs.readFileSync(abs(rel), 'utf8').replace(/\r\n/g, '\n');
+}
+
 // UTF-8 sin BOM (fs.writeFileSync con 'utf8' no agrega BOM).
 function writeUtf8(rel, data) {
     fs.writeFileSync(abs(rel), data, { encoding: 'utf8' });
@@ -76,22 +92,17 @@ function writeUtf8(rel, data) {
 
 function concatCss() {
     return CSS_SOURCES
-        .map((rel) => {
-            assertExists(rel);
-            const name = path.basename(rel);
-            return `/* ===== ${name} ===== */\n${fs.readFileSync(abs(rel), 'utf8')}`;
-        })
+        .map((rel) => `/* ===== ${path.basename(rel)} ===== */\n${readSource(rel)}`)
         .join('\n');
 }
 
 function concatJs() {
     let out = '/* === Anime Destiny Core Bundle === */\n';
     for (const rel of JS_SOURCES) {
-        assertExists(rel);
         out += '\n/* ========================================== */\n';
         out += `/* === FILE: ${rel} === */\n`;
         out += '/* ========================================== */\n\n';
-        out += `${fs.readFileSync(abs(rel), 'utf8')}\n`;
+        out += `${readSource(rel)}\n`;
     }
     return out;
 }
@@ -104,6 +115,22 @@ for (const { from, to } of VENDOR) {
     assertExists(from);
     fs.mkdirSync(path.dirname(abs(to)), { recursive: true });
     fs.copyFileSync(abs(from), abs(to));
+    vendorContents.push(fs.readFileSync(abs(to)));
+}
+
+for (const { entry, to } of VENDOR_BUNDLES) {
+    fs.mkdirSync(path.dirname(abs(to)), { recursive: true });
+    await esbuild.build({
+        entryPoints: [entry],
+        outfile: abs(to),
+        bundle: true,
+        format: 'esm',
+        platform: 'browser',
+        target: 'es2020',
+        minify: true,
+        legalComments: 'none',
+        logLevel: 'silent',
+    });
     vendorContents.push(fs.readFileSync(abs(to)));
 }
 
@@ -137,29 +164,16 @@ for (const file of htmlFiles) {
     const before = fs.readFileSync(p, 'utf8');
     let src = before;
 
-    // bundle css (min o no-min, con o sin ?v=) → siempre bundle.min.css?v=<version>
+    // El bundle CSS se sirve minificado: unificar bundle.css -> bundle.min.css.
+    src = src.replace(/css\/bundle\.css(?=[?"'])/g, 'css/bundle.min.css');
+
+    // Estampar la version en TODO asset local (css/, js/, api/). Una sola regla
+    // cubre el bundle, los CSS y JS por pagina, y las dependencias vendorizadas,
+    // para que ninguno quede sin cache-busting al agregarse en el futuro.
     src = src.replace(
-        /css\/bundle(?:\.min)?\.css(?:\?v=[^"']*)?/g,
-        `css/bundle.min.css?v=${version}`,
+        /(src|href)="((?:css|js|api)\/[^"?]+\.(?:css|js))(?:\?v=[^"]*)?"/g,
+        (_m, attr, ruta) => `${attr}="${ruta}?v=${version}"`,
     );
-
-    // core-bundle.min.js → ?v=<version>
-    src = src.replace(
-        /js\/core-bundle\.min\.js(?:\?v=[^"']*)?/g,
-        `js/core-bundle.min.js?v=${version}`,
-    );
-
-    // CSS page-specific → agregar/actualizar ?v=<version>
-    for (const name of PAGE_CSS) {
-        const re = new RegExp(`css/${name}\\.css(?:\\?v=[^"']*)?`, 'g');
-        src = src.replace(re, `css/${name}.css?v=${version}`);
-    }
-
-    // Dependencias auto-hospedadas → agregar/actualizar ?v=<version>
-    for (const { to } of VENDOR) {
-        const re = new RegExp(`${to.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\?v=[^"']*)?`, 'g');
-        src = src.replace(re, `${to}?v=${version}`);
-    }
 
     if (src !== before) {
         fs.writeFileSync(p, src, 'utf8');

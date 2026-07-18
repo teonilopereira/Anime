@@ -86,7 +86,7 @@
 
     function describeSupabaseUnavailableReason() {
         if (window.location.protocol === "file:") {
-            return "Abrí la página con un servidor local (node tools/serve.js). Supabase no funciona bien desde file://.";
+            return "Abrí la página con un servidor local (node tools/serve.cjs). Supabase no funciona bien desde file://.";
         }
         if (!window.AppConfig?.supabaseUrl || !window.AppConfig?.supabaseAnonKey) {
             return "Falta la configuración de Supabase en js/core/config.js.";
@@ -207,7 +207,7 @@
     });
 
     if (isFileProtocol()) {
-        setStatus("⚠️ Estás usando file://. Usá un servidor local: node tools/serve.js");
+        setStatus("⚠️ Estás usando file://. Usá un servidor local: node tools/serve.cjs");
     }
 
     // Reaccionar al estado de sesión (se dispara de inmediato con el estado actual)

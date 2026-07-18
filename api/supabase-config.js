@@ -4,7 +4,10 @@
  * Expone window.AppSupabase con la API pública.
  */
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/+esm';
+// SDK auto-hospedado (lo empaqueta tools/build.js desde node_modules, version
+// fijada en package.json). Antes se importaba desde jsDelivr, lo que exigia
+// abrir el CSP a un CDN externo con acceso al JWT en localStorage.
+import { createClient } from '../js/vendor/supabase.esm.js';
 
 const runtimeConfig = window.AppConfig || {};
 
