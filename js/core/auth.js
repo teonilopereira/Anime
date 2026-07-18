@@ -56,6 +56,31 @@ async function waitForSupabase() {
         return user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
     }
 
+    // Etiquetas de apodo (grado) para el badge del navbar. Debe seguir en
+    // sincronía con APODOS en js/pages/mis-listas.js.
+    const APODO_LABELS = {
+        novato: 'Novato',
+        corazon: 'Corazón de Otaku',
+        coleccionista: 'Coleccionista',
+        observador: 'Observador',
+        devorador: 'Devorador de Mundos',
+        primer_paso: 'Un Pasito',
+        maratonista: 'Maratonista',
+        veterano: 'Veterano',
+        leyenda: 'Leyenda Destiny'
+    };
+
+    async function resolveGrade(profile) {
+        // 1) Del perfil global si ya está cargado (usuario.html)
+        let apodoId = (profile && profile.apodo) || null;
+        // 2) Si no, intentar traerlo desde Supabase (consulta liviana)
+        if (!apodoId && window.AppSupabase && typeof window.AppSupabase.loadApodo === 'function') {
+            try { apodoId = await window.AppSupabase.loadApodo(); } catch (_) { apodoId = null; }
+        }
+        if (!apodoId) return '';
+        return APODO_LABELS[apodoId] || '';
+    }
+
   async function refreshUserUi() {
         const user = await getCurrentUser();
         // Intentar usar perfil guardado globalmente (lo setea usuario.html)
@@ -77,6 +102,7 @@ async function waitForSupabase() {
         const nameEl = document.getElementById('nav-user-name');
         const btnEl = document.getElementById('nav-user-btn');
         const avatarEl = document.getElementById('nav-user-avatar');
+        const gradeEl = document.getElementById('nav-user-grade');
         if (nameEl && btnEl && avatarEl) {
             if (user) {
                 nameEl.textContent = username;
@@ -92,6 +118,18 @@ async function waitForSupabase() {
                     avatarEl.classList.remove('has-image');
                     avatarEl.style.removeProperty('background-image');
                 }
+                // Badge de grado (apodo). Se resuelve async para no demorar el nombre.
+                if (gradeEl) {
+                    resolveGrade(profile).then(function (label) {
+                        if (label) {
+                            gradeEl.textContent = 'GRADO: ' + label.toUpperCase();
+                            gradeEl.hidden = false;
+                        } else {
+                            gradeEl.hidden = true;
+                            gradeEl.textContent = '';
+                        }
+                    });
+                }
             } else {
                 nameEl.textContent = 'Invitado';
                 btnEl.textContent = 'Ingresar';
@@ -99,6 +137,7 @@ async function waitForSupabase() {
                 btnEl.setAttribute('aria-label', 'Iniciar sesión');
                 avatarEl.classList.remove('has-image');
                 avatarEl.style.removeProperty('background-image');
+                if (gradeEl) { gradeEl.hidden = true; gradeEl.textContent = ''; }
             }
         }
     }

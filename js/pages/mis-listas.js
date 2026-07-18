@@ -54,6 +54,17 @@ function topGenresFromEntries(entries) {
         .sort(function (a, b) { return counts[b] - counts[a]; });
 }
 
+// ─── EXP por logros + idempotencia persistente ───
+// UserStore es solo en memoria; para no premiar EXP dos veces al recargar,
+// los flags "ya premiado" se guardan en localStorage (los logros son monótonos).
+const ACHV_EXP_COMMON = 25;
+const ACHV_EXP_SECRET = 50;
+
+function _lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
+function _lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* storage lleno/bloqueado */ } }
+function _achvGrantKey(userId, id) { return 'ad:achvGrant:' + userId + ':' + id; }
+function _achvInitKey(userId) { return 'ad:achvInit:' + userId; }
+
 function renderGenres(info) {
     if (!info) return '';
     var genres = String(info).split(/[|/]/).map(function (g) { return g.trim(); }).filter(Boolean);
@@ -487,6 +498,15 @@ function renderAchievements() {
         });
     }
 
+    // Nivel del usuario para logros de nivel
+    const achvPts = (typeof getUserPoints === 'function')
+        ? getUserPoints(userId)
+        : Number(UserStore.getItem('u:' + userId + '|points') || '0');
+    const achvLvInfo = (typeof levelFromPoints === 'function') ? levelFromPoints(achvPts) : { level: 1 };
+    const achvDbLevel = Number(UserStore.getItem('u:' + userId + '|level') || '0');
+    const level = Math.max(achvDbLevel, achvLvInfo.level);
+    const totalSaved = lists.fav + lists.viewed;
+
     const rules = [
         // — Me gusta —
         { id: 'fav1',  title: 'Corazón de Otaku',     desc: 'Marcá 1 título como "Me gusta".',   req: lists.fav >= 1,  icon: '❤️' },
@@ -494,6 +514,7 @@ function renderAchievements() {
         { id: 'fav10', title: 'Coleccionista',         desc: 'Marcá 10 títulos como "Me gusta".', req: lists.fav >= 10, icon: '🌟' },
         { id: 'fav25', title: 'Corazón Gentil',        desc: 'Marcá 25 títulos como "Me gusta".', req: lists.fav >= 25, icon: '💗', secret: true },
         { id: 'fav50', title: 'Rey de los Piratas',    desc: 'Marcá 50 títulos como "Me gusta".', req: lists.fav >= 50, icon: '🏴‍☠️', secret: true },
+        { id: 'fav100', title: 'Emperador del Harem',  desc: 'Marcá 100 títulos como "Me gusta".', req: lists.fav >= 100, icon: '👑', secret: true },
 
         // — Vistos —
         { id: 'view1',   title: 'Primer Vistazo',      desc: 'Marcá 1 título como "Visto".',   req: lists.viewed >= 1,   icon: '👁️' },
@@ -501,26 +522,57 @@ function renderAchievements() {
         { id: 'view25',  title: 'Alquimista de Acero', desc: 'Marcá 25 títulos como "Visto".', req: lists.viewed >= 25,  icon: '⚗️' },
         { id: 'view50',  title: 'Devorador de Mundos', desc: 'Marcá 50 títulos como "Visto".', req: lists.viewed >= 50,  icon: '🔥', secret: true },
         { id: 'view100', title: 'Dios de la Muerte',   desc: 'Marcá 100 títulos como "Visto".', req: lists.viewed >= 100, icon: '💀', secret: true },
+        { id: 'view250', title: 'El Que Todo Lo Vio',  desc: 'Marcá 250 títulos como "Visto".', req: lists.viewed >= 250, icon: '🌌', secret: true },
 
         // — Progreso (episodios / capítulos) —
-        { id: 'ep1',   title: 'Un Pasito',        desc: 'Marcá tu primer capítulo o episodio.', req: lists.eps >= 1,   icon: '🎬' },
-        { id: 'ep10',  title: 'Ganbatte!',        desc: 'Marcá 10 capítulos o episodios.',      req: lists.eps >= 10,  icon: '💪' },
-        { id: 'ep50',  title: 'Plus Ultra',       desc: 'Marcá 50 capítulos o episodios.',      req: lists.eps >= 50,  icon: '⚡' },
-        { id: 'ep100', title: 'Maratonista',      desc: 'Marcá 100 capítulos o episodios.',     req: lists.eps >= 100, icon: '🏃', secret: true },
-        { id: 'ep500', title: 'Sennin del Binge', desc: 'Marcá 500 capítulos o episodios.',     req: lists.eps >= 500, icon: '🧙', secret: true },
+        { id: 'ep1',    title: 'Un Pasito',        desc: 'Marcá tu primer capítulo o episodio.', req: lists.eps >= 1,    icon: '🎬' },
+        { id: 'ep10',   title: 'Ganbatte!',        desc: 'Marcá 10 capítulos o episodios.',      req: lists.eps >= 10,   icon: '💪' },
+        { id: 'ep50',   title: 'Plus Ultra',       desc: 'Marcá 50 capítulos o episodios.',      req: lists.eps >= 50,   icon: '⚡' },
+        { id: 'ep100',  title: 'Maratonista',      desc: 'Marcá 100 capítulos o episodios.',     req: lists.eps >= 100,  icon: '🏃', secret: true },
+        { id: 'ep500',  title: 'Sennin del Binge', desc: 'Marcá 500 capítulos o episodios.',     req: lists.eps >= 500,  icon: '🧙', secret: true },
+        { id: 'ep1000', title: 'El Elegido',       desc: 'Marcá 1000 capítulos o episodios.',    req: lists.eps >= 1000, icon: '🌠', secret: true },
+
+        // — Nivel —
+        { id: 'level5',  title: 'Aprendiz de Hokage', desc: 'Alcanzá el nivel 5.',  req: level >= 5,  icon: '🍥' },
+        { id: 'level10', title: 'Caballero de Élite', desc: 'Alcanzá el nivel 10.', req: level >= 10, icon: '🛡️' },
+        { id: 'level20', title: 'Súper Saiyajin',     desc: 'Alcanzá el nivel 20.', req: level >= 20, icon: '💥', secret: true },
+        { id: 'level30', title: 'Ultra Instinto',     desc: 'Alcanzá el nivel 30.', req: level >= 30, icon: '🔱', secret: true },
 
         // — Temáticos por categoría —
         { id: 'anime15',  title: 'Maestro del Anime',   desc: 'Marcá 15 animes como "Visto".',   req: catViewed.anime >= 15,   icon: '📺' },
+        { id: 'anime30',  title: 'Otaku de Élite',      desc: 'Marcá 30 animes como "Visto".',   req: catViewed.anime >= 30,   icon: '🎇', secret: true },
         { id: 'manga15',  title: 'Rincón del Mangaka',  desc: 'Marcá 15 mangas como "Visto".',   req: catViewed.manga >= 15,   icon: '📖' },
+        { id: 'manga30',  title: 'Sabio del Manga',     desc: 'Marcá 30 mangas como "Visto".',   req: catViewed.manga >= 30,   icon: '🖌️', secret: true },
         { id: 'novela10', title: 'Isekai Trotamundos',  desc: 'Marcá 10 novelas como "Visto".',  req: catViewed.novelas >= 10, icon: '📜' },
-        { id: 'trifecta',  title: 'Camino del Héroe',   desc: 'Terminá al menos 1 anime, 1 manga y 1 novela.', req: catViewed.anime >= 1 && catViewed.manga >= 1 && catViewed.novelas >= 1, icon: '🎌', secret: true }
+        { id: 'novela25', title: 'Erudito de Novelas',  desc: 'Marcá 25 novelas como "Visto".',  req: catViewed.novelas >= 25, icon: '📚', secret: true },
+        { id: 'trifecta', title: 'Camino del Héroe',    desc: 'Terminá al menos 1 anime, 1 manga y 1 novela.', req: catViewed.anime >= 1 && catViewed.manga >= 1 && catViewed.novelas >= 1, icon: '🎌', secret: true },
+
+        // — Global —
+        { id: 'library100', title: 'Biblioteca Viviente', desc: 'Acumulá 100 títulos entre "Me gusta" y "Visto".', req: totalSaved >= 100, icon: '🏛️', secret: true }
     ];
+
+    // Detección de logros recién desbloqueados para premiar EXP + notificar.
+    // UserStore es solo en memoria, así que la idempotencia (no premiar dos
+    // veces al recargar) se persiste en localStorage. En el PRIMER encuentro
+    // del usuario con el sistema se siembran los flags en silencio (sin EXP ni
+    // toast) para no regalar EXP retroactiva ni spamear a usuarios existentes.
+    const userInited = _lsGet(_achvInitKey(userId)) === '1';
+    const newlyUnlocked = [];
 
     rules.forEach(function(r) {
         if (r.req && userId !== 'Invitado') {
             UserStore.setItem('u:' + userId + '|achievement:' + r.id, '1');
+            const granted = _lsGet(_achvGrantKey(userId, r.id)) === '1';
+            if (!granted) {
+                _lsSet(_achvGrantKey(userId, r.id), '1');
+                if (userInited) newlyUnlocked.push(r);
+            }
         }
     });
+
+    if (!userInited && userId !== 'Invitado') {
+        _lsSet(_achvInitKey(userId), '1');
+    }
 
     host.innerHTML = rules.map(function(r) {
         var unlocked = UserStore.getItem('u:' + userId + '|achievement:' + r.id) === '1';
@@ -537,6 +589,19 @@ function renderAchievements() {
             '</div>' +
         '</div>';
     }).join('');
+
+    // Premiar EXP y notificar los logros realmente nuevos de esta sesión
+    if (newlyUnlocked.length) {
+        newlyUnlocked.forEach(function(r) {
+            const exp = r.secret ? (ACHV_EXP_SECRET) : (ACHV_EXP_COMMON);
+            if (typeof window.addUserPoints === 'function') window.addUserPoints(userId, exp);
+            if (window.Toast) window.Toast.success('🏆 ¡Logro desbloqueado! ' + r.title + ' (+' + exp + ' EXP)', 6000);
+        });
+        // La barra de EXP/nivel quedó desactualizada tras sumar puntos
+        renderPoints();
+        renderProfileSummary();
+        renderApodos(); // el EXP nuevo puede desbloquear apodos por nivel
+    }
 }
 
 // ─── Apodos (títulos) que se desbloquean con logros ───
@@ -624,7 +689,7 @@ function equipApodo(apodoId) {
     UserStore.setItem('u:' + userId + '|apodo', apodoId);
     renderApodos();
     renderProfileSummary();
-    if (typeof showToast === 'function') showToast('Apodo equipado: ' + def.nick, 'success');
+    if (window.Toast) window.Toast.success('Apodo equipado: ' + def.nick);
 
     // Persistir en Supabase (si hay sesión y la columna existe)
     if (window.AppSupabase && typeof window.AppSupabase.saveApodo === 'function') {
@@ -650,8 +715,9 @@ function renderPoints() {
     const lv = (typeof levelFromPoints === 'function')
         ? levelFromPoints(pts)
         : { level: 1, current: 0, next: 100 };
-    const dbLevel = Number(UserStore.getItem('u:' + userId + '|level') || '0');
-    const level = Math.max(dbLevel, lv.level);
+    // El nivel, la barra y el "faltan" se derivan todos de lv (puntos) para que
+    // el número y la barra siempre coincidan.
+    const level = lv.level;
     const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
 
     host.innerHTML = `
@@ -705,8 +771,8 @@ function renderProfileSummary() {
 
     const pts = (typeof getUserPoints === 'function') ? getUserPoints(userId) : Number(UserStore.getItem(`u:${userId}|points`) || '0');
     const lv = (typeof levelFromPoints === 'function') ? levelFromPoints(pts) : { level: 1, current: 0, next: 100 };
-    const dbLevel = Number(UserStore.getItem('u:' + userId + '|level') || '0');
-    const level = Math.max(dbLevel, lv.level);
+    // Nivel y barra derivados de lv (puntos) para que coincidan siempre.
+    const level = lv.level;
     const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
 
     const avatarHtml = photoUrl

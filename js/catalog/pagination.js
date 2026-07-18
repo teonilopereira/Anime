@@ -123,7 +123,8 @@ async function inicializarPagina() {
     const mainContainer = document.getElementById("main-content");
     if (!mainContainer) return;
     const categoria = document.body.getAttribute("data-page");
-    if (["listas", "top", "comparar", "detalle", "index"].indexOf(categoria) !== -1) return;
+    // Páginas que NO son catálogo: no deben ser sobreescritas por el catálogo.
+    if (["listas", "top", "comparar", "detalle", "index", "usuario", "configuracion", "login"].indexOf(categoria) !== -1) return;
     currentPage = 1;
     const usaCatalogoApi = categoria === "anime" || categoria === "manga" || categoria === "novelas";
 

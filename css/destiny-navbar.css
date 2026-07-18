@@ -243,15 +243,36 @@
     display: flex;
     align-items: center;
     margin-left: 0;
-    padding-left: 16px;
-    gap: 10px;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 8px 6px 14px;
+    gap: 12px;
+    border: 1px solid rgba(77, 134, 255, 0.28);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(77, 134, 255, 0.10), rgba(77, 134, 255, 0.04));
     flex-shrink: 0;
 }
 
 .destiny-navbar .nav-user::before {
     display: none;
 }
+
+/* Badge de grado (apodo) debajo del nombre */
+.destiny-navbar .nav-user-grade {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(77, 134, 255, 0.16);
+    border: 1px solid rgba(77, 134, 255, 0.38);
+    color: #9db8ff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.52rem;
+    letter-spacing: 0.5px;
+    line-height: 1.7;
+    white-space: nowrap;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.destiny-navbar .nav-user-grade[hidden] { display: none; }
 
 .destiny-navbar .nav-user-avatar {
     width: 42px;
@@ -612,6 +633,10 @@
     }
 
     .destiny-navbar .nav-user-name {
+        display: none;
+    }
+
+    .destiny-navbar .nav-user-grade {
         display: none;
     }
 

@@ -77,6 +77,20 @@ function displayName(user) {
            'Usuario';
 }
 
+// Etiquetas de apodo (grado). Mantener en sincronía con APODOS en
+// js/pages/mis-listas.js y APODO_LABELS en js/core/auth.js.
+var APODO_LABELS = {
+    novato: 'Novato',
+    corazon: 'Corazón de Otaku',
+    coleccionista: 'Coleccionista',
+    observador: 'Observador',
+    devorador: 'Devorador de Mundos',
+    primer_paso: 'Un Pasito',
+    maratonista: 'Maratonista',
+    veterano: 'Veterano',
+    leyenda: 'Leyenda Destiny'
+};
+
 /* ── Init ── */
 applyBackgroundPreference();
 
@@ -181,6 +195,18 @@ function renderProfile(user, profile) {
     document.getElementById('userName').textContent = name;
     document.getElementById('memberSince').textContent = created ? formatDate(created) : '—';
     document.getElementById('infoEmail').textContent = email;
+
+    // Apodo (grado) equipado
+    var apodoEl = document.getElementById('perfilApodo');
+    if (apodoEl) {
+        var apodoLabel = profile && profile.apodo ? (APODO_LABELS[profile.apodo] || '') : '';
+        if (apodoLabel) {
+            apodoEl.textContent = '★ ' + apodoLabel;
+            apodoEl.hidden = false;
+        } else {
+            apodoEl.hidden = true;
+        }
+    }
 
     var avatarInner = document.getElementById('avatarInner');
     var initials = document.getElementById('avatarInitials');

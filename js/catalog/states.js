@@ -138,6 +138,9 @@
         const oldLevelInfo = levelFromPoints(currentPoints);
 
         const next = Math.max(0, currentPoints + delta);
+        // Delta efectivo: clamp a 0 para que la EXP nunca baje de 0 en el server
+        // (evita romper el CHECK exp >= 0 al restar EXP por desmarcar).
+        const effectiveDelta = next - currentPoints;
         UserStore.setItem(pointsKey(userId), String(next));
 
         const newLevelInfo = levelFromPoints(next);
@@ -150,14 +153,16 @@
             }
         }
 
+        if (effectiveDelta === 0) return; // nada real que sincronizar
+
         const client = window.AppSupabase;
         if (!client?.addExperience) {
-            enqueueSync({ type: "experience", payload: { delta } });
+            enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
             return;
         }
-        client.addExperience(delta).catch((error) => {
+        client.addExperience(effectiveDelta).catch((error) => {
             if (isSessionExpired(error)) showSyncToast('Sesión expirada. La experiencia se sincronizará al reconectar.', 'session-expired');
-            enqueueSync({ type: "experience", payload: { delta } });
+            enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
         });
     }
 
@@ -452,20 +457,25 @@
 
         const storageKey = statusStorageKey(userId, itemId, type);
 
+        const xp = type === 'viewed'
+            ? (AnimeDestiny.Constants.XP_VIEWED || 10)
+            : (AnimeDestiny.Constants.XP_FAV || 5);
+
         const enabled = !UserStore.getItem(storageKey);
         if (enabled) {
             UserStore.setItem(storageKey, '1');
             if (typeof window._invalidateProgressIndex === 'function') window._invalidateProgressIndex();
-            addUserPoints(userId, type === 'viewed' ? (AnimeDestiny.Constants.XP_VIEWED || 10) : (AnimeDestiny.Constants.XP_FAV || 5));
+            addUserPoints(userId, xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.success("¡Agregado a Favoritos! ❤️");
-                if (type === 'viewed') window.Toast.success("¡Marcado como Visto! 👁️ (+10 EXP)");
+                if (type === 'fav') window.Toast.success(`¡Agregado a Favoritos! ❤️ (+${xp} EXP)`);
+                if (type === 'viewed') window.Toast.success(`¡Marcado como Visto! 👁️ (+${xp} EXP)`);
             }
         } else {
             UserStore.removeItem(storageKey);
+            addUserPoints(userId, -xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.info("Quitado de Favoritos");
-                if (type === 'viewed') window.Toast.info("Marcado como no visto");
+                if (type === 'fav') window.Toast.info(`Quitado de Favoritos (-${xp} EXP)`);
+                if (type === 'viewed') window.Toast.info(`Marcado como no visto (-${xp} EXP)`);
             }
         }
 
