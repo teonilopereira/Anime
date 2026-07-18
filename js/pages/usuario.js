@@ -114,19 +114,46 @@ function showLoader() {
 function hideLoader() {
     var loader = document.getElementById('perfilLoader');
     if (loader) loader.style.display = 'none';
+}
+function showContent() {
+    var guest = document.getElementById('perfilGuest');
+    if (guest) guest.hidden = true;
     var content = document.getElementById('perfilContent');
     if (content) content.classList.remove('perfil-init-hidden');
+}
+function showGuest() {
+    var content = document.getElementById('perfilContent');
+    if (content) content.classList.add('perfil-init-hidden');
+    var guest = document.getElementById('perfilGuest');
+    if (!guest) {
+        // Fallback: HTML viejo cacheado por el SW sin el panel de invitado.
+        guest = document.createElement('section');
+        guest.className = 'perfil-guest';
+        guest.id = 'perfilGuest';
+        guest.innerHTML =
+            '<div class="perfil-guest-icon">👤</div>' +
+            '<h2 class="perfil-guest-title">TU PERFIL TE ESPERA</h2>' +
+            '<p class="perfil-guest-text">Inicia sesión para ver tu nivel, tus puntos, tus favoritos y tu actividad reciente.</p>' +
+            '<div class="perfil-guest-btns">' +
+            '<a href="Login.html" class="perfil-guest-btn-login">🚀 INICIAR SESIÓN</a>' +
+            '<a href="index.html" class="perfil-guest-btn-back">← VOLVER AL INICIO</a>' +
+            '</div>';
+        var main = document.getElementById('main-content');
+        if (main && content) main.insertBefore(guest, content);
+        else if (main) main.appendChild(guest);
+    }
+    guest.hidden = false;
 }
 
 async function initPage() {
     showLoader();
     var supabase = typeof window.waitForSupabase === 'function' ? await window.waitForSupabase() : window.AppSupabase;
-    if (!supabase) { hideLoader(); return; }
+    if (!supabase) { hideLoader(); showGuest(); return; }
 
     var user = await supabase.getCurrentUser();
     if (!user) {
         hideLoader();
-        document.getElementById('userName').textContent = 'No has iniciado sesión';
+        showGuest();
         return;
     }
     _currentUser = user;
@@ -173,6 +200,7 @@ async function initPage() {
     renderProfile(user, _currentProfile);
 
     hideLoader();
+    showContent();
 
     if (typeof window.refreshUserUi === 'function') {
         window.refreshUserUi();
@@ -182,6 +210,7 @@ async function initPage() {
 initPage().catch(function(e) {
     console.error('[usuario] Error en initPage:', e);
     hideLoader();
+    showContent();
     var nameEl = document.getElementById('userName');
     if (nameEl) nameEl.textContent = 'Error al cargar perfil';
 });
@@ -288,9 +317,20 @@ function renderProfile(user, profile) {
         { icon: '⚙', color: 'orange', title: 'Configuración actualizada', time: 'Ayer, 18:22' }
     ];
 
-    var items = rawActivity.length ? rawActivity.slice(-4).reverse() : defaultActivity;
+    _allActivity = rawActivity.length ? rawActivity.slice().reverse() : defaultActivity;
+    _activityExpanded = false;
+    renderActivity();
+}
 
-    document.getElementById('activityCards').innerHTML = items.map(function(a) {
+var _allActivity = [];
+var _activityExpanded = false;
+
+function renderActivity() {
+    var container = document.getElementById('activityCards');
+    if (!container) return;
+
+    var items = _activityExpanded ? _allActivity : _allActivity.slice(0, 4);
+    container.innerHTML = items.map(function(a) {
         return '<div class="perfil-activity-card">' +
             '<div class="perfil-activity-icon-wrap ' + escapeHtml(a.color) + '">' + escapeHtml(a.icon) + '</div>' +
             '<div class="perfil-activity-info">' +
@@ -300,6 +340,16 @@ function renderProfile(user, profile) {
             '<div class="perfil-activity-arrow">›</div>' +
             '</div>';
     }).join('');
+
+    var link = document.getElementById('verActividadBtn');
+    if (link) {
+        if (_allActivity.length <= 4) {
+            link.hidden = true;
+        } else {
+            link.hidden = false;
+            link.textContent = _activityExpanded ? '← VER MENOS' : 'VER TODA LA ACTIVIDAD →';
+        }
+    }
 }
 
 /* ── Editar perfil ── */
@@ -391,6 +441,15 @@ document.getElementById('editProfileBtn').addEventListener('click', function(e) 
 document.getElementById('cambiarInfoBtn').addEventListener('click', function() {
     toggleInfoEdit();
 });
+
+var verActividadBtn = document.getElementById('verActividadBtn');
+if (verActividadBtn) {
+    verActividadBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        _activityExpanded = !_activityExpanded;
+        renderActivity();
+    });
+}
 
 /* ── Cambio de avatar local (file) ── */
 var avatarInput = document.getElementById('avatarInput');
