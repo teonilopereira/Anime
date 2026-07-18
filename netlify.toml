@@ -1,0 +1,20 @@
+# Configuracion de Netlify para Anime Destiny.
+#
+# Solo define cabeceras de seguridad. NO se define un comando de build a
+# proposito: los artefactos (css/bundle.min.css, js/core-bundle.min.js,
+# js/vendor/) se generan localmente con `npm run build` y se versionan en el
+# repo, asi que Netlify solo publica archivos estaticos.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Forzar HTTPS por 2 anios (incluye subdominios).
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    # Impide que el navegador "adivine" el tipo MIME (vector de XSS con archivos subidos).
+    X-Content-Type-Options = "nosniff"
+    # No filtrar la URL completa al navegar a sitios externos.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Defensa contra clickjacking (complementa frame-ancestors del CSP).
+    X-Frame-Options = "SAMEORIGIN"
+    # Desactivar APIs del navegador que la app no usa.
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"

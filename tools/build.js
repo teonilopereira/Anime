@@ -53,6 +53,14 @@ const JS_SOURCES = [
 // para que dejen de servirse sin cache-busting.
 const PAGE_CSS = ['advanced-filter', 'detalle', 'login', 'configuracion', 'usuario'];
 
+// Dependencias de terceros que se auto-hospedan en vez de cargarse desde un CDN.
+// Se copian desde node_modules para que la version quede fijada por package.json
+// (antes se traia "npm/lucide" sin version ni SRI desde jsDelivr: el codigo podia
+// cambiar solo y tenia acceso al JWT en localStorage).
+const VENDOR = [
+    { from: 'node_modules/lucide/dist/umd/lucide.min.js', to: 'js/vendor/lucide.min.js' },
+];
+
 // ── Utilidades ───────────────────────────────────────────────────────────
 
 function assertExists(rel) {
@@ -90,6 +98,15 @@ function concatJs() {
 
 // ── Build ────────────────────────────────────────────────────────────────
 
+// Copiar dependencias auto-hospedadas desde node_modules.
+const vendorContents = [];
+for (const { from, to } of VENDOR) {
+    assertExists(from);
+    fs.mkdirSync(path.dirname(abs(to)), { recursive: true });
+    fs.copyFileSync(abs(from), abs(to));
+    vendorContents.push(fs.readFileSync(abs(to)));
+}
+
 const cssBundle = concatCss();
 const jsBundle = concatJs();
 
@@ -105,8 +122,10 @@ writeUtf8('css/bundle.min.css', cssMin);
 writeUtf8('js/core-bundle.js', jsBundle);
 writeUtf8('js/core-bundle.min.js', jsMin);
 
-// Versión = hash de contenido (solo cambia cuando cambia lo minificado).
-const version = crypto.createHash('sha256').update(jsMin).update(cssMin).digest('hex').slice(0, 8);
+// Versión = hash de contenido (solo cambia cuando cambia lo servido).
+const hash = crypto.createHash('sha256').update(jsMin).update(cssMin);
+for (const buf of vendorContents) hash.update(buf);
+const version = hash.digest('hex').slice(0, 8);
 
 // ── Estampar versión en los HTML ─────────────────────────────────────────
 
@@ -134,6 +153,12 @@ for (const file of htmlFiles) {
     for (const name of PAGE_CSS) {
         const re = new RegExp(`css/${name}\\.css(?:\\?v=[^"']*)?`, 'g');
         src = src.replace(re, `css/${name}.css?v=${version}`);
+    }
+
+    // Dependencias auto-hospedadas → agregar/actualizar ?v=<version>
+    for (const { to } of VENDOR) {
+        const re = new RegExp(`${to.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\?v=[^"']*)?`, 'g');
+        src = src.replace(re, `${to}?v=${version}`);
     }
 
     if (src !== before) {
