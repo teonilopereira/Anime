@@ -101,7 +101,9 @@ function renderDetalle(item, nombreUrl, categoria) {
     const totalVols = parseVolumenes(volumenes);
     const userId = getCurrentUserIdSafe();
 
-    const pageTitle = `Detalle - ${item.titulo}`;
+    // El titulo va con el nombre de la obra primero: es lo que se lee en la
+    // pestana, en el resultado de Google y al compartir el link.
+    const pageTitle = `${item.titulo} | Anime Destiny`;
     document.title = pageTitle;
 
     function setMetaTag(name, content, attrName = 'name') {
@@ -113,6 +115,26 @@ function renderDetalle(item, nombreUrl, categoria) {
             document.head.appendChild(meta);
         }
         meta.setAttribute('content', content);
+    }
+
+    function setCanonical(url) {
+        let link = document.querySelector('link[rel="canonical"]');
+        if (!link) {
+            link = document.createElement('link');
+            link.setAttribute('rel', 'canonical');
+            document.head.appendChild(link);
+        }
+        link.setAttribute('href', url);
+    }
+
+    // Google corta las descripciones cerca de los 155 caracteres; mandar la
+    // sinopsis entera no suma y se ve truncada.
+    function recortarDescripcion(texto, max = 155) {
+        const limpio = String(texto || '').replace(/\s+/g, ' ').trim();
+        if (limpio.length <= max) return limpio;
+        const corte = limpio.slice(0, max - 1);
+        const ultimoEspacio = corte.lastIndexOf(' ');
+        return (ultimoEspacio > max * 0.6 ? corte.slice(0, ultimoEspacio) : corte).trim() + '…';
     }
 
     const isManga = categoria === 'manga' || !categoria;
@@ -160,14 +182,69 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     const summaryText = resumen || item.sinopsis || item.descripcion || item.info || 'Sin sinopsis disponible.';
 
-    setMetaTag('description', summaryText);
+    const metaDesc = recortarDescripcion(summaryText);
+
+    // El canonical se arma solo con cat + id, los unicos parametros que
+    // cambian que ficha se muestra. Los links del catalogo agregan &nombre=
+    // (y a futuro pueden sumar otros): si se copiara location.search entero,
+    // la misma obra tendria una URL canonica distinta por cada variante y
+    // Google las trataria como paginas duplicadas en vez de una sola.
+    const canonicalParams = new URLSearchParams();
+    if (categoria) canonicalParams.set('cat', categoria);
+    canonicalParams.set('id', String(item.id));
+    const canonicalUrl = window.location.origin + window.location.pathname
+        + '?' + canonicalParams.toString();
+
+    setMetaTag('description', metaDesc);
     setMetaTag('og:title', pageTitle, 'property');
-    setMetaTag('og:description', summaryText, 'property');
+    setMetaTag('og:description', metaDesc, 'property');
     setMetaTag('og:image', item.img, 'property');
-    setMetaTag('og:url', window.location.href, 'property');
+    setMetaTag('og:url', canonicalUrl, 'property');
+    setMetaTag('og:type', isAnime ? 'video.tv_show' : 'book', 'property');
+    setMetaTag('twitter:card', 'summary_large_image');
     setMetaTag('twitter:title', pageTitle);
-    setMetaTag('twitter:description', summaryText);
+    setMetaTag('twitter:description', metaDesc);
     setMetaTag('twitter:image', item.img);
+    setCanonical(canonicalUrl);
+
+    // Datos estructurados: habilitan los resultados enriquecidos de Google
+    // (imagen, puntuacion, cantidad de episodios) en vez de un link pelado.
+    (function inyectarJsonLd() {
+        const previo = document.getElementById('ld-json-item');
+        if (previo) previo.remove();
+
+        const numScore = Number(item.score ?? item.puntaje);
+        const datos = {
+            '@context': 'https://schema.org',
+            '@type': isAnime ? 'TVSeries' : 'Book',
+            name: item.titulo,
+            url: canonicalUrl,
+            description: metaDesc,
+            inLanguage: 'es'
+        };
+        if (item.img) datos.image = item.img;
+        if (generos.length) datos.genre = generos;
+        if (isAnime && Number(item.capitulos || item.episodios || item.episodes)) {
+            datos.numberOfEpisodes = Number(item.capitulos || item.episodios || item.episodes);
+        }
+        if (Number.isFinite(numScore) && numScore > 0) {
+            datos.aggregateRating = {
+                '@type': 'AggregateRating',
+                ratingValue: numScore,
+                bestRating: 10,
+                worstRating: 0,
+                ratingCount: 1
+            };
+        }
+
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = 'ld-json-item';
+        // textContent (no innerHTML): el contenido va como texto plano, sin
+        // riesgo de inyeccion con titulos o sinopsis raros.
+        script.textContent = JSON.stringify(datos);
+        document.head.appendChild(script);
+    })();
 
     const demografiaHtml = item.demografia
         ? `<span class="card-demographic demographic-${escapeHtml(item.demografia)}">${escapeHtml(item.demografia)}</span>`

@@ -1,1 +1,8 @@
-/* /index.html 200
+# Anime Destiny es un sitio estatico multipagina, no una SPA: cada seccion es
+# su propio .html y no hay routing en cliente. Netlify sirve primero el archivo
+# que exista, asi que esta regla solo alcanza a las URLs inexistentes.
+#
+# Antes decia "/* /index.html 200", que devolvia la portada con codigo 200 para
+# cualquier ruta rota. Eso dejaba 404.html sin usar y hacia que los buscadores
+# vieran infinitas URLs distintas con contenido identico (soft 404).
+/* /404.html 404

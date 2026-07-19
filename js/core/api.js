@@ -484,6 +484,47 @@
         } catch (e) { return null; }
     }
 
+    // JSON.stringify depende del orden de insercion de las propiedades, asi que
+    // {genres,search} y {search,genres} generaban claves distintas para el mismo
+    // filtro y fallaba el cache al pedo. Serializa con las claves ordenadas.
+    function stableStringify(value) {
+        if (value === null || typeof value !== 'object') return JSON.stringify(value);
+        if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+        return '{' + Object.keys(value).sort().map(function (k) {
+            return JSON.stringify(k) + ':' + stableStringify(value[k]);
+        }).join(',') + '}';
+    }
+
+    // Peticiones en vuelo: sin esto, dos componentes que piden lo mismo a la vez
+    // (p.ej. dos carruseles, o navegar rapido) disparan dos requests identicos y
+    // gastan cuota de la API al dopoble.
+    var _inflight = new Map();
+
+    /**
+     * Devuelve del cache si hay; si no, ejecuta `producer` una sola vez aunque
+     * lo llamen varias veces en paralelo. Si `producer` falla, el error se
+     * propaga (no se cachea) para que el llamador pueda distinguir "sin
+     * resultados" de "la API se cayo".
+     */
+    function fetchCached(cacheKey, ttlMs, producer) {
+        var cached = getApiCache(cacheKey);
+        if (cached) return Promise.resolve(cached);
+
+        var pendiente = _inflight.get(cacheKey);
+        if (pendiente) return pendiente;
+
+        var p = Promise.resolve()
+            .then(producer)
+            .then(function (data) {
+                if (Array.isArray(data) ? data.length : data) setApiCache(cacheKey, data, ttlMs);
+                return data;
+            })
+            .finally(function () { _inflight.delete(cacheKey); });
+
+        _inflight.set(cacheKey, p);
+        return p;
+    }
+
     function setApiCache(key, data, ttlMs) {
         var expiry = Date.now() + (ttlMs || 3600000);
         // L1
@@ -503,11 +544,9 @@
         var split = splitGenresAndTags(filters.genres);
         var browse = filters.browse || '';
         var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
-        var cacheKey = 'topAnimes_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
-        var cached = getApiCache(cacheKey);
-        if (cached) return cached;
+        var cacheKey = 'topAnimes_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
-        try {
+        return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
             var query = buildDynamicQuery(Object.assign({
                 type: 'ANIME',
                 search: filters.search || null,
@@ -523,13 +562,12 @@
 
             var json = await anilistFetch(query, vars);
             var media = json?.data?.Page?.media || [];
-            var mapped = media.map(function (m) { return anilistItemToLocal(m, 'anime'); });
-            if (mapped.length) setApiCache(cacheKey, mapped, hasFilters ? 300000 : 3600000);
-            return mapped;
-        } catch (err) {
-            console.warn('AniList getTopAnimes error:', err);
-            return [];
-        }
+            // El error NO se atrapa aca a proposito: antes se devolvia [] y el
+            // llamador mostraba "sin resultados" cuando en realidad la API habia
+            // fallado. cargarCatalogoDesdeApi y los carruseles ya tienen su
+            // try/catch y muestran el estado de error correcto.
+            return media.map(function (m) { return anilistItemToLocal(m, 'anime'); });
+        });
     };
 
     window.getTopMangas = async function (page, filters) {
@@ -537,11 +575,9 @@
         var split = splitGenresAndTags(filters.genres);
         var browse = filters.browse || '';
         var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
-        var cacheKey = 'topMangas_mix_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
-        var cached = getApiCache(cacheKey);
-        if (cached) return cached;
+        var cacheKey = 'topMangas_mix_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
-        try {
+        return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
             var perPage = Math.floor(PER_PAGE / 3) || 13;
             var baseOpts = Object.assign({
                 type: 'MANGA',
@@ -587,12 +623,8 @@
                 if (mdPage.length) mapped = mergeAnilistAndMd(mapped, mdPage);
             }
 
-            if (mapped.length) setApiCache(cacheKey, mapped, hasFilters ? 300000 : 3600000);
             return mapped;
-        } catch (err) {
-            console.warn('getTopMangas error:', err);
-            return [];
-        }
+        });
     };
 
     window.getTopNovelas = async function (page, filters) {
@@ -600,11 +632,9 @@
         var split = splitGenresAndTags(filters.genres);
         var browse = filters.browse || '';
         var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
-        var cacheKey = 'novonly_p' + (page || 1) + (hasFilters ? '_f' + JSON.stringify(filters) : '');
-        var cached = getApiCache(cacheKey);
-        if (cached) return cached;
+        var cacheKey = 'novonly_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
-        try {
+        return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
             var query = buildDynamicQuery(Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
@@ -630,12 +660,8 @@
                 if (mdPage.length) mapped = mergeAnilistAndMd(mapped, mdPage);
             }
 
-            if (mapped.length) setApiCache(cacheKey, mapped, hasFilters ? 300000 : 3600000);
             return mapped;
-        } catch (err) {
-            console.warn('getTopNovelas error:', err);
-            return [];
-        }
+        });
     };
 
     window.getAnimeById = async function (id) {
@@ -762,6 +788,10 @@
         }
     };
 
+    // Cliente HTTP de MangaDex compartido: js/core/mangadex-api.js tenia una
+    // copia casi identica de esta funcion (mismo AbortController, timeout y
+    // manejo de errores). Se expone la del bundle para no mantener dos.
+    window.mdFetch = mdFetch;
     window.fetchMangaDexPage = fetchMangaDexPage;
     window.mergeAnilistAndMd = mergeAnilistAndMd;
 
