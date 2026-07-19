@@ -714,9 +714,14 @@
 ========================================== */
 
 .catalog-neon-card {
-    --card-hud-blue: #2f6bff;
-    --card-hud-blue-bright: #4d86ff;
-    --card-hud-blue-deep: #1c46f0;
+    /* Paleta HUD de la card (cian). Los canales RGB permiten usar el mismo
+       color con distintas opacidades sin repetir el valor en cada regla. */
+    --card-hud: #00f2ff;
+    --card-hud-bright: #7df9ff;
+    --card-hud-deep: #00a8c8;
+    --card-hud-rgb: 0, 242, 255;
+    --card-hud-rgb-bright: 125, 249, 255;
+    --card-hud-rgb-deep: 0, 168, 200;
     width: 100%;
     max-width: 326px;
     perspective: 1400px;
@@ -730,7 +735,7 @@
 }
 
 .catalog-neon-card:hover .catalog-card-shell {
-    filter: drop-shadow(0 0 14px rgba(47, 107, 255, 0.35)) drop-shadow(0 0 34px rgba(47, 107, 255, 0.16));
+    filter: drop-shadow(0 0 14px rgba(var(--card-hud-rgb), 0.35)) drop-shadow(0 0 34px rgba(var(--card-hud-rgb), 0.16));
     border-color: rgba(120, 150, 255, 0.45);
 }
 
@@ -748,10 +753,10 @@
     position: relative;
     height: 440px;
     padding: 30px 12px 28px;
-    background: linear-gradient(180deg, #14111f 0%, #0a0814 55%, #0e0a1c 100%);
-    border: 1px solid rgba(130, 122, 190, 0.30);
+    background: linear-gradient(180deg, #0a1220 0%, #050a14 55%, #071018 100%);
+    border: 1px solid rgba(var(--card-hud-rgb), 0.45);
     border-radius: 16px;
-    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 10px rgba(47, 107, 255, 0.10));
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 10px rgba(var(--card-hud-rgb), 0.10));
     transition: filter 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.4s ease;
 }
 
@@ -763,9 +768,9 @@
     left: 14px;
     width: 36%;
     height: 9px;
-    background: linear-gradient(90deg, var(--card-hud-blue-bright), var(--card-hud-blue-deep));
+    background: linear-gradient(90deg, var(--card-hud-bright), var(--card-hud-deep));
     clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
-    filter: drop-shadow(0 0 5px rgba(47, 107, 255, 0.55));
+    filter: drop-shadow(0 0 5px rgba(var(--card-hud-rgb), 0.55));
     pointer-events: none;
     z-index: 2;
 }
@@ -778,9 +783,9 @@
     left: 14px;
     width: 62px;
     height: 8px;
-    background: linear-gradient(90deg, var(--card-hud-blue-bright), var(--card-hud-blue-deep));
+    background: linear-gradient(90deg, var(--card-hud-bright), var(--card-hud-deep));
     clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-    filter: drop-shadow(0 0 4px rgba(47, 107, 255, 0.45));
+    filter: drop-shadow(0 0 4px rgba(var(--card-hud-rgb), 0.45));
     pointer-events: none;
     z-index: 2;
 }
@@ -800,18 +805,65 @@
     height: 12px;
     background: repeating-linear-gradient(
         115deg,
-        var(--card-hud-blue-bright) 0px,
-        var(--card-hud-blue-bright) 7px,
+        var(--card-hud-bright) 0px,
+        var(--card-hud-bright) 7px,
         transparent 7px,
         transparent 14px
     );
     clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-    filter: drop-shadow(0 0 4px rgba(47, 107, 255, 0.45));
+    filter: drop-shadow(0 0 4px rgba(var(--card-hud-rgb), 0.45));
 }
 
-/* Bottom-right: reemplazado por la placa azul del botón en la barra */
+/* Corchetes en las 4 esquinas.
+   Se reutiliza este único elemento como capa a lo ancho de la card: cada
+   esquina son dos barras (una horizontal y una vertical) resueltas con
+   background-layers, así no hace falta sumar nodos al HTML. */
 .card-corner-br {
-    display: none;
+    inset: 5px;
+    border-radius: 12px;
+    --br: linear-gradient(var(--card-hud), var(--card-hud));
+    background:
+        /* sup-izq */      var(--br) left    top    / 26px 2px  no-repeat,
+        var(--br) left    top    / 2px  26px no-repeat,
+        /* sup-der */      var(--br) right   top    / 26px 2px  no-repeat,
+        var(--br) right   top    / 2px  26px no-repeat,
+        /* inf-izq */      var(--br) left    bottom / 26px 2px  no-repeat,
+        var(--br) left    bottom / 2px  26px no-repeat,
+        /* inf-der */      var(--br) right   bottom / 26px 2px  no-repeat,
+        var(--br) right   bottom / 2px  26px no-repeat;
+    filter: drop-shadow(0 0 6px rgba(var(--card-hud-rgb), 0.55));
+    opacity: 0.9;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+.catalog-neon-card:hover .card-corner-br {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(var(--card-hud-rgb), 0.85));
+}
+
+/* Barras verticales segmentadas sobre los bordes laterales, a media altura. */
+.catalog-card-inner::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -8px;
+    right: -8px;
+    height: 46px;
+    transform: translateY(-50%);
+    z-index: 3;
+    pointer-events: none;
+    --seg: repeating-linear-gradient(
+        180deg,
+        var(--card-hud) 0px,
+        var(--card-hud) 7px,
+        transparent 7px,
+        transparent 13px
+    );
+    background:
+        var(--seg) left  center / 3px 100% no-repeat,
+        var(--seg) right center / 3px 100% no-repeat;
+    filter: drop-shadow(0 0 5px rgba(var(--card-hud-rgb), 0.5));
+    opacity: 0.85;
 }
 
 /* ── Illustration area ── */
@@ -823,8 +875,8 @@
     border-radius: 6px;
     border: 1px solid rgba(90, 140, 255, 0.55);
     box-shadow:
-        0 0 12px rgba(47, 107, 255, 0.22),
-        inset 0 0 8px rgba(47, 107, 255, 0.10);
+        0 0 12px rgba(var(--card-hud-rgb), 0.22),
+        inset 0 0 8px rgba(var(--card-hud-rgb), 0.10);
 }
 
 .catalog-card-media::before {
@@ -933,7 +985,7 @@
     right: 0;
     bottom: 0;
     width: 62px;
-    background: linear-gradient(135deg, var(--card-hud-blue-bright) 0%, var(--card-hud-blue-deep) 100%);
+    background: linear-gradient(135deg, var(--card-hud-bright) 0%, var(--card-hud-deep) 100%);
     clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%);
     pointer-events: none;
 }
@@ -1005,7 +1057,7 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(188, 19, 254, 0.4) transparent;
     background:
-        radial-gradient(circle at 50% 0%, rgba(47, 107, 255, 0.12), transparent 40%),
+        radial-gradient(circle at 50% 0%, rgba(var(--card-hud-rgb), 0.12), transparent 40%),
         linear-gradient(180deg, #040610 0%, #030508 100%);
 }
 
@@ -1041,7 +1093,7 @@
     margin-top: 8px;
     padding: 4px 8px;
     border-radius: 8px;
-    border: 1px solid rgba(77, 134, 255, 0.35);
+    border: 1px solid rgba(var(--card-hud-rgb-bright), 0.35);
     background: rgba(6, 9, 20, 0.9);
     color: rgba(255, 255, 255, 0.85);
     font-family: var(--font-display);
@@ -1053,8 +1105,8 @@
 
 .watch-status-select:hover,
 .watch-status-select:focus {
-    border-color: rgba(77, 134, 255, 0.65);
-    box-shadow: 0 0 10px rgba(77, 134, 255, 0.2);
+    border-color: rgba(var(--card-hud-rgb-bright), 0.65);
+    box-shadow: 0 0 10px rgba(var(--card-hud-rgb-bright), 0.2);
     outline: none;
 }
 
@@ -1132,8 +1184,8 @@
     height: 2px;
     z-index: 10;
     pointer-events: none;
-    background: linear-gradient(90deg, transparent 0%, rgba(77, 134, 255, 0.55) 20%, rgba(47, 107, 255, 0.40) 80%, transparent 100%);
-    box-shadow: 0 0 8px rgba(77, 134, 255, 0.45), 0 0 18px rgba(47, 107, 255, 0.20);
+    background: linear-gradient(90deg, transparent 0%, rgba(var(--card-hud-rgb-bright), 0.55) 20%, rgba(var(--card-hud-rgb), 0.40) 80%, transparent 100%);
+    box-shadow: 0 0 8px rgba(var(--card-hud-rgb-bright), 0.45), 0 0 18px rgba(var(--card-hud-rgb), 0.20);
     animation: hud-scanline 4s linear infinite;
     animation-delay: 0s;
     opacity: 0;
@@ -1145,12 +1197,12 @@
 
 /* ── Acentos azules se intensifican en hover ── */
 .catalog-neon-card:hover .card-corner-tr {
-    filter: drop-shadow(0 0 7px rgba(77, 134, 255, 0.75));
+    filter: drop-shadow(0 0 7px rgba(var(--card-hud-rgb-bright), 0.75));
 }
 
 .catalog-neon-card:hover .catalog-card-shell::before,
 .catalog-neon-card:hover .catalog-card-shell::after {
-    filter: drop-shadow(0 0 8px rgba(77, 134, 255, 0.75));
+    filter: drop-shadow(0 0 8px rgba(var(--card-hud-rgb-bright), 0.75));
 }
 
 /* ── Card entrance animation ── */
@@ -1191,10 +1243,10 @@
     pointer-events: none;
     background: linear-gradient(
         180deg,
-        rgba(77, 134, 255, 0.05) 0%,
+        rgba(var(--card-hud-rgb-bright), 0.05) 0%,
         transparent 40%,
         transparent 70%,
-        rgba(28, 70, 240, 0.07) 100%
+        rgba(var(--card-hud-rgb-deep), 0.07) 100%
     );
     mix-blend-mode: screen;
     opacity: 0.7;
@@ -1205,10 +1257,10 @@
     opacity: 1;
     background: linear-gradient(
         180deg,
-        rgba(77, 134, 255, 0.09) 0%,
+        rgba(var(--card-hud-rgb-bright), 0.09) 0%,
         transparent 35%,
         transparent 65%,
-        rgba(28, 70, 240, 0.11) 100%
+        rgba(var(--card-hud-rgb-deep), 0.11) 100%
     );
 }
 

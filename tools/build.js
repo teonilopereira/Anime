@@ -226,9 +226,14 @@ for (const file of htmlFiles) {
 // no aparecen en los HTML, asi que se suman a mano.
 for (const { to } of VENDOR_BUNDLES) assetPaths.add(to);
 
+// Se hashea el contenido NORMALIZADO (CRLF -> LF), no los bytes crudos: los
+// saltos de linea dependen de como llego el archivo al disco (git checkout con
+// autocrlf en Windows vs LF en Linux), y si entraran al hash la version
+// cambiaria de plataforma en plataforma. Eso rompia el chequeo de CI, que
+// reconstruye y compara contra lo commiteado.
 const hash = crypto.createHash('sha256');
 for (const rel of [...assetPaths].sort()) {
-    if (fs.existsSync(abs(rel))) hash.update(rel).update(fs.readFileSync(abs(rel)));
+    if (fs.existsSync(abs(rel))) hash.update(rel).update(readSource(rel));
 }
 const version = hash.digest('hex').slice(0, 8);
 
