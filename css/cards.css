@@ -753,8 +753,8 @@
     position: relative;
     height: 440px;
     padding: 30px 12px 28px;
-    background: linear-gradient(180deg, #14111f 0%, #0a0814 55%, #0e0a1c 100%);
-    border: 1px solid rgba(130, 122, 190, 0.30);
+    background: linear-gradient(180deg, #0a1220 0%, #050a14 55%, #071018 100%);
+    border: 1px solid rgba(var(--card-hud-rgb), 0.45);
     border-radius: 16px;
     filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 10px rgba(var(--card-hud-rgb), 0.10));
     transition: filter 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.4s ease;
@@ -814,9 +814,56 @@
     filter: drop-shadow(0 0 4px rgba(var(--card-hud-rgb), 0.45));
 }
 
-/* Bottom-right: reemplazado por la placa azul del botón en la barra */
+/* Corchetes en las 4 esquinas.
+   Se reutiliza este único elemento como capa a lo ancho de la card: cada
+   esquina son dos barras (una horizontal y una vertical) resueltas con
+   background-layers, así no hace falta sumar nodos al HTML. */
 .card-corner-br {
-    display: none;
+    inset: 5px;
+    border-radius: 12px;
+    --br: linear-gradient(var(--card-hud), var(--card-hud));
+    background:
+        /* sup-izq */      var(--br) left    top    / 26px 2px  no-repeat,
+        var(--br) left    top    / 2px  26px no-repeat,
+        /* sup-der */      var(--br) right   top    / 26px 2px  no-repeat,
+        var(--br) right   top    / 2px  26px no-repeat,
+        /* inf-izq */      var(--br) left    bottom / 26px 2px  no-repeat,
+        var(--br) left    bottom / 2px  26px no-repeat,
+        /* inf-der */      var(--br) right   bottom / 26px 2px  no-repeat,
+        var(--br) right   bottom / 2px  26px no-repeat;
+    filter: drop-shadow(0 0 6px rgba(var(--card-hud-rgb), 0.55));
+    opacity: 0.9;
+    transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+.catalog-neon-card:hover .card-corner-br {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(var(--card-hud-rgb), 0.85));
+}
+
+/* Barras verticales segmentadas sobre los bordes laterales, a media altura. */
+.catalog-card-inner::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -8px;
+    right: -8px;
+    height: 46px;
+    transform: translateY(-50%);
+    z-index: 3;
+    pointer-events: none;
+    --seg: repeating-linear-gradient(
+        180deg,
+        var(--card-hud) 0px,
+        var(--card-hud) 7px,
+        transparent 7px,
+        transparent 13px
+    );
+    background:
+        var(--seg) left  center / 3px 100% no-repeat,
+        var(--seg) right center / 3px 100% no-repeat;
+    filter: drop-shadow(0 0 5px rgba(var(--card-hud-rgb), 0.5));
+    opacity: 0.85;
 }
 
 /* ── Illustration area ── */
