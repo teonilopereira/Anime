@@ -183,7 +183,17 @@ function renderDetalle(item, nombreUrl, categoria) {
     const summaryText = resumen || item.sinopsis || item.descripcion || item.info || 'Sin sinopsis disponible.';
 
     const metaDesc = recortarDescripcion(summaryText);
-    const canonicalUrl = window.location.origin + window.location.pathname + window.location.search;
+
+    // El canonical se arma solo con cat + id, los unicos parametros que
+    // cambian que ficha se muestra. Los links del catalogo agregan &nombre=
+    // (y a futuro pueden sumar otros): si se copiara location.search entero,
+    // la misma obra tendria una URL canonica distinta por cada variante y
+    // Google las trataria como paginas duplicadas en vez de una sola.
+    const canonicalParams = new URLSearchParams();
+    if (categoria) canonicalParams.set('cat', categoria);
+    canonicalParams.set('id', String(item.id));
+    const canonicalUrl = window.location.origin + window.location.pathname
+        + '?' + canonicalParams.toString();
 
     setMetaTag('description', metaDesc);
     setMetaTag('og:title', pageTitle, 'property');

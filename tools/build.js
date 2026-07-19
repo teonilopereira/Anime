@@ -30,22 +30,40 @@ const SITE_URL = 'https://animedestiny.netlify.app';
 const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html']);
 
 /**
- * Analitica. Viene DESACTIVADA: poner el dominio la enciende y el build se
- * encarga del resto (inyecta el script en cada HTML y abre el CSP lo justo).
+ * Verificacion de propiedad de Google Search Console (token del meta tag).
+ *
+ * Se estampa por build en vez de subir el googleXXXX.html que ofrece Google:
+ * ese archivo iria a la raiz y el sitemap se arma listando los .html de ahi
+ * (ver mas abajo), asi que terminaria pidiendole a Google que indexe su propio
+ * archivo de verificacion. Con el meta tag no hay archivo suelto que excluir.
+ *
+ * Google deja de reconocer la propiedad si el tag desaparece: vaciar esto lo
+ * quita de todos los HTML y tumba la verificacion.
+ */
+const GOOGLE_SITE_VERIFICATION = 'x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0';
+
+/**
+ * Analitica. Viene DESACTIVADA: poner el id la enciende y el build se encarga
+ * del resto (inyecta el script en cada HTML y abre el CSP lo justo).
  * Dejarlo vacio quita el script y vuelve a cerrar el CSP.
  *
- * Se eligio Plausible: no usa cookies ni recolecta datos personales, asi que
- * no hace falta banner de consentimiento (con Google Analytics si haria falta).
- * Alternativa equivalente: Umami (self-hosted). Para usarla, cambiar host/src.
+ * Se eligio Umami: no usa cookies ni recolecta datos personales, asi que no
+ * hace falta banner de consentimiento (con Google Analytics si haria falta) y
+ * el tier gratuito alcanza de sobra para el trafico actual.
  *
- *   1. Crear la cuenta y agregar el sitio en https://plausible.io
- *   2. Poner aca el dominio exacto, p. ej. 'animedestiny.netlify.app'
+ *   1. Crear la cuenta y agregar el sitio en https://cloud.umami.is
+ *   2. Copiar el "Website ID" (un UUID) y pegarlo abajo en `id`
  *   3. npm run build
+ *
+ * Para cambiar de proveedor se tocan las cuatro claves y nada mas: `attr` es
+ * el atributo con el que cada uno identifica al sitio (Umami usa
+ * data-website-id; Plausible, data-domain con el dominio en vez del UUID).
  */
 const ANALYTICS = {
-    dominio: '',
-    host: 'https://plausible.io',
-    src: 'https://plausible.io/js/script.js',
+    id: '',
+    attr: 'data-website-id',
+    host: 'https://cloud.umami.is',
+    src: 'https://cloud.umami.is/script.js',
 };
 
 // ── Definición de fuentes ────────────────────────────────────────────────
@@ -261,6 +279,19 @@ const hash = crypto.createHash('sha256');
 for (const rel of [...assetPaths].sort()) {
     if (fs.existsSync(abs(rel))) hash.update(rel).update(readSource(rel));
 }
+
+// Los HTML tambien entran al hash. Sin esto, un cambio que toque solo HTML
+// (meta tags de SEO, el script de analitica, canonicals) no movia la version,
+// y como sw.js usa CACHE_NAME = version y sirve HTML cache-first, el visitante
+// que ya tenia el service worker instalado seguia recibiendo la copia vieja
+// para siempre.
+//
+// Se hashea con los ?v= borrados: esos los escribe el propio estampado, asi
+// que si entraran al hash cada build cambiaria la version que acaba de
+// calcular y no convergeria nunca.
+for (const file of [...htmlFiles].sort()) {
+    hash.update(file).update(readSource(file).replace(/\?v=[^"]*/g, ''));
+}
 const version = hash.digest('hex').slice(0, 8);
 
 // ── Estampar versión en los HTML ─────────────────────────────────────────
@@ -293,17 +324,37 @@ for (const file of htmlFiles) {
         }
     }
 
-    // ── Analitica ──
-    // Se re-genera en cada build: si ANALYTICS.dominio esta vacio, el script se
-    // quita y el CSP vuelve a cerrarse. Asi encender/apagar es un solo cambio.
-    src = src.replace(/\s*<script defer data-domain="[^"]*" src="[^"]*"><\/script>/g, '');
-    src = src.split(' ' + ANALYTICS.host).join('');
+    // ── Verificacion de Search Console ──
+    // Se borra y se re-inyecta en cada build (igual que la analitica): asi el
+    // tag no se duplica al reconstruir y vaciar la constante lo saca de todos
+    // los HTML de una.
+    src = src.replace(/\s*<meta name="google-site-verification"[^>]*>/g, '');
+    if (GOOGLE_SITE_VERIFICATION) {
+        src = src.replace(
+            /(\s*)<\/head>/,
+            `$1    <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">$1</head>`,
+        );
+    }
 
-    if (ANALYTICS.dominio) {
+    // ── Analitica ──
+    // Se re-genera en cada build: si ANALYTICS.id esta vacio, el script se
+    // quita y el CSP vuelve a cerrarse. Asi encender/apagar es un solo cambio.
+    // La limpieza contempla los atributos de ambos proveedores y borra el host
+    // viejo ademas del actual, para que cambiar de uno a otro no deje el script
+    // anterior colgado ni un dominio de mas abierto en el CSP.
+    src = src.replace(
+        /\s*<script defer [^>]*\bdata-(?:website-id|domain)="[^"]*"[^>]*><\/script>/g,
+        '',
+    );
+    for (const host of [ANALYTICS.host, 'https://plausible.io']) {
+        src = src.split(' ' + host).join('');
+    }
+
+    if (ANALYTICS.id) {
         // El script va al final del <head>, con defer: no bloquea el render.
         src = src.replace(
             /(\s*)<\/head>/,
-            `$1    <script defer data-domain="${ANALYTICS.dominio}" src="${ANALYTICS.src}"><\/script>$1</head>`,
+            `$1    <script defer ${ANALYTICS.attr}="${ANALYTICS.id}" src="${ANALYTICS.src}"><\/script>$1</head>`,
         );
         // Abrir el CSP solo para el host de analitica: script-src para cargarlo
         // y connect-src para que pueda mandar los eventos.
