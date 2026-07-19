@@ -663,14 +663,34 @@
             var qDoujin = buildDynamicQuery(Object.assign({}, baseOpts, { source: 'DOUJINSHI' }));
 
             var pg = page || 1;
-            var [resManga, resManhwa, resDoujinshi] = await Promise.all([
+            // allSettled y no all: las tres queries son independientes, pero con
+            // `all` un 429 en la de doujinshi (la menos importante de las tres)
+            // rechazaba el lote entero y el catalogo quedaba en "API no
+            // disponible" aunque manga y manhwa ya hubieran respondido bien.
+            var resultados = await Promise.allSettled([
                 anilistFetch(qManga, Object.assign({ page: pg, perPage: perPage }, baseVars)),
                 anilistFetch(qManhwa, Object.assign({ page: pg, perPage: perPage }, baseVars)),
-                anilistFetch(qDoujin, Object.assign({ page: pg, perPage: perPage }, baseVars))
+                // Sin reintentos (retries = 0). Cada 429 se reintenta 2 veces, o sea
+                // que una query que falla cuesta 3 requests y empuja el rate limit
+                // mas hondo. La de doujinshi es la que menos aporta al catalogo y
+                // desde el allSettled su fallo ya no rompe nada: no vale la pena
+                // gastarle cuota justo cuando la cuota es el problema.
+                anilistFetch(qDoujin, Object.assign({ page: pg, perPage: perPage }, baseVars), 0)
             ]);
-            var mediaManga = resManga?.data?.Page?.media || [];
-            var mediaManhwa = resManhwa?.data?.Page?.media || [];
-            var mediaDoujin = resDoujinshi?.data?.Page?.media || [];
+
+            // Si fallaron las tres no hay nada parcial que rescatar: se propaga
+            // el error para que el llamador pueda distinguir "la API se cayo" de
+            // "la busqueda no tuvo resultados".
+            if (resultados.every(function (r) { return r.status === 'rejected'; })) {
+                throw resultados[0].reason;
+            }
+
+            function mediaDeResultado(r) {
+                return r.status === 'fulfilled' ? (r.value?.data?.Page?.media || []) : [];
+            }
+            var mediaManga = mediaDeResultado(resultados[0]);
+            var mediaManhwa = mediaDeResultado(resultados[1]);
+            var mediaDoujin = mediaDeResultado(resultados[2]);
             
             var media = [];
             var seenIds = new Set();
@@ -2135,28 +2155,13 @@ window.getCurrentUser      = getCurrentUser;
             item?.demografia
         ];
 
-        const detail = (typeof obtenerDetalleItem === 'function')
-            ? obtenerDetalleItem(category, item?.id)
-            : null;
-
-        if (detail) {
-            parts.push(
-                detail.estudio,
-                detail.desarrollador,
-                detail.editor,
-                detail.plataforma,
-                detail.resumen
-            );
-            if (Array.isArray(detail.temporadas)) {
-                detail.temporadas.forEach((season) => {
-                    parts.push(season?.nombre, season?.episodios);
-                });
-            }
-            if (Array.isArray(detail.franquicia)) {
-                parts.push(...detail.franquicia);
-            }
-            if (category === 'manga' || category === 'novelas') parts.push(detail.volumenes);
-        }
+        // Aca habia otra llamada a `obtenerDetalleItem` con el mismo problema:
+        // devuelve una Promise, `if (detail)` daba siempre true, y todos los
+        // campos que se empujaban (estudio, editor, resumen, temporadas...) eran
+        // undefined y terminaban descartados por el filter(Boolean) de abajo.
+        // O sea: no aportaba ni un caracter al indice y costaba una request por
+        // item. El indice de los catalogos de API ya se arma en cards.js con los
+        // datos que la propia respuesta trae.
 
         return parts
             .filter(Boolean)
@@ -2164,29 +2169,21 @@ window.getCurrentUser      = getCurrentUser;
             .join(' ');
     }
 
+    // Ojo con `obtenerDetalleItem`: devuelve una Promise (pega a AniList por id),
+    // y aca se la usaba como si fuera un objeto plano. `det?.volumenes` sobre una
+    // Promise es undefined, con lo cual el total siempre daba 0 y la funcion
+    // retornaba 0 sin mirar nada — pero igual gastaba UNA request por card.
+    // En un catalogo de manga eso eran ~40 requests de mas por carga, y el
+    // presupuesto de AniList es de 30 por minuto: alcanzaba para agotarlo solo.
+    //
+    // El total real ya viaja en el atributo data-total de la card, que es lo que
+    // resolveCatalogProgress consulta antes de caer aca. Si no hay total, no hay
+    // porcentaje posible: se devuelve null y el llamador muestra la card
+    // alternativa (mismo resultado visual que antes, sin peticiones).
     function getProgressPercentForItem(userId, category, itemId) {
         try {
             const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
             if (viewed) return 100;
-            const det = (typeof obtenerDetalleItem === 'function')
-                ? obtenerDetalleItem(category, itemId)
-                : null;
-
-            if (category === 'manga' || category === 'novelas') {
-                const vols = Number(det?.volumenes || 0);
-                const total = Number.isFinite(vols) ? vols : 0;
-                if (!total) return 0;
-                const prefix = category === 'novelas' ? 'novela' : 'manga';
-                const read = countKeysWithPrefix(`u:${userId}|${prefix}:${itemId}|vol:`);
-                return Math.min(100, Math.round((read / total) * 100));
-            }
-            if (category === 'anime') {
-                const temporadas = Array.isArray(det?.temporadas) ? det.temporadas : [];
-                const total = temporadas.reduce((acc, t) => acc + (Number(t.episodios) || 0), 0);
-                if (!total) return 0;
-                const watched = countKeysWithPrefix(`u:${userId}|anime:${itemId}|s:`);
-                return Math.min(100, Math.round((watched / total) * 100));
-            }
         } catch (e) {
             console.warn('getProgressPercentForItem failed:', e);
         }
@@ -2824,6 +2821,37 @@ function buildCatalogCardHtml(options) {
 }
 
 
+// Traduce el error crudo de la capa de API al cartel que ve el usuario.
+// Antes todo caia en un unico "API no disponible / revisa tu conexion", que es
+// enganoso: la causa mas comun es el rate limit de AniList, donde la conexion
+// del usuario esta perfecta y lo unico que hay que hacer es esperar.
+function describirErrorDeApi(error) {
+    const msg = String(error?.message || error || '');
+
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return {
+            kicker: 'Sin conexión',
+            detalle: 'Parece que te quedaste sin internet. Reconectate y recargá la página.'
+        };
+    }
+    if (msg.includes('429') || msg.includes('Límite de peticiones')) {
+        return {
+            kicker: 'Demasiadas peticiones',
+            detalle: 'AniList está limitando las peticiones por exceso de uso. Esperá un minuto y recargá — no es un problema de tu conexión.'
+        };
+    }
+    if (msg.includes('Timeout')) {
+        return {
+            kicker: 'La API tardó demasiado',
+            detalle: 'AniList no respondió a tiempo. Puede estar saturada; probá de nuevo en unos segundos.'
+        };
+    }
+    return {
+        kicker: 'API no disponible',
+        detalle: 'Revisá tu conexión, esperá unos segundos y recargá la página.'
+    };
+}
+
 async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append = false) {
     const loaderLabel = categoria === 'anime'
         ? 'animes'
@@ -2943,11 +2971,12 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
         } catch (error) {
         console.warn('Error cargando API:', error);
         if (!append) {
+            const causa = describirErrorDeApi(error);
             mainContainer.innerHTML = `
                 <section class="empty-state">
-                    <span class="empty-state-kicker">API no disponible</span>
+                    <span class="empty-state-kicker">${escapeHtml(causa.kicker)}</span>
                     <h2>No se pudo cargar el catálogo de ${escapeHtml(loaderLabel)}.</h2>
-                    <p>Revisá tu conexión, esperá unos segundos y recargá la página.</p>
+                    <p>${escapeHtml(causa.detalle)}</p>
                 </section>
             `;
             try { inicializarBusquedaCatalogo(); } catch (e) {}
@@ -3791,6 +3820,22 @@ let isLoadingPage = false;
 let hasMorePages = true;
 let scrollObserver = null;
 
+// Puerta de scroll: el sentinel queda dentro del viewport apenas termina el
+// primer render (pantalla alta, pocos resultados, o zoom out), asi que el
+// observer encadenaba paginas sin que el usuario tocara nada — hasta 6 en manga,
+// que son 18 requests a AniList en segundos y el rate limit garantizado.
+// Ahora la carga automatica no arranca hasta que haya un scroll real.
+let usuarioScrolleo = false;
+let sentinelALaVista = false;
+
+function alScrollearPorPrimeraVez() {
+    if (usuarioScrolleo) return;
+    usuarioScrolleo = true;
+    // El observer no vuelve a dispararse si el sentinel ya estaba visible (no
+    // hay cambio de interseccion que notificar), asi que hay que reintentar.
+    if (sentinelALaVista) loadNextPage();
+}
+
 function getSentinel() {
     let el = document.getElementById("scroll-sentinel");
     if (!el) {
@@ -3883,7 +3928,8 @@ function initScrollObserver() {
     disconnectScrollObserver();
     const sentinel = getSentinel();
     scrollObserver = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) {
+        sentinelALaVista = entries[0].isIntersecting;
+        if (sentinelALaVista && usuarioScrolleo) {
             loadNextPage();
         }
     }, { rootMargin: "200px" });
@@ -3904,6 +3950,12 @@ function resetInfiniteScroll() {
     hideLoadingIndicator();
     const sentinel = getSentinel();
     sentinel.innerHTML = "";
+    // Se rearma en cada reset (carga inicial y cambio de filtros): un catalogo
+    // recien renderizado no debe encadenar paginas solo porque el usuario ya
+    // habia scrolleado antes de buscar.
+    usuarioScrolleo = false;
+    sentinelALaVista = false;
+    window.addEventListener("scroll", alScrollearPorPrimeraVez, { passive: true, once: true });
     initScrollObserver();
 }
 
@@ -3946,14 +3998,12 @@ async function inicializarPagina() {
         const genresNorm = genres.map(function (g) { return normalizeText(g); }).join("|");
         const searchIndex = buildSearchIndexForItem(categoria, item);
         const detailUrl = "detalle.html?cat=" + encodeURIComponent(categoria) + "&id=" + encodeURIComponent(item.id) + "&nombre=" + encodeURIComponent(item.titulo);
-        const hasDetail = typeof obtenerDetalleItem === "function" && !!obtenerDetalleItem(categoria, item.id);
-        const detalle = (typeof obtenerDetalleItem === "function") ? obtenerDetalleItem(categoria, item.id) : null;
-        let progressTotal = 0;
-        if (categoria === "anime" && detalle?.temporadas) {
-            progressTotal = detalle.temporadas.reduce(function (acc, t) { return acc + (Number(t.episodios) || 0); }, 0);
-        } else if (categoria === "manga" || categoria === "novelas") {
-            progressTotal = Number(detalle?.volumenes || 0);
-        }
+        // Aca habia dos llamadas mas a `obtenerDetalleItem` (dos requests por
+        // item) con el mismo defecto que las de states.js: devuelve una Promise,
+        // asi que `hasDetail` daba siempre true y `detalle?.temporadas` /
+        // `detalle?.volumenes` siempre undefined. El progressTotal ya sale de los
+        // campos del propio item, que es de donde salia en los hechos.
+        const hasDetail = true;
         var volCount = Number(item.volumenes || item.volumes || 0);
         var chCount = Number(item.capitulos || item.chapters || 0);
         return buildCatalogCardHtml({
@@ -3967,7 +4017,7 @@ async function inicializarPagina() {
             genres: genres.join("|"),
             genresNorm: genresNorm,
             categoria: categoria,
-            progressTotal: volCount || chCount || progressTotal,
+            progressTotal: volCount || chCount || 0,
             volCount: volCount,
             chCount: chCount,
             imageExtraAttrs: ' data-title="' + escapeHtml(item.titulo) + '" data-fallback-catalog="1"'

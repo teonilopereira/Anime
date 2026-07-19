@@ -19,13 +19,13 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=1fcc589b">
+        <link rel="stylesheet" href="css/bundle.min.css?v=d66f8cde">
 
-    <link rel="stylesheet" href="css/configuracion.css?v=1fcc589b">
+    <link rel="stylesheet" href="css/configuracion.css?v=d66f8cde">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
-    <script src="js/vendor/lucide.min.js?v=1fcc589b"></script>
+    <script src="js/vendor/lucide.min.js?v=d66f8cde"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="configuracion">
@@ -55,33 +55,14 @@
             <a href="usuario.html" class="cfg-back-btn" data-i18n="config.volver_perfil">← Volver al perfil</a>
         </div>
 
+        <p class="cfg-note" data-i18n="config.autoguardado">Los cambios se guardan solos.</p>
+
         <div class="cfg-sections">
 
-            <!-- -- INFORMACIÓN PERSONAL -- -->
+            <!-- -- CUENTA -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">📋</span> <span data-i18n="config.info_personal">INFORMACIÓN PERSONAL</span>
-                </div>
-                <div class="cfg-field">
-                    <label for="cfgEmail" data-i18n="config.email">Correo electrónico</label>
-                    <input type="email" id="cfgEmail" placeholder="tucorreo@email.com" autocomplete="email">
-                </div>
-                <div class="cfg-field">
-                    <label for="cfgPais" data-i18n="config.pais">País / Región</label>
-                    <select id="cfgPais">
-                        <option value="Argentina">Argentina 🇦🇷</option>
-                        <option value="México">México 🇲🇽</option>
-                        <option value="España">España 🇪🇸</option>
-                        <option value="Chile">Chile 🇨🇱</option>
-                        <option value="Colombia">Colombia 🇨🇴</option>
-                        <option value="Uruguay">Uruguay 🇺🇾</option>
-                        <option value="Perú">Perú 🇵🇪</option>
-                        <option value="Venezuela">Venezuela 🇻🇪</option>
-                        <option value="Ecuador">Ecuador 🇪🇨</option>
-                        <option value="Bolivia">Bolivia 🇧🇴</option>
-                        <option value="Paraguay">Paraguay 🇵🇾</option>
-                        <option value="Otro">Otro</option>
-                    </select>
+                    <span class="cfg-panel-icon">👤</span> <span data-i18n="config.cuenta">CUENTA</span>
                 </div>
                 <div class="cfg-field">
                     <label for="cfgIdioma" data-i18n="config.idioma">Idioma</label>
@@ -90,31 +71,31 @@
                         <option value="en">🇺🇸 English</option>
                     </select>
                 </div>
-                <div class="cfg-field">
-                    <label for="cfgZona" data-i18n="config.zona">Zona horaria</label>
-                    <select id="cfgZona">
-                        <option value="GMT-3 (Buenos Aires)">GMT-3 (Buenos Aires)</option>
-                        <option value="GMT-5 (Lima/Bogotá)">GMT-5 (Lima/Bogotá)</option>
-                        <option value="GMT-6 (Ciudad de México)">GMT-6 (Ciudad de México)</option>
-                        <option value="GMT+1 (Madrid)">GMT+1 (Madrid)</option>
-                        <option value="GMT+9 (Tokio)">GMT+9 (Tokio)</option>
-                    </select>
-                </div>
-                <button class="cfg-btn cfg-btn-primary" id="saveInfoPersonal" data-i18n="config.guardar_info">💾 GUARDAR INFORMACIÓN</button>
+                <p class="cfg-note" data-i18n="config.cuenta_nota">Tu correo y tu contraseña se gestionan desde la cuenta con la que iniciás sesión.</p>
             </div>
 
-            <!-- -- PREFERENCIAS -- -->
+            <!-- -- CONTENIDO Y PRIVACIDAD -- -->
             <div class="cfg-panel">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">⚙️</span> <span data-i18n="config.preferencias">PREFERENCIAS</span>
+                    <span class="cfg-panel-icon">🔒</span> <span data-i18n="config.contenido_privacidad">CONTENIDO Y PRIVACIDAD</span>
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label" data-i18n="config.notif.titulo">Notificaciones</div>
-                        <div class="cfg-toggle-desc" data-i18n="config.notif.desc">Recibir alertas y novedades de la app.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.public.titulo">Perfil público</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.public.desc">Permitir que otros usuarios vean tu perfil.</div>
                     </div>
                     <label class="cfg-switch">
-                        <input type="checkbox" id="prefNotif">
+                        <input type="checkbox" id="prefPublic">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label" data-i18n="config.nsfw.titulo">Mostrar contenido NSFW</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.nsfw.desc">Activar para ver contenido para adultos en el catálogo.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefNsfw">
                         <span class="cfg-switch-slider"></span>
                     </label>
                 </div>
@@ -127,6 +108,23 @@
                         <input type="checkbox" id="prefContenido">
                         <span class="cfg-switch-slider"></span>
                     </label>
+                </div>
+                <div class="cfg-toggle-row">
+                    <div class="cfg-toggle-left">
+                        <div class="cfg-toggle-label" data-i18n="config.notif.titulo">Notificaciones</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.notif.desc">Recibir alertas y novedades de la app.</div>
+                    </div>
+                    <label class="cfg-switch">
+                        <input type="checkbox" id="prefNotif">
+                        <span class="cfg-switch-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- -- APARIENCIA -- -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">🎨</span> <span data-i18n="config.apariencia">APARIENCIA</span>
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
@@ -150,95 +148,12 @@
                 </div>
                 <div class="cfg-toggle-row">
                     <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label" data-i18n="config.progress.titulo">Barra de progreso visible</div>
-                        <div class="cfg-toggle-desc" data-i18n="config.progress.desc">Muestra siempre el progreso en cards y detalles.</div>
+                        <div class="cfg-toggle-label" data-i18n="config.cpr.titulo">Fijar tarjetas por fila</div>
+                        <div class="cfg-toggle-desc" data-i18n="config.cpr.desc">Sin esto se ajustan solas al ancho de la pantalla.</div>
                     </div>
                     <label class="cfg-switch">
-                        <input type="checkbox" id="prefShowProgress">
-                        <span class="cfg-switch-slider"></span>
-                    </label>
-                </div>
-                <div class="cfg-toggle-row">
-                    <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label" data-i18n="config.public.titulo">Perfil público</div>
-                        <div class="cfg-toggle-desc" data-i18n="config.public.desc">Permitir que otros usuarios vean tu perfil.</div>
-                    </div>
-                    <label class="cfg-switch">
-                        <input type="checkbox" id="prefPublic">
-                        <span class="cfg-switch-slider"></span>
-                    </label>
-                </div>
-                <div class="cfg-toggle-row">
-                    <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label" data-i18n="config.nsfw.titulo">Mostrar contenido NSFW</div>
-                        <div class="cfg-toggle-desc" data-i18n="config.nsfw.desc">Activar para ver contenido para adultos en el catálogo.</div>
-                    </div>
-                    <label class="cfg-switch">
-                        <input type="checkbox" id="prefNsfw">
-                        <span class="cfg-switch-slider"></span>
-                    </label>
-                </div>
-                <div class="cfg-section-gap">
-                    <div class="cfg-field">
-                        <label for="prefTema">Tema de la app</label>
-                        <select id="prefTema">
-                            <option value="oscuro">🌙 Oscuro</option>
-                            <option value="claro">☀️ Claro</option>
-                            <option value="sistema">💻 Según sistema</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="cfg-btn cfg-btn-primary" id="savePreferencias">💾 <span data-i18n="config.guardar_pref">GUARDAR PREFERENCIAS</span></button>
-            </div>
-
-            <!-- -- COLORES DE LA APP -- -->
-            <div class="cfg-panel">
-                <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🎨</span> COLORES DE LA APP
-                </div>
-                <div class="cfg-color-grid">
-                    <div class="cfg-color-item">
-                        <label for="clrNeonPurple">Acento principal</label>
-                        <input type="color" id="clrNeonPurple" value="#bc13fe">
-                    </div>
-                    <div class="cfg-color-item">
-                        <label for="clrNavAccent">Acento navbar</label>
-                        <input type="color" id="clrNavAccent" value="#a855f7">
-                    </div>
-                    <div class="cfg-color-item">
-                        <label for="clrCyan">Acento secundario</label>
-                        <input type="color" id="clrCyan" value="#00f2ff">
-                    </div>
-                    <div class="cfg-color-item">
-                        <label for="clrDarkBg">Fondo oscuro</label>
-                        <input type="color" id="clrDarkBg" value="#050505">
-                    </div>
-                    <div class="cfg-color-item">
-                        <label for="clrTextMain">Texto principal</label>
-                        <input type="color" id="clrTextMain" value="#ffffff">
-                    </div>
-                    <div class="cfg-color-item">
-                        <label for="clrTextMuted">Texto secundario</label>
-                        <input type="color" id="clrTextMuted" value="#b0b0b0">
-                    </div>
-                </div>
-                <div class="cfg-btn-row">
-                    <button class="cfg-btn cfg-btn-primary" id="saveColores">✅ APLICAR COLORES</button>
-                    <button class="cfg-btn cfg-btn-secondary" id="resetColores">🔄 RESTABLECER</button>
-                </div>
-                <p class="cfg-note">Los colores se aplican en todas las páginas con las variables CSS.</p>
-            </div>
-
-            <!-- -- TARJETAS POR FILA -- -->
-            <div class="cfg-panel">
-                <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🃏</span> TARJETAS POR FILA
-                </div>
-                <div class="cfg-cpr-row">
-                    <label class="cfg-toggle-label">
-                        <span>Fijar cantidad</span>
                         <input type="checkbox" id="cprToggle">
-                        <span class="cfg-toggle-slider"></span>
+                        <span class="cfg-switch-slider"></span>
                     </label>
                 </div>
                 <div id="cprSliderWrap" class="cfg-slider-wrap" style="display:none">
@@ -246,139 +161,92 @@
                         <input type="range" id="cprSlider" class="cfg-range" min="2" max="8" value="4" step="1">
                         <span id="cprValue" class="cfg-cpr-value">4</span>
                     </div>
-                    <p class="cfg-note cfg-note-sm">Mín. 2, máx. 8. Solo aplica en desktop/tablet; en móviles se mantiene el diseño responsive original.</p>
+                    <p class="cfg-note cfg-note-sm" data-i18n="config.cpr.nota">Solo aplica en pantallas grandes; en el celular se mantiene el diseño responsive.</p>
                 </div>
-                <div id="cprActions" class="cfg-cpr-actions" style="display:none">
-                    <button class="cfg-btn cfg-btn-primary" id="saveCpr">💾 GUARDAR</button>
-                    <button class="cfg-btn cfg-btn-secondary" id="resetCpr">🔄 AUTO</button>
+            </div>
+
+            <!-- -- COLORES -- -->
+            <div class="cfg-panel">
+                <div class="cfg-panel-title">
+                    <span class="cfg-panel-icon">🖌️</span> <span data-i18n="config.colores">COLORES</span>
+                </div>
+                <div class="cfg-color-grid">
+                    <div class="cfg-color-item">
+                        <label for="clrNeonPurple" data-i18n="config.color.principal">Acento principal</label>
+                        <input type="color" id="clrNeonPurple" value="#bc13fe">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label for="clrNavAccent" data-i18n="config.color.navbar">Acento navbar</label>
+                        <input type="color" id="clrNavAccent" value="#a855f7">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label for="clrCyan" data-i18n="config.color.secundario">Acento secundario</label>
+                        <input type="color" id="clrCyan" value="#00f2ff">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label for="clrDarkBg" data-i18n="config.color.fondo">Fondo oscuro</label>
+                        <input type="color" id="clrDarkBg" value="#050505">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label for="clrTextMain" data-i18n="config.color.texto">Texto principal</label>
+                        <input type="color" id="clrTextMain" value="#ffffff">
+                    </div>
+                    <div class="cfg-color-item">
+                        <label for="clrTextMuted" data-i18n="config.color.texto2">Texto secundario</label>
+                        <input type="color" id="clrTextMuted" value="#b0b0b0">
+                    </div>
+                </div>
+                <div class="cfg-btn-row">
+                    <button class="cfg-btn cfg-btn-secondary" id="resetColores" data-i18n="config.color.reset">🔄 RESTABLECER COLORES</button>
                 </div>
             </div>
 
             <!-- -- FONDO -- -->
             <div class="cfg-panel cfg-section-full">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🖼️</span> FONDO DE PANTALLA
+                    <span class="cfg-panel-icon">🖼️</span> <span data-i18n="config.fondo">FONDO DE PANTALLA</span>
                 </div>
                 <div class="cfg-bg-mode-btns">
                     <button class="cfg-bg-mode-btn active" id="bgBtnDefault" data-mode="default">
                         <span class="cfg-bg-mode-icon">🌌</span>
-                        POR DEFECTO
+                        <span data-i18n="config.fondo.default">POR DEFECTO</span>
                     </button>
                     <button class="cfg-bg-mode-btn" id="bgBtnColor" data-mode="color">
                         <span class="cfg-bg-mode-icon">🎨</span>
-                        COLOR
+                        <span data-i18n="config.fondo.color">COLOR</span>
                     </button>
                     <button class="cfg-bg-mode-btn" id="bgBtnImage" data-mode="image">
                         <span class="cfg-bg-mode-icon">🖼️</span>
-                        IMAGEN
+                        <span data-i18n="config.fondo.imagen">IMAGEN</span>
                     </button>
                 </div>
                 <div id="bgColorSection" class="cfg-field" style="display:none">
-                    <label for="cfgBgColor">Color de fondo</label>
+                    <label for="cfgBgColor" data-i18n="config.fondo.color_label">Color de fondo</label>
                     <input type="color" id="cfgBgColor" value="#2b0a55">
                 </div>
                 <div id="bgImageSection" style="display:none">
                     <div class="cfg-field">
-                        <label for="cfgBgUrl">URL de imagen</label>
+                        <label for="cfgBgUrl" data-i18n="config.fondo.url">URL de imagen</label>
                         <input type="url" id="cfgBgUrl" placeholder="https://...">
                     </div>
                     <div class="cfg-field">
-                        <label for="cfgBgFile">O subir imagen desde dispositivo</label>
+                        <label for="cfgBgFile" data-i18n="config.fondo.archivo">O subir imagen desde tu dispositivo</label>
                         <input type="file" id="cfgBgFile" accept="image/*">
                     </div>
                 </div>
-                <div class="cfg-btn-row">
-                    <button class="cfg-btn cfg-btn-primary" id="saveFondo">✅ APLICAR FONDO</button>
-                    <button class="cfg-btn cfg-btn-secondary" id="clearFondo">🔄 RESTAURAR POR DEFECTO</button>
-                </div>
-                <p class="cfg-note">Las imágenes se guardan en el navegador y se aplican en todas las páginas.</p>
             </div>
 
-            <!-- -- APARIENCIA / CARDS -- -->
-            <div class="cfg-panel">
+            <!-- -- TUS DATOS -- -->
+            <div class="cfg-panel cfg-section-full">
                 <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🂴</span> APARIENCIA DE CARDS
-                </div>
-                <div class="cfg-toggle-row">
-                    <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Cards compactas</div>
-                        <div class="cfg-toggle-desc">Más títulos visibles en pantalla.</div>
-                    </div>
-                    <label class="cfg-switch">
-                        <input type="checkbox" id="compactCards2">
-                        <span class="cfg-switch-slider"></span>
-                    </label>
-                </div>
-                <div class="cfg-toggle-row">
-                    <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Mostrar badges de estado</div>
-                        <div class="cfg-toggle-desc">Íconos de 👁️ Visto y ❤ Me gusta en las cards.</div>
-                    </div>
-                    <label class="cfg-switch">
-                        <input type="checkbox" id="showBadges" checked>
-                        <span class="cfg-switch-slider"></span>
-                    </label>
-                </div>
-                <div class="cfg-toggle-row">
-                    <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Barra de progreso en cards</div>
-                        <div class="cfg-toggle-desc">Muestra el progreso de capítulos/episodios.</div>
-                    </div>
-                    <label class="cfg-switch">
-                        <input type="checkbox" id="showProgressBadge" checked>
-                        <span class="cfg-switch-slider"></span>
-                    </label>
-                </div>
-                <button class="cfg-btn cfg-btn-primary cfg-btn-mt" id="saveApariencia">💾 GUARDAR APARIENCIA</button>
-            </div>
-
-            <!-- -- PRIVACIDAD Y DATOS -- -->
-            <div class="cfg-panel">
-                <div class="cfg-panel-title">
-                    <span class="cfg-panel-icon">🔒</span> PRIVACIDAD Y DATOS
-                </div>
-                <div class="cfg-toggle-row">
-                    <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Perfil público</div>
-                        <div class="cfg-toggle-desc">Otros usuarios pueden ver tu perfil.</div>
-                    </div>
-                    <label class="cfg-switch">
-                        <input type="checkbox" id="privPublic2">
-                        <span class="cfg-switch-slider"></span>
-                    </label>
-                </div>
-                <div class="cfg-toggle-row">
-                    <div class="cfg-toggle-left">
-                        <div class="cfg-toggle-label">Guardar historial de actividad</div>
-                        <div class="cfg-toggle-desc">Registrar acciones para mostrar en tu perfil.</div>
-                    </div>
-                    <label class="cfg-switch">
-                        <input type="checkbox" id="privHistory" checked>
-                        <span class="cfg-switch-slider"></span>
-                    </label>
+                    <span class="cfg-panel-icon">💾</span> <span data-i18n="config.datos">TUS DATOS</span>
                 </div>
                 <div class="cfg-action-stack">
-                    <button class="cfg-btn cfg-btn-secondary cfg-btn-full" id="exportData">📥 EXPORTAR MIS DATOS (JSON)</button>
-                    <button class="cfg-btn cfg-btn-primary cfg-btn-full" id="logoutBtn">🚪 CERRAR SESION</button>
-                    <button class="cfg-btn cfg-btn-danger cfg-btn-full" id="deleteUserBtn">🗑️ ELIMINAR USUARIO</button>
-                    <button class="cfg-btn cfg-btn-danger cfg-btn-full" id="clearAllBtn">⚠️ BORRAR TODO EL ALMACENAMIENTO</button>
+                    <button class="cfg-btn cfg-btn-secondary cfg-btn-full" id="exportData" data-i18n="config.exportar">📥 EXPORTAR MIS DATOS (JSON)</button>
+                    <button class="cfg-btn cfg-btn-secondary cfg-btn-full" id="resetAll" data-i18n="config.restablecer">🔄 RESTABLECER LA APARIENCIA</button>
+                    <button class="cfg-btn cfg-btn-primary cfg-btn-full" id="logoutBtn" data-i18n="config.cerrar_sesion">🚪 CERRAR SESIÓN</button>
                 </div>
-                <p class="cfg-note">
-                    <strong>Eliminar usuario</strong> borra la sesión y sus datos. 
-                    <strong>Borrar todo</strong> limpia también todas las preferencias locales.
-                </p>
-            </div>
-
-            <!-- -- ACCIONES GLOBALES -- -->
-            <div class="cfg-panel cfg-section-full cfg-flex-between">
-                <div>
-                    <div class="cfg-save-title">GUARDAR TODO</div>
-                    <div class="cfg-save-desc">Aplicá todos los cambios de una sola vez.</div>
-                </div>
-                <div class="cfg-actions">
-                     <button class="cfg-btn cfg-btn-primary" id="saveAll">💾 GUARDAR TODOS LOS CAMBIOS</button>
-                     <button class="cfg-btn cfg-btn-secondary" id="resetAll">🔄 RESTABLECER TODO</button>
-                </div>
+                <p class="cfg-note" data-i18n="config.datos_nota">Restablecer solo afecta cómo se ve la app en este dispositivo. Tus listas y tu progreso están guardados en tu cuenta y no se tocan.</p>
             </div>
 
         </div>
@@ -389,31 +257,16 @@
     <!-- Toast -->
     <div class="cfg-toast" id="cfgToast"></div>
 
-    <script src="js/core/config.js?v=1fcc589b"></script>
-    <script src="js/core/i18n.js?v=1fcc589b"></script>
+    <script src="js/core/config.js?v=d66f8cde"></script>
+    <script src="js/core/i18n.js?v=d66f8cde"></script>
 
-    <script src="js/core/constants.js?v=1fcc589b"></script>
-    <script src="js/core/namespace.js?v=1fcc589b"></script>
-<script type="module" src="api/supabase-config.js?v=1fcc589b" async></script>
-    <script src="js/core/user-store.js?v=1fcc589b" defer></script>
-    <script src="js/core/auth.js?v=1fcc589b" defer></script>
+    <script src="js/core/constants.js?v=d66f8cde"></script>
+    <script src="js/core/namespace.js?v=d66f8cde"></script>
+<script type="module" src="api/supabase-config.js?v=d66f8cde" async></script>
+    <script src="js/core/user-store.js?v=d66f8cde" defer></script>
+    <script src="js/core/auth.js?v=d66f8cde" defer></script>
 
-    <script src="js/pages/configuracion.js?v=1fcc589b" defer></script>
-    <script src="js/core/common-ui.js?v=1fcc589b" defer></script>
-    <script>
-    // Wiring del selector de idioma
-    document.addEventListener('DOMContentLoaded', function () {
-        var sel = document.getElementById('cfgIdioma');
-        if (!sel) return;
-        // Marcar el idioma activo
-        var current = (localStorage.getItem('pref:lang') || 'es');
-        sel.value = current;
-        sel.addEventListener('change', function () {
-            if (window.AppI18n) {
-                window.AppI18n.setLang(sel.value);
-            }
-        });
-    });
-    </script>
+    <script src="js/pages/configuracion.js?v=d66f8cde" defer></script>
+    <script src="js/core/common-ui.js?v=d66f8cde" defer></script>
 </body>
 </html>

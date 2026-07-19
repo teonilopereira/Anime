@@ -49,13 +49,22 @@ async function translateText(text, targetLang) {
     }
 }
 
+// Formatos de id aceptados. Se validan con lista blanca (no sanitizando) porque
+// el id sale del query string y termina en URLs de API y en el DOM.
+const ID_NUMERICO = /^[a-z]?\d+$/i;                                                    // AniList / MAL
+const ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;     // MangaDex
+
 function getParams() {
     const params = new URLSearchParams(window.location.search);
     const rawCat = (params.get('cat') || params.get('categoria') || '').toLowerCase();
     const VALID_CATS = new Set(['anime', 'manga', 'novelas', 'detalle']);
     const rawId = params.get('id') || '';
+    // El UUID hacia falta agregarlo: solo se aceptaba el id numerico de AniList,
+    // asi que toda card servida por MangaDex perdia el id aca y la ficha moria en
+    // "Faltan parametros" aunque la Fase 2 de interactions.js supiera resolverla.
+    const idValido = ID_NUMERICO.test(rawId) || ID_UUID.test(rawId);
     return {
-        id: /^[a-z]?\d+$/i.test(rawId) ? rawId : '',
+        id: idValido ? rawId : '',
         nombre: params.get('nombre') || '',
         cat: VALID_CATS.has(rawCat) ? rawCat : 'manga'
     };

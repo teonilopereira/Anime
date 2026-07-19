@@ -1,7 +1,22 @@
+/*
+ * Configuracion.
+ *
+ * Todo se guarda solo: cada control escribe su preferencia apenas cambia y
+ * aplica el efecto en el momento. Antes habia siete botones de guardar, uno por
+ * panel, y como algunos ajustes estaban duplicados en dos paneles el boton de
+ * uno pisaba lo que acababas de guardar en el otro.
+ *
+ * Regla para agregar un ajuste: solo va a esta pagina si algo del resto de la
+ * app lee su clave. Se quitaron pais, zona horaria, tema, historial, badges,
+ * barra de progreso y correo porque se guardaban y no los leia nadie: la
+ * pagina prometia cosas que no pasaban.
+ */
+
 /* ── Helpers ── */
 function r(key, def = '') { try { return localStorage.getItem(key) || def; } catch { return def; } }
 function w(key, val) { try { localStorage.setItem(key, String(val)); } catch (e) { console.warn('config save failed:', key, e); } }
 function rb(key, def = false) { const v = r(key, null); return v === null ? def : v === 'true'; }
+function $(id) { return document.getElementById(id); }
 
 function getCurrentUserName() {
     try {
@@ -14,13 +29,78 @@ function getCurrentUserName() {
 }
 
 function toast(msg, isError = false) {
-    const t = document.getElementById('cfgToast');
+    const t = $('cfgToast');
     t.textContent = msg;
     t.className = 'cfg-toast' + (isError ? ' error' : '');
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2800);
 }
 
+// Con autoguardado el toast salta en cada cambio, y tocar tres toggles seguidos
+// encadenaba tres avisos. Este agrupa: el ultimo cambio pisa al anterior.
+let guardadoTimer = null;
+function avisarGuardado(msg) {
+    clearTimeout(guardadoTimer);
+    guardadoTimer = setTimeout(() => toast(msg || '✅ Guardado'), 250);
+}
+
+/* ── Preferencias booleanas ──
+ * Cada entrada asocia el id del control con su clave. Agregar un toggle es
+ * sumar una linea aca y el <input> en el HTML: el wiring es automatico.
+ */
+const TOGGLES = {
+    prefPublic:       { key: 'pref:privacidad', def: true,  onOff: ['publica', 'privada'] },
+    prefNsfw:         { key: 'pref:nsfw',       def: false },
+    prefContenido:    { key: 'pref:contenido',  def: true,  onOff: ['personalizado', 'general'] },
+    prefNotif:        { key: 'pref:notif',      def: false, onOff: ['on', 'off'] },
+    prefCompact:      { key: 'pref:compactCards',  def: false },
+    prefReduceMotion: { key: 'pref:reduceMotion',  def: false }
+};
+
+function leerToggle(cfg) {
+    if (cfg.onOff) return r(cfg.key, cfg.def ? cfg.onOff[0] : cfg.onOff[1]) === cfg.onOff[0];
+    return rb(cfg.key, cfg.def);
+}
+
+function escribirToggle(cfg, checked) {
+    w(cfg.key, cfg.onOff ? (checked ? cfg.onOff[0] : cfg.onOff[1]) : checked);
+}
+
+/* ── Colores de la app ── */
+const COLOR_KEYS = {
+    clrNeonPurple: 'pref:color:neonPurple',
+    clrNavAccent:  'pref:color:navAccent',
+    clrCyan:       'pref:color:cyan',
+    clrDarkBg:     'pref:color:darkBg',
+    clrTextMain:   'pref:color:textMain',
+    clrTextMuted:  'pref:color:textMuted'
+};
+const COLOR_DEFAULTS = {
+    clrNeonPurple: '#bc13fe',
+    clrNavAccent:  '#a855f7',
+    clrCyan:       '#00f2ff',
+    clrDarkBg:     '#050505',
+    clrTextMain:   '#ffffff',
+    clrTextMuted:  '#b0b0b0'
+};
+
+function applyCustomColors() {
+    var vars = {
+        '--neon-purple': r(COLOR_KEYS.clrNeonPurple, COLOR_DEFAULTS.clrNeonPurple),
+        '--nav-accent':  r(COLOR_KEYS.clrNavAccent,  COLOR_DEFAULTS.clrNavAccent),
+        '--accent-cyan': r(COLOR_KEYS.clrCyan,       COLOR_DEFAULTS.clrCyan),
+        '--dark-bg':     r(COLOR_KEYS.clrDarkBg,     COLOR_DEFAULTS.clrDarkBg),
+        '--text-main':   r(COLOR_KEYS.clrTextMain,   COLOR_DEFAULTS.clrTextMain),
+        '--text-muted':  r(COLOR_KEYS.clrTextMuted,  COLOR_DEFAULTS.clrTextMuted)
+    };
+    var root = document.documentElement;
+    for (var name in vars) {
+        if (vars.hasOwnProperty(name)) root.style.setProperty(name, vars[name]);
+    }
+    root.style.setProperty('--nav-accent-soft', vars['--nav-accent'] + '3d');
+}
+
+/* ── Fondo ── */
 function sanitizeBgUrl(url) {
     if (!url || typeof url !== 'string') return '';
     if (url.startsWith('data:image/')) return url;
@@ -52,291 +132,194 @@ function applyBgToPage() {
     }
 }
 
-/* ── Colores de la app ── */
-const COLOR_KEYS = {
-    clrNeonPurple: 'pref:color:neonPurple',
-    clrNavAccent:  'pref:color:navAccent',
-    clrCyan:       'pref:color:cyan',
-    clrDarkBg:     'pref:color:darkBg',
-    clrTextMain:   'pref:color:textMain',
-    clrTextMuted:  'pref:color:textMuted'
-};
-const COLOR_DEFAULTS = {
-    clrNeonPurple: '#bc13fe',
-    clrNavAccent:  '#a855f7',
-    clrCyan:       '#00f2ff',
-    clrDarkBg:     '#050505',
-    clrTextMain:   '#ffffff',
-    clrTextMuted:  '#b0b0b0'
-};
-
-function applyCustomColors() {
-    var vars = {
-        '--neon-purple':   r(COLOR_KEYS.clrNeonPurple, COLOR_DEFAULTS.clrNeonPurple),
-        '--nav-accent':    r(COLOR_KEYS.clrNavAccent,  COLOR_DEFAULTS.clrNavAccent),
-        '--accent-cyan':   r(COLOR_KEYS.clrCyan,       COLOR_DEFAULTS.clrCyan),
-        '--dark-bg':       r(COLOR_KEYS.clrDarkBg,     COLOR_DEFAULTS.clrDarkBg),
-        '--text-main':     r(COLOR_KEYS.clrTextMain,   COLOR_DEFAULTS.clrTextMain),
-        '--text-muted':    r(COLOR_KEYS.clrTextMuted,  COLOR_DEFAULTS.clrTextMuted)
-    };
-    var root = document.documentElement;
-    for (var name in vars) {
-        if (vars.hasOwnProperty(name)) {
-            root.style.setProperty(name, vars[name]);
-        }
-    }
-    var navAccent = vars['--nav-accent'];
-    root.style.setProperty('--nav-accent-soft', navAccent + '3d');
+function updateBgSections(mode) {
+    $('bgColorSection').style.display = mode === 'color' ? 'block' : 'none';
+    $('bgImageSection').style.display = mode === 'image' ? 'block' : 'none';
 }
 
-function syncColorPickers() {
-    for (var id in COLOR_KEYS) {
-        if (COLOR_KEYS.hasOwnProperty(id)) {
-            var el = document.getElementById(id);
-            if (el) el.value = r(COLOR_KEYS[id], COLOR_DEFAULTS[id]);
-        }
+/* ── Tarjetas por fila ── */
+const CPR_MIN = () => AnimeDestiny.Constants.CARDS_PER_ROW_MIN || 2;
+const CPR_MAX = () => AnimeDestiny.Constants.CARDS_PER_ROW_MAX || 8;
+const CPR_DEF = () => AnimeDestiny.Constants.CARDS_PER_ROW_DEFAULT || 4;
+
+// Separado del guardado a proposito: al restablecer hay que dejar la grilla en
+// automatico SIN volver a escribir la clave que se acaba de borrar.
+function aplicarCprEnPagina(valor) {
+    if (valor === 'auto') {
+        document.body.classList.remove('fixed-cards-row');
+        document.documentElement.style.removeProperty('--cards-per-row');
+        return;
     }
+    document.documentElement.style.setProperty('--cards-per-row', String(valor));
+    document.body.classList.add('fixed-cards-row');
 }
 
-/* ── Sync UI con localStorage ── */
+function aplicarCpr(valor) {
+    w('pref:cardsPerRow', String(valor));
+    aplicarCprEnPagina(valor);
+}
+
+/* ── Pintar la UI con lo guardado ── */
 function syncUI() {
     var user = getCurrentUserName();
-    document.getElementById('cfgUserName').textContent = user;
-    document.getElementById('cfgAvatar').textContent = user.slice(0, 2).toUpperCase();
+    $('cfgUserName').textContent = user;
+    $('cfgAvatar').textContent = user.slice(0, 2).toUpperCase();
 
-    document.getElementById('cfgEmail').value = r('u:' + user + '|email', '');
-    document.getElementById('cfgPais').value = r('pref:pais', 'Argentina');
-    document.getElementById('cfgIdioma').value = r('pref:idioma', 'Español');
-    document.getElementById('cfgZona').value = r('pref:zona', 'GMT-3 (Buenos Aires)');
+    // El idioma vive en pref:lang, que es lo que lee i18n.js. Antes esta pagina
+    // escribia pref:idioma, una clave que no leia nadie.
+    $('cfgIdioma').value = r('pref:lang', 'es');
 
-    document.getElementById('prefNotif').checked = rb('pref:notif', false) || r('pref:notif', 'off') === 'on';
-    document.getElementById('prefContenido').checked = r('pref:contenido', 'personalizado') === 'personalizado';
-    document.getElementById('prefCompact').checked = rb('pref:compactCards', false);
-    document.getElementById('prefReduceMotion').checked = rb('pref:reduceMotion', false);
-    document.getElementById('prefShowProgress').checked = rb('pref:showProgress', true);
-    document.getElementById('prefPublic').checked = r('pref:privacidad', 'publica') === 'publica';
-    document.getElementById('prefNsfw').checked = rb('pref:nsfw', false);
-    document.getElementById('prefTema').value = r('pref:tema', 'oscuro');
+    for (var id in TOGGLES) {
+        if (TOGGLES.hasOwnProperty(id)) $(id).checked = leerToggle(TOGGLES[id]);
+    }
 
-    document.getElementById('compactCards2').checked = rb('pref:compactCards', false);
-    document.getElementById('showBadges').checked = rb('pref:showBadges', true);
-    document.getElementById('showProgressBadge').checked = rb('pref:showProgress', true);
-
-    document.getElementById('privPublic2').checked = r('pref:privacidad', 'publica') === 'publica';
-    document.getElementById('privHistory').checked = rb('pref:history', true);
+    for (var cid in COLOR_KEYS) {
+        if (COLOR_KEYS.hasOwnProperty(cid)) $(cid).value = r(COLOR_KEYS[cid], COLOR_DEFAULTS[cid]);
+    }
 
     const bgMode = r('pref:bgMode', 'default');
     document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
-    const activeBtn = document.getElementById('bgBtn' + bgMode.charAt(0).toUpperCase() + bgMode.slice(1));
+    const activeBtn = $('bgBtn' + bgMode.charAt(0).toUpperCase() + bgMode.slice(1));
     if (activeBtn) activeBtn.classList.add('active');
-    document.getElementById('cfgBgColor').value = r('pref:bgColor', '#2b0a55');
-    document.getElementById('cfgBgUrl').value = r('pref:bgImage', '').startsWith('data:') ? '' : r('pref:bgImage', '');
+    $('cfgBgColor').value = r('pref:bgColor', '#2b0a55');
+    $('cfgBgUrl').value = r('pref:bgImage', '').startsWith('data:') ? '' : r('pref:bgImage', '');
     updateBgSections(bgMode);
-    syncColorPickers();
-    syncCprUI();
+
+    const cprSaved = r('pref:cardsPerRow', 'auto');
+    const fijado = cprSaved !== 'auto';
+    $('cprToggle').checked = fijado;
+    $('cprSliderWrap').style.display = fijado ? 'block' : 'none';
+    if (fijado) {
+        var val = parseInt(cprSaved, 10);
+        if (!(val >= CPR_MIN() && val <= CPR_MAX())) val = CPR_DEF();
+        $('cprSlider').value = val;
+        $('cprValue').textContent = val;
+    }
 }
 
-function updateBgSections(mode) {
-    document.getElementById('bgColorSection').style.display = mode === 'color' ? 'block' : 'none';
-    document.getElementById('bgImageSection').style.display = mode === 'image' ? 'block' : 'none';
+/* ── Wiring: cada control guarda al cambiar ── */
+
+$('cfgIdioma').addEventListener('change', function () {
+    if (window.AppI18n) window.AppI18n.setLang(this.value);
+    avisarGuardado('✅ Idioma actualizado');
+});
+
+for (const id in TOGGLES) {
+    if (!TOGGLES.hasOwnProperty(id)) continue;
+    const cfg = TOGGLES[id];
+    $(id).addEventListener('change', function () {
+        escribirToggle(cfg, this.checked);
+        avisarGuardado();
+    });
 }
 
-/* ── Eventos de fondo ── */
-let currentBgMode = r('pref:bgMode', 'default');
+// Los colores se aplican en vivo mientras arrastras (input) pero solo avisan al
+// soltar (change): con 'input' el toast se dispararia decenas de veces.
+for (const id in COLOR_KEYS) {
+    if (!COLOR_KEYS.hasOwnProperty(id)) continue;
+    const key = COLOR_KEYS[id];
+    $(id).addEventListener('input', function () { w(key, this.value); applyCustomColors(); });
+    $(id).addEventListener('change', function () { avisarGuardado('✅ Colores aplicados'); });
+}
+
+$('resetColores').addEventListener('click', function () {
+    for (var id in COLOR_DEFAULTS) {
+        if (!COLOR_DEFAULTS.hasOwnProperty(id)) continue;
+        localStorage.removeItem(COLOR_KEYS[id]);
+        $(id).value = COLOR_DEFAULTS[id];
+    }
+    applyCustomColors();
+    toast('↩ Colores restablecidos');
+});
+
+/* Fondo */
 document.querySelectorAll('.cfg-bg-mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        currentBgMode = btn.dataset.mode;
-        updateBgSections(currentBgMode);
+        const mode = btn.dataset.mode;
+        updateBgSections(mode);
+        w('pref:bgMode', mode);
+        if (mode === 'default') {
+            localStorage.removeItem('pref:bgColor');
+            localStorage.removeItem('pref:bgImage');
+            $('cfgBgUrl').value = '';
+        }
+        applyBgToPage();
+        avisarGuardado('✅ Fondo actualizado');
     });
 });
 
-document.getElementById('cfgBgColor').addEventListener('input', () => {
-    if (currentBgMode === 'color') {
-        w('pref:bgColor', document.getElementById('cfgBgColor').value);
-        applyBgToPage();
-    }
+$('cfgBgColor').addEventListener('input', function () {
+    w('pref:bgColor', this.value);
+    applyBgToPage();
+});
+$('cfgBgColor').addEventListener('change', () => avisarGuardado('✅ Fondo actualizado'));
+
+$('cfgBgUrl').addEventListener('change', function () {
+    const limpia = sanitizeBgUrl(this.value.trim());
+    if (this.value.trim() && !limpia) { toast('Esa URL no es válida', true); return; }
+    w('pref:bgImage', limpia);
+    applyBgToPage();
+    avisarGuardado('✅ Fondo actualizado');
 });
 
-document.getElementById('cfgBgUrl').addEventListener('input', () => {
-    if (currentBgMode === 'image') {
-        w('pref:bgImage', document.getElementById('cfgBgUrl').value.trim());
-        applyBgToPage();
-    }
-});
-
-document.getElementById('cfgBgFile').addEventListener('change', (e) => {
+$('cfgBgFile').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-        currentBgMode = 'image';
         document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('bgBtnImage').classList.add('active');
+        $('bgBtnImage').classList.add('active');
         updateBgSections('image');
         w('pref:bgMode', 'image');
         w('pref:bgImage', reader.result);
         applyBgToPage();
-        toast("✅ Imagen de fondo aplicada");
+        toast('✅ Imagen de fondo aplicada');
     };
     reader.readAsDataURL(file);
 });
 
-document.getElementById('saveFondo').addEventListener('click', () => {
-    w('pref:bgMode', currentBgMode);
-    if (currentBgMode === 'color') w('pref:bgColor', document.getElementById('cfgBgColor').value);
-    if (currentBgMode === 'image') w('pref:bgImage', document.getElementById('cfgBgUrl').value.trim());
-    applyBgToPage();
-    toast("✅ Fondo guardado correctamente");
-});
-
-document.getElementById('clearFondo').addEventListener('click', () => {
-    currentBgMode = 'default';
-    document.querySelectorAll('.cfg-bg-mode-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('bgBtnDefault').classList.add('active');
-    updateBgSections('default');
-    w('pref:bgMode', 'default');
-    localStorage.removeItem('pref:bgColor');
-    localStorage.removeItem('pref:bgImage');
-    applyBgToPage();
-    toast("✅ Fondo restaurado al predeterminado");
-});
-
-/* ── Guardar información personal ── */
-document.getElementById('saveInfoPersonal').addEventListener('click', () => {
-    var user = getCurrentUserName();
-    w('u:' + user + '|email', document.getElementById('cfgEmail').value.trim());
-    w('pref:pais', document.getElementById('cfgPais').value);
-    w('pref:idioma', document.getElementById('cfgIdioma').value);
-    w('pref:zona', document.getElementById('cfgZona').value);
-    toast("✅ Información personal guardada");
-});
-
-/* ── Guardar colores ── */
-document.getElementById('saveColores').addEventListener('click', function() {
-    for (var id in COLOR_KEYS) {
-        if (COLOR_KEYS.hasOwnProperty(id)) {
-            var el = document.getElementById(id);
-            if (el) w(COLOR_KEYS[id], el.value);
-        }
-    }
-    applyCustomColors();
-    toast("✅ Colores aplicados");
-});
-
-/* ── Cards per row ── */
-var cprToggle = document.getElementById('cprToggle');
-var cprSlider = document.getElementById('cprSlider');
-var cprValue = document.getElementById('cprValue');
-var cprSliderWrap = document.getElementById('cprSliderWrap');
-var cprActions = document.getElementById('cprActions');
-var cprSaved = r('pref:cardsPerRow', 'auto');
-
-function syncCprUI() {
-    cprToggle.checked = cprSaved !== 'auto';
-    cprSliderWrap.style.display = cprToggle.checked ? 'block' : 'none';
-    cprActions.style.display = cprToggle.checked ? 'flex' : 'none';
-    if (cprToggle.checked) {
-        var val = parseInt(cprSaved, 10);
-        if (val < (AnimeDestiny.Constants.CARDS_PER_ROW_MIN || 2) || val > (AnimeDestiny.Constants.CARDS_PER_ROW_MAX || 8)) val = AnimeDestiny.Constants.CARDS_PER_ROW_DEFAULT || 4;
-        cprSlider.value = val;
-        cprValue.textContent = val;
-    }
-}
-
-cprToggle.addEventListener('change', function() {
+/* Tarjetas por fila */
+$('cprToggle').addEventListener('change', function () {
+    $('cprSliderWrap').style.display = this.checked ? 'block' : 'none';
     if (this.checked) {
-        cprSliderWrap.style.display = 'block';
-        cprActions.style.display = 'flex';
-        var val = parseInt(cprSlider.value, 10);
-        cprValue.textContent = val;
+        const val = parseInt($('cprSlider').value, 10) || CPR_DEF();
+        $('cprValue').textContent = val;
+        aplicarCpr(val);
+        avisarGuardado('✅ ' + val + ' tarjetas por fila');
     } else {
-        cprSliderWrap.style.display = 'none';
-        cprActions.style.display = 'none';
-        w('pref:cardsPerRow', 'auto');
-        document.body.classList.remove('fixed-cards-row');
-        document.documentElement.style.removeProperty('--cards-per-row');
-        toast("↩ Cantidad automática");
+        aplicarCpr('auto');
+        avisarGuardado('↩ Cantidad automática');
     }
 });
 
-cprSlider.addEventListener('input', function() {
-    cprValue.textContent = this.value;
-});
-
-document.getElementById('saveCpr').addEventListener('click', function() {
-    var val = parseInt(cprSlider.value, 10);
-    if (val >= (AnimeDestiny.Constants.CARDS_PER_ROW_MIN || 2) && val <= (AnimeDestiny.Constants.CARDS_PER_ROW_MAX || 8)) {
-        cprSaved = String(val);
-        w('pref:cardsPerRow', cprSaved);
-        document.documentElement.style.setProperty('--cards-per-row', cprSaved);
-        document.body.classList.add('fixed-cards-row');
-        toast("✅ " + val + " tarjetas por fila");
+$('cprSlider').addEventListener('input', function () {
+    $('cprValue').textContent = this.value;
+    const val = parseInt(this.value, 10);
+    if (val >= CPR_MIN() && val <= CPR_MAX()) {
+        aplicarCpr(val);
+        avisarGuardado('✅ ' + val + ' tarjetas por fila');
     }
 });
 
-document.getElementById('resetCpr').addEventListener('click', function() {
-    cprSaved = 'auto';
-    w('pref:cardsPerRow', 'auto');
-    document.body.classList.remove('fixed-cards-row');
-    document.documentElement.style.removeProperty('--cards-per-row');
-    cprToggle.checked = false;
-    cprSliderWrap.style.display = 'none';
-    cprActions.style.display = 'none';
-    toast("↩ Cantidad automática");
-});
-
-/* ── Guardar colores ── */
-document.getElementById('resetColores').addEventListener('click', function() {
-    for (var id in COLOR_DEFAULTS) {
-        if (COLOR_DEFAULTS.hasOwnProperty(id)) {
-            localStorage.removeItem(COLOR_KEYS[id]);
-            var el = document.getElementById(id);
-            if (el) el.value = COLOR_DEFAULTS[id];
-        }
-    }
-    applyCustomColors();
-    toast("↩ Colores restablecidos");
-});
-
-/* ── Guardar preferencias ── */
-document.getElementById('savePreferencias').addEventListener('click', () => {
-    w('pref:notif', document.getElementById('prefNotif').checked ? 'on' : 'off');
-    w('pref:contenido', document.getElementById('prefContenido').checked ? 'personalizado' : 'general');
-    w('pref:compactCards', document.getElementById('prefCompact').checked);
-    w('pref:reduceMotion', document.getElementById('prefReduceMotion').checked);
-    w('pref:showProgress', document.getElementById('prefShowProgress').checked);
-    w('pref:privacidad', document.getElementById('prefPublic').checked ? 'publica' : 'privada');
-    w('pref:nsfw', document.getElementById('prefNsfw').checked);
-    w('pref:tema', document.getElementById('prefTema').value);
-    toast("✅ Preferencias guardadas");
-});
-
-/* ── Guardar apariencia ── */
-document.getElementById('saveApariencia').addEventListener('click', () => {
-    w('pref:compactCards', document.getElementById('compactCards2').checked);
-    w('pref:showBadges', document.getElementById('showBadges').checked);
-    w('pref:showProgress', document.getElementById('showProgressBadge').checked);
-    document.getElementById('prefCompact').checked = document.getElementById('compactCards2').checked;
-    toast("✅ Apariencia guardada");
-});
-
-/* ── Guardar privacidad ── */
-document.getElementById('privPublic2').addEventListener('change', () => {
-    document.getElementById('prefPublic').checked = document.getElementById('privPublic2').checked;
-});
+/* Preferencias locales de visualizacion. Se usan para exportar y para
+ * restablecer. Las listas y el progreso viven en Supabase: no estan aca. */
+const PREF_KEYS = [
+    'pref:bgMode', 'pref:bgColor', 'pref:bgImage',
+    'pref:compactCards', 'pref:reduceMotion', 'pref:nsfw',
+    'pref:notif', 'pref:contenido', 'pref:privacidad', 'pref:cardsPerRow',
+    ...Object.values(COLOR_KEYS)
+];
 
 /* ── Exportar datos ── */
-document.getElementById('exportData').addEventListener('click', async () => {
+$('exportData').addEventListener('click', async () => {
     const supaUser = await window.AppSupabase?.getCurrentUser?.();
     if (!supaUser) { toast('Iniciá sesión primero', true); return; }
     const username = supaUser.user_metadata?.username || supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || supaUser.id;
     const data = { user: username, exportedAt: new Date().toISOString(), prefs: {}, lists: {} };
 
-    ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
-     'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history','pref:nsfw'].forEach(k => {
+    PREF_KEYS.forEach(k => {
         const v = localStorage.getItem(k);
         if (v !== null) data.prefs[k] = v;
     });
@@ -364,71 +347,33 @@ document.getElementById('exportData').addEventListener('click', async () => {
     a.href = url; a.download = `anime-destiny-${username}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
-    toast("✅ Datos exportados desde Supabase");
+    toast('✅ Datos exportados');
 });
 
-/* ── Cerrar sesión / Eliminar usuario ── */
-document.getElementById('deleteUserBtn').addEventListener('click', async () => {
-    const supaUser = await window.AppSupabase?.getCurrentUser?.();
-    if (!supaUser) { toast('No hay usuario activo', true); return; }
-    const username = supaUser.user_metadata?.username || supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || 'usuario';
-    if (!confirm(`¿Cerrar sesión de "${username}"? Los datos están guardados en Supabase.`)) return;
-    try {
-        await window.AppSupabase?.signOutGoogle?.();
-        if (typeof UserStore !== 'undefined') UserStore.clear();
-        toast("✅ Sesión cerrada");
-        setTimeout(() => window.location.href = 'index.html', AnimeDestiny.Constants.PROFILE_REDIRECT_DELAY_MS || 1000);
-    } catch (e) {
-        toast('Error al cerrar sesión: ' + e.message, true);
-    }
+/* ── Restablecer apariencia ── */
+$('resetAll').addEventListener('click', () => {
+    if (!confirm('¿Restablecer la apariencia a los valores por defecto? Tus listas y tu progreso no se tocan.')) return;
+    PREF_KEYS.forEach(k => localStorage.removeItem(k));
+    aplicarCprEnPagina('auto');
+    applyCustomColors();
+    applyBgToPage();
+    syncUI();
+    toast('✅ Apariencia restablecida');
 });
 
 /* ── Cerrar sesión ── */
-document.getElementById('logoutBtn').addEventListener('click', async () => {
+$('logoutBtn').addEventListener('click', async () => {
     const supaUser = await window.AppSupabase?.getCurrentUser?.();
     if (!supaUser) { toast('No hay usuario activo', true); return; }
     const username = supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || 'usuario';
-    if (!confirm(`¿Cerrar sesión de "${username}"? Tus datos están guardados en Supabase.`)) return;
+    if (!confirm(`¿Cerrar sesión de "${username}"? Tus datos quedan guardados en tu cuenta.`)) return;
     try {
         await window.logoutUser?.();
-        toast("✅ Sesión cerrada");
+        toast('✅ Sesión cerrada');
         setTimeout(() => window.location.href = 'index.html', AnimeDestiny.Constants.PROFILE_REDIRECT_DELAY_MS || 1000);
     } catch (e) {
         toast('Error al cerrar sesión: ' + e.message, true);
     }
-});
-
-/* ── Borrar preferencias de UI ── */
-document.getElementById('clearAllBtn').addEventListener('click', () => {
-    if (!confirm('¿Borrar las preferencias de visualización? Los datos de progreso están seguros en Supabase.')) return;
-    ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
-     'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history','pref:nsfw'].forEach(k => localStorage.removeItem(k));
-    if (typeof UserStore !== 'undefined') UserStore.clear();
-    toast("✅ Preferencias borradas");
-    setTimeout(() => window.location.href = 'index.html', AnimeDestiny.Constants.PROFILE_REDIRECT_DELAY_MS || 1000);
-});
-
-/* ── Guardar todo ── */
-document.getElementById('saveAll').addEventListener('click', () => {
-    document.getElementById('saveInfoPersonal').click();
-    document.getElementById('savePreferencias').click();
-    document.getElementById('saveApariencia').click();
-    document.getElementById('saveFondo').click();
-    document.getElementById('saveColores').click();
-    if (cprToggle.checked) document.getElementById('saveCpr').click();
-    toast("✅ Todos los cambios guardados");
-});
-
-/* ── Restablecer todo ── */
-document.getElementById('resetAll').addEventListener('click', () => {
-    if (!confirm('¿Restablecer todas las preferencias a los valores por defecto?')) return;
-    ['pref:bgMode','pref:bgColor','pref:bgImage','pref:compactCards','pref:reduceMotion',
-     'pref:showProgress','pref:notif','pref:contenido','pref:privacidad','pref:tema',
-     'pref:pais','pref:idioma','pref:zona','pref:showBadges','pref:history','pref:nsfw'].forEach(k => localStorage.removeItem(k));
-    syncUI();
-    applyBgToPage();
-    toast("✅ Preferencias restablecidas");
 });
 
 /* ── Init ── */
@@ -436,17 +381,8 @@ applyCustomColors();
 applyBgToPage();
 syncUI();
 
-/* ── Actualizar nombre de usuario cuando Supabase cargue ── */
 window.addEventListener('supabase-ready', () => {
-    const nameEl = document.getElementById('cfgUserName');
+    const nameEl = $('cfgUserName');
     if (nameEl) nameEl.textContent = getCurrentUserName();
     if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
 }, { once: true });
-
-
-
-
-
-
-
-

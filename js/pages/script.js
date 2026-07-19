@@ -107,8 +107,22 @@ if (_continueSection && _continueDivider) {
             });
         });
 
-        track.addEventListener('scroll', function () { sincronizarFlechas(viewport); }, { passive: true });
-        window.addEventListener('resize', function () { sincronizarFlechas(viewport); });
+        // scroll y resize disparan decenas de veces por segundo, y
+        // sincronizarFlechas lee scrollLeft/clientWidth/scrollWidth: cada
+        // lectura obliga al navegador a recalcular el layout. Con rAF se
+        // ejecuta como mucho una vez por frame, que es lo unico que se ve.
+        let pendiente = false;
+        function sincronizarEnElProximoFrame() {
+            if (pendiente) return;
+            pendiente = true;
+            requestAnimationFrame(function () {
+                pendiente = false;
+                sincronizarFlechas(viewport);
+            });
+        }
+
+        track.addEventListener('scroll', sincronizarEnElProximoFrame, { passive: true });
+        window.addEventListener('resize', sincronizarEnElProximoFrame);
         sincronizarFlechas(viewport);
     }
 
