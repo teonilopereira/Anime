@@ -2666,11 +2666,15 @@ main { padding-bottom: 24px; }
 ========================================== */
 
 /* ── Animated scan line sweeping down the media ── */
+/* Anima transform y no top: top recalcula el layout en cada frame, y esta
+   animacion corre en bucle sobre TODAS las cards del catalogo a la vez (40 en
+   pantalla = 40 recalculos por frame). Con transform el trabajo se va al
+   compositor y deja de tocar el layout. */
 @keyframes hud-scanline {
-    0%   { top: -2px; opacity: 0; }
+    0%   { transform: translateY(-2px); opacity: 0; }
     5%   { opacity: 1; }
     95%  { opacity: 1; }
-    100% { top: calc(100% + 2px); opacity: 0; }
+    100% { transform: translateY(100%); opacity: 0; }
 }
 
 .catalog-card-inner::before {
@@ -2678,18 +2682,44 @@ main { padding-bottom: 24px; }
     position: absolute;
     left: 0;
     right: 0;
-    height: 2px;
+    top: 0;
+    /* Ocupa el alto completo de la card a proposito: asi translateY(100%)
+       recorre exactamente su altura sin depender del valor en px, que cambia
+       por breakpoint (440 / 380 / 360). */
+    height: 100%;
     z-index: 10;
     pointer-events: none;
-    background: linear-gradient(90deg, transparent 0%, rgba(var(--card-hud-rgb-bright), 0.55) 20%, rgba(var(--card-hud-rgb), 0.40) 80%, transparent 100%);
-    box-shadow: 0 0 8px rgba(var(--card-hud-rgb-bright), 0.45), 0 0 18px rgba(var(--card-hud-rgb), 0.20);
+    /* La linea y su resplandor van como capas del background en vez de
+       box-shadow: sobre una caja de alto completo el box-shadow dibujaria el
+       halo alrededor de toda la card en lugar de seguir a la linea. */
+    background:
+        linear-gradient(90deg, transparent 0%, rgba(var(--card-hud-rgb-bright), 0.55) 20%, rgba(var(--card-hud-rgb), 0.40) 80%, transparent 100%)
+            0 0 / 100% 2px no-repeat,
+        linear-gradient(180deg, transparent 0%, rgba(var(--card-hud-rgb-bright), 0.20) 45%, rgba(var(--card-hud-rgb), 0.16) 55%, transparent 100%)
+            0 -8px / 100% 18px no-repeat;
     animation: hud-scanline 4s linear infinite;
-    animation-delay: 0s;
     opacity: 0;
 }
 
 .catalog-neon-card:hover .catalog-card-inner::before {
     animation-duration: 2.8s;
+}
+
+/* La scanline es decorativa y corre en bucle en cada card: es lo primero que
+   conviene apagar. Cubre las dos vias, el ajuste "Reducir animaciones" de la
+   pagina de configuracion y la preferencia del sistema operativo.
+   Con animation: none la scanline se queda en su estado base (opacity: 0), o
+   sea invisible, que es justo lo que se busca. */
+body.reduce-motion .catalog-card-inner::before,
+body.reduce-motion .catalog-neon-card {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .catalog-card-inner::before,
+    .catalog-neon-card {
+        animation: none;
+    }
 }
 
 /* ── Acentos azules se intensifican en hover ── */
@@ -5257,6 +5287,24 @@ input, select, textarea, button {
 @keyframes nav-tab-glow {
     0%, 100% { box-shadow: 0 0 8px rgba(77, 134, 255, 0.8); }
     50% { box-shadow: 0 0 15px rgba(0, 242, 255, 0.9); }
+}
+
+/* Mismas reglas que el bloque de abajo, pero para el ajuste "Reducir
+   animaciones" de la pagina de configuracion: states.js pone esta clase en el
+   body y hasta ahora ningun CSS la miraba, asi que el toggle no hacia nada.
+   Van separadas porque una media query no puede condicionarse a una clase. */
+body.reduce-motion .destiny-navbar::after,
+body.reduce-motion .nav-brand-destiny,
+body.reduce-motion .destiny-navbar .nav-btn.active,
+body.reduce-motion .mobile-bottom-nav .bottom-tab.active::before {
+    animation: none;
+}
+
+body.reduce-motion .nav-brand-mark,
+body.reduce-motion .nav-icon,
+body.reduce-motion .destiny-navbar .nav-btn:not(.active)::after,
+body.reduce-motion .destiny-navbar .nav-user-avatar {
+    transition: none;
 }
 
 /* Accesibilidad: sin animaciones si el usuario las desactivó */

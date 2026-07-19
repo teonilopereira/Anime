@@ -332,28 +332,13 @@
             item?.demografia
         ];
 
-        const detail = (typeof obtenerDetalleItem === 'function')
-            ? obtenerDetalleItem(category, item?.id)
-            : null;
-
-        if (detail) {
-            parts.push(
-                detail.estudio,
-                detail.desarrollador,
-                detail.editor,
-                detail.plataforma,
-                detail.resumen
-            );
-            if (Array.isArray(detail.temporadas)) {
-                detail.temporadas.forEach((season) => {
-                    parts.push(season?.nombre, season?.episodios);
-                });
-            }
-            if (Array.isArray(detail.franquicia)) {
-                parts.push(...detail.franquicia);
-            }
-            if (category === 'manga' || category === 'novelas') parts.push(detail.volumenes);
-        }
+        // Aca habia otra llamada a `obtenerDetalleItem` con el mismo problema:
+        // devuelve una Promise, `if (detail)` daba siempre true, y todos los
+        // campos que se empujaban (estudio, editor, resumen, temporadas...) eran
+        // undefined y terminaban descartados por el filter(Boolean) de abajo.
+        // O sea: no aportaba ni un caracter al indice y costaba una request por
+        // item. El indice de los catalogos de API ya se arma en cards.js con los
+        // datos que la propia respuesta trae.
 
         return parts
             .filter(Boolean)
@@ -361,29 +346,21 @@
             .join(' ');
     }
 
+    // Ojo con `obtenerDetalleItem`: devuelve una Promise (pega a AniList por id),
+    // y aca se la usaba como si fuera un objeto plano. `det?.volumenes` sobre una
+    // Promise es undefined, con lo cual el total siempre daba 0 y la funcion
+    // retornaba 0 sin mirar nada — pero igual gastaba UNA request por card.
+    // En un catalogo de manga eso eran ~40 requests de mas por carga, y el
+    // presupuesto de AniList es de 30 por minuto: alcanzaba para agotarlo solo.
+    //
+    // El total real ya viaja en el atributo data-total de la card, que es lo que
+    // resolveCatalogProgress consulta antes de caer aca. Si no hay total, no hay
+    // porcentaje posible: se devuelve null y el llamador muestra la card
+    // alternativa (mismo resultado visual que antes, sin peticiones).
     function getProgressPercentForItem(userId, category, itemId) {
         try {
             const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
             if (viewed) return 100;
-            const det = (typeof obtenerDetalleItem === 'function')
-                ? obtenerDetalleItem(category, itemId)
-                : null;
-
-            if (category === 'manga' || category === 'novelas') {
-                const vols = Number(det?.volumenes || 0);
-                const total = Number.isFinite(vols) ? vols : 0;
-                if (!total) return 0;
-                const prefix = category === 'novelas' ? 'novela' : 'manga';
-                const read = countKeysWithPrefix(`u:${userId}|${prefix}:${itemId}|vol:`);
-                return Math.min(100, Math.round((read / total) * 100));
-            }
-            if (category === 'anime') {
-                const temporadas = Array.isArray(det?.temporadas) ? det.temporadas : [];
-                const total = temporadas.reduce((acc, t) => acc + (Number(t.episodios) || 0), 0);
-                if (!total) return 0;
-                const watched = countKeysWithPrefix(`u:${userId}|anime:${itemId}|s:`);
-                return Math.min(100, Math.round((watched / total) * 100));
-            }
         } catch (e) {
             console.warn('getProgressPercentForItem failed:', e);
         }

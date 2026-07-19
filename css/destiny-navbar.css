@@ -750,6 +750,24 @@
     50% { box-shadow: 0 0 15px rgba(0, 242, 255, 0.9); }
 }
 
+/* Mismas reglas que el bloque de abajo, pero para el ajuste "Reducir
+   animaciones" de la pagina de configuracion: states.js pone esta clase en el
+   body y hasta ahora ningun CSS la miraba, asi que el toggle no hacia nada.
+   Van separadas porque una media query no puede condicionarse a una clase. */
+body.reduce-motion .destiny-navbar::after,
+body.reduce-motion .nav-brand-destiny,
+body.reduce-motion .destiny-navbar .nav-btn.active,
+body.reduce-motion .mobile-bottom-nav .bottom-tab.active::before {
+    animation: none;
+}
+
+body.reduce-motion .nav-brand-mark,
+body.reduce-motion .nav-icon,
+body.reduce-motion .destiny-navbar .nav-btn:not(.active)::after,
+body.reduce-motion .destiny-navbar .nav-user-avatar {
+    transition: none;
+}
+
 /* Accesibilidad: sin animaciones si el usuario las desactivó */
 @media (prefers-reduced-motion: reduce) {
     .destiny-navbar::after,

@@ -320,6 +320,37 @@ function buildCatalogCardHtml(options) {
 }
 
 
+// Traduce el error crudo de la capa de API al cartel que ve el usuario.
+// Antes todo caia en un unico "API no disponible / revisa tu conexion", que es
+// enganoso: la causa mas comun es el rate limit de AniList, donde la conexion
+// del usuario esta perfecta y lo unico que hay que hacer es esperar.
+function describirErrorDeApi(error) {
+    const msg = String(error?.message || error || '');
+
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return {
+            kicker: 'Sin conexión',
+            detalle: 'Parece que te quedaste sin internet. Reconectate y recargá la página.'
+        };
+    }
+    if (msg.includes('429') || msg.includes('Límite de peticiones')) {
+        return {
+            kicker: 'Demasiadas peticiones',
+            detalle: 'AniList está limitando las peticiones por exceso de uso. Esperá un minuto y recargá — no es un problema de tu conexión.'
+        };
+    }
+    if (msg.includes('Timeout')) {
+        return {
+            kicker: 'La API tardó demasiado',
+            detalle: 'AniList no respondió a tiempo. Puede estar saturada; probá de nuevo en unos segundos.'
+        };
+    }
+    return {
+        kicker: 'API no disponible',
+        detalle: 'Revisá tu conexión, esperá unos segundos y recargá la página.'
+    };
+}
+
 async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append = false) {
     const loaderLabel = categoria === 'anime'
         ? 'animes'
@@ -439,11 +470,12 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
         } catch (error) {
         console.warn('Error cargando API:', error);
         if (!append) {
+            const causa = describirErrorDeApi(error);
             mainContainer.innerHTML = `
                 <section class="empty-state">
-                    <span class="empty-state-kicker">API no disponible</span>
+                    <span class="empty-state-kicker">${escapeHtml(causa.kicker)}</span>
                     <h2>No se pudo cargar el catálogo de ${escapeHtml(loaderLabel)}.</h2>
-                    <p>Revisá tu conexión, esperá unos segundos y recargá la página.</p>
+                    <p>${escapeHtml(causa.detalle)}</p>
                 </section>
             `;
             try { inicializarBusquedaCatalogo(); } catch (e) {}

@@ -3,6 +3,22 @@ let isLoadingPage = false;
 let hasMorePages = true;
 let scrollObserver = null;
 
+// Puerta de scroll: el sentinel queda dentro del viewport apenas termina el
+// primer render (pantalla alta, pocos resultados, o zoom out), asi que el
+// observer encadenaba paginas sin que el usuario tocara nada — hasta 6 en manga,
+// que son 18 requests a AniList en segundos y el rate limit garantizado.
+// Ahora la carga automatica no arranca hasta que haya un scroll real.
+let usuarioScrolleo = false;
+let sentinelALaVista = false;
+
+function alScrollearPorPrimeraVez() {
+    if (usuarioScrolleo) return;
+    usuarioScrolleo = true;
+    // El observer no vuelve a dispararse si el sentinel ya estaba visible (no
+    // hay cambio de interseccion que notificar), asi que hay que reintentar.
+    if (sentinelALaVista) loadNextPage();
+}
+
 function getSentinel() {
     let el = document.getElementById("scroll-sentinel");
     if (!el) {
@@ -95,7 +111,8 @@ function initScrollObserver() {
     disconnectScrollObserver();
     const sentinel = getSentinel();
     scrollObserver = new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) {
+        sentinelALaVista = entries[0].isIntersecting;
+        if (sentinelALaVista && usuarioScrolleo) {
             loadNextPage();
         }
     }, { rootMargin: "200px" });
@@ -116,6 +133,12 @@ function resetInfiniteScroll() {
     hideLoadingIndicator();
     const sentinel = getSentinel();
     sentinel.innerHTML = "";
+    // Se rearma en cada reset (carga inicial y cambio de filtros): un catalogo
+    // recien renderizado no debe encadenar paginas solo porque el usuario ya
+    // habia scrolleado antes de buscar.
+    usuarioScrolleo = false;
+    sentinelALaVista = false;
+    window.addEventListener("scroll", alScrollearPorPrimeraVez, { passive: true, once: true });
     initScrollObserver();
 }
 
@@ -158,14 +181,12 @@ async function inicializarPagina() {
         const genresNorm = genres.map(function (g) { return normalizeText(g); }).join("|");
         const searchIndex = buildSearchIndexForItem(categoria, item);
         const detailUrl = "detalle.html?cat=" + encodeURIComponent(categoria) + "&id=" + encodeURIComponent(item.id) + "&nombre=" + encodeURIComponent(item.titulo);
-        const hasDetail = typeof obtenerDetalleItem === "function" && !!obtenerDetalleItem(categoria, item.id);
-        const detalle = (typeof obtenerDetalleItem === "function") ? obtenerDetalleItem(categoria, item.id) : null;
-        let progressTotal = 0;
-        if (categoria === "anime" && detalle?.temporadas) {
-            progressTotal = detalle.temporadas.reduce(function (acc, t) { return acc + (Number(t.episodios) || 0); }, 0);
-        } else if (categoria === "manga" || categoria === "novelas") {
-            progressTotal = Number(detalle?.volumenes || 0);
-        }
+        // Aca habia dos llamadas mas a `obtenerDetalleItem` (dos requests por
+        // item) con el mismo defecto que las de states.js: devuelve una Promise,
+        // asi que `hasDetail` daba siempre true y `detalle?.temporadas` /
+        // `detalle?.volumenes` siempre undefined. El progressTotal ya sale de los
+        // campos del propio item, que es de donde salia en los hechos.
+        const hasDetail = true;
         var volCount = Number(item.volumenes || item.volumes || 0);
         var chCount = Number(item.capitulos || item.chapters || 0);
         return buildCatalogCardHtml({
@@ -179,7 +200,7 @@ async function inicializarPagina() {
             genres: genres.join("|"),
             genresNorm: genresNorm,
             categoria: categoria,
-            progressTotal: volCount || chCount || progressTotal,
+            progressTotal: volCount || chCount || 0,
             volCount: volCount,
             chCount: chCount,
             imageExtraAttrs: ' data-title="' + escapeHtml(item.titulo) + '" data-fallback-catalog="1"'

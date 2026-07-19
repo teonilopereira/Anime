@@ -596,14 +596,34 @@
             var qDoujin = buildDynamicQuery(Object.assign({}, baseOpts, { source: 'DOUJINSHI' }));
 
             var pg = page || 1;
-            var [resManga, resManhwa, resDoujinshi] = await Promise.all([
+            // allSettled y no all: las tres queries son independientes, pero con
+            // `all` un 429 en la de doujinshi (la menos importante de las tres)
+            // rechazaba el lote entero y el catalogo quedaba en "API no
+            // disponible" aunque manga y manhwa ya hubieran respondido bien.
+            var resultados = await Promise.allSettled([
                 anilistFetch(qManga, Object.assign({ page: pg, perPage: perPage }, baseVars)),
                 anilistFetch(qManhwa, Object.assign({ page: pg, perPage: perPage }, baseVars)),
-                anilistFetch(qDoujin, Object.assign({ page: pg, perPage: perPage }, baseVars))
+                // Sin reintentos (retries = 0). Cada 429 se reintenta 2 veces, o sea
+                // que una query que falla cuesta 3 requests y empuja el rate limit
+                // mas hondo. La de doujinshi es la que menos aporta al catalogo y
+                // desde el allSettled su fallo ya no rompe nada: no vale la pena
+                // gastarle cuota justo cuando la cuota es el problema.
+                anilistFetch(qDoujin, Object.assign({ page: pg, perPage: perPage }, baseVars), 0)
             ]);
-            var mediaManga = resManga?.data?.Page?.media || [];
-            var mediaManhwa = resManhwa?.data?.Page?.media || [];
-            var mediaDoujin = resDoujinshi?.data?.Page?.media || [];
+
+            // Si fallaron las tres no hay nada parcial que rescatar: se propaga
+            // el error para que el llamador pueda distinguir "la API se cayo" de
+            // "la busqueda no tuvo resultados".
+            if (resultados.every(function (r) { return r.status === 'rejected'; })) {
+                throw resultados[0].reason;
+            }
+
+            function mediaDeResultado(r) {
+                return r.status === 'fulfilled' ? (r.value?.data?.Page?.media || []) : [];
+            }
+            var mediaManga = mediaDeResultado(resultados[0]);
+            var mediaManhwa = mediaDeResultado(resultados[1]);
+            var mediaDoujin = mediaDeResultado(resultados[2]);
             
             var media = [];
             var seenIds = new Set();
