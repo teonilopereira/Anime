@@ -29,7 +29,18 @@
         }
     }
 
+    /**
+     * Cliente HTTP de MangaDex.
+     *
+     * Este archivo tenia su propia copia, practicamente identica a la de
+     * js/core/api.js (mismo AbortController, mismo timeout, mismo manejo de
+     * errores): dos implementaciones que habia que arreglar por duplicado.
+     * Ahora se usa la del bundle, que siempre esta cargada antes que este
+     * script. El fallback local queda por si alguien carga este archivo suelto.
+     */
     function mdFetch(path) {
+        if (typeof window.mdFetch === 'function') return window.mdFetch(path);
+
         return new Promise(function (resolve, reject) {
             var controller = new AbortController();
             var timer = setTimeout(function () {
