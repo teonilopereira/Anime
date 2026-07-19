@@ -1074,6 +1074,19 @@ function obtenerDetalleItem(categoria, id) {
 
 async function waitForSupabase() {
         if (window.AppSupabase) return window.AppSupabase;
+
+        // Carga diferida del SDK (~216 KB). Si no hay token guardado, no
+        // estamos en Login y la URL no trae tokens, con certeza no hay sesión:
+        // se devuelve null sin descargar nada. Cargarlo sólo para que conteste
+        // "no hay usuario" era el motivo de que pesara en toda visita anónima.
+        if (typeof window.__puedeHaberSesion === 'function' && !window.__puedeHaberSesion()) {
+            return null;
+        }
+        if (typeof window.__loadSupabase === 'function') {
+            var cliente = await window.__loadSupabase();
+            if (cliente) return cliente;
+        }
+
         var promises = [];
         if (window.AppSupabaseReady) promises.push(window.AppSupabaseReady);
         promises.push(new Promise(r => {

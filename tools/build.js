@@ -22,6 +22,32 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const abs = (...p) => path.join(ROOT, ...p);
 
+// Dominio publico: se usa para las URLs canonicas y para generar el sitemap.
+const SITE_URL = 'https://animedestiny.netlify.app';
+
+// Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
+// de busqueda). El resto se agrega solo, asi no hay que mantener una lista.
+const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html']);
+
+/**
+ * Analitica. Viene DESACTIVADA: poner el dominio la enciende y el build se
+ * encarga del resto (inyecta el script en cada HTML y abre el CSP lo justo).
+ * Dejarlo vacio quita el script y vuelve a cerrar el CSP.
+ *
+ * Se eligio Plausible: no usa cookies ni recolecta datos personales, asi que
+ * no hace falta banner de consentimiento (con Google Analytics si haria falta).
+ * Alternativa equivalente: Umami (self-hosted). Para usarla, cambiar host/src.
+ *
+ *   1. Crear la cuenta y agregar el sitio en https://plausible.io
+ *   2. Poner aca el dominio exacto, p. ej. 'animedestiny.netlify.app'
+ *   3. npm run build
+ */
+const ANALYTICS = {
+    dominio: '',
+    host: 'https://plausible.io',
+    src: 'https://plausible.io/js/script.js',
+};
+
 // ── Definición de fuentes ────────────────────────────────────────────────
 
 // CSS compartido → bundle. Orden fijo (base primero por reset/variables).
@@ -254,11 +280,64 @@ for (const file of htmlFiles) {
     // para que ninguno quede sin cache-busting al agregarse en el futuro.
     src = src.replace(ASSET_RE, (_m, attr, ruta) => `${attr}="${ruta}?v=${version}"`);
 
+    // Canonical: sin esto, la misma pagina servida como /x.html, /x.html?utm=...
+    // o con / final se indexa como varias URLs distintas y se reparte el ranking.
+    // detalle.html se excluye a proposito: su canonical lo pone render.js con el
+    // id de la obra, porque el contenido depende del query string.
+    if (file !== 'detalle.html') {
+        const canonical = `${SITE_URL}/${file}`;
+        if (/<link rel="canonical"/.test(src)) {
+            src = src.replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${canonical}">`);
+        } else {
+            src = src.replace(/(<title>)/, `<link rel="canonical" href="${canonical}">\n    $1`);
+        }
+    }
+
+    // ── Analitica ──
+    // Se re-genera en cada build: si ANALYTICS.dominio esta vacio, el script se
+    // quita y el CSP vuelve a cerrarse. Asi encender/apagar es un solo cambio.
+    src = src.replace(/\s*<script defer data-domain="[^"]*" src="[^"]*"><\/script>/g, '');
+    src = src.split(' ' + ANALYTICS.host).join('');
+
+    if (ANALYTICS.dominio) {
+        // El script va al final del <head>, con defer: no bloquea el render.
+        src = src.replace(
+            /(\s*)<\/head>/,
+            `$1    <script defer data-domain="${ANALYTICS.dominio}" src="${ANALYTICS.src}"><\/script>$1</head>`,
+        );
+        // Abrir el CSP solo para el host de analitica: script-src para cargarlo
+        // y connect-src para que pueda mandar los eventos.
+        src = src.replace(/script-src 'self'/, `script-src 'self' ${ANALYTICS.host}`);
+        src = src.replace(/connect-src 'self'/, `connect-src 'self' ${ANALYTICS.host}`);
+    }
+
     if (src !== before) {
         fs.writeFileSync(p, src, 'utf8');
         stampedHtml += 1;
     }
 }
+
+// ── Sitemap ──────────────────────────────────────────────────────────────
+// Se genera desde los HTML que existen: el que habia estaba escrito a mano,
+// tenia 8 URLs y le faltaba comparar.html.
+
+const hoy = new Date().toISOString().slice(0, 10);
+const prioridades = { 'index.html': '1.0', 'anime.html': '0.9', 'manga.html': '0.9', 'novelas.html': '0.9' };
+
+const urlsSitemap = htmlFiles
+    .filter((f) => !NO_INDEXABLES.has(f) && f !== 'detalle.html')
+    .sort()
+    .map((f) => {
+        const prio = prioridades[f] || '0.6';
+        return `  <url>\n    <loc>${SITE_URL}/${f}</loc>\n    <lastmod>${hoy}</lastmod>\n    <priority>${prio}</priority>\n  </url>`;
+    });
+
+writeUtf8(
+    'sitemap.xml',
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    urlsSitemap.join('\n') + '\n</urlset>\n',
+);
 
 // ── Estampar CACHE_NAME del service worker ───────────────────────────────
 
