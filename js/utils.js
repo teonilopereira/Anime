@@ -1,6 +1,22 @@
 (function (window) {
     "use strict";
 
+    // Traduce los enums de estado de AniList/MangaDex para mostrarlos.
+    // Cualquier valor no reconocido (datos locales viejos ya en español) pasa tal cual.
+    // Vive en el bundle y no en detalle/render.js porque comparar.js tambien lo
+    // necesita, y esa pagina no carga los scripts de detalle.
+    function formatMediaStatus(status, categoria) {
+        const enPublicacion = categoria === 'manga' || categoria === 'novelas';
+        const map = {
+            RELEASING: enPublicacion ? 'En publicación' : 'En emisión',
+            FINISHED: 'Finalizado',
+            NOT_YET_RELEASED: 'Próximamente',
+            HIATUS: 'En pausa',
+            CANCELLED: 'Cancelado'
+        };
+        return map[String(status || '').toUpperCase()] || status;
+    }
+
     function formatDate(value, locale = "es-AR") {
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return "";
@@ -167,6 +183,7 @@
     // Bind to window as globals to avoid breaking any callers/HTML scripts
     window.getCurrentUserId = getCurrentUserId;
     window.getCurrentUserIdSafe = getCurrentUserId;
+    window.formatMediaStatus = formatMediaStatus;
     window.fallbackCatalogImage = fallbackCatalogImage;
     window.episodeStorageKey = episodeStorageKey;
     window.volumeStorageKey = volumeStorageKey;

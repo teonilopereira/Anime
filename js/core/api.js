@@ -150,6 +150,20 @@
             chapters: !isAnime ? (item.chapters || 0) : 0,
             volumes: !isAnime ? (item.volumes || 0) : 0,
             score: item.averageScore != null ? (item.averageScore / 10) : null,
+            // Solo vienen en la query por id (MEDIA_BY_ID_QUERY), no en las de
+            // catalogo: los usa la pagina de comparar. En items de MangaDex y en
+            // las listas quedan en 0, y el que los muestra cae a "—".
+            popularity: item.popularity || 0,
+            favourites: item.favourites || 0,
+            // El manga no tiene season/seasonYear (eso es solo de anime), asi que
+            // sin startDate no habia forma de mostrarle el año.
+            startYear: item.startDate?.year || item.seasonYear || null,
+            endYear: item.endDate?.year || null,
+            // Solo viene en la query por id, igual que popularity: lo usa la
+            // pagina de comparar para mostrar el autor de un manga o novela.
+            staff: (item.staff?.edges || []).map(function (e) {
+                return { role: e.role || '', name: e.node?.name?.full || '' };
+            }).filter(function (s) { return s.name; }),
             images: {
                 webp: { large_image_url: image, image_url: image },
                 jpg: { large_image_url: image, image_url: image }
@@ -406,7 +420,9 @@
             Media(id: $id) {
                 id idMal title { romaji english } coverImage { extraLarge large }
                 episodes chapters volumes status genres averageScore description type format
-                season seasonYear source duration countryOfOrigin
+                season seasonYear source duration countryOfOrigin popularity favourites
+                startDate { year } endDate { year }
+                staff(perPage: 6) { edges { role node { name { full } } } }
                 nextAiringEpisode { airingAt timeUntilAiring episode }
                 streamingEpisodes { title thumbnail url site }
                 studios { nodes { name } }
