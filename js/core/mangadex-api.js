@@ -164,6 +164,17 @@
             }
         }
 
+        // Autor y artista vienen como relationships, con nombre solo si la
+        // peticion los pidio con includes[] (getMangaDexById lo hace). Mismo
+        // formato que el staff de AniList para que quien lo muestre no tenga
+        // que distinguir fuentes.
+        var staffList = [];
+        (data.relationships || []).forEach(function (r) {
+            if ((r.type === 'author' || r.type === 'artist') && r.attributes?.name) {
+                staffList.push({ role: r.type === 'author' ? 'Story' : 'Art', name: r.attributes.name });
+            }
+        });
+
         return {
             id: mangaId,
             mal_id: null,
@@ -188,7 +199,11 @@
             seasonYear: null,
             source: null,
             duration: null,
-            countryOfOrigin: attrs.originalLanguage || null
+            countryOfOrigin: attrs.originalLanguage || null,
+            // MangaDex trae el año de publicacion directo en attributes.year.
+            startYear: Number(attrs.year) || null,
+            endYear: null,
+            staff: staffList
         };
     }
 
@@ -206,7 +221,7 @@
 
     window.getMangaDexById = async function (id) {
         try {
-            var json = await mdFetch('/manga/' + encodeURIComponent(id) + '?includes[]=cover_art');
+            var json = await mdFetch('/manga/' + encodeURIComponent(id) + '?includes[]=cover_art&includes[]=author&includes[]=artist');
             return mdItemToLocal(json);
         } catch (err) {
             console.warn('MangaDex getById error:', err);

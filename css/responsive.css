@@ -1055,6 +1055,22 @@ body[data-page="listas"] .lists-empty {
 }
 
 /* ── Comparison page ── */
+
+/* Cuatro métricas en fila entran cómodas en escritorio, pero apenas la card se
+   angosta se apelmazan: pasan a 2x2, que sigue dejando las dos cards alineadas
+   fila a fila. */
+@media (max-width: 1024px) {
+    .cmp-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Dos cards lado a lado en un teléfono dejan la portada y el título ilegibles.
+   Se apilan bastante antes de los 340px que había: a esa altura ya venían
+   sufriendo hace rato. */
+@media (max-width: 760px) {
+    .compare-grid { grid-template-columns: 1fr; gap: 16px; }
+    .cmp-stats { grid-template-columns: repeat(4, 1fr); }
+}
+
 @media (max-width: 480px) {
     .compare-controls {
         gap: 12px;
@@ -1066,12 +1082,9 @@ body[data-page="listas"] .lists-empty {
     .compare-select {
         width: 100%;
     }
-    .compare-title {
-        font-size: 0.95rem;
-    }
-    .compare-body {
-        padding: 12px;
-    }
+    .cmp-body { padding: 14px; gap: 8px; }
+    .cmp-title { font-size: 1.15rem; }
+    .cmp-cover { aspect-ratio: 16 / 9; }
 }
 
 @media (max-width: 400px) {
@@ -1079,17 +1092,12 @@ body[data-page="listas"] .lists-empty {
     .compare-controls { padding: 0 8px; gap: 8px; }
     .compare-picker { flex-direction: column; }
     .compare-select { font-size: 0.78rem; padding: 8px 10px; }
-    .compare-card { border-radius: 8px; }
-    .compare-cover { min-height: 140px; }
-    .compare-title { font-size: 0.85rem; }
-    .compare-meta { font-size: 0.7rem; }
-    .compare-body { padding: 8px; }
-    .compare-actions { flex-direction: column; gap: 6px; }
-    .compare-actions .compare-btn { width: 100%; text-align: center; }
-}
-
-@media (max-width: 340px) {
-    .compare-grid { grid-template-columns: 1fr; gap: 10px; }
+    .cmp-stats { grid-template-columns: repeat(2, 1fr); }
+    .cmp-body { padding: 12px; }
+    .cmp-title { font-size: 1.05rem; }
+    .cmp-meta { font-size: 0.78rem; }
+    .cmp-footer { padding-top: 10px; }
+    .cmp-open { margin-left: 0; width: 100%; text-align: center; }
 }
 
 /* ── Ranking page ── */
@@ -1296,7 +1304,7 @@ body[data-page="listas"] .lists-empty {
     }
 
     /* Compare */
-    .compare-meta {
+    .cmp-meta {
         font-size: 0.75rem;
     }
 }

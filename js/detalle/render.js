@@ -1,16 +1,6 @@
-// Traduce los enums de estado de AniList/MangaDex para mostrarlos.
-// Cualquier valor no reconocido (datos locales viejos ya en español) pasa tal cual.
-function formatMediaStatus(status, categoria) {
-    const enPublicacion = categoria === 'manga' || categoria === 'novelas';
-    const map = {
-        RELEASING: enPublicacion ? 'En publicación' : 'En emisión',
-        FINISHED: 'Finalizado',
-        NOT_YET_RELEASED: 'Próximamente',
-        HIATUS: 'En pausa',
-        CANCELLED: 'Cancelado'
-    };
-    return map[String(status || '').toUpperCase()] || status;
-}
+// formatMediaStatus se movio a js/utils.js (bundle): comparar.js tambien lo
+// necesita y esa pagina no carga los scripts de detalle. El bundle siempre se
+// carga antes que este archivo, asi que el global ya esta disponible aca.
 
 // Countdown del próximo episodio (un solo timer vivo por página)
 function formatCountdown(msLeft) {
