@@ -65,6 +65,50 @@ function _lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* stora
 function _achvGrantKey(userId, id) { return 'ad:achvGrant:' + userId + ':' + id; }
 function _achvInitKey(userId) { return 'ad:achvInit:' + userId; }
 
+// ─── Franquicias: ids aceptados por obra, para logros y apodos ───
+// Ids de AniList VERIFICADOS contra su API (un id inventado hace el logro
+// imposible de sacar en silencio). Cada obra lista todas las variantes que
+// cuentan: temporadas del anime, el manga/novela, y para Berserk tambien el
+// UUID de MangaDex, porque una card servida por MangaDex marca ese id y no el
+// de AniList.
+const FRANQUICIAS = Object.freeze({
+    jjk_anime:    [113415, 145064],                        // JJK S1 + S2
+    jjk_manga:    [101517],
+    naruto:       [20, 1735],                              // Naruto + Shippuden
+    onepiece:     [21, 30013],                             // anime + manga
+    bleach:       [269, 116674],                           // Bleach + TYBW
+    aot:          [16498, 20958, 99147, 104578, 110277],   // todas las temporadas
+    demonslayer:  [101922, 87216],                         // anime + manga
+    deathnote:    [1535, 30021],                           // anime + manga
+    fmab:         [5114],
+    berserk:      [30002, '801513ba-a712-498c-8f57-cae55b38cc92'],
+    sololeveling: [151807, 105398],                        // anime + manhwa
+    mushoku:      [85470, 108465],                         // novela + anime
+    rezero:       [85737, 21355],                          // novela + anime
+    frieren:      [154587],
+    csm:          [127230, 105778],                        // anime + manga
+    mha:          [21459],
+    hxh:          [11061]
+});
+
+// Set con los ids marcados como "Visto" por el usuario, para consultar
+// franquicias sin recorrer UserStore una vez por regla.
+function getViewedIdSet(userId) {
+    const vistos = new Set();
+    if (!userId || userId === 'Invitado') return vistos;
+    const prefix = 'u:' + userId + '|item:';
+    UserStore.keys().forEach(function (key) {
+        if (!key.startsWith(prefix) || !key.endsWith('|viewed')) return;
+        if (!UserStore.getItem(key)) return;
+        vistos.add(key.slice(prefix.length, key.length - '|viewed'.length));
+    });
+    return vistos;
+}
+
+function franquiciaVista(vistos, clave) {
+    return (FRANQUICIAS[clave] || []).some(function (id) { return vistos.has(String(id)); });
+}
+
 function renderGenres(info) {
     if (!info) return '';
     var genres = String(info).split(/[|/]/).map(function (g) { return g.trim(); }).filter(Boolean);
@@ -507,6 +551,10 @@ function renderAchievements() {
     const level = Math.max(achvDbLevel, achvLvInfo.level);
     const totalSaved = lists.fav + lists.viewed;
 
+    // Vistos por id, para los logros atados a obras concretas
+    const vistos = getViewedIdSet(userId);
+    const fr = function (clave) { return franquiciaVista(vistos, clave); };
+
     const rules = [
         // — Me gusta —
         { id: 'fav1',  title: 'Corazón de Otaku',     desc: 'Marcá 1 título como "Me gusta".',   req: lists.fav >= 1,  icon: '❤️' },
@@ -546,6 +594,25 @@ function renderAchievements() {
         { id: 'novela10', title: 'Isekai Trotamundos',  desc: 'Marcá 10 novelas como "Visto".',  req: catViewed.novelas >= 10, icon: '📜' },
         { id: 'novela25', title: 'Erudito de Novelas',  desc: 'Marcá 25 novelas como "Visto".',  req: catViewed.novelas >= 25, icon: '📚', secret: true },
         { id: 'trifecta', title: 'Camino del Héroe',    desc: 'Terminá al menos 1 anime, 1 manga y 1 novela.', req: catViewed.anime >= 1 && catViewed.manga >= 1 && catViewed.novelas >= 1, icon: '🎌', secret: true },
+
+        // — Franquicias (obras concretas, cualquier variante listada cuenta) —
+        { id: 'fr_jjk',      title: 'Estudiante de Jujutsu',       desc: 'Marcá Jujutsu Kaisen (anime) como "Visto".',                  req: fr('jjk_anime'), icon: '🌀' },
+        { id: 'fr_naruto',   title: 'Camino del Ninja',            desc: 'Marcá Naruto o Naruto: Shippuden como "Visto".',              req: fr('naruto'), icon: '🍃' },
+        { id: 'fr_onepiece', title: 'Rumbo a Laugh Tale',          desc: 'Marcá One Piece (anime o manga) como "Visto".',               req: fr('onepiece'), icon: '👒' },
+        { id: 'fr_aot',      title: 'Alas de la Libertad',         desc: 'Marcá Attack on Titan (cualquier temporada) como "Visto".',   req: fr('aot'), icon: '🕊️' },
+        { id: 'fr_ds',       title: 'Respiración: Primera Forma',  desc: 'Marcá Demon Slayer (anime o manga) como "Visto".',            req: fr('demonslayer'), icon: '🌊' },
+        { id: 'fr_fmab',     title: 'Alquimista Nacional',         desc: 'Marcá Fullmetal Alchemist: Brotherhood como "Visto".',        req: fr('fmab'), icon: '⚙️' },
+        { id: 'fr_solo',     title: 'De Rango E a Rango S',        desc: 'Marcá Solo Leveling (anime o manhwa) como "Visto".',          req: fr('sololeveling'), icon: '🗡️' },
+        { id: 'fr_mushoku',  title: 'Segunda Oportunidad',         desc: 'Marcá Mushoku Tensei (novela o anime) como "Visto".',         req: fr('mushoku'), icon: '♻️' },
+        { id: 'fr_frieren',  title: 'El Fin del Viaje',            desc: 'Marcá Frieren como "Visto".',                                 req: fr('frieren'), icon: '🧝' },
+        { id: 'fr_hxh',      title: 'Examen del Cazador',          desc: 'Marcá Hunter x Hunter (2011) como "Visto".',                  req: fr('hxh'), icon: '🎣' },
+        { id: 'fr_mha',      title: 'Plus Ultra, Héroe',           desc: 'Marcá My Hero Academia como "Visto".',                        req: fr('mha'), icon: '🦸' },
+        { id: 'fr_dn',       title: 'Just as Planned',             desc: 'Marcá Death Note (anime o manga) como "Visto".',              req: fr('deathnote'), icon: '📓', secret: true },
+        { id: 'fr_berserk',  title: 'Marca del Sacrificio',        desc: 'Marcá Berserk (manga) como "Visto".',                         req: fr('berserk'), icon: '⚔️', secret: true },
+        { id: 'fr_rezero',   title: 'Volver a Empezar',            desc: 'Marcá Re:Zero (novela o anime) como "Visto".',                req: fr('rezero'), icon: '⏪', secret: true },
+        { id: 'fr_csm',      title: 'Contrato con Pochita',        desc: 'Marcá Chainsaw Man (anime o manga) como "Visto".',            req: fr('csm'), icon: '🪚', secret: true },
+        { id: 'fr_jjk_full', title: 'Hechicero de Grado Especial', desc: 'Marcá el anime y el manga de Jujutsu Kaisen como "Visto".',   req: fr('jjk_anime') && fr('jjk_manga'), icon: '🟣', secret: true },
+        { id: 'fr_big3',     title: 'Los Tres Grandes',            desc: 'Marcá Naruto, One Piece y Bleach como "Visto".',              req: fr('naruto') && fr('onepiece') && fr('bleach'), icon: '⚓', secret: true },
 
         // — Global —
         { id: 'library100', title: 'Biblioteca Viviente', desc: 'Acumulá 100 títulos entre "Me gusta" y "Visto".', req: totalSaved >= 100, icon: '🏛️', secret: true }
@@ -614,11 +681,23 @@ const APODOS = Object.freeze([
     { id: 'primer_paso',   nick: 'Un Pasito',           desc: 'Marcá tu primer capítulo o episodio.', test: function (s) { return s.eps >= 1; } },
     { id: 'maratonista',   nick: 'Maratonista',         desc: 'Marcá 100 capítulos o episodios.',     test: function (s) { return s.eps >= 100; } },
     { id: 'veterano',      nick: 'Veterano',            desc: 'Alcanzá el nivel 5.',                  test: function (s) { return s.level >= 5; } },
-    { id: 'leyenda',       nick: 'Leyenda Destiny',     desc: 'Alcanzá el nivel 10.',                 test: function (s) { return s.level >= 10; } }
+    { id: 'leyenda',       nick: 'Leyenda Destiny',     desc: 'Alcanzá el nivel 10.',                 test: function (s) { return s.level >= 10; } },
+
+    // — Apodos de franquicia: se ganan viendo obras concretas —
+    { id: 'hechicero_actual',   nick: 'El Hechicero Más Fuerte Actual',        desc: 'Marcá Jujutsu Kaisen (anime) como "Visto".',                test: function (s) { return franquiciaVista(s.vistos, 'jjk_anime'); } },
+    { id: 'hechicero_historia', nick: 'El Hechicero Más Fuerte de la Historia', desc: 'Marcá el anime y el manga de Jujutsu Kaisen como "Visto".', test: function (s) { return franquiciaVista(s.vistos, 'jjk_anime') && franquiciaVista(s.vistos, 'jjk_manga'); } },
+    { id: 'rey_piratas',        nick: 'El Próximo Rey de los Piratas',         desc: 'Marcá One Piece como "Visto".',                             test: function (s) { return franquiciaVista(s.vistos, 'onepiece'); } },
+    { id: 'hokage',             nick: 'Séptimo Hokage',                        desc: 'Marcá Naruto y Naruto: Shippuden como "Visto".',            test: function (s) { return s.vistos.has('20') && s.vistos.has('1735'); } },
+    { id: 'soldado',            nick: 'El Soldado Más Fuerte de la Humanidad', desc: 'Marcá Attack on Titan como "Visto".',                       test: function (s) { return franquiciaVista(s.vistos, 'aot'); } },
+    { id: 'espadachin_negro',   nick: 'El Espadachín Negro',                   desc: 'Marcá Berserk (manga) como "Visto".',                       test: function (s) { return franquiciaVista(s.vistos, 'berserk'); } },
+    { id: 'monarca',            nick: 'Monarca de las Sombras',                desc: 'Marcá Solo Leveling como "Visto".',                         test: function (s) { return franquiciaVista(s.vistos, 'sololeveling'); } },
+    { id: 'simbolo_paz',        nick: 'El Símbolo de la Paz',                  desc: 'Marcá My Hero Academia como "Visto".',                      test: function (s) { return franquiciaVista(s.vistos, 'mha'); } },
+    { id: 'pilar',              nick: 'Pilar del Agua',                        desc: 'Marcá Demon Slayer como "Visto".',                          test: function (s) { return franquiciaVista(s.vistos, 'demonslayer'); } },
+    { id: 'kira',               nick: 'Kira',                                  desc: 'Marcá Death Note como "Visto".',                            test: function (s) { return franquiciaVista(s.vistos, 'deathnote'); } }
 ]);
 
 function computeApodoStats(userId) {
-    const stats = { fav: 0, viewed: 0, eps: 0, level: 1, pts: 0 };
+    const stats = { fav: 0, viewed: 0, eps: 0, level: 1, pts: 0, vistos: getViewedIdSet(userId) };
     if (userId === 'Invitado') return stats;
 
     UserStore.keys().forEach(function (key) {
@@ -690,6 +769,14 @@ function equipApodo(apodoId) {
     renderApodos();
     renderProfileSummary();
     if (window.Toast) window.Toast.success('Apodo equipado: ' + def.nick);
+
+    // Reflejar el cambio en el badge del navbar al instante. El orden importa:
+    // primero se pisa window.__profileData.apodo y despues se llama a
+    // refreshUserUi, porque resolveGrade mira el perfil en memoria antes de ir
+    // a Supabase — si no, la consulta puede ganarle al saveApodo de abajo y el
+    // navbar quedaria mostrando el apodo anterior.
+    window.__profileData = Object.assign({}, window.__profileData, { apodo: apodoId });
+    if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
 
     // Persistir en Supabase (si hay sesión y la columna existe)
     if (window.AppSupabase && typeof window.AppSupabase.saveApodo === 'function') {

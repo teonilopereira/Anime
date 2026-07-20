@@ -23,102 +23,117 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=7d6a3aaa">
+        <link rel="stylesheet" href="css/bundle.min.css?v=203ebb2f">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
+        /* ── Ranking: panel principal ── */
         .ranking-container {
-            max-width: 800px;
+            max-width: 1100px;
             margin: 30px auto;
-            padding: 0 20px;
+            padding: 24px;
+            border-radius: var(--radius-lg, 16px);
+            background: rgba(8, 6, 20, 0.72);
+            border: 1px solid rgba(188, 19, 254, 0.18);
         }
+
+        /* ── Cabecera: trofeo + titulo a la izquierda, tabs al centro-derecha ── */
+        .rank-hero {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+        .rank-hero-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 260px;
+        }
+        .rank-trophy {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: rgba(188, 19, 254, 0.12);
+            border: 1px solid rgba(188, 19, 254, 0.35);
+            box-shadow: 0 0 24px rgba(188, 19, 254, 0.25);
+            flex-shrink: 0;
+        }
+        .rank-trophy svg {
+            width: 34px;
+            height: 34px;
+            color: var(--neon-purple, #bc13fe);
+        }
+        .rank-title {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.9rem;
+            color: var(--accent-cyan, #00f2ff);
+            text-shadow: 0 0 14px rgba(0, 242, 255, 0.4);
+        }
+        .rank-subtitle {
+            margin: 4px 0 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
         .ranking-tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 24px;
-            justify-content: center;
+            gap: 6px;
+            padding: 5px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .ranking-tab {
-            padding: 10px 28px;
-            border: 1px solid var(--nav-accent);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 26px;
+            border: 0;
+            border-radius: 999px;
             background: transparent;
-            color: var(--nav-accent);
+            color: var(--text-muted);
             cursor: pointer;
             font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            border-radius: 6px;
+            font-size: 0.82rem;
             transition: all .2s;
         }
+        .ranking-tab svg { width: 15px; height: 15px; }
         .ranking-tab.is-active {
-            background: var(--nav-accent);
-            color: #000;
+            background: linear-gradient(135deg, var(--neon-purple, #bc13fe), #7b2ff7);
+            color: #fff;
+            box-shadow: 0 0 16px rgba(188, 19, 254, 0.45);
         }
-        .ranking-tab:disabled {
-            opacity: .4;
-            cursor: not-allowed;
-        }
-        .ranking-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .ranking-table th {
-            text-align: left;
-            padding: 12px 8px;
-            border-bottom: 1px solid rgba(255,255,255,.1);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .ranking-table td {
-            padding: 14px 8px;
-            border-bottom: 1px solid rgba(255,255,255,.05);
-        }
-        .ranking-rank {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            color: var(--nav-accent);
-            width: 50px;
-        }
-        .ranking-name {
-            font-weight: 500;
-        }
-        .ranking-level {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--cyan);
-        }
-        .ranking-exp {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--text-muted);
-            text-align: right;
-        }
-        .ranking-loading {
-            text-align: center;
-            padding: 60px 0;
-            color: var(--text-muted);
-            font-size: 16px;
-        }
-        .ranking-empty {
-            text-align: center;
-            padding: 60px 0;
-            color: var(--text-muted);
-        }
-        .ranking-loaded {
-            animation: fadeIn .3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .ranking-tab:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* ── Buscador ── */
         .ranking-filter-bar {
-            margin-bottom: 16px;
+            position: relative;
+            margin-bottom: 18px;
         }
+        .ranking-filter-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            color: var(--text-faint, rgba(255,255,255,.35));
+            pointer-events: none;
+        }
+        .ranking-filter-icon svg { width: 17px; height: 17px; }
         .ranking-filter-input {
             width: 100%;
-            padding: 10px 14px;
-            background: rgba(0,0,0,.3);
-            border: 1px solid rgba(255,255,255,.1);
-            border-radius: 6px;
+            padding: 13px 16px 13px 44px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 14px;
             color: var(--text-main);
             font-family: 'Rajdhani', sans-serif;
             font-size: 15px;
@@ -126,90 +141,226 @@
             box-sizing: border-box;
             transition: border-color .2s;
         }
-        .ranking-filter-input:focus {
-            border-color: var(--nav-accent);
+        .ranking-filter-input:focus { border-color: var(--accent-cyan, #00f2ff); }
+
+        /* ── Tabla como filas-card ── */
+        .rank-list {
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .rank-head,
+        .rank-row {
+            display: grid;
+            grid-template-columns: 64px minmax(0, 1.3fr) 150px minmax(150px, 1fr) 96px;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 16px;
+        }
+        .rank-head {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.68rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .rank-head .rank-h-exp { text-align: right; color: var(--accent-cyan, #00f2ff); }
+        .rank-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.015);
+        }
+        .rank-row:last-child { border-bottom: 0; }
+        .rank-row-own {
+            background: linear-gradient(90deg, rgba(188, 19, 254, 0.20), rgba(188, 19, 254, 0.05));
+            border-left: 2px solid var(--neon-purple, #bc13fe);
+        }
+
+        /* Posicion: escudo con corona/medalla para el podio */
+        .rank-pos {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+        }
+        .rank-pos svg { width: 16px; height: 16px; }
+        .rank-pos--1 { color: #ffd54a; }
+        .rank-pos--2 { color: #cfd8e3; }
+        .rank-pos--3 { color: #d68a45; }
+
+        /* Jugador: avatar + nombre + apodo */
+        .rank-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
         }
         .ranking-avatar {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: var(--nav-accent);
+            background: var(--nav-accent, #00f2ff);
             color: #000;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 14px;
             font-family: 'Orbitron', sans-serif;
-            margin-right: 8px;
-            vertical-align: middle;
             overflow: hidden;
             flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.12);
         }
-        .ranking-avatar-img {
-            padding: 0;
-            background: transparent;
-        }
-        .ranking-avatar-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
+        .ranking-avatar-img { padding: 0; background: transparent; }
+        .ranking-avatar-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .rank-player-info { min-width: 0; }
+        .rank-player-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 1.02rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .ranking-badge {
-            display: inline-block;
-            margin-left: 6px;
-            padding: 1px 8px;
-            border-radius: 10px;
-            background: var(--cyan);
-            color: #000;
+            padding: 2px 9px;
+            border-radius: 999px;
+            background: rgba(0, 242, 255, 0.15);
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            color: var(--accent-cyan, #00f2ff);
             font-size: 10px;
             font-weight: 700;
             font-family: 'Orbitron', sans-serif;
-            vertical-align: middle;
+            flex-shrink: 0;
         }
-        .ranking-row-own {
-            background: rgba(var(--nav-accent-rgb, 180, 100, 255), .08);
+        .rank-player-apodo {
+            font-size: 0.78rem;
+            color: var(--neon-purple, #bc13fe);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .ranking-row-own td {
-            border-bottom-color: rgba(var(--nav-accent-rgb, 180, 100, 255), .15);
+
+        /* Nivel: escudito + numero */
+        .rank-level {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .rank-level-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(188, 19, 254, 0.14);
+            border: 1px solid rgba(188, 19, 254, 0.4);
+            flex-shrink: 0;
+        }
+        .rank-level-icon svg { width: 19px; height: 19px; color: var(--neon-purple, #bc13fe); }
+        .rank-level-label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+        .rank-level-num {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            line-height: 1.1;
+            color: #fff;
+        }
+
+        /* Progreso hacia el proximo nivel */
+        .rank-progress-track {
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+        .rank-progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--neon-purple, #bc13fe), #7b2ff7);
+        }
+        .rank-progress-text {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* EXP total */
+        .rank-exp {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-self: end;
+            min-width: 76px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+        .rank-row-own .rank-exp { border-color: rgba(188, 19, 254, 0.5); }
+        .rank-exp-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            line-height: 1.1;
+            color: var(--accent-cyan, #00f2ff);
+        }
+        .rank-exp-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .ranking-loading { text-align: center; padding: 60px 0; color: var(--text-muted); font-size: 16px; }
+        .ranking-empty { text-align: center; padding: 60px 0; color: var(--text-muted); }
+        .ranking-loaded { animation: fadeIn .3s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .ranking-footer {
-            margin-top: 16px;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 18px;
             color: var(--text-muted);
             font-size: 13px;
             font-family: 'Rajdhani', sans-serif;
         }
-        @media (max-width: 600px) {
-            .ranking-table th, .ranking-table td {
-                padding: 10px 6px;
-                font-size: 13px;
-            }
-            .ranking-rank { font-size: 15px; width: 36px; }
-            .ranking-avatar { width: 26px; height: 26px; font-size: 10px; margin-right: 4px; }
+        .ranking-footer svg { width: 15px; height: 15px; }
+
+        /* ── Responsive: primero cae la barra de progreso, despues el nivel ── */
+        @media (max-width: 860px) {
+            .rank-head, .rank-row { grid-template-columns: 48px minmax(0, 1fr) 120px 96px; }
+            .rank-h-progress, .rank-progress { display: none; }
         }
-        @media (max-width: 480px) {
-            .ranking-container { padding: 0 12px; margin: 20px auto; }
-            .ranking-tabs { gap: 6px; }
-            .ranking-tab { padding: 6px 12px; font-size: 11px; }
-            .ranking-table th, .ranking-table td { padding: 6px 4px; font-size: 11px; }
-            .ranking-rank { font-size: 12px; width: 24px; }
-            .ranking-avatar { width: 22px; height: 22px; font-size: 8px; margin-right: 2px; }
-            .ranking-level { font-size: 11px; }
-            .ranking-exp { font-size: 11px; }
-        }
-        @media (max-width: 400px) {
-            .ranking-container { padding: 0 8px; margin: 14px auto; }
-            .ranking-tabs { flex-wrap: wrap; gap: 4px; }
-            .ranking-tab { padding: 5px 8px; font-size: 10px; flex: 1; min-width: 0; }
-            .ranking-table th, .ranking-table td { padding: 4px 2px; font-size: 10px; }
-            .ranking-rank { font-size: 10px; width: 20px; }
-            .ranking-name { font-size: 10px; }
-            .ranking-filter-input { padding: 6px 10px; font-size: 13px; }
+        @media (max-width: 560px) {
+            .ranking-container { padding: 14px; margin: 16px auto; }
+            .rank-hero { gap: 12px; }
+            .rank-trophy { width: 48px; height: 48px; }
+            .rank-trophy svg { width: 26px; height: 26px; }
+            .rank-title { font-size: 1.4rem; }
+            .ranking-tab { padding: 7px 16px; font-size: 0.72rem; }
+            .rank-head, .rank-row { grid-template-columns: 36px minmax(0, 1fr) 78px; gap: 8px; padding: 10px; }
+            .rank-h-level, .rank-level { display: none; }
+            .ranking-avatar { width: 36px; height: 36px; font-size: 11px; }
+            .rank-player-name { font-size: 0.9rem; }
+            .rank-exp-num { font-size: 1.05rem; }
         }
     </style>
-    <script src="js/vendor/lucide.min.js?v=7d6a3aaa"></script>
+    <script src="js/vendor/lucide.min.js?v=203ebb2f"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="top">
@@ -223,15 +374,19 @@
 
     <main id="main-content">
 
-    <header class="page-header">
-        <h1 class="page-title" data-i18n="top.rank.title">RANKING</h1>
-        <p class="page-subtitle" data-i18n="top.rank.subtitle">Jugadores ordenados por nivel y experiencia total.</p>
-    </header>
-
     <div class="ranking-container">
-        <div class="ranking-tabs">
-            <button class="ranking-tab is-active" data-rank="f2p">F2P</button>
-            <button class="ranking-tab" data-rank="p2w" disabled>P2W</button>
+        <div class="rank-hero">
+            <div class="rank-hero-left">
+                <span class="rank-trophy" aria-hidden="true"><i data-lucide="trophy"></i></span>
+                <div>
+                    <h1 class="rank-title" data-i18n="top.rank.title">RANKING</h1>
+                    <p class="rank-subtitle" data-i18n="top.rank.subtitle">Jugadores ordenados por nivel y experiencia total.</p>
+                </div>
+            </div>
+            <div class="ranking-tabs">
+                <button class="ranking-tab is-active" data-rank="f2p"><i data-lucide="swords"></i> F2P</button>
+                <button class="ranking-tab" data-rank="p2w" disabled><i data-lucide="swords"></i> P2W</button>
+            </div>
         </div>
         <div id="rankingContent" class="ranking-loading" data-i18n="rank.cargando">Cargando ranking...</div>
     </div>
@@ -240,12 +395,12 @@
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=7d6a3aaa"></script>
-    <script src="js/core/i18n.js?v=7d6a3aaa"></script>
-    <script src="js/core/namespace.js?v=7d6a3aaa"></script>
-    <script src="api/supabase-config.js?v=7d6a3aaa" type="module" async></script>
-    <script src="js/core-bundle.min.js?v=7d6a3aaa" defer></script>
-    <script src="js/pages/ranking.js?v=7d6a3aaa" defer></script>
+    <script src="js/core/config.js?v=203ebb2f"></script>
+    <script src="js/core/i18n.js?v=203ebb2f"></script>
+    <script src="js/core/namespace.js?v=203ebb2f"></script>
+    <script src="api/supabase-config.js?v=203ebb2f" type="module" async></script>
+    <script src="js/core-bundle.min.js?v=203ebb2f" defer></script>
+    <script src="js/pages/ranking.js?v=203ebb2f" defer></script>
 </body>
 </html>
 

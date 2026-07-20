@@ -13,17 +13,47 @@
         return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function getMedal(rank) {
-        if (rank === 1) return '🥇';
-        if (rank === 2) return '🥈';
-        if (rank === 3) return '🥉';
-        return '';
+    // Podio: corona para el 1, medallas para 2 y 3, numero pelado del 4 en adelante.
+    function getPosHtml(rank) {
+        var icon = rank === 1 ? 'crown' : (rank === 2 || rank === 3 ? 'medal' : '');
+        return '<div class="rank-pos rank-pos--' + (rank <= 3 ? rank : 'n') + '">' +
+            (icon ? '<i data-lucide="' + icon + '"></i>' : '') +
+            '<span>' + rank + '</span>' +
+        '</div>';
     }
 
     function getInitials(name) {
         if (!name) return '?';
         var parts = name.trim().split(/\s+/);
         return (parts[0][0] || '') + (parts.length > 1 ? parts[1][0] : '').toUpperCase();
+    }
+
+    // Cuanta EXP pide el nivel `level` para subir al siguiente. Replica la
+    // curva de levelFromPoints (states.js): base 100, x1.2 por nivel, floor.
+    // La BD guarda level + exp DENTRO del nivel, no el acumulado, asi que no
+    // se puede usar levelFromPoints directo.
+    function expNeededForNext(level) {
+        var need = AnimeDestiny.Constants.XP_BASE || 100;
+        var mult = AnimeDestiny.Constants.XP_MULTIPLIER || 1.2;
+        for (var l = 1; l < level; l++) need = Math.floor(need * mult);
+        return need;
+    }
+
+    // El apodo llega como id (p.ej. 'hechicero_actual'); apodoLabel (bundle) lo
+    // traduce. 'novato' es el default sin equipar: mostrarlo en todas las filas
+    // seria ruido, asi que solo se muestran apodos elegidos a proposito.
+    function getApodoHtml(p) {
+        var id = p.apodo || '';
+        if (!id || id === 'novato') return '';
+        var label = (typeof window.apodoLabel === 'function') ? window.apodoLabel(id) : '';
+        if (!label) return '';
+        return '<div class="rank-player-apodo" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</div>';
+    }
+
+    function refreshIcons() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try { window.lucide.createIcons(); } catch (_) { /* no bloquear el render */ }
+        }
     }
 
     var currentPage = 0;
@@ -38,12 +68,14 @@
             return;
         }
 
-        var html = '<table class="ranking-table"><thead><tr>' +
-            '<th style="width:50px">#</th>' +
-            '<th>Jugador</th>' +
-            '<th style="width:70px">Nivel</th>' +
-            '<th style="width:120px;text-align:right">EXP Total</th>' +
-            '</tr></thead><tbody>';
+        var html = '<div class="rank-list">' +
+            '<div class="rank-head">' +
+                '<span>#</span>' +
+                '<span>JUGADOR</span>' +
+                '<span class="rank-h-level">NIVEL</span>' +
+                '<span class="rank-h-progress"></span>' +
+                '<span class="rank-h-exp">EXP TOTAL</span>' +
+            '</div>';
 
         for (var i = 0; i < players.length; i++) {
             var p = players[i];
@@ -51,9 +83,12 @@
             var level = p.level != null ? p.level : 1;
             var exp = p.exp != null ? p.exp : 0;
             var rank = i + 1;
-            var medal = getMedal(rank);
             var isCurrentUser = currentUserId && (p.id === currentUserId);
             var photoUrl = p.photo_url || '';
+
+            var need = expNeededForNext(level);
+            var falta = Math.max(0, need - exp);
+            var pct = Math.max(0, Math.min(100, Math.round((exp / need) * 100)));
 
             var avatarHtml;
             if (photoUrl) {
@@ -65,21 +100,39 @@
                 avatarHtml = '<span class="ranking-avatar">' + escapeHtml(getInitials(p.display_name || p.username)) + '</span>';
             }
 
-            html += '<tr class="' + (isCurrentUser ? 'ranking-row-own' : '') + '">' +
-                '<td class="ranking-rank">' + (medal || rank) + '</td>' +
-                '<td class="ranking-name">' +
-                    avatarHtml + ' ' + name +
-                    (isCurrentUser ? ' <span class="ranking-badge">TÚ</span>' : '') +
-                '</td>' +
-                '<td class="ranking-level">' + level + '</td>' +
-                '<td class="ranking-exp">' + exp.toLocaleString() + '</td>' +
-                '</tr>';
+            html += '<div class="rank-row' + (isCurrentUser ? ' rank-row-own' : '') + '">' +
+                getPosHtml(rank) +
+                '<div class="rank-player">' +
+                    avatarHtml +
+                    '<div class="rank-player-info">' +
+                        '<div class="rank-player-name">' + name +
+                            (isCurrentUser ? ' <span class="ranking-badge">TÚ</span>' : '') +
+                        '</div>' +
+                        getApodoHtml(p) +
+                    '</div>' +
+                '</div>' +
+                '<div class="rank-level">' +
+                    '<span class="rank-level-icon"><i data-lucide="swords"></i></span>' +
+                    '<div>' +
+                        '<span class="rank-level-label">NIVEL</span>' +
+                        '<span class="rank-level-num">' + level + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="rank-progress">' +
+                    '<div class="rank-progress-track"><div class="rank-progress-fill" style="width:' + pct + '%"></div></div>' +
+                    '<div class="rank-progress-text">EXP para siguiente nivel: ' + falta.toLocaleString() + '</div>' +
+                '</div>' +
+                '<div class="rank-exp">' +
+                    '<span class="rank-exp-num">' + exp.toLocaleString() + '</span>' +
+                    '<span class="rank-exp-label">EXP</span>' +
+                '</div>' +
+            '</div>';
         }
 
-        html += '</tbody></table>';
+        html += '</div>';
 
         var total = allPlayersCache.length;
-        html += '<div class="ranking-footer">Mostrando ' + players.length + ' de ' + total + ' jugadores' +
+        html += '<div class="ranking-footer"><i data-lucide="users"></i> Mostrando ' + players.length + ' de ' + total + ' jugadores' +
             (filterText ? ' (filtrados)' : '') + '.</div>';
 
         if (hasMore && !filterText) {
@@ -90,6 +143,7 @@
 
         container.innerHTML = html;
         container.className = "ranking-loaded";
+        refreshIcons();
 
         if (!container._imgErrBound) {
             container._imgErrBound = true;
@@ -131,8 +185,10 @@
         if (document.querySelector('.ranking-filter-bar')) return;
         var bar = document.createElement('div');
         bar.className = 'ranking-filter-bar';
-        bar.innerHTML = '<input type="text" class="ranking-filter-input" placeholder="Buscar jugador..." aria-label="Buscar jugador">';
+        bar.innerHTML = '<span class="ranking-filter-icon" aria-hidden="true"><i data-lucide="search"></i></span>' +
+            '<input type="text" class="ranking-filter-input" placeholder="Buscar jugador..." aria-label="Buscar jugador">';
         container.parentNode.insertBefore(bar, container);
+        refreshIcons();
         var input = bar.querySelector('.ranking-filter-input');
         input.addEventListener('input', function () {
             filterText = this.value.trim();
@@ -188,30 +244,34 @@
     }
 
     function showSkeletonRanking() {
-        var html = '<table class="ranking-table"><thead><tr>' +
-            '<th style="width:50px">#</th>' +
-            '<th>Jugador</th>' +
-            '<th style="width:70px">Nivel</th>' +
-            '<th style="width:120px;text-align:right">EXP Total</th>' +
-            '</tr></thead><tbody>';
-
+        var html = '<div class="rank-list">';
         for (var i = 0; i < (AnimeDestiny.Constants.RANKING_SKELETON_ROWS || 5); i++) {
-            html += '<tr>' +
-                '<td><span class="skeleton" style="width: 20px; height: 18px;"></span></td>' +
-                '<td>' +
-                    '<span class="skeleton skeleton-avatar"></span> ' +
-                    '<span class="skeleton" style="width: 120px; height: 14px; vertical-align: middle;"></span>' +
-                '</td>' +
-                '<td><span class="skeleton" style="width: 30px; height: 14px;"></span></td>' +
-                '<td><div style="text-align:right"><span class="skeleton" style="width: 60px; height: 14px;"></span></div></td>' +
-                '</tr>';
+            html += '<div class="rank-row">' +
+                '<span class="skeleton" style="width: 24px; height: 20px; margin: 0 auto;"></span>' +
+                '<div class="rank-player">' +
+                    '<span class="skeleton skeleton-avatar" style="width: 44px; height: 44px;"></span>' +
+                    '<span class="skeleton" style="width: 130px; height: 14px;"></span>' +
+                '</div>' +
+                '<span class="skeleton" style="width: 70px; height: 26px;"></span>' +
+                '<span class="skeleton rank-progress" style="width: 90%; height: 8px;"></span>' +
+                '<span class="skeleton" style="width: 60px; height: 32px; justify-self: end;"></span>' +
+            '</div>';
         }
-        html += '</tbody></table>';
+        html += '</div>';
         container.innerHTML = html;
         container.className = "ranking-loading";
     }
 
     async function loadRanking() {
+        // El cliente de Supabase se carga perezosamente y SOLO si puede haber
+        // sesion (__puedeHaberSesion), para no gastar cuota en visitantes. Pero
+        // el ranking es publico: un invitado sin sesion se quedaba con el
+        // "Cargando ranking..." eterno porque el cliente jamas llegaba. Aca se
+        // fuerza la carga explicita, haya sesion o no.
+        if (!window.AppSupabase?.client && typeof window.__loadSupabase === 'function') {
+            try { await window.__loadSupabase(); } catch (_) { /* cae al mensaje de error de abajo */ }
+        }
+
         if (!window.AppSupabase && window.AppSupabaseReady) {
             await window.AppSupabaseReady;
         }

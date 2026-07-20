@@ -69,8 +69,9 @@ async function waitForSupabase() {
         return user.user_metadata?.avatar_url || user.user_metadata?.picture || '';
     }
 
-    // Etiquetas de apodo (grado) para el badge del navbar. Debe seguir en
-    // sincronía con APODOS en js/pages/mis-listas.js.
+    // Etiquetas de apodo para el badge del navbar. Debe seguir en sincronía
+    // con APODOS en js/pages/mis-listas.js: un id que falte aca hace que el
+    // badge desaparezca del navbar apenas el usuario equipa ese apodo.
     const APODO_LABELS = {
         novato: 'Novato',
         corazon: 'Corazón de Otaku',
@@ -80,7 +81,17 @@ async function waitForSupabase() {
         primer_paso: 'Un Pasito',
         maratonista: 'Maratonista',
         veterano: 'Veterano',
-        leyenda: 'Leyenda Destiny'
+        leyenda: 'Leyenda Destiny',
+        hechicero_actual: 'El Hechicero Más Fuerte Actual',
+        hechicero_historia: 'El Hechicero Más Fuerte de la Historia',
+        rey_piratas: 'El Próximo Rey de los Piratas',
+        hokage: 'Séptimo Hokage',
+        soldado: 'El Soldado Más Fuerte de la Humanidad',
+        espadachin_negro: 'El Espadachín Negro',
+        monarca: 'Monarca de las Sombras',
+        simbolo_paz: 'El Símbolo de la Paz',
+        pilar: 'Pilar del Agua',
+        kira: 'Kira'
     };
 
     async function resolveGrade(profile) {
@@ -131,15 +142,19 @@ async function waitForSupabase() {
                     avatarEl.classList.remove('has-image');
                     avatarEl.style.removeProperty('background-image');
                 }
-                // Badge de grado (apodo). Se resuelve async para no demorar el nombre.
+                // Badge de apodo. Se resuelve async para no demorar el nombre.
+                // Sin el prefijo "GRADO:": los apodos largos de franquicia ya
+                // rozan el max-width del badge, y el nombre solo se entiende igual.
                 if (gradeEl) {
                     resolveGrade(profile).then(function (label) {
                         if (label) {
-                            gradeEl.textContent = 'GRADO: ' + label.toUpperCase();
+                            gradeEl.textContent = label;
+                            gradeEl.title = label;
                             gradeEl.hidden = false;
                         } else {
                             gradeEl.hidden = true;
                             gradeEl.textContent = '';
+                            gradeEl.removeAttribute('title');
                         }
                     });
                 }
@@ -349,6 +364,10 @@ window.getCurrentUser      = getCurrentUser;
     window.ensureUserUi        = ensureUserUi;
     window.refreshUserUi       = refreshUserUi;
     window.logoutUser          = logoutUser;
+    // Traduce el id de apodo guardado en el perfil a su etiqueta visible.
+    // Lo usa el ranking (y quien necesite mostrar apodos fuera de mis-listas)
+    // para no mantener una tercera copia de APODO_LABELS.
+    window.apodoLabel          = function (id) { return APODO_LABELS[id] || ''; };
 
     // Ejecución segura al cargar el DOM
     document.addEventListener('DOMContentLoaded', async () => {
