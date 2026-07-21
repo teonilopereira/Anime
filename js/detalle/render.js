@@ -244,6 +244,16 @@ function renderDetalle(item, nombreUrl, categoria) {
         ? generos.map(g => `<span class="detail-chip">${escapeHtml(g)}</span>`).join('')
         : `<span class="detail-chip detail-chip-muted">No especificado</span>`;
 
+    // Seguidores: solo lo trae MangaDex (/statistics). En obras de AniList el
+    // dato no existe y la celda directamente no se dibuja.
+    const follows = Number(item.follows) || 0;
+    const followsHtml = follows > 0 ? `
+            <div class="detail-stat">
+                <div class="detail-stat-icon"><i data-lucide="users"></i></div>
+                <div class="detail-stat-content"><span>Seguidores</span><strong>${escapeHtml(follows.toLocaleString('es-AR'))}</strong></div>
+            </div>
+    ` : '';
+
     const detailStatsHtml = `
         <div class="detail-stat-grid">
             <div class="detail-stat">
@@ -262,8 +272,33 @@ function renderDetalle(item, nombreUrl, categoria) {
                 <div class="detail-stat-icon"><i data-lucide="star"></i></div>
                 <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong></div>
             </div>
+            ${followsHtml}
         </div>
     `;
+
+    // ── Tráiler ──
+    // AniList devuelve site 'youtube' o 'dailymotion'. Solo se embebe YouTube
+    // (es el unico host abierto en el CSP de detalle.html) y con nocookie, para
+    // no dejarle una cookie de tracking al visitante que ni le da play.
+    //
+    // Va como fachada: se pinta la miniatura y el iframe recien se inserta al
+    // hacer clic. Cargarlo de entrada suma ~1 MB de JS de YouTube a una ficha
+    // donde la mayoria nunca toca play.
+    const trailer = item.trailer || null;
+    const trailerId = (trailer && trailer.site === 'youtube' && /^[\w-]{5,20}$/.test(String(trailer.id)))
+        ? String(trailer.id)
+        : '';
+    const trailerHtml = trailerId ? `
+        <div class="detail-section detail-section-trailer">
+            <h2 class="detail-section-title">TRÁILER</h2>
+            <div class="trailer-box">
+                <button class="trailer-facade" type="button" data-yt="${escapeHtml(trailerId)}" aria-label="Reproducir tráiler de ${escapeHtml(item.titulo)}">
+                    <img class="trailer-thumb" src="${safeUrl('https://img.youtube.com/vi/' + trailerId + '/hqdefault.jpg')}" alt="" loading="lazy">
+                    <span class="trailer-play"><i data-lucide="play"></i></span>
+                </button>
+            </div>
+        </div>
+    ` : '';
 
     let extraBlockHtml = '';
     let progressPanelHtml = '';
@@ -363,6 +398,23 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
         `;
     }
+    // ── Temporadas ──
+    // Las secuelas/precuelas en formato de serie salen de "Relacionados" y se
+    // muestran aparte, en orden. Acá solo se pinta la cadena directa (la que ya
+    // viene en el item); el resto lo completa DetalleTemporadas.hidratar() una
+    // vez que el detalle está en el DOM.
+    var Temporadas = window.DetalleTemporadas;
+    var cadenaTemporadas = (isAnime && Temporadas) ? Temporadas.cadenaDirecta(item) : null;
+    var temporadasHtml = cadenaTemporadas ? Temporadas.htmlSeccion(cadenaTemporadas, true) : '';
+
+    // ── Openings y endings ──
+    // Acá solo va un ancla vacía: los temas no vienen en el item, hay que
+    // pedirlos a AnimeThemes. DetalleThemes.hidratar() la reemplaza por la
+    // sección o la borra si el anime no está indexado ahí.
+    var Themes = window.DetalleThemes;
+    var mostrarThemes = isAnime && Themes && item.id != null;
+    var themesHtml = mostrarThemes ? '<div id="detailThemes" hidden></div>' : '';
+
     // ── Related items ──
     var relationTypeLabels = {
         'SEQUEL': 'Secuela', 'PREQUEL': 'Precuela', 'SIDE_STORY': 'Historia paralela',
@@ -376,6 +428,10 @@ function renderDetalle(item, nombreUrl, categoria) {
     var relatedMap = {};
     function pushRelated(src) {
         if (!src || String(src.id) === String(item.id) || !src.title) return;
+        // Las temporadas ya tienen su propia sección: repetirlas acá era
+        // justamente el amontonamiento que se vino a arreglar.
+        if (cadenaTemporadas && (src.relationType === 'SEQUEL' || src.relationType === 'PREQUEL') &&
+            Temporadas.esFormatoDeTemporada(src.format)) return;
         var key = String(src.id);
         if (relatedMap[key]) return;
         relatedMap[key] = src;
@@ -384,23 +440,88 @@ function renderDetalle(item, nombreUrl, categoria) {
     if (Array.isArray(item.seasons)) {
         item.seasons.forEach(function (s, i) {
             if (i === 0) return;
-            pushRelated({ relationType: 'SEQUEL', id: s.id, title: s.title, episodes: s.episodes || 0, format: s.format, seasonYear: s.seasonYear });
+            pushRelated({ relationType: 'SEQUEL', id: s.id, title: s.title, episodes: s.episodes || 0, format: s.format, seasonYear: s.seasonYear, img: s.img });
         });
     }
-    var relatedList = Object.keys(relatedMap).map(function (k) { return relatedMap[k]; }).slice(0, 10);
+    // Segunda linea de la card: año y cantidad de episodios/capitulos, lo que
+    // haya. Sin esto dos secuelas del mismo año eran indistinguibles.
+    function relatedMeta(r) {
+        var partes = [];
+        if (r.seasonYear) partes.push(r.seasonYear);
+        if (r.episodes) partes.push(r.episodes + (r.episodes === 1 ? ' ep' : ' eps'));
+        else if (r.chapters) partes.push(r.chapters + ' caps');
+        else if (r.volumes) partes.push(r.volumes + (r.volumes === 1 ? ' vol' : ' vols'));
+        return partes.join(' · ');
+    }
+    var relatedList = Object.keys(relatedMap).map(function (k) { return relatedMap[k]; }).slice(0, 12);
     var relatedHtml = '';
     if (relatedList.length) {
         relatedHtml = '<div class="detail-section detail-section-related"><h2 class="detail-h2">Relacionados</h2><div class="related-grid">' +
             relatedList.map(function (r) {
                 var cat = relatedCategory(r.format);
                 var label = relationTypeLabels[r.relationType] || r.relationType || 'Relacionado';
+                var meta = relatedMeta(r);
+                // Sin portada la card queda igual de alta que el resto: el hueco
+                // se rellena con la inicial del titulo en vez de descuadrar la
+                // grilla.
+                var portada = r.img
+                    ? '<img src="' + safeUrl(r.img) + '" alt="" loading="lazy" decoding="async" data-fallback-catalog="1" data-title="' + escapeHtml(r.title) + '">'
+                    : '<span class="related-cover-empty" aria-hidden="true">' + escapeHtml(String(r.title).charAt(0)) + '</span>';
                 return '<a class="related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
-                    '<span class="related-type-badge">' + escapeHtml(label) + '</span>' +
-                    '<span class="related-title">' + escapeHtml(r.title) + '</span>' +
+                    '<span class="related-cover">' + portada +
+                        '<span class="related-type-badge">' + escapeHtml(label) + '</span>' +
+                    '</span>' +
+                    '<span class="related-body">' +
+                        '<span class="related-title">' + escapeHtml(r.title) + '</span>' +
+                        (meta ? '<span class="related-meta">' + escapeHtml(meta) + '</span>' : '') +
+                    '</span>' +
                     '</a>';
             }).join('') +
             '</div></div>';
     }
+
+    // ── Personajes y seiyuus ──
+    // Vienen en la misma query por id que el resto del detalle, asi que la
+    // seccion no cuesta un request extra. Solo AniList los tiene: en obras de
+    // MangaDex la lista llega vacia y la seccion no se pinta.
+    var characterRoleLabels = { MAIN: 'Principal', SUPPORTING: 'Secundario', BACKGROUND: 'Fondo' };
+    var characters = Array.isArray(item.characters) ? item.characters : [];
+    var charactersHtml = '';
+    if (characters.length) {
+        charactersHtml = '<div class="detail-section detail-section-chars"><h2 class="detail-h2">Personajes</h2><div class="char-grid">' +
+            characters.map(function (c) {
+                var roleLabel = characterRoleLabels[c.role] || '';
+                // La ficha del actor de voz ocupa la mitad derecha de la card y
+                // se omite entera cuando el personaje no tiene uno cargado
+                // (pasa en manga y en personajes de fondo).
+                var vaHtml = c.vaName
+                    ? '<div class="char-side char-side-va">' +
+                        '<div class="char-text char-text-right">' +
+                            '<span class="char-name">' + escapeHtml(c.vaName) + '</span>' +
+                            '<span class="char-role">Seiyū</span>' +
+                        '</div>' +
+                        (c.vaImage ? '<img class="char-face" src="' + safeUrl(c.vaImage) + '" alt="" loading="lazy">' : '') +
+                      '</div>'
+                    : '';
+                return '<div class="char-card">' +
+                    '<div class="char-side">' +
+                        (c.image ? '<img class="char-face" src="' + safeUrl(c.image) + '" alt="" loading="lazy">' : '') +
+                        '<div class="char-text">' +
+                            '<span class="char-name">' + escapeHtml(c.name) + '</span>' +
+                            (roleLabel ? '<span class="char-role">' + escapeHtml(roleLabel) + '</span>' : '') +
+                        '</div>' +
+                    '</div>' +
+                    vaHtml +
+                    '</div>';
+            }).join('') +
+            '</div></div>';
+    }
+
+    // ── Banner ──
+    // Imagen ancha de AniList (bannerImage). No todas las obras tienen una.
+    var bannerHtml = item.bannerImage
+        ? '<div class="detail-banner"><img src="' + safeUrl(item.bannerImage) + '" alt="" loading="lazy" decoding="async"></div>'
+        : '';
 
     let backHref = isAnime ? 'anime.html' : (isNovela ? 'novelas.html' : 'manga.html');
     try {
@@ -409,6 +530,7 @@ function renderDetalle(item, nombreUrl, categoria) {
     } catch { /* no-op (sessionStorage) */ }
 
     localLayout.innerHTML = `
+        ${bannerHtml}
         <div class="detail-grid">
             <div class="detail-cover">
                 <img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" width="460" height="690" decoding="async" fetchpriority="high" data-fallback-catalog="1" data-title="${escapeHtml(item.titulo)}">
@@ -425,6 +547,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <p class="detail-synopsis-text">${escapeHtml(String(summaryText))}</p>
                     <a href="#" class="detail-see-more">Ver más</a>
                 </div>
+
+                ${trailerHtml}
 
                 <div class="detail-section">
                     <h2 class="detail-section-title">GÉNEROS</h2>
@@ -451,11 +575,41 @@ function renderDetalle(item, nombreUrl, categoria) {
                 </div>
             </div>
         </div>
+        ${charactersHtml}
+        ${temporadasHtml}
+        ${themesHtml}
         ${relatedHtml}
         <div id="comments-section"></div>
     `;
 
+    // Completa la cadena de temporadas contra la API. No se espera: la sección
+    // ya está pintada con la precuela/secuela inmediatas y esto solo la amplía.
+    if (cadenaTemporadas) Temporadas.hidratar(item);
+
+    // Los openings salen de otra API (AnimeThemes) y tampoco se esperan: si
+    // tarda o no hay nada, el resto de la ficha ya está pintado.
+    if (mostrarThemes) Themes.hidratar(item);
+
     startNextEpCountdown(localLayout);
+
+    // El iframe de YouTube se inserta recien al hacer clic (ver comentario del
+    // armado de trailerHtml). autoplay=1 porque el clic ya es la intencion de
+    // reproducir: si no, habria que darle play dos veces.
+    const trailerFacade = localLayout.querySelector('.trailer-facade');
+    if (trailerFacade) {
+        trailerFacade.addEventListener('click', () => {
+            const ytId = trailerFacade.getAttribute('data-yt');
+            if (!ytId) return;
+            const frame = document.createElement('iframe');
+            frame.className = 'trailer-frame';
+            frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(ytId) + '?autoplay=1&rel=0';
+            frame.title = 'Tráiler de ' + item.titulo;
+            frame.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture';
+            frame.allowFullscreen = true;
+            frame.loading = 'lazy';
+            trailerFacade.replaceWith(frame);
+        }, { once: true });
+    }
 
     // ── Estado de seguimiento (pills) ──
     const wsBar = localLayout.querySelector('.watch-status-bar');

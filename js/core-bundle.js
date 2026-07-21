@@ -116,8 +116,17 @@
                 return res.json();
             }).then(function (json) {
                 if (json && json.errors) {
-                    reject(new Error('AniList error: ' + (json.errors[0]?.message || 'Unknown')));
-                    return;
+                    // GraphQL puede devolver errores Y datos a la vez: en una
+                    // consulta con varios alias (buildMultiPageQuery) puede
+                    // fallar uno solo y venir los otros dos completos. Tirar
+                    // todo por la borda ahi seria peor que mostrar lo que llego.
+                    var campos = json.data ? Object.keys(json.data) : [];
+                    var hayDatos = campos.some(function (k) { return json.data[k] != null; });
+                    if (!hayDatos) {
+                        reject(new Error('AniList error: ' + (json.errors[0]?.message || 'Unknown')));
+                        return;
+                    }
+                    console.warn('AniList devolvio errores parciales:', json.errors[0]?.message || 'Unknown');
                 }
                 if (json) resolve(json);
             }).catch(function (err) {
@@ -152,7 +161,8 @@
                     season: item.season || null,
                     seasonYear: item.seasonYear || null,
                     title: extractTitle(item.title) || 'Temporada 1',
-                    format: item.format || null
+                    format: item.format || null,
+                    img: item.coverImage?.extraLarge || item.coverImage?.large || ''
                 });
                 sequelEdges.forEach(function (edge) {
                     var node = edge.node;
@@ -164,7 +174,8 @@
                             season: node.season || null,
                             seasonYear: node.seasonYear || null,
                             title: extractTitle(node.title) || 'Secuela',
-                            format: node.format || null
+                            format: node.format || null,
+                            img: node.coverImage?.large || ''
                         });
                     }
                 });
@@ -248,7 +259,11 @@
                     chapters: node.chapters || 0,
                     volumes: node.volumes || 0,
                     format: node.format || null,
-                    seasonYear: node.seasonYear || null
+                    seasonYear: node.seasonYear || null,
+                    // La portada la usan tanto "Relacionados" como la cadena de
+                    // temporadas, que hasta ahora dibujaba huecos vacios hasta
+                    // que la hidratacion traia las fichas completas.
+                    img: node.coverImage?.large || ''
                 };
             }),
             season: item.season || null,
@@ -258,6 +273,30 @@
             countryOfOrigin: item.countryOfOrigin || null,
             nextAiringEpisode: item.nextAiringEpisode || null,
             streamingEpisodes: item.streamingEpisodes || [],
+            // Los tres campos de abajo solo vienen en MEDIA_BY_ID_QUERY: en las
+            // listas del catalogo quedan vacios y la ficha simplemente no pinta
+            // esas secciones.
+            // Ojo con el nombre: normalizeDetailItem() usa `banner` como uno de
+            // los fallbacks de portada, asi que llamarlo asi hacia que la ficha
+            // mostrara la imagen ancha recortada a 2:3 en lugar del poster.
+            bannerImage: item.bannerImage || null,
+            // El id viene sucio en varias obras (Attack on Titan lo trae con un
+            // tabulador al final), y ese mismo id es el que arma la URL del
+            // embed y de la miniatura: sin el trim, ninguna de las dos carga.
+            trailer: (item.trailer && item.trailer.id)
+                ? { id: String(item.trailer.id).trim(), site: item.trailer.site || '' }
+                : null,
+            characters: (item.characters?.edges || []).map(function (e) {
+                var va = (e.voiceActors || [])[0] || null;
+                return {
+                    id: e.node?.id || null,
+                    name: e.node?.name?.full || '',
+                    image: e.node?.image?.large || '',
+                    role: e.role || '',
+                    vaName: va?.name?.full || '',
+                    vaImage: va?.image?.large || ''
+                };
+            }).filter(function (c) { return c.name; }),
             seasons: buildSeasonsFromItem(item, type)
         };
     }
@@ -330,6 +369,43 @@
         });
     }
 
+    var MD_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    /**
+     * Puntaje y seguidores de varias obras de MangaDex en un solo request
+     * (`/statistics/manga` acepta hasta 100 ids por llamada).
+     *
+     * `/manga` no devuelve nada de esto, asi que las obras servidas por
+     * MangaDex salian siempre con score null: en el catalogo quedaban con el
+     * puntaje vacio al lado de las de AniList, que si lo traen.
+     *
+     * Se usa el bayesiano y no el promedio crudo: el crudo le da 10 a una obra
+     * con tres votos y la pondria arriba de cualquier clasico.
+     *
+     * Vive aca (y no en js/core/mangadex-api.js) porque el catalogo lo necesita
+     * en paginas que no cargan ese archivo, como los carruseles del index.
+     */
+    async function fetchMangaDexStats(ids) {
+        var lista = (ids || []).filter(function (id) { return MD_UUID_RE.test(String(id || '')); });
+        if (!lista.length) return {};
+        var path = '/statistics/manga?' + lista.slice(0, 100).map(function (id) {
+            return 'manga[]=' + encodeURIComponent(id);
+        }).join('&');
+        var json = await mdFetch(path);
+        var stats = json?.statistics || {};
+        var out = {};
+        Object.keys(stats).forEach(function (id) {
+            var s = stats[id] || {};
+            var raw = s.rating?.bayesian ?? s.rating?.average;
+            var score = Number(raw);
+            out[id] = {
+                score: Number.isFinite(score) && score > 0 ? Math.round(score * 10) / 10 : null,
+                follows: Number(s.follows) || 0
+            };
+        });
+        return out;
+    }
+
     function mdItemToCard(data) {
         if (!data?.attributes) return null;
         var a = data.attributes;
@@ -381,7 +457,19 @@
         tagUuids.forEach(function (u) { params += '&includedTags[]=' + u; });
         try {
             var json = await mdFetch('/manga' + params);
-            return (json?.data || []).map(function (m) { return mdItemToCard(m); }).filter(Boolean);
+            var cards = (json?.data || []).map(function (m) { return mdItemToCard(m); }).filter(Boolean);
+
+            // Un request extra por pagina completa el puntaje de todas las cards
+            // de una. Es best-effort: si falla, quedan como estaban (sin score).
+            try {
+                var stats = await fetchMangaDexStats(cards.map(function (c) { return c.id; }));
+                cards.forEach(function (c) {
+                    var s = stats[c.id];
+                    if (s) { c.score = s.score; c.follows = s.follows; }
+                });
+            } catch (e) { console.warn('fetchMangaDexStats failed:', e); }
+
+            return cards;
         } catch (e) { console.warn('fetchMangaDexPage failed:', e); return []; }
     }
 
@@ -414,7 +502,11 @@
         return { genres: genres, tags: tags };
     }
 
-    function buildDynamicQuery(opts) {
+    // Partes sueltas de una consulta de catalogo: declaraciones de variables,
+    // argumentos de `media(...)` y campos a pedir. Se separo de
+    // buildDynamicQuery para poder meter varias consultas en un mismo POST
+    // (ver buildMultiPageQuery).
+    function buildQueryParts(opts) {
         var type = opts.type || 'ANIME';
         var isAnime = type === 'ANIME';
         var fields = isAnime
@@ -459,7 +551,37 @@
             mediaArgs.push('source: ' + opts.source);
         }
 
-        return 'query (' + varDecls.join(', ') + ') { Page(page: $page, perPage: $perPage) { media(' + mediaArgs.join(', ') + ') { ' + fields + ' } } }';
+        return { varDecls: varDecls, mediaArgs: mediaArgs, fields: fields };
+    }
+
+    function buildDynamicQuery(opts) {
+        var p = buildQueryParts(opts);
+        return 'query (' + p.varDecls.join(', ') + ') { Page(page: $page, perPage: $perPage) { media(' + p.mediaArgs.join(', ') + ') { ' + p.fields + ' } } }';
+    }
+
+    /**
+     * Varias consultas de catalogo en un solo POST, aliasando el `Page` de cada
+     * una (`jp: Page(...)`, `kr: Page(...)`, ...).
+     *
+     * AniList cobra por request, no por campo: tres Page aliasadas salen lo
+     * mismo que una sola. El catalogo de manga se armaba con tres requests
+     * paralelos y era, de lejos, lo que mas cuota gastaba de toda la app.
+     *
+     * Los bloques comparten $page y $perPage, y las declaraciones de variables
+     * se unifican (todos filtran por lo mismo; lo unico que cambia son los
+     * argumentos fijos: pais, formato, source).
+     */
+    function buildMultiPageQuery(bloques) {
+        var varDecls = [];
+        var cuerpo = bloques.map(function (b) {
+            var p = buildQueryParts(b.opts);
+            p.varDecls.forEach(function (v) {
+                if (varDecls.indexOf(v) === -1) varDecls.push(v);
+            });
+            return b.alias + ': Page(page: $page, perPage: $perPage) { media(' +
+                p.mediaArgs.join(', ') + ') { ' + p.fields + ' } }';
+        }).join(' ');
+        return 'query (' + varDecls.join(', ') + ') { ' + cuerpo + ' }';
     }
 
     // ─── Modos de descubrimiento del catálogo ───
@@ -493,6 +615,15 @@
                 nextAiringEpisode { airingAt timeUntilAiring episode }
                 streamingEpisodes { title thumbnail url site }
                 studios { nodes { name } }
+                bannerImage
+                trailer { id site }
+                characters(sort: [ROLE, RELEVANCE], perPage: 12) {
+                    edges {
+                        role
+                        node { id name { full } image { large } }
+                        voiceActors(language: JAPANESE, sort: [RELEVANCE]) { name { full } image { large } }
+                    }
+                }
                 relations {
                     edges {
                         relationType
@@ -504,6 +635,7 @@
                             format
                             season
                             seasonYear
+                            coverImage { large }
                             title { romaji english }
                         }
                     }
@@ -674,40 +806,30 @@
             if (split.genres.length) baseVars.genre_in = split.genres;
             if (split.tags.length) baseVars.tag_in = split.tags;
 
-            var qManga = buildDynamicQuery(Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'JP' }));
-            var qManhwa = buildDynamicQuery(Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'KR' }));
-            var qDoujin = buildDynamicQuery(Object.assign({}, baseOpts, { source: 'DOUJINSHI' }));
-
-            var pg = page || 1;
-            // allSettled y no all: las tres queries son independientes, pero con
-            // `all` un 429 en la de doujinshi (la menos importante de las tres)
-            // rechazaba el lote entero y el catalogo quedaba en "API no
-            // disponible" aunque manga y manhwa ya hubieran respondido bien.
-            var resultados = await Promise.allSettled([
-                anilistFetch(qManga, Object.assign({ page: pg, perPage: perPage }, baseVars)),
-                anilistFetch(qManhwa, Object.assign({ page: pg, perPage: perPage }, baseVars)),
-                // Sin reintentos (retries = 0). Cada 429 se reintenta 2 veces, o sea
-                // que una query que falla cuesta 3 requests y empuja el rate limit
-                // mas hondo. La de doujinshi es la que menos aporta al catalogo y
-                // desde el allSettled su fallo ya no rompe nada: no vale la pena
-                // gastarle cuota justo cuando la cuota es el problema.
-                anilistFetch(qDoujin, Object.assign({ page: pg, perPage: perPage }, baseVars), 0)
+            // Las tres consultas (manga JP, manhwa KR, doujinshi) van en un
+            // unico POST aliasado. Antes eran tres requests paralelos: el
+            // catalogo de manga costaba el triple de cuota que el de anime o el
+            // de novelas, y era lo que primero rompia el rate limit.
+            //
+            // Un solo request tampoco pierde la tolerancia a fallas parciales:
+            // si AniList devuelve error en uno de los tres alias, anilistFetch
+            // resuelve igual con los que si trajeron datos (ver el manejo de
+            // json.errors). Solo si no vino nada de nada propaga el error, para
+            // que el llamador pueda distinguir "la API se cayo" de "la busqueda
+            // no tuvo resultados".
+            var query = buildMultiPageQuery([
+                { alias: 'jp', opts: Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'JP' }) },
+                { alias: 'kr', opts: Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'KR' }) },
+                { alias: 'dj', opts: Object.assign({}, baseOpts, { source: 'DOUJINSHI' }) }
             ]);
 
-            // Si fallaron las tres no hay nada parcial que rescatar: se propaga
-            // el error para que el llamador pueda distinguir "la API se cayo" de
-            // "la busqueda no tuvo resultados".
-            if (resultados.every(function (r) { return r.status === 'rejected'; })) {
-                throw resultados[0].reason;
-            }
+            var pg = page || 1;
+            var json = await anilistFetch(query, Object.assign({ page: pg, perPage: perPage }, baseVars));
 
-            function mediaDeResultado(r) {
-                return r.status === 'fulfilled' ? (r.value?.data?.Page?.media || []) : [];
-            }
-            var mediaManga = mediaDeResultado(resultados[0]);
-            var mediaManhwa = mediaDeResultado(resultados[1]);
-            var mediaDoujin = mediaDeResultado(resultados[2]);
-            
+            var mediaManga = json?.data?.jp?.media || [];
+            var mediaManhwa = json?.data?.kr?.media || [];
+            var mediaDoujin = json?.data?.dj?.media || [];
+
             var media = [];
             var seenIds = new Set();
             var maxLen = Math.max(mediaManga.length, mediaManhwa.length, mediaDoujin.length);
@@ -896,6 +1018,7 @@
     // manejo de errores). Se expone la del bundle para no mantener dos.
     window.mdFetch = mdFetch;
     window.fetchMangaDexPage = fetchMangaDexPage;
+    window.fetchMangaDexStats = fetchMangaDexStats;
     window.mergeAnilistAndMd = mergeAnilistAndMd;
 
     window.buscarNovelasEnApi = async function (query) {
@@ -1847,15 +1970,25 @@ window.getCurrentUser      = getCurrentUser;
         toast.classList.remove("is-visible");
         toast.classList.add("is-leaving");
 
-        // Remover del DOM al finalizar la animación
-        toast.addEventListener("transitionend", () => {
+        function remove() {
+            clearTimeout(fallback);
             toast.remove();
             // Limpiar el contenedor si queda vacío
             if (container && container.childNodes.length === 0) {
                 container.remove();
                 container = null;
             }
-        });
+        }
+
+        // Remover del DOM al finalizar la animación. `once` porque la
+        // transicion anima dos propiedades (opacity y transform) y el evento
+        // llega una vez por cada una.
+        toast.addEventListener("transitionend", remove, { once: true });
+
+        // Red de seguridad: si el aviso no llega a transicionar (pestaña en
+        // segundo plano, transiciones desactivadas por el sistema), el evento
+        // no se dispara nunca y el nodo se queda en el DOM para siempre.
+        var fallback = setTimeout(remove, 400);
     }
 
     // Exponer API global
@@ -4016,7 +4149,7 @@ async function inicializarPagina() {
     if (!mainContainer) return;
     const categoria = document.body.getAttribute("data-page");
     // Páginas que NO son catálogo: no deben ser sobreescritas por el catálogo.
-    if (["listas", "top", "comparar", "detalle", "index", "usuario", "configuracion", "login"].indexOf(categoria) !== -1) return;
+    if (["listas", "top", "ranking", "comparar", "detalle", "index", "usuario", "configuracion", "login"].indexOf(categoria) !== -1) return;
     currentPage = 1;
     const usaCatalogoApi = categoria === "anime" || categoria === "manga" || categoria === "novelas";
 
@@ -4121,17 +4254,57 @@ window.addEventListener("supabase-auth-changed", function () {
     "use strict";
 
     const path = window.location.pathname.toLowerCase();
-    const pageKey = path.includes("mis-listas") ? "mis-listas" :
-        path.includes("anime") ? "anime" :
-        path.includes("manga") ? "manga" :
-        path.includes("novelas") ? "novelas" :
-        path.includes("comparar") ? "comparar" :
-        path.includes("detalle") ? "detalle" :
-        path.includes("configuracion") ? "configuracion" :
-        path.includes("usuario") ? "usuario" :
-        path.includes("login") ? "login" :
-        path.includes("top") ? "top" :
-        "index";
+
+    /**
+     * Nombre del archivo actual, sin carpeta ni extension ("manga", "index").
+     *
+     * Todo lo que depende de "en que pagina estoy" se resuelve con esto y no
+     * con path.includes(...): el substring encendia el item equivocado apenas
+     * el nombre de una pagina aparecia dentro del de otra o de una carpeta del
+     * deploy. Ademas "ranking.html" no contenia ninguno de los nombres
+     * buscados, asi que la pagina quedaba sin marcar en la barra.
+     */
+    const archivo = (path.split("/").pop() || "index.html").replace(/\.html?$/, "") || "index";
+
+    const t = (clave, porDefecto) => (window.AppI18n ? window.AppI18n.t(clave) : porDefecto);
+
+    /**
+     * Destinos de la barra, partidos en dos niveles.
+     *
+     * Los primarios son los cuatro que se usan todo el tiempo; el resto vive en
+     * el desplegable "Mas". Con todo suelto la barra de arriba se apretaba en
+     * pantallas medianas y el bottom nav de mobile no da para siete pestañas,
+     * asi que comparar.html y top.html habian quedado fuera de la navegacion:
+     * solo se llegaba a ellas desde una card del index.
+     */
+    const NAV_PRIMARIOS = [
+        { id: "anime", href: "anime.html", icon: "clapperboard", i18n: "nav.anime", corto: "nav.anime", def: "Anime" },
+        { id: "manga", href: "manga.html", icon: "book-open", i18n: "nav.manga", corto: "nav.manga", def: "Manga" },
+        { id: "novelas", href: "novelas.html", icon: "book", i18n: "nav.novelas", corto: "nav.novelas", def: "Novelas" },
+        // "Mis Listas" no entra en una linea en el tab de mobile y desalinea el
+        // icono, asi que ahi se rotula con la clave corta.
+        { id: "mis-listas", href: "mis-listas.html", icon: "heart", i18n: "nav.mis_listas", corto: "nav.listas", def: "Mis Listas", defCorto: "Listas" }
+    ];
+
+    const NAV_SECUNDARIOS = [
+        { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking" },
+        { id: "comparar", href: "comparar.html", icon: "columns-2", i18n: "nav.comparar", def: "Comparar" },
+        { id: "top", href: "top.html", icon: "crown", i18n: "nav.top_jugadores", def: "Top de jugadores" },
+        { id: "configuracion", href: "configuracion.html", icon: "settings", i18n: "nav.configuracion", def: "Configuración" }
+    ];
+
+    const paginaActiva = NAV_PRIMARIOS.some((l) => l.id === archivo) ? archivo : null;
+    // Estando en una pagina del desplegable, el que se marca es el boton "Mas":
+    // si no, la barra queda sin ningun item encendido y no se sabe donde uno esta.
+    const secundarioActivo = NAV_SECUNDARIOS.some((l) => l.id === archivo) ? archivo : null;
+
+    // Paginas con texto propio en el pie; el resto (404, privacidad, terminos)
+    // cae al generico de index.
+    const PAGINAS_CON_PIE = [
+        "mis-listas", "anime", "manga", "novelas", "comparar",
+        "detalle", "configuracion", "usuario", "login", "ranking", "top"
+    ];
+    const pageKey = PAGINAS_CON_PIE.indexOf(archivo) !== -1 ? archivo : "index";
 
 
     const ensureMainTarget = () => {
@@ -4189,32 +4362,15 @@ window.addEventListener("supabase-auth-changed", function () {
         const el = document.getElementById("nav-links-container");
         if (!el) return;
 
-        const isAnime = path.includes("anime");
-        const isManga = path.includes("manga");
-        const isNovelas = path.includes("novelas");
-        const isMisListas = path.includes("mis-listas");
-        const isTop = path.includes("top");
-        const isIndex = path.endsWith("index.html") || path.endsWith("/") || path === "";
-        const isDetail = path.includes("detalle");
-
-        let activePage = isAnime ? "anime" : isManga ? "manga" : isNovelas ? "novelas" : isMisListas ? "mis-listas" : isTop ? "top" : null;
-        if (isIndex) activePage = null;
-
-        const links = [
-            { id: "anime", href: "anime.html", icon: "clapperboard", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
-            { id: "manga", href: "manga.html", icon: "book-open", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
-            { id: "novelas", href: "novelas.html", icon: "book", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
-            { id: "mis-listas", href: "mis-listas.html", icon: "heart", label: window.AppI18n ? window.AppI18n.t("nav.mis_listas") : "Mis Listas" },
-            { id: "top", href: "top.html", icon: "trophy", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Ranking" }
-        ];
+        const isDetail = archivo === "detalle";
 
         let html = "";
-        for (let i = 0; i < links.length; i++) {
-            const l = links[i];
+        for (let i = 0; i < NAV_PRIMARIOS.length; i++) {
+            const l = NAV_PRIMARIOS[i];
             let cls = "nav-btn";
             let current = "";
             let dataCat = "";
-            if (l.id === activePage) {
+            if (l.id === paginaActiva) {
                 cls += " active";
                 current = ' aria-current="page"';
             }
@@ -4222,60 +4378,120 @@ window.addEventListener("supabase-auth-changed", function () {
                 dataCat = ` data-nav-cat="${l.id}"`;
             }
             html += `<a href="${l.href}" class="${cls}"${current}${dataCat}>
-<span class="nav-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="nav.${l.id.replace('-', '_')}">${l.label}</span>
+<span class="nav-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="${l.i18n}">${t(l.i18n, l.def)}</span>
 </a>`;
         }
+
+        const itemsMas = NAV_SECUNDARIOS.map((l) => {
+            const current = l.id === secundarioActivo ? ' aria-current="page"' : '';
+            const cls = l.id === secundarioActivo ? ' is-active' : '';
+            return `<a href="${l.href}" class="nav-more-item${cls}"${current}>
+<span class="nav-more-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="${l.i18n}">${t(l.i18n, l.def)}</span>
+</a>`;
+        }).join("");
+
+        html += `<div class="nav-more">
+<button class="nav-btn nav-more-btn${secundarioActivo ? " active" : ""}" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="nav-more-menu">
+<span class="nav-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span><span data-i18n="nav.mas">${t("nav.mas", "Más")}</span>
+</button>
+<div class="nav-more-menu" id="nav-more-menu" role="menu" hidden>${itemsMas}</div>
+</div>`;
+
         el.innerHTML = `<div class="nav-links" aria-label="Navegación principal">${html}</div>`;
+        wireNavMore(el);
+    };
+
+    // ── DESPLEGABLE "MÁS" ──
+    const wireNavMore = (scope) => {
+        const wrap = scope.querySelector(".nav-more");
+        if (!wrap) return;
+        const btn = wrap.querySelector(".nav-more-btn");
+        const menu = wrap.querySelector(".nav-more-menu");
+        if (!btn || !menu) return;
+
+        let cierreDiferido = null;
+        const cancelarCierre = () => {
+            if (cierreDiferido) {
+                clearTimeout(cierreDiferido);
+                cierreDiferido = null;
+            }
+        };
+
+        const abrir = (estado) => {
+            cancelarCierre();
+            menu.hidden = !estado;
+            wrap.classList.toggle("is-open", estado);
+            btn.setAttribute("aria-expanded", String(estado));
+        };
+
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            abrir(menu.hidden);
+        });
+
+        // Con el mouse encima alcanza: pedir un click para ver cuatro destinos
+        // hacia que el desplegable se sintiera escondido y no rapido.
+        //
+        // Solo para el mouse (pointerType): en tactil el primer toque emula un
+        // hover, asi que el menu se abriria sin que nadie se lo pida, y en los
+        // hibridos (notebook con pantalla tactil) el puntero fino existe igual.
+        wrap.addEventListener("pointerenter", (e) => {
+            if (e.pointerType !== "mouse") return;
+            abrir(true);
+        });
+
+        // Un respiro antes de cerrar: entre el borde del boton y el del panel
+        // hay unos pixeles muertos, y sin la espera el menu se cierra justo
+        // cuando el mouse los esta cruzando.
+        wrap.addEventListener("pointerleave", (e) => {
+            if (e.pointerType !== "mouse") return;
+            cancelarCierre();
+            cierreDiferido = setTimeout(() => abrir(false), 180);
+        });
+
+        // Cerrar al clickear afuera o con Escape: sin esto el panel queda
+        // abierto tapando el contenido despues de navegar con el teclado.
+        document.addEventListener("click", (e) => {
+            if (!menu.hidden && !wrap.contains(e.target)) abrir(false);
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !menu.hidden) {
+                abrir(false);
+                btn.focus();
+            }
+        });
+
+        // Los usa el botón "Más" del bottom nav, que vive en otro contenedor.
+        window.__navMoreOpen = () => abrir(true);
+        window.__navMoreClose = () => abrir(false);
     };
 
     // ── MOBILE BOTTOM NAV ──
     const injectMobileBottomNav = () => {
         if (document.querySelector('.mobile-bottom-nav')) return;
 
-        // No inyectar en páginas de auth (en el resto siempre debe haber
-        // navegación visible: en mobile la navbar superior queda oculta)
-        const skipPages = ["login"];
-        for (let i = 0; i < skipPages.length; i++) {
-            if (path.includes(skipPages[i])) return;
-        }
-        if (path.includes("404")) return;
+        // No inyectar en páginas de auth ni en el 404 (en el resto siempre debe
+        // haber navegación visible: en mobile la navbar superior queda oculta)
+        if (archivo === "login" || archivo === "404") return;
 
-        const isAnime = path.includes("anime");
-        const isManga = path.includes("manga");
-        const isNovelas = path.includes("novelas");
-        const isMisListas = path.includes("mis-listas");
-
-        const isTop = path.includes("top");
-        const isIndex = path.endsWith("index.html") || path.endsWith("/") || path === "";
-
-        let activePage = isAnime ? "anime" : isManga ? "manga" : isNovelas ? "novelas" : isMisListas ? "mis-listas" : isTop ? "top" : null;
-        if (isIndex) activePage = null;
-
-        // "mis-listas" usa la clave corta nav.listas: "Mis Listas" no entra
-        // en una línea y desalinea el icono del tab en pantallas chicas
-        const tabs = [
-            { id: "anime", href: "anime.html", icon: "clapperboard", i18n: "nav.anime", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
-            { id: "manga", href: "manga.html", icon: "book-open", i18n: "nav.manga", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
-            { id: "novelas", href: "novelas.html", icon: "book", i18n: "nav.novelas", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
-            { id: "mis-listas", href: "mis-listas.html", icon: "heart", i18n: "nav.listas", label: window.AppI18n ? window.AppI18n.t("nav.listas") : "Listas" },
-            { id: "top", href: "top.html", icon: "trophy", i18n: "nav.top", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Top" }
-        ];
-
+        // Las mismas cuatro pestañas que la barra de arriba; el resto queda
+        // detrás del botón "Más", que despliega la navbar superior (en mobile
+        // hace de hoja) con el menú secundario ya abierto.
         let html = '';
-        for (let i = 0; i < tabs.length; i++) {
-            const t = tabs[i];
-            const activeClass = t.id === activePage ? ' active' : '';
-            const currentAttr = t.id === activePage ? ' aria-current="page"' : '';
-            html += `<a href="${t.href}" class="bottom-tab${activeClass}"${currentAttr}>
-<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="${t.icon}"></i></span>
-<span data-i18n="${t.i18n}">${t.label}</span>
+        for (let i = 0; i < NAV_PRIMARIOS.length; i++) {
+            const tab = NAV_PRIMARIOS[i];
+            const activeClass = tab.id === paginaActiva ? ' active' : '';
+            const currentAttr = tab.id === paginaActiva ? ' aria-current="page"' : '';
+            const clave = tab.corto || tab.i18n;
+            html += `<a href="${tab.href}" class="bottom-tab${activeClass}"${currentAttr}>
+<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="${tab.icon}"></i></span>
+<span data-i18n="${clave}">${t(clave, tab.defCorto || tab.def)}</span>
 </a>`;
         }
 
-        const searchText = window.AppI18n ? window.AppI18n.t("nav.menu") : "Menú";
-        html += `<button class="bottom-tab-search" aria-label="Buscar" type="button">
+        html += `<button class="bottom-tab-more${secundarioActivo ? " active" : ""}" aria-label="${t("nav.mas", "Más")}" type="button">
 <span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="menu"></i></span>
-<span data-i18n="nav.menu">${searchText}</span>
+<span data-i18n="nav.mas">${t("nav.mas", "Más")}</span>
 </button>`;
 
         const nav = document.createElement('nav');
@@ -4291,19 +4507,29 @@ window.addEventListener("supabase-auth-changed", function () {
             if (!link) return;
             const navbar = document.querySelector('.destiny-navbar');
             if (navbar) navbar.classList.remove('is-open');
-            const searchBtn = nav.querySelector('.bottom-tab-search');
-            if (searchBtn) searchBtn.classList.remove('is-open');
+            const moreBtn = nav.querySelector('.bottom-tab-more');
+            if (moreBtn) moreBtn.classList.remove('is-open');
         });
 
-        // Search toggle: show top navbar search
-        const searchBtn = nav.querySelector('.bottom-tab-search');
-        if (searchBtn) {
-            searchBtn.addEventListener('click', () => {
+        // "Más": despliega la navbar superior, que en mobile entra desde arriba
+        // y trae el buscador, el usuario y el menú secundario.
+        const moreBtn = nav.querySelector('.bottom-tab-more');
+        if (moreBtn) {
+            moreBtn.addEventListener('click', (e) => {
                 const navbar = document.querySelector('.destiny-navbar');
                 if (!navbar) return;
+                // Sin esto el click sigue subiendo hasta el listener que cierra
+                // el desplegable al tocar afuera, y el menú se abriría y
+                // cerraría en el mismo gesto.
+                e.stopPropagation();
                 const isOpen = navbar.classList.toggle('is-open');
-                searchBtn.classList.toggle('is-open', isOpen);
+                moreBtn.classList.toggle('is-open', isOpen);
+                if (!isOpen && typeof window.__navMoreClose === 'function') window.__navMoreClose();
                 if (isOpen) {
+                    // El menú secundario se abre solo: si no, el que viene
+                    // buscando Comparar o Ranking tiene que adivinar que hay
+                    // que tocar otro botón más.
+                    if (typeof window.__navMoreOpen === 'function') window.__navMoreOpen();
                     const input = navbar.querySelector('.nav-search-input');
                     if (input) setTimeout(() => input.focus(), 100);
                 }
@@ -4315,7 +4541,7 @@ window.addEventListener("supabase-auth-changed", function () {
     const injectLoginButton = () => {
         const el = document.getElementById("nav-login-container");
         if (!el) return;
-        if (path.includes("login")) return;
+        if (archivo === "login") return;
 
         const ingresarText = window.AppI18n ? window.AppI18n.t("nav.ingresar") : "Ingresar";
         const invitadoText = window.AppI18n ? window.AppI18n.t("nav.usuario_invitado") : "...";
@@ -4383,6 +4609,10 @@ window.addEventListener("supabase-auth-changed", function () {
         top: {
             col1: { title: "Ranking", text: "Jugadores ordenados por nivel y experiencia total acumulada." },
             col2: { title: "F2P / P2W", text: "Pr\u00F3ximamente m\u00E1s categor\u00EDas de ranking." }
+        },
+        ranking: {
+            col1: { title: "Top Ranking", text: "Anime, manga y novelas ordenados por la puntuaci\u00F3n de la comunidad." },
+            col2: { title: "Detalle", text: "Toc\u00E1 cualquier fila para abrir la ficha completa del t\u00EDtulo." }
         }
     };
 

@@ -1915,6 +1915,116 @@ main { padding-bottom: 24px; }
     pointer-events: none;
 }
 
+/* ==========================================
+   TOASTS (js/ui/toast.js)
+   ==========================================
+   El componente existia y se usaba en toda la app, pero nunca tuvo hoja de
+   estilos: los avisos salian como texto pelado al final del <body>, fuera de
+   la vista, y sin transicion tampoco se borraban nunca del DOM (toast.js
+   esperaba un transitionend que no llegaba). */
+.toast-container {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: var(--z-toast, 2000);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(360px, calc(100vw - 32px));
+    /* El contenedor ocupa una esquina entera: sin esto se come los clics de lo
+       que haya debajo aunque no tenga ningun aviso adentro. */
+    pointer-events: none;
+}
+.toast-item {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--neon-purple-15);
+    border-left: 3px solid var(--nav-accent, var(--accent-cyan));
+    background: var(--surface-dark);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.toast-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.toast-item.is-leaving {
+    opacity: 0;
+    transform: translateY(12px);
+}
+.toast-icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.toast-message {
+    flex: 1;
+    min-width: 0;
+    /* Los avisos de logro traen titulos largos: que corten en vez de desbordar. */
+    overflow-wrap: anywhere;
+}
+.toast-close {
+    flex-shrink: 0;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--text-faint);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+.toast-close:hover {
+    color: var(--text-main);
+}
+
+.toast-success { border-left-color: #22c55e; }
+.toast-success .toast-icon { background: rgba(34,197,94,0.15); color: #4ade80; }
+.toast-error { border-left-color: #ef4444; }
+.toast-error .toast-icon { background: rgba(239,68,68,0.15); color: #fca5a5; }
+.toast-warning { border-left-color: #f59e0b; }
+.toast-warning .toast-icon { background: rgba(245,158,11,0.15); color: #fcd34d; }
+.toast-info { border-left-color: var(--accent-cyan); }
+.toast-info .toast-icon { background: var(--accent-cyan-18); color: var(--accent-cyan); }
+
+/* En mobile la barra de pestañas inferior ocupa la esquina donde iban los
+   avisos, asi que se corren arriba de ella y pasan a ancho completo. */
+@media (max-width: 700px) {
+    .toast-container {
+        left: 12px;
+        right: 12px;
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px) + 12px);
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toast-item {
+        transition-duration: 0.01ms;
+    }
+}
+body.reduce-motion .toast-item {
+    transition-duration: 0.01ms;
+}
+
 /* ===== cards.css ===== */
 /* ==========================================
    CARDS, PROGRESS Y BOTONES DE DETALLE
@@ -4931,12 +5041,12 @@ input, select, textarea, button {
         font-size: 1.15rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search {
+    .mobile-bottom-nav .bottom-tab-more {
         min-width: 46px;
         font-size: 0.56rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+    .mobile-bottom-nav .bottom-tab-more .bottom-tab-icon {
         font-size: 1.15rem;
     }
 }
@@ -4955,12 +5065,12 @@ input, select, textarea, button {
         font-size: 1.05rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search {
+    .mobile-bottom-nav .bottom-tab-more {
         min-width: 42px;
         font-size: 0.52rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+    .mobile-bottom-nav .bottom-tab-more .bottom-tab-icon {
         font-size: 1.05rem;
     }
 }
@@ -5218,6 +5328,102 @@ input, select, textarea, button {
     background: var(--nav-accent);
     border-radius: 2px;
     box-shadow: 0 0 8px var(--nav-accent);
+}
+
+/* ── Desplegable "Más" ─────────────────────────────────────────────────────
+   Los destinos secundarios (Ranking, Comparar, Top de jugadores, Configuración)
+   viven acá: sueltos eran siete botones y la barra se apretaba en pantallas
+   medianas. */
+.destiny-navbar .nav-more {
+    position: relative;
+    display: flex;
+    min-width: 0;
+}
+
+.destiny-navbar .nav-more-btn {
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* La flecha gira al abrir: es la única señal de que el panel está desplegado
+   cuando el menú cae por debajo del borde de la barra. */
+.destiny-navbar .nav-more-btn .nav-icon {
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+.destiny-navbar .nav-more.is-open .nav-more-btn .nav-icon {
+    transform: rotate(180deg);
+}
+
+.destiny-navbar .nav-more-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 10;
+    min-width: 210px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 10px;
+    border: 1px solid rgba(77, 134, 255, 0.35);
+    background: linear-gradient(180deg, rgba(12, 16, 32, 0.98), rgba(6, 8, 18, 0.98));
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+/* Puente invisible sobre los 8px que separan el botón del panel: son píxeles
+   que no pertenecen a ningún elemento, así que al cruzarlos el puntero "sale"
+   del menú y el hover lo cerraría en el camino. */
+.destiny-navbar .nav-more-menu::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -8px;
+    height: 8px;
+}
+
+.destiny-navbar .nav-more-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    /* 44px de alto util: es el minimo comodo para tocar con el dedo, y en
+       mobile este panel se abre dentro de la hoja. */
+    min-height: 44px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.82);
+    text-decoration: none;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+}
+
+.destiny-navbar .nav-more-item:hover,
+.destiny-navbar .nav-more-item:focus-visible {
+    background: rgba(77, 134, 255, 0.14);
+    color: #fff;
+}
+
+.destiny-navbar .nav-more-item.is-active {
+    background: rgba(18, 40, 105, 0.55);
+    border: 1px solid rgba(77, 134, 255, 0.5);
+    color: #cfe0ff;
+}
+
+.destiny-navbar .nav-more-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 20px;
+    color: var(--nav-accent);
+}
+
+.destiny-navbar .nav-more-icon svg {
+    width: 18px;
+    height: 18px;
 }
 
 .nav-icon {
@@ -5510,7 +5716,7 @@ input, select, textarea, button {
         animation: nav-tab-glow 2.6s ease-in-out infinite;
     }
 
-    .mobile-bottom-nav .bottom-tab-search {
+    .mobile-bottom-nav .bottom-tab-more {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -5529,16 +5735,21 @@ input, select, textarea, button {
         transition: color 0.2s;
     }
 
-    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+    .mobile-bottom-nav .bottom-tab-more .bottom-tab-icon {
         font-size: 1.3rem;
         line-height: 1;
     }
 
-    .mobile-bottom-nav .bottom-tab-search.is-open {
+    /* `active` marca que la pagina actual vive detras de este boton (Ranking,
+       Comparar...): sin eso, en esas paginas no se enciende ninguna pestaña y
+       no hay forma de saber donde uno esta parado. */
+    .mobile-bottom-nav .bottom-tab-more.is-open,
+    .mobile-bottom-nav .bottom-tab-more.active {
         color: #7ea8ff;
     }
 
-    .mobile-bottom-nav .bottom-tab-search.is-open .bottom-tab-icon {
+    .mobile-bottom-nav .bottom-tab-more.is-open .bottom-tab-icon,
+    .mobile-bottom-nav .bottom-tab-more.active .bottom-tab-icon {
         filter: drop-shadow(0 0 7px rgba(77, 134, 255, 0.9));
     }
 }

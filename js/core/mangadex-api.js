@@ -219,10 +219,82 @@
         });
     }
 
+    // Puntaje y seguidores: la implementacion vive en js/core/api.js (bundle),
+    // igual que mdFetch, porque el catalogo la necesita en paginas que no cargan
+    // este archivo. Aca solo se usa.
+    function fetchMangaDexStats(ids) {
+        if (typeof window.fetchMangaDexStats !== 'function') return Promise.resolve({});
+        return window.fetchMangaDexStats(ids);
+    }
+
+    /**
+     * Volumenes y capitulos reales de una obra (`/manga/{id}/aggregate`).
+     *
+     * `attributes.lastVolume` / `lastChapter` vienen vacios en la mayoria de las
+     * obras en publicacion, asi que la ficha se quedaba en 0 volumenes y no
+     * dibujaba la cuadricula de progreso. El aggregate lista lo que existe de
+     * verdad, capitulo por capitulo.
+     */
+    async function fetchMangaDexAggregate(id) {
+        var json = await mdFetch('/manga/' + encodeURIComponent(id) + '/aggregate');
+        var volumes = json?.volumes || {};
+        var maxVol = 0;
+        var maxCap = 0;
+        var capsDistintos = 0;
+        Object.keys(volumes).forEach(function (volKey) {
+            var v = Number(volKey);
+            if (Number.isFinite(v) && v > maxVol) maxVol = v;
+            var caps = volumes[volKey]?.chapters || {};
+            Object.keys(caps).forEach(function (capKey) {
+                capsDistintos++;
+                var c = Number(capKey);
+                if (Number.isFinite(c) && c > maxCap) maxCap = c;
+            });
+        });
+        return {
+            volumes: Math.floor(maxVol),
+            // El numero del ultimo capitulo describe mejor el avance que la
+            // cantidad de entradas: los capitulos .5 y los huecos sin subir
+            // harian que el total no coincida con la numeracion real.
+            chapters: Math.floor(maxCap) || capsDistintos
+        };
+    }
+    window.fetchMangaDexAggregate = fetchMangaDexAggregate;
+
     window.getMangaDexById = async function (id) {
         try {
             var json = await mdFetch('/manga/' + encodeURIComponent(id) + '?includes[]=cover_art&includes[]=author&includes[]=artist');
-            return mdItemToLocal(json);
+            var item = mdItemToLocal(json);
+            if (!item) return null;
+
+            // Los dos extras van en paralelo y son best-effort: si alguno falla
+            // la ficha se muestra igual, solo que sin puntaje o sin cuadricula.
+            var extras = await Promise.allSettled([
+                fetchMangaDexStats([id]),
+                fetchMangaDexAggregate(id)
+            ]);
+
+            if (extras[0].status === 'fulfilled') {
+                var st = extras[0].value[id];
+                if (st) {
+                    item.score = st.score;
+                    item.follows = st.follows;
+                }
+            } else {
+                console.warn('MangaDex statistics error:', extras[0].reason);
+            }
+
+            if (extras[1].status === 'fulfilled') {
+                var agg = extras[1].value;
+                // Solo se completa lo que falta: si la obra declara lastVolume,
+                // ese dato es el oficial y le gana al conteo de subidas.
+                if (!item.volumes && agg.volumes) item.volumes = agg.volumes;
+                if (!item.chapters && agg.chapters) item.chapters = agg.chapters;
+            } else {
+                console.warn('MangaDex aggregate error:', extras[1].reason);
+            }
+
+            return item;
         } catch (err) {
             console.warn('MangaDex getById error:', err);
             return null;

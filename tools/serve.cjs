@@ -3,7 +3,9 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
-const PORT = 8000;
+// 8000 es el default de siempre, pero se respeta PORT para poder levantar dos
+// instancias a la vez sin que la segunda choque contra la primera.
+const PORT = Number(process.env.PORT) || 8000;
 
 // Fuentes que disparan un rebuild. Incluye CSS: antes solo se vigilaba JS, asi
 // que editar un .css no regeneraba el bundle y quedaba desincronizado.

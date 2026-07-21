@@ -75,7 +75,13 @@ function normalizeDetailItem(item) {
     const normalized = { ...item };
     normalized.id = normalized.id ?? normalized.mal_id ?? normalized.item_id ?? normalized.itemId ?? null;
     normalized.titulo = normalized.titulo || normalized.title || normalized.name || normalized.nombre || '';
-    normalized.img = normalized.img || normalized.image || normalized.cover_image || normalized.portada || normalized.banner || (normalized.images?.webp?.large_image_url) || (normalized.images?.jpg?.large_image_url) || '';
+    // `banner` NO va en esta cadena: es la imagen ancha de AniList (~1721x391) y
+    // la portada se pinta en un hueco de 2:3, asi que entraba recortada a una
+    // tira. Por eso api.js hoy la expone como `bannerImage`, fuera de esta
+    // cadena — pero un item viejo del cache (TTL 1 h) todavia puede traer
+    // `banner`, y ahi la portada volvia a romperse. Sin este campo, ese caso
+    // cae solo en images.webp, que es el poster de verdad.
+    normalized.img = normalized.img || normalized.image || normalized.cover_image || normalized.portada || (normalized.images?.webp?.large_image_url) || (normalized.images?.jpg?.large_image_url) || '';
     normalized.info = normalized.info || normalized.synopsis || normalized.descripcion || normalized.resumen || normalized.summary || '';
     normalized.status = normalized.status || normalized.estado || '';
     normalized.demografia = normalized.demografia || normalized.demography || normalized.demographic || '';
