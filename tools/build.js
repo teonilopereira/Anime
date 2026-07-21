@@ -372,7 +372,13 @@ for (const file of htmlFiles) {
 // Se genera desde los HTML que existen: el que habia estaba escrito a mano,
 // tenia 8 URLs y le faltaba comparar.html.
 
-const hoy = new Date().toISOString().slice(0, 10);
+// Sin <lastmod>: es opcional en el protocolo y era la unica entrada no
+// determinista del build. Se estampaba con la fecha del dia, asi que el paso de
+// CI que reconstruye y compara contra lo commiteado fallaba en cualquier corrida
+// hecha un dia despues del ultimo build, sin que nadie hubiera tocado nada. Un
+// lastmod que cambia todos los dias en paginas que no cambiaron tampoco le sirve
+// a Google: lo ignora cuando no se corresponde con el contenido.
+
 const prioridades = { 'index.html': '1.0', 'anime.html': '0.9', 'manga.html': '0.9', 'novelas.html': '0.9' };
 
 const urlsSitemap = htmlFiles
@@ -380,7 +386,7 @@ const urlsSitemap = htmlFiles
     .sort()
     .map((f) => {
         const prio = prioridades[f] || '0.6';
-        return `  <url>\n    <loc>${SITE_URL}/${f}</loc>\n    <lastmod>${hoy}</lastmod>\n    <priority>${prio}</priority>\n  </url>`;
+        return `  <url>\n    <loc>${SITE_URL}/${f}</loc>\n    <priority>${prio}</priority>\n  </url>`;
     });
 
 writeUtf8(

@@ -357,13 +357,29 @@ async function loadApodo() {
     return (data && data.apodo) || null;
 }
 
+// UPDATE, no upsert: la fila de profiles ya existe (la crea el trigger sobre
+// auth.users) y username es NOT NULL. Postgres valida los NOT NULL ANTES de
+// resolver el ON CONFLICT, así que un upsert con solo {id, apodo} falla siempre
+// con 23502 y el apodo se perdía al recargar. Si por lo que sea todavía no hay
+// fila, se cae a saveUserProfile, que sí manda el perfil completo.
 async function saveApodo(apodo) {
     const user = await getCurrentUserAsync();
     if (!user) return;
-    const { error } = await supabase
+    const value = String(apodo || '');
+
+    const { data, error } = await supabase
         .from('profiles')
-        .upsert({ id: user.id, apodo: String(apodo || ''), updated_at: new Date().toISOString() }, { onConflict: 'id' });
-    if (error) console.warn("saveApodo:", error.message);
+        .update({ apodo: value, updated_at: new Date().toISOString() })
+        .eq('id', user.id)
+        .select('apodo');
+
+    if (error) {
+        console.warn("saveApodo:", error.message);
+        throw new Error("No se pudo guardar el apodo.");
+    }
+    if (data && data.length) return;
+
+    await saveUserProfile(user, { apodo: value });
 }
 // ─── Progreso (episodios / capítulos) ─────────────────────────────
 async function setProgress({ category, itemId, key, value }) {
