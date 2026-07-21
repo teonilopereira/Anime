@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     exp              INT         NOT NULL DEFAULT 0,
     total_likes      INT         NOT NULL DEFAULT 0,
     total_viewed     INT         NOT NULL DEFAULT 0,
+    apodo            TEXT        DEFAULT 'novato',
     updated_stats_at TIMESTAMPTZ,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()

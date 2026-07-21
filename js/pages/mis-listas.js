@@ -782,6 +782,9 @@ function equipApodo(apodoId) {
     if (window.AppSupabase && typeof window.AppSupabase.saveApodo === 'function') {
         Promise.resolve(window.AppSupabase.saveApodo(apodoId)).catch(function (e) {
             console.warn('[mis-listas] No se pudo guardar el apodo en Supabase:', e);
+            // Si falla, el apodo solo vive en memoria y se pierde al recargar:
+            // conviene decirlo en vez de dejar el "Apodo equipado" mintiendo.
+            if (window.Toast) window.Toast.error('El apodo no se pudo guardar; se va a perder al recargar.');
         });
     }
 }
