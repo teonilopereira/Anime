@@ -71,15 +71,25 @@
         toast.classList.remove("is-visible");
         toast.classList.add("is-leaving");
 
-        // Remover del DOM al finalizar la animación
-        toast.addEventListener("transitionend", () => {
+        function remove() {
+            clearTimeout(fallback);
             toast.remove();
             // Limpiar el contenedor si queda vacío
             if (container && container.childNodes.length === 0) {
                 container.remove();
                 container = null;
             }
-        });
+        }
+
+        // Remover del DOM al finalizar la animación. `once` porque la
+        // transicion anima dos propiedades (opacity y transform) y el evento
+        // llega una vez por cada una.
+        toast.addEventListener("transitionend", remove, { once: true });
+
+        // Red de seguridad: si el aviso no llega a transicionar (pestaña en
+        // segundo plano, transiciones desactivadas por el sistema), el evento
+        // no se dispara nunca y el nodo se queda en el DOM para siempre.
+        var fallback = setTimeout(remove, 400);
     }
 
     // Exponer API global

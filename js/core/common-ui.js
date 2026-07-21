@@ -2,17 +2,57 @@
     "use strict";
 
     const path = window.location.pathname.toLowerCase();
-    const pageKey = path.includes("mis-listas") ? "mis-listas" :
-        path.includes("anime") ? "anime" :
-        path.includes("manga") ? "manga" :
-        path.includes("novelas") ? "novelas" :
-        path.includes("comparar") ? "comparar" :
-        path.includes("detalle") ? "detalle" :
-        path.includes("configuracion") ? "configuracion" :
-        path.includes("usuario") ? "usuario" :
-        path.includes("login") ? "login" :
-        path.includes("top") ? "top" :
-        "index";
+
+    /**
+     * Nombre del archivo actual, sin carpeta ni extension ("manga", "index").
+     *
+     * Todo lo que depende de "en que pagina estoy" se resuelve con esto y no
+     * con path.includes(...): el substring encendia el item equivocado apenas
+     * el nombre de una pagina aparecia dentro del de otra o de una carpeta del
+     * deploy. Ademas "ranking.html" no contenia ninguno de los nombres
+     * buscados, asi que la pagina quedaba sin marcar en la barra.
+     */
+    const archivo = (path.split("/").pop() || "index.html").replace(/\.html?$/, "") || "index";
+
+    const t = (clave, porDefecto) => (window.AppI18n ? window.AppI18n.t(clave) : porDefecto);
+
+    /**
+     * Destinos de la barra, partidos en dos niveles.
+     *
+     * Los primarios son los cuatro que se usan todo el tiempo; el resto vive en
+     * el desplegable "Mas". Con todo suelto la barra de arriba se apretaba en
+     * pantallas medianas y el bottom nav de mobile no da para siete pestañas,
+     * asi que comparar.html y top.html habian quedado fuera de la navegacion:
+     * solo se llegaba a ellas desde una card del index.
+     */
+    const NAV_PRIMARIOS = [
+        { id: "anime", href: "anime.html", icon: "clapperboard", i18n: "nav.anime", corto: "nav.anime", def: "Anime" },
+        { id: "manga", href: "manga.html", icon: "book-open", i18n: "nav.manga", corto: "nav.manga", def: "Manga" },
+        { id: "novelas", href: "novelas.html", icon: "book", i18n: "nav.novelas", corto: "nav.novelas", def: "Novelas" },
+        // "Mis Listas" no entra en una linea en el tab de mobile y desalinea el
+        // icono, asi que ahi se rotula con la clave corta.
+        { id: "mis-listas", href: "mis-listas.html", icon: "heart", i18n: "nav.mis_listas", corto: "nav.listas", def: "Mis Listas", defCorto: "Listas" }
+    ];
+
+    const NAV_SECUNDARIOS = [
+        { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking" },
+        { id: "comparar", href: "comparar.html", icon: "columns-2", i18n: "nav.comparar", def: "Comparar" },
+        { id: "top", href: "top.html", icon: "crown", i18n: "nav.top_jugadores", def: "Top de jugadores" },
+        { id: "configuracion", href: "configuracion.html", icon: "settings", i18n: "nav.configuracion", def: "Configuración" }
+    ];
+
+    const paginaActiva = NAV_PRIMARIOS.some((l) => l.id === archivo) ? archivo : null;
+    // Estando en una pagina del desplegable, el que se marca es el boton "Mas":
+    // si no, la barra queda sin ningun item encendido y no se sabe donde uno esta.
+    const secundarioActivo = NAV_SECUNDARIOS.some((l) => l.id === archivo) ? archivo : null;
+
+    // Paginas con texto propio en el pie; el resto (404, privacidad, terminos)
+    // cae al generico de index.
+    const PAGINAS_CON_PIE = [
+        "mis-listas", "anime", "manga", "novelas", "comparar",
+        "detalle", "configuracion", "usuario", "login", "ranking", "top"
+    ];
+    const pageKey = PAGINAS_CON_PIE.indexOf(archivo) !== -1 ? archivo : "index";
 
 
     const ensureMainTarget = () => {
@@ -70,32 +110,15 @@
         const el = document.getElementById("nav-links-container");
         if (!el) return;
 
-        const isAnime = path.includes("anime");
-        const isManga = path.includes("manga");
-        const isNovelas = path.includes("novelas");
-        const isMisListas = path.includes("mis-listas");
-        const isTop = path.includes("top");
-        const isIndex = path.endsWith("index.html") || path.endsWith("/") || path === "";
-        const isDetail = path.includes("detalle");
-
-        let activePage = isAnime ? "anime" : isManga ? "manga" : isNovelas ? "novelas" : isMisListas ? "mis-listas" : isTop ? "top" : null;
-        if (isIndex) activePage = null;
-
-        const links = [
-            { id: "anime", href: "anime.html", icon: "clapperboard", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
-            { id: "manga", href: "manga.html", icon: "book-open", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
-            { id: "novelas", href: "novelas.html", icon: "book", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
-            { id: "mis-listas", href: "mis-listas.html", icon: "heart", label: window.AppI18n ? window.AppI18n.t("nav.mis_listas") : "Mis Listas" },
-            { id: "top", href: "top.html", icon: "trophy", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Ranking" }
-        ];
+        const isDetail = archivo === "detalle";
 
         let html = "";
-        for (let i = 0; i < links.length; i++) {
-            const l = links[i];
+        for (let i = 0; i < NAV_PRIMARIOS.length; i++) {
+            const l = NAV_PRIMARIOS[i];
             let cls = "nav-btn";
             let current = "";
             let dataCat = "";
-            if (l.id === activePage) {
+            if (l.id === paginaActiva) {
                 cls += " active";
                 current = ' aria-current="page"';
             }
@@ -103,60 +126,120 @@
                 dataCat = ` data-nav-cat="${l.id}"`;
             }
             html += `<a href="${l.href}" class="${cls}"${current}${dataCat}>
-<span class="nav-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="nav.${l.id.replace('-', '_')}">${l.label}</span>
+<span class="nav-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="${l.i18n}">${t(l.i18n, l.def)}</span>
 </a>`;
         }
+
+        const itemsMas = NAV_SECUNDARIOS.map((l) => {
+            const current = l.id === secundarioActivo ? ' aria-current="page"' : '';
+            const cls = l.id === secundarioActivo ? ' is-active' : '';
+            return `<a href="${l.href}" class="nav-more-item${cls}"${current}>
+<span class="nav-more-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="${l.i18n}">${t(l.i18n, l.def)}</span>
+</a>`;
+        }).join("");
+
+        html += `<div class="nav-more">
+<button class="nav-btn nav-more-btn${secundarioActivo ? " active" : ""}" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="nav-more-menu">
+<span class="nav-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span><span data-i18n="nav.mas">${t("nav.mas", "Más")}</span>
+</button>
+<div class="nav-more-menu" id="nav-more-menu" role="menu" hidden>${itemsMas}</div>
+</div>`;
+
         el.innerHTML = `<div class="nav-links" aria-label="Navegación principal">${html}</div>`;
+        wireNavMore(el);
+    };
+
+    // ── DESPLEGABLE "MÁS" ──
+    const wireNavMore = (scope) => {
+        const wrap = scope.querySelector(".nav-more");
+        if (!wrap) return;
+        const btn = wrap.querySelector(".nav-more-btn");
+        const menu = wrap.querySelector(".nav-more-menu");
+        if (!btn || !menu) return;
+
+        let cierreDiferido = null;
+        const cancelarCierre = () => {
+            if (cierreDiferido) {
+                clearTimeout(cierreDiferido);
+                cierreDiferido = null;
+            }
+        };
+
+        const abrir = (estado) => {
+            cancelarCierre();
+            menu.hidden = !estado;
+            wrap.classList.toggle("is-open", estado);
+            btn.setAttribute("aria-expanded", String(estado));
+        };
+
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            abrir(menu.hidden);
+        });
+
+        // Con el mouse encima alcanza: pedir un click para ver cuatro destinos
+        // hacia que el desplegable se sintiera escondido y no rapido.
+        //
+        // Solo para el mouse (pointerType): en tactil el primer toque emula un
+        // hover, asi que el menu se abriria sin que nadie se lo pida, y en los
+        // hibridos (notebook con pantalla tactil) el puntero fino existe igual.
+        wrap.addEventListener("pointerenter", (e) => {
+            if (e.pointerType !== "mouse") return;
+            abrir(true);
+        });
+
+        // Un respiro antes de cerrar: entre el borde del boton y el del panel
+        // hay unos pixeles muertos, y sin la espera el menu se cierra justo
+        // cuando el mouse los esta cruzando.
+        wrap.addEventListener("pointerleave", (e) => {
+            if (e.pointerType !== "mouse") return;
+            cancelarCierre();
+            cierreDiferido = setTimeout(() => abrir(false), 180);
+        });
+
+        // Cerrar al clickear afuera o con Escape: sin esto el panel queda
+        // abierto tapando el contenido despues de navegar con el teclado.
+        document.addEventListener("click", (e) => {
+            if (!menu.hidden && !wrap.contains(e.target)) abrir(false);
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !menu.hidden) {
+                abrir(false);
+                btn.focus();
+            }
+        });
+
+        // Los usa el botón "Más" del bottom nav, que vive en otro contenedor.
+        window.__navMoreOpen = () => abrir(true);
+        window.__navMoreClose = () => abrir(false);
     };
 
     // ── MOBILE BOTTOM NAV ──
     const injectMobileBottomNav = () => {
         if (document.querySelector('.mobile-bottom-nav')) return;
 
-        // No inyectar en páginas de auth (en el resto siempre debe haber
-        // navegación visible: en mobile la navbar superior queda oculta)
-        const skipPages = ["login"];
-        for (let i = 0; i < skipPages.length; i++) {
-            if (path.includes(skipPages[i])) return;
-        }
-        if (path.includes("404")) return;
+        // No inyectar en páginas de auth ni en el 404 (en el resto siempre debe
+        // haber navegación visible: en mobile la navbar superior queda oculta)
+        if (archivo === "login" || archivo === "404") return;
 
-        const isAnime = path.includes("anime");
-        const isManga = path.includes("manga");
-        const isNovelas = path.includes("novelas");
-        const isMisListas = path.includes("mis-listas");
-
-        const isTop = path.includes("top");
-        const isIndex = path.endsWith("index.html") || path.endsWith("/") || path === "";
-
-        let activePage = isAnime ? "anime" : isManga ? "manga" : isNovelas ? "novelas" : isMisListas ? "mis-listas" : isTop ? "top" : null;
-        if (isIndex) activePage = null;
-
-        // "mis-listas" usa la clave corta nav.listas: "Mis Listas" no entra
-        // en una línea y desalinea el icono del tab en pantallas chicas
-        const tabs = [
-            { id: "anime", href: "anime.html", icon: "clapperboard", i18n: "nav.anime", label: window.AppI18n ? window.AppI18n.t("nav.anime") : "Anime" },
-            { id: "manga", href: "manga.html", icon: "book-open", i18n: "nav.manga", label: window.AppI18n ? window.AppI18n.t("nav.manga") : "Manga" },
-            { id: "novelas", href: "novelas.html", icon: "book", i18n: "nav.novelas", label: window.AppI18n ? window.AppI18n.t("nav.novelas") : "Novelas" },
-            { id: "mis-listas", href: "mis-listas.html", icon: "heart", i18n: "nav.listas", label: window.AppI18n ? window.AppI18n.t("nav.listas") : "Listas" },
-            { id: "top", href: "top.html", icon: "trophy", i18n: "nav.top", label: window.AppI18n ? window.AppI18n.t("nav.top") : "Top" }
-        ];
-
+        // Las mismas cuatro pestañas que la barra de arriba; el resto queda
+        // detrás del botón "Más", que despliega la navbar superior (en mobile
+        // hace de hoja) con el menú secundario ya abierto.
         let html = '';
-        for (let i = 0; i < tabs.length; i++) {
-            const t = tabs[i];
-            const activeClass = t.id === activePage ? ' active' : '';
-            const currentAttr = t.id === activePage ? ' aria-current="page"' : '';
-            html += `<a href="${t.href}" class="bottom-tab${activeClass}"${currentAttr}>
-<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="${t.icon}"></i></span>
-<span data-i18n="${t.i18n}">${t.label}</span>
+        for (let i = 0; i < NAV_PRIMARIOS.length; i++) {
+            const tab = NAV_PRIMARIOS[i];
+            const activeClass = tab.id === paginaActiva ? ' active' : '';
+            const currentAttr = tab.id === paginaActiva ? ' aria-current="page"' : '';
+            const clave = tab.corto || tab.i18n;
+            html += `<a href="${tab.href}" class="bottom-tab${activeClass}"${currentAttr}>
+<span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="${tab.icon}"></i></span>
+<span data-i18n="${clave}">${t(clave, tab.defCorto || tab.def)}</span>
 </a>`;
         }
 
-        const searchText = window.AppI18n ? window.AppI18n.t("nav.menu") : "Menú";
-        html += `<button class="bottom-tab-search" aria-label="Buscar" type="button">
+        html += `<button class="bottom-tab-more${secundarioActivo ? " active" : ""}" aria-label="${t("nav.mas", "Más")}" type="button">
 <span class="bottom-tab-icon" aria-hidden="true"><i data-lucide="menu"></i></span>
-<span data-i18n="nav.menu">${searchText}</span>
+<span data-i18n="nav.mas">${t("nav.mas", "Más")}</span>
 </button>`;
 
         const nav = document.createElement('nav');
@@ -172,19 +255,29 @@
             if (!link) return;
             const navbar = document.querySelector('.destiny-navbar');
             if (navbar) navbar.classList.remove('is-open');
-            const searchBtn = nav.querySelector('.bottom-tab-search');
-            if (searchBtn) searchBtn.classList.remove('is-open');
+            const moreBtn = nav.querySelector('.bottom-tab-more');
+            if (moreBtn) moreBtn.classList.remove('is-open');
         });
 
-        // Search toggle: show top navbar search
-        const searchBtn = nav.querySelector('.bottom-tab-search');
-        if (searchBtn) {
-            searchBtn.addEventListener('click', () => {
+        // "Más": despliega la navbar superior, que en mobile entra desde arriba
+        // y trae el buscador, el usuario y el menú secundario.
+        const moreBtn = nav.querySelector('.bottom-tab-more');
+        if (moreBtn) {
+            moreBtn.addEventListener('click', (e) => {
                 const navbar = document.querySelector('.destiny-navbar');
                 if (!navbar) return;
+                // Sin esto el click sigue subiendo hasta el listener que cierra
+                // el desplegable al tocar afuera, y el menú se abriría y
+                // cerraría en el mismo gesto.
+                e.stopPropagation();
                 const isOpen = navbar.classList.toggle('is-open');
-                searchBtn.classList.toggle('is-open', isOpen);
+                moreBtn.classList.toggle('is-open', isOpen);
+                if (!isOpen && typeof window.__navMoreClose === 'function') window.__navMoreClose();
                 if (isOpen) {
+                    // El menú secundario se abre solo: si no, el que viene
+                    // buscando Comparar o Ranking tiene que adivinar que hay
+                    // que tocar otro botón más.
+                    if (typeof window.__navMoreOpen === 'function') window.__navMoreOpen();
                     const input = navbar.querySelector('.nav-search-input');
                     if (input) setTimeout(() => input.focus(), 100);
                 }
@@ -196,7 +289,7 @@
     const injectLoginButton = () => {
         const el = document.getElementById("nav-login-container");
         if (!el) return;
-        if (path.includes("login")) return;
+        if (archivo === "login") return;
 
         const ingresarText = window.AppI18n ? window.AppI18n.t("nav.ingresar") : "Ingresar";
         const invitadoText = window.AppI18n ? window.AppI18n.t("nav.usuario_invitado") : "...";
@@ -264,6 +357,10 @@
         top: {
             col1: { title: "Ranking", text: "Jugadores ordenados por nivel y experiencia total acumulada." },
             col2: { title: "F2P / P2W", text: "Pr\u00F3ximamente m\u00E1s categor\u00EDas de ranking." }
+        },
+        ranking: {
+            col1: { title: "Top Ranking", text: "Anime, manga y novelas ordenados por la puntuaci\u00F3n de la comunidad." },
+            col2: { title: "Detalle", text: "Toc\u00E1 cualquier fila para abrir la ficha completa del t\u00EDtulo." }
         }
     };
 

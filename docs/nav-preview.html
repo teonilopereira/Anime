@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Anime Destiny | Estilos de navbar</title>
+<link rel="stylesheet" href="../css/bundle.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<script src="../js/vendor/lucide.min.js"></script>
+<style>
+/* Página de comparación — NO es parte del sitio. Vive en docs/ para quedar
+   fuera del sitemap y del estampado de versión del build. */
+body { padding: 0 0 80px; }
+.pv-head { max-width: 1200px; margin: 32px auto 8px; padding: 0 20px; }
+.pv-head h1 { font-family: 'Orbitron', sans-serif; color: var(--accent-cyan); margin: 0 0 6px; font-size: 1.6rem; }
+.pv-head p { color: var(--text-muted); margin: 0; font-family: 'Rajdhani', sans-serif; }
+.pv-caso { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+.pv-caso > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.pv-num { font-family: 'Orbitron', sans-serif; font-size: .72rem; color: #050510; background: var(--accent-cyan); border-radius: 999px; padding: 3px 10px; }
+.pv-caso h2 { font-family: 'Orbitron', sans-serif; font-size: 1.05rem; margin: 0; color: #fff; }
+.pv-nota { color: var(--text-muted); font-family: 'Rajdhani', sans-serif; font-size: 14px; margin: 0; flex: 1 1 320px; }
+.pv-marco { border: 1px dashed rgba(255,255,255,.10); border-radius: 14px; padding: 18px; background: rgba(255,255,255,.012); }
+
+/* Piezas compartidas por las variantes */
+.pv-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+.pv-logo img { width: 34px; height: 34px; border-radius: 8px; }
+.pv-logo b { font-family: 'Orbitron', sans-serif; font-size: .95rem; color: #fff; font-weight: 700; }
+.pv-logo b i { color: var(--accent-cyan); font-style: normal; }
+.pv-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-cyan), var(--neon-purple)); flex-shrink: 0; }
+
+/* ── B. Subrayado ── */
+.nvb { display: flex; align-items: center; gap: 26px; padding: 14px 22px; border-radius: 12px;
+  background: rgba(6,8,16,.96); border: 1px solid rgba(255,255,255,.07); border-bottom: 1px solid rgba(77,134,255,.45); }
+.nvb-links { display: flex; gap: 24px; flex: 1; }
+.nvb-links a { position: relative; padding: 6px 2px; color: rgba(255,255,255,.7); text-decoration: none;
+  font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 500; letter-spacing: .02em; }
+.nvb-links a.on { color: #fff; }
+.nvb-links a.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+  background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan); border-radius: 2px; }
+
+/* ── C. Cápsula segmentada ── */
+.nvc { display: flex; align-items: center; gap: 20px; padding: 12px 18px; border-radius: 999px;
+  background: rgba(6,8,16,.96); border: 1px solid rgba(188,19,254,.2); }
+.nvc-links { display: flex; gap: 4px; flex: 1; justify-content: center; padding: 4px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); border-radius: 999px; }
+.nvc-links a { display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px; border-radius: 999px;
+  color: var(--text-muted); text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: .76rem; }
+.nvc-links a svg { width: 14px; height: 14px; }
+.nvc-links a.on { background: linear-gradient(135deg, var(--neon-purple), #7b2ff7); color: #fff;
+  box-shadow: 0 0 16px rgba(188,19,254,.45); }
+
+/* ── D. Rail lateral ── */
+.nvd { display: flex; gap: 16px; min-height: 300px; }
+.nvd-rail { width: 210px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; padding: 16px 12px;
+  border-radius: 14px; background: rgba(6,8,16,.96); border: 1px solid rgba(255,255,255,.07); }
+.nvd-rail .pv-logo { padding: 0 8px 14px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.nvd-rail a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
+  color: rgba(255,255,255,.72); text-decoration: none; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 500; }
+.nvd-rail a svg { width: 17px; height: 17px; flex-shrink: 0; }
+.nvd-rail a.on { color: #fff; background: rgba(77,134,255,.16); border-left: 2px solid var(--accent-cyan); border-radius: 0 10px 10px 0; }
+.nvd-rail hr { border: 0; border-top: 1px solid rgba(255,255,255,.06); margin: 10px 4px; }
+.nvd-cuerpo { flex: 1; border-radius: 14px; border: 1px dashed rgba(255,255,255,.08);
+  display: grid; place-items: center; color: var(--text-muted); font-family: 'Rajdhani', sans-serif; }
+
+/* ── E. Dock flotante ── */
+.nve-escena { position: relative; min-height: 220px; border-radius: 14px; overflow: hidden;
+  border: 1px dashed rgba(255,255,255,.08); display: grid; place-items: end center; padding-bottom: 20px; }
+.nve-escena > span { position: absolute; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-family: 'Rajdhani', sans-serif; }
+.nve { display: flex; gap: 6px; padding: 8px; border-radius: 18px; background: rgba(10,12,24,.92);
+  border: 1px solid rgba(255,255,255,.10); box-shadow: 0 16px 40px rgba(0,0,0,.5); }
+.nve a { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 72px; padding: 10px 6px;
+  border-radius: 14px; color: rgba(255,255,255,.72); text-decoration: none;
+  font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 500; }
+.nve a svg { width: 21px; height: 21px; }
+.nve a.on { color: #fff; background: rgba(188,19,254,.20); box-shadow: inset 0 0 18px rgba(188,19,254,.25); }
+
+/* ── F. Command bar ── */
+.nvf { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-radius: 12px;
+  background: rgba(6,8,16,.96); border: 1px solid rgba(255,255,255,.07); }
+.nvf-buscar { flex: 1; display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: var(--text-muted);
+  font-family: 'Rajdhani', sans-serif; font-size: 14px; }
+.nvf-buscar svg { width: 16px; height: 16px; }
+.nvf-buscar kbd { margin-left: auto; padding: 2px 7px; border-radius: 5px; font-size: 11px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); font-family: 'Rajdhani', sans-serif; }
+.nvf-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: #fff;
+  font-family: 'Orbitron', sans-serif; font-size: .72rem; }
+.nvf-btn svg { width: 15px; height: 15px; }
+
+@media (max-width: 760px) {
+  .nvd { flex-direction: column; }
+  .nvd-rail { width: auto; }
+  .nvb-links, .nvc-links { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="pv-head">
+  <h1>ESTILOS DE NAVBAR</h1>
+  <p>Cinco alternativas a la barra actual, con los colores y las fuentes reales del sitio. Nada de esto está conectado: es solo para elegir.</p>
+</div>
+
+<section class="pv-caso">
+  <header>
+    <span class="pv-num">A</span>
+    <h2>La actual — grilla de botones + “Más”</h2>
+    <p class="pv-nota">Íconos arriba, texto abajo, activo con caja y latido. Los secundarios en un desplegable.</p>
+  </header>
+  <div class="pv-marco">
+    <nav class="destiny-navbar" style="position:static; width:100%;">
+      <div id="nav-brand-container"></div>
+      <div id="nav-links-container"></div>
+      <div class="nav-actions"><div id="nav-login-container"></div></div>
+    </nav>
+  </div>
+</section>
+
+<section class="pv-caso">
+  <header>
+    <span class="pv-num">B</span>
+    <h2>Subrayado</h2>
+    <p class="pv-nota">Solo texto, activo con una línea cian. Es la que más ítems aguanta sin apretarse: entrarían los siete sin desplegable.</p>
+  </header>
+  <div class="pv-marco">
+    <nav class="nvb">
+      <a class="pv-logo" href="#"><img src="../images/Logo.png" alt=""><b>Anime<i>Destiny</i></b></a>
+      <div class="nvb-links">
+        <a href="#">Anime</a><a href="#">Manga</a><a href="#">Novelas</a>
+        <a href="#" class="on">Mis listas</a><a href="#">Ranking</a><a href="#">Comparar</a>
+      </div>
+      <span class="pv-avatar"></span>
+    </nav>
+  </div>
+</section>
+
+<section class="pv-caso">
+  <header>
+    <span class="pv-num">C</span>
+    <h2>Cápsula segmentada</h2>
+    <p class="pv-nota">El mismo componente que ya usan las pestañas del ranking y del comparador, ascendido a barra principal. Es la opción más coherente con el resto del sitio.</p>
+  </header>
+  <div class="pv-marco">
+    <nav class="nvc">
+      <a class="pv-logo" href="#"><img src="../images/Logo.png" alt=""><b>Anime<i>Destiny</i></b></a>
+      <div class="nvc-links">
+        <a href="#"><i data-lucide="clapperboard"></i> ANIME</a>
+        <a href="#"><i data-lucide="book-open"></i> MANGA</a>
+        <a href="#"><i data-lucide="book"></i> NOVELAS</a>
+        <a href="#" class="on"><i data-lucide="heart"></i> LISTAS</a>
+        <a href="#"><i data-lucide="trophy"></i> RANKING</a>
+      </div>
+      <span class="pv-avatar"></span>
+    </nav>
+  </div>
+</section>
+
+<section class="pv-caso">
+  <header>
+    <span class="pv-num">D</span>
+    <h2>Rail lateral</h2>
+    <p class="pv-nota">Vertical y agrupable por secciones: entran todos los destinos sin desplegable y sobra lugar para más. A cambio se come ancho, que en un catálogo de portadas es justo lo que más se nota.</p>
+  </header>
+  <div class="pv-marco">
+    <div class="nvd">
+      <nav class="nvd-rail">
+        <a class="pv-logo" href="#"><img src="../images/Logo.png" alt=""><b>Anime<i>Destiny</i></b></a>
+        <a href="#"><i data-lucide="clapperboard"></i> Anime</a>
+        <a href="#"><i data-lucide="book-open"></i> Manga</a>
+        <a href="#"><i data-lucide="book"></i> Novelas</a>
+        <hr>
+        <a href="#" class="on"><i data-lucide="heart"></i> Mis listas</a>
+        <a href="#"><i data-lucide="trophy"></i> Ranking</a>
+        <a href="#"><i data-lucide="columns-2"></i> Comparar</a>
+        <a href="#"><i data-lucide="crown"></i> Jugadores</a>
+        <hr>
+        <a href="#"><i data-lucide="settings"></i> Configuración</a>
+      </nav>
+      <div class="nvd-cuerpo">catálogo</div>
+    </div>
+  </div>
+</section>
+
+<section class="pv-caso">
+  <header>
+    <span class="pv-num">E</span>
+    <h2>Dock flotante</h2>
+    <p class="pv-nota">Una sola barra para escritorio y móvil: es el bottom nav que ya tenés, flotando. Unifica los dos componentes en uno, pero tapa contenido al hacer scroll.</p>
+  </header>
+  <div class="pv-marco">
+    <div class="nve-escena">
+      <span>contenido</span>
+      <nav class="nve">
+        <a href="#"><i data-lucide="clapperboard"></i> Anime</a>
+        <a href="#"><i data-lucide="book-open"></i> Manga</a>
+        <a href="#"><i data-lucide="book"></i> Novelas</a>
+        <a href="#" class="on"><i data-lucide="heart"></i> Listas</a>
+        <a href="#"><i data-lucide="trophy"></i> Ranking</a>
+        <a href="#"><i data-lucide="menu"></i> Más</a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+<section class="pv-caso">
+  <header>
+    <span class="pv-num">F</span>
+    <h2>Command bar</h2>
+    <p class="pv-nota">La búsqueda pasa a ser lo principal y la navegación entera se va a un menú. Tiene sentido si el catálogo crece mucho; hoy escondería secciones que se usan seguido.</p>
+  </header>
+  <div class="pv-marco">
+    <nav class="nvf">
+      <a class="pv-logo" href="#"><img src="../images/Logo.png" alt=""><b>Anime<i>Destiny</i></b></a>
+      <div class="nvf-buscar"><i data-lucide="search"></i> Buscar anime, manga o novelas… <kbd>Ctrl K</kbd></div>
+      <span class="nvf-btn"><i data-lucide="menu"></i> MENÚ</span>
+      <span class="pv-avatar"></span>
+    </nav>
+  </div>
+</section>
+
+<script src="../js/core/config.js"></script>
+<script src="../js/core/i18n.js"></script>
+<script src="../js/core/namespace.js"></script>
+<script src="../js/core-bundle.min.js" defer></script>
+</body>
+</html>

@@ -25,7 +25,8 @@
     function getInitials(name) {
         if (!name) return '?';
         var parts = name.trim().split(/\s+/);
-        return (parts[0][0] || '') + (parts.length > 1 ? parts[1][0] : '').toUpperCase();
+        var ini = (parts[0][0] || '') + (parts.length > 1 ? (parts[1][0] || '') : '');
+        return ini.toUpperCase();
     }
 
     // Cuanta EXP pide el nivel `level` para subir al siguiente. Replica la
@@ -40,14 +41,14 @@
     }
 
     // El apodo llega como id (p.ej. 'hechicero_actual'); apodoLabel (bundle) lo
-    // traduce. 'novato' es el default sin equipar: mostrarlo en todas las filas
-    // seria ruido, asi que solo se muestran apodos elegidos a proposito.
+    // traduce. Se muestra tambien 'novato' (el default sin equipar): es un grado
+    // valido con etiqueta propia y, como hoy casi todos los perfiles estan en
+    // 'novato', saltearlo dejaba la columna vacia y parecia que no andaba.
     function getApodoHtml(p) {
-        var id = p.apodo || '';
-        if (!id || id === 'novato') return '';
+        var id = p.apodo || 'novato';
         var label = (typeof window.apodoLabel === 'function') ? window.apodoLabel(id) : '';
         if (!label) return '';
-        return '<div class="rank-player-apodo" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</div>';
+        return '<span class="rank-player-apodo" title="' + escapeHtml(label) + '">★ ' + escapeHtml(label) + '</span>';
     }
 
     function refreshIcons() {
@@ -105,10 +106,17 @@
                 '<div class="rank-player">' +
                     avatarHtml +
                     '<div class="rank-player-info">' +
-                        '<div class="rank-player-name">' + name +
-                            (isCurrentUser ? ' <span class="ranking-badge">TÚ</span>' : '') +
+                        // Una sola linea flex: nombre, chapa "TÚ", chip de nivel
+                        // y apodo. El chip de nivel solo aparece en pantallas
+                        // chicas (donde se cae la columna NIVEL) y por eso va
+                        // antes del apodo: al envolver, los dos quedan juntos
+                        // en el renglon de abajo.
+                        '<div class="rank-player-name">' +
+                            '<span class="rank-player-nick" title="' + name + '">' + name + '</span>' +
+                            (isCurrentUser ? '<span class="ranking-badge">TÚ</span>' : '') +
+                            '<span class="rank-sub-level">Nv. ' + level + '</span>' +
+                            getApodoHtml(p) +
                         '</div>' +
-                        getApodoHtml(p) +
                     '</div>' +
                 '</div>' +
                 '<div class="rank-level">' +
@@ -252,7 +260,7 @@
                     '<span class="skeleton skeleton-avatar" style="width: 44px; height: 44px;"></span>' +
                     '<span class="skeleton" style="width: 130px; height: 14px;"></span>' +
                 '</div>' +
-                '<span class="skeleton" style="width: 70px; height: 26px;"></span>' +
+                '<span class="skeleton rank-level" style="width: 70px; height: 26px;"></span>' +
                 '<span class="skeleton rank-progress" style="width: 90%; height: 8px;"></span>' +
                 '<span class="skeleton" style="width: 60px; height: 32px; justify-self: end;"></span>' +
             '</div>';

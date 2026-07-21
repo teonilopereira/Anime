@@ -49,8 +49,17 @@
                 return res.json();
             }).then(function (json) {
                 if (json && json.errors) {
-                    reject(new Error('AniList error: ' + (json.errors[0]?.message || 'Unknown')));
-                    return;
+                    // GraphQL puede devolver errores Y datos a la vez: en una
+                    // consulta con varios alias (buildMultiPageQuery) puede
+                    // fallar uno solo y venir los otros dos completos. Tirar
+                    // todo por la borda ahi seria peor que mostrar lo que llego.
+                    var campos = json.data ? Object.keys(json.data) : [];
+                    var hayDatos = campos.some(function (k) { return json.data[k] != null; });
+                    if (!hayDatos) {
+                        reject(new Error('AniList error: ' + (json.errors[0]?.message || 'Unknown')));
+                        return;
+                    }
+                    console.warn('AniList devolvio errores parciales:', json.errors[0]?.message || 'Unknown');
                 }
                 if (json) resolve(json);
             }).catch(function (err) {
@@ -85,7 +94,8 @@
                     season: item.season || null,
                     seasonYear: item.seasonYear || null,
                     title: extractTitle(item.title) || 'Temporada 1',
-                    format: item.format || null
+                    format: item.format || null,
+                    img: item.coverImage?.extraLarge || item.coverImage?.large || ''
                 });
                 sequelEdges.forEach(function (edge) {
                     var node = edge.node;
@@ -97,7 +107,8 @@
                             season: node.season || null,
                             seasonYear: node.seasonYear || null,
                             title: extractTitle(node.title) || 'Secuela',
-                            format: node.format || null
+                            format: node.format || null,
+                            img: node.coverImage?.large || ''
                         });
                     }
                 });
@@ -181,7 +192,11 @@
                     chapters: node.chapters || 0,
                     volumes: node.volumes || 0,
                     format: node.format || null,
-                    seasonYear: node.seasonYear || null
+                    seasonYear: node.seasonYear || null,
+                    // La portada la usan tanto "Relacionados" como la cadena de
+                    // temporadas, que hasta ahora dibujaba huecos vacios hasta
+                    // que la hidratacion traia las fichas completas.
+                    img: node.coverImage?.large || ''
                 };
             }),
             season: item.season || null,
@@ -191,6 +206,30 @@
             countryOfOrigin: item.countryOfOrigin || null,
             nextAiringEpisode: item.nextAiringEpisode || null,
             streamingEpisodes: item.streamingEpisodes || [],
+            // Los tres campos de abajo solo vienen en MEDIA_BY_ID_QUERY: en las
+            // listas del catalogo quedan vacios y la ficha simplemente no pinta
+            // esas secciones.
+            // Ojo con el nombre: normalizeDetailItem() usa `banner` como uno de
+            // los fallbacks de portada, asi que llamarlo asi hacia que la ficha
+            // mostrara la imagen ancha recortada a 2:3 en lugar del poster.
+            bannerImage: item.bannerImage || null,
+            // El id viene sucio en varias obras (Attack on Titan lo trae con un
+            // tabulador al final), y ese mismo id es el que arma la URL del
+            // embed y de la miniatura: sin el trim, ninguna de las dos carga.
+            trailer: (item.trailer && item.trailer.id)
+                ? { id: String(item.trailer.id).trim(), site: item.trailer.site || '' }
+                : null,
+            characters: (item.characters?.edges || []).map(function (e) {
+                var va = (e.voiceActors || [])[0] || null;
+                return {
+                    id: e.node?.id || null,
+                    name: e.node?.name?.full || '',
+                    image: e.node?.image?.large || '',
+                    role: e.role || '',
+                    vaName: va?.name?.full || '',
+                    vaImage: va?.image?.large || ''
+                };
+            }).filter(function (c) { return c.name; }),
             seasons: buildSeasonsFromItem(item, type)
         };
     }
@@ -263,6 +302,43 @@
         });
     }
 
+    var MD_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    /**
+     * Puntaje y seguidores de varias obras de MangaDex en un solo request
+     * (`/statistics/manga` acepta hasta 100 ids por llamada).
+     *
+     * `/manga` no devuelve nada de esto, asi que las obras servidas por
+     * MangaDex salian siempre con score null: en el catalogo quedaban con el
+     * puntaje vacio al lado de las de AniList, que si lo traen.
+     *
+     * Se usa el bayesiano y no el promedio crudo: el crudo le da 10 a una obra
+     * con tres votos y la pondria arriba de cualquier clasico.
+     *
+     * Vive aca (y no en js/core/mangadex-api.js) porque el catalogo lo necesita
+     * en paginas que no cargan ese archivo, como los carruseles del index.
+     */
+    async function fetchMangaDexStats(ids) {
+        var lista = (ids || []).filter(function (id) { return MD_UUID_RE.test(String(id || '')); });
+        if (!lista.length) return {};
+        var path = '/statistics/manga?' + lista.slice(0, 100).map(function (id) {
+            return 'manga[]=' + encodeURIComponent(id);
+        }).join('&');
+        var json = await mdFetch(path);
+        var stats = json?.statistics || {};
+        var out = {};
+        Object.keys(stats).forEach(function (id) {
+            var s = stats[id] || {};
+            var raw = s.rating?.bayesian ?? s.rating?.average;
+            var score = Number(raw);
+            out[id] = {
+                score: Number.isFinite(score) && score > 0 ? Math.round(score * 10) / 10 : null,
+                follows: Number(s.follows) || 0
+            };
+        });
+        return out;
+    }
+
     function mdItemToCard(data) {
         if (!data?.attributes) return null;
         var a = data.attributes;
@@ -314,7 +390,19 @@
         tagUuids.forEach(function (u) { params += '&includedTags[]=' + u; });
         try {
             var json = await mdFetch('/manga' + params);
-            return (json?.data || []).map(function (m) { return mdItemToCard(m); }).filter(Boolean);
+            var cards = (json?.data || []).map(function (m) { return mdItemToCard(m); }).filter(Boolean);
+
+            // Un request extra por pagina completa el puntaje de todas las cards
+            // de una. Es best-effort: si falla, quedan como estaban (sin score).
+            try {
+                var stats = await fetchMangaDexStats(cards.map(function (c) { return c.id; }));
+                cards.forEach(function (c) {
+                    var s = stats[c.id];
+                    if (s) { c.score = s.score; c.follows = s.follows; }
+                });
+            } catch (e) { console.warn('fetchMangaDexStats failed:', e); }
+
+            return cards;
         } catch (e) { console.warn('fetchMangaDexPage failed:', e); return []; }
     }
 
@@ -347,7 +435,11 @@
         return { genres: genres, tags: tags };
     }
 
-    function buildDynamicQuery(opts) {
+    // Partes sueltas de una consulta de catalogo: declaraciones de variables,
+    // argumentos de `media(...)` y campos a pedir. Se separo de
+    // buildDynamicQuery para poder meter varias consultas en un mismo POST
+    // (ver buildMultiPageQuery).
+    function buildQueryParts(opts) {
         var type = opts.type || 'ANIME';
         var isAnime = type === 'ANIME';
         var fields = isAnime
@@ -392,7 +484,37 @@
             mediaArgs.push('source: ' + opts.source);
         }
 
-        return 'query (' + varDecls.join(', ') + ') { Page(page: $page, perPage: $perPage) { media(' + mediaArgs.join(', ') + ') { ' + fields + ' } } }';
+        return { varDecls: varDecls, mediaArgs: mediaArgs, fields: fields };
+    }
+
+    function buildDynamicQuery(opts) {
+        var p = buildQueryParts(opts);
+        return 'query (' + p.varDecls.join(', ') + ') { Page(page: $page, perPage: $perPage) { media(' + p.mediaArgs.join(', ') + ') { ' + p.fields + ' } } }';
+    }
+
+    /**
+     * Varias consultas de catalogo en un solo POST, aliasando el `Page` de cada
+     * una (`jp: Page(...)`, `kr: Page(...)`, ...).
+     *
+     * AniList cobra por request, no por campo: tres Page aliasadas salen lo
+     * mismo que una sola. El catalogo de manga se armaba con tres requests
+     * paralelos y era, de lejos, lo que mas cuota gastaba de toda la app.
+     *
+     * Los bloques comparten $page y $perPage, y las declaraciones de variables
+     * se unifican (todos filtran por lo mismo; lo unico que cambia son los
+     * argumentos fijos: pais, formato, source).
+     */
+    function buildMultiPageQuery(bloques) {
+        var varDecls = [];
+        var cuerpo = bloques.map(function (b) {
+            var p = buildQueryParts(b.opts);
+            p.varDecls.forEach(function (v) {
+                if (varDecls.indexOf(v) === -1) varDecls.push(v);
+            });
+            return b.alias + ': Page(page: $page, perPage: $perPage) { media(' +
+                p.mediaArgs.join(', ') + ') { ' + p.fields + ' } }';
+        }).join(' ');
+        return 'query (' + varDecls.join(', ') + ') { ' + cuerpo + ' }';
     }
 
     // ─── Modos de descubrimiento del catálogo ───
@@ -426,6 +548,15 @@
                 nextAiringEpisode { airingAt timeUntilAiring episode }
                 streamingEpisodes { title thumbnail url site }
                 studios { nodes { name } }
+                bannerImage
+                trailer { id site }
+                characters(sort: [ROLE, RELEVANCE], perPage: 12) {
+                    edges {
+                        role
+                        node { id name { full } image { large } }
+                        voiceActors(language: JAPANESE, sort: [RELEVANCE]) { name { full } image { large } }
+                    }
+                }
                 relations {
                     edges {
                         relationType
@@ -437,6 +568,7 @@
                             format
                             season
                             seasonYear
+                            coverImage { large }
                             title { romaji english }
                         }
                     }
@@ -607,40 +739,30 @@
             if (split.genres.length) baseVars.genre_in = split.genres;
             if (split.tags.length) baseVars.tag_in = split.tags;
 
-            var qManga = buildDynamicQuery(Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'JP' }));
-            var qManhwa = buildDynamicQuery(Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'KR' }));
-            var qDoujin = buildDynamicQuery(Object.assign({}, baseOpts, { source: 'DOUJINSHI' }));
-
-            var pg = page || 1;
-            // allSettled y no all: las tres queries son independientes, pero con
-            // `all` un 429 en la de doujinshi (la menos importante de las tres)
-            // rechazaba el lote entero y el catalogo quedaba en "API no
-            // disponible" aunque manga y manhwa ya hubieran respondido bien.
-            var resultados = await Promise.allSettled([
-                anilistFetch(qManga, Object.assign({ page: pg, perPage: perPage }, baseVars)),
-                anilistFetch(qManhwa, Object.assign({ page: pg, perPage: perPage }, baseVars)),
-                // Sin reintentos (retries = 0). Cada 429 se reintenta 2 veces, o sea
-                // que una query que falla cuesta 3 requests y empuja el rate limit
-                // mas hondo. La de doujinshi es la que menos aporta al catalogo y
-                // desde el allSettled su fallo ya no rompe nada: no vale la pena
-                // gastarle cuota justo cuando la cuota es el problema.
-                anilistFetch(qDoujin, Object.assign({ page: pg, perPage: perPage }, baseVars), 0)
+            // Las tres consultas (manga JP, manhwa KR, doujinshi) van en un
+            // unico POST aliasado. Antes eran tres requests paralelos: el
+            // catalogo de manga costaba el triple de cuota que el de anime o el
+            // de novelas, y era lo que primero rompia el rate limit.
+            //
+            // Un solo request tampoco pierde la tolerancia a fallas parciales:
+            // si AniList devuelve error en uno de los tres alias, anilistFetch
+            // resuelve igual con los que si trajeron datos (ver el manejo de
+            // json.errors). Solo si no vino nada de nada propaga el error, para
+            // que el llamador pueda distinguir "la API se cayo" de "la busqueda
+            // no tuvo resultados".
+            var query = buildMultiPageQuery([
+                { alias: 'jp', opts: Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'JP' }) },
+                { alias: 'kr', opts: Object.assign({}, baseOpts, { formatIn: ['MANGA', 'ONE_SHOT'], countryOfOrigin: 'KR' }) },
+                { alias: 'dj', opts: Object.assign({}, baseOpts, { source: 'DOUJINSHI' }) }
             ]);
 
-            // Si fallaron las tres no hay nada parcial que rescatar: se propaga
-            // el error para que el llamador pueda distinguir "la API se cayo" de
-            // "la busqueda no tuvo resultados".
-            if (resultados.every(function (r) { return r.status === 'rejected'; })) {
-                throw resultados[0].reason;
-            }
+            var pg = page || 1;
+            var json = await anilistFetch(query, Object.assign({ page: pg, perPage: perPage }, baseVars));
 
-            function mediaDeResultado(r) {
-                return r.status === 'fulfilled' ? (r.value?.data?.Page?.media || []) : [];
-            }
-            var mediaManga = mediaDeResultado(resultados[0]);
-            var mediaManhwa = mediaDeResultado(resultados[1]);
-            var mediaDoujin = mediaDeResultado(resultados[2]);
-            
+            var mediaManga = json?.data?.jp?.media || [];
+            var mediaManhwa = json?.data?.kr?.media || [];
+            var mediaDoujin = json?.data?.dj?.media || [];
+
             var media = [];
             var seenIds = new Set();
             var maxLen = Math.max(mediaManga.length, mediaManhwa.length, mediaDoujin.length);
@@ -829,6 +951,7 @@
     // manejo de errores). Se expone la del bundle para no mantener dos.
     window.mdFetch = mdFetch;
     window.fetchMangaDexPage = fetchMangaDexPage;
+    window.fetchMangaDexStats = fetchMangaDexStats;
     window.mergeAnilistAndMd = mergeAnilistAndMd;
 
     window.buscarNovelasEnApi = async function (query) {

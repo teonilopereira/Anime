@@ -205,6 +205,7 @@ for (const { entry, to, format } of VENDOR_BUNDLES) {
         ...JS_SOURCES,
         'js/pages/script.js',
         'js/detalle/render.js',
+        'js/detalle/themes.js',
     ];
 
     const usados = new Set();

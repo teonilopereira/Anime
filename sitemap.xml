@@ -29,6 +29,10 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://animedestiny.netlify.app/ranking.html</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://animedestiny.netlify.app/terminos.html</loc>
     <priority>0.6</priority>
   </url>

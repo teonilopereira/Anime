@@ -546,7 +546,8 @@ GRANT EXECUTE ON FUNCTION public.save_item_state_v2 TO authenticated;
 -- ────────────────────────────────────────────────────────────────
 -- get_ranking_profiles() — Ranking seguro para todos los usuarios
 --    SECURITY DEFINER: bypasea RLS para devolver solo campos
---    públicos (id, username, display_name, photo_url, level, exp).
+--    públicos (id, username, display_name, photo_url, level, exp,
+--    apodo).
 --    Reemplaza el SELECT directo sobre profiles_public que
 --    exponía todas las columnas via USING(true) policy.
 -- ────────────────────────────────────────────────────────────────
@@ -559,7 +560,8 @@ CREATE OR REPLACE FUNCTION public.get_ranking_profiles(
     display_name TEXT,
     photo_url    TEXT,
     level        INT,
-    exp          INT
+    exp          INT,
+    apodo        TEXT
 ) LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public AS $$
 BEGIN
@@ -570,7 +572,8 @@ BEGIN
         p.display_name,
         p.photo_url,
         p.level,
-        p.exp
+        p.exp,
+        p.apodo
     FROM public.profiles p
     ORDER BY p.level DESC, p.exp DESC, p.total_likes DESC
     LIMIT p_limit OFFSET p_offset;

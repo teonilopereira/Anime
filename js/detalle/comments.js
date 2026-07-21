@@ -24,6 +24,14 @@
     var _cachedRefInfo = null;
     var _cachedCurrentUser = null;
 
+    // Si la persona lleva progreso en esta obra, los comentarios de más
+    // adelante se tapan solos. Se recalcula en cada renderAll().
+    var _sigueLaObra = false;
+
+    // Spoilers que el usuario ya destapó a mano en esta visita: sin esto, un
+    // renderAll() (comentar, filtrar, borrar) los volvía a tapar todos.
+    var _revelados = new Set();
+
     // ─── Helpers ──────────────────────────────────────────────────
     function esc(str) {
         return window.escapeHtml ? window.escapeHtml(String(str || "")) : String(str || "");
@@ -128,6 +136,71 @@
         return type + ' ' + number;
     }
 
+    // ─── Spoilers ─────────────────────────────────────────────────
+    /**
+     * Clave de progreso del episodio/volumen `refNumber`.
+     *
+     * `refNumber` es GLOBAL (el ep. 3 de la 2da temporada puede ser el 15), pero
+     * el progreso se guarda por temporada: hay que ubicar el grupo y volver al
+     * número local. Los grupos de getItemRefInfo() vienen en orden de temporada,
+     * así que el índice del grupo es el índice de temporada de la clave.
+     */
+    function claveProgreso(refType, refNumber) {
+        var refInfo = getItemRefInfo();
+        if (!refInfo || !refNumber) return null;
+        if (typeof getCurrentUserIdSafe !== 'function') return null;
+
+        var userId = getCurrentUserIdSafe();
+        if (!userId) return null;
+
+        for (var i = 0; i < refInfo.groups.length; i++) {
+            var g = refInfo.groups[i];
+            if (refNumber < g.start || refNumber > g.end) continue;
+            if (g.type === REF_TYPES.EPISODE) {
+                if (typeof episodeStorageKey !== 'function') return null;
+                return episodeStorageKey(userId, _itemId, i, refNumber - g.start + 1);
+            }
+            if (typeof volumeStorageKey !== 'function') return null;
+            return volumeStorageKey(userId, _itemId, refNumber, _category);
+        }
+        return null;
+    }
+
+    function estaVisto(refType, refNumber) {
+        var key = claveProgreso(refType, refNumber);
+        return !!(key && window.UserStore && UserStore.getItem(key));
+    }
+
+    /**
+     * ¿La persona está siguiendo esta obra? Se recalcula por render.
+     *
+     * De esto depende el tapado automático, y es a propósito: si alguien no
+     * marcó nada, no sabemos por dónde va, y tapar TODOS los comentarios con
+     * referencia deja la sección pareciendo rota. Sin progreso solo aplica la
+     * marca manual; con progreso, además se tapa lo que está más adelante.
+     *
+     * UserStore es un Map en memoria, así que recorrer los episodios es barato
+     * incluso en una obra de mil capítulos.
+     */
+    function calcularSigueLaObra() {
+        var refInfo = getItemRefInfo();
+        if (!refInfo) return false;
+        for (var i = 0; i < refInfo.groups.length; i++) {
+            var g = refInfo.groups[i];
+            for (var n = g.start; n <= g.end; n++) {
+                if (estaVisto(g.type, n)) return true;
+            }
+        }
+        return false;
+    }
+
+    function esSpoiler(comment) {
+        if (comment.spoiler) return true;
+        if (!_sigueLaObra) return false;
+        if (!comment.ref_type || !comment.ref_number) return false;
+        return !estaVisto(comment.ref_type, comment.ref_number);
+    }
+
     function buildRefCounts() {
         _refCounts = {};
         _allComments.forEach(function (c) {
@@ -160,6 +233,10 @@
     function renderAll() {
         if (!_container) return;
         _cachedCurrentUser = getCurrentUser();
+        // Se recalcula acá y no en load() porque el progreso puede cambiar
+        // mientras la ficha está abierta: marcás el ep. 25 y al comentar los
+        // comentarios de ese episodio ya se destapan solos.
+        _sigueLaObra = calcularSigueLaObra();
 
         var html = '<div class="comments-header">' +
             '<h3 class="comments-title">Comentarios</h3>' +
@@ -230,15 +307,28 @@
             }
         }
 
+        // El cuerpo se tapa, pero el encabezado (autor, "Ep. 25", fecha) queda a
+        // la vista: es lo que deja decidir si destapar sin arruinar nada.
+        var tapado = esSpoiler(comment) && !_revelados.has(comment.id);
+        var bodyHtml = tapado
+            ? '<div class="comment-body is-spoiler">' +
+                  '<span class="comment-spoiler-text">' + body + '</span>' +
+                  '<button type="button" class="comment-spoiler-reveal" data-action="reveal" data-comment-id="' + esc(comment.id) + '">' +
+                      'Mostrar spoiler' +
+                  '</button>' +
+              '</div>'
+            : '<div class="comment-body">' + body + '</div>';
+
         var html = '<div class="comment-card" data-comment-id="' + esc(comment.id) + '" data-depth="' + depth + '">' +
             '<div class="comment-header">' +
                 avatarHtml +
                 '<span class="comment-author">' + name + '</span>' +
                 refTag +
+                (comment.spoiler ? '<span class="comment-spoiler-tag">Spoiler</span>' : '') +
                 '<span class="comment-date">' + date + '</span>' +
                 (wasEdited ? '<span class="comment-edited">(editado)</span>' : '') +
             '</div>' +
-            '<div class="comment-body">' + body + '</div>' +
+            bodyHtml +
             '<div class="comment-actions">';
 
         if (isSignedIn()) {
@@ -268,53 +358,92 @@
         return html;
     }
 
-    function buildRefSquaresHtml(parentRef) {
+    // "episode:12" ↔ { type: 'episode', number: 12 }. Cadena vacía = general.
+    function parseRefValue(value) {
+        var parts = String(value || '').split(':');
+        if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+        var num = Number(parts[1]);
+        return num > 0 ? { type: parts[0], number: num } : null;
+    }
+
+    function refValue(ref) {
+        return ref ? (ref.type + ':' + ref.number) : '';
+    }
+
+    /**
+     * Selector de referencia, en un <select> nativo.
+     *
+     * Antes esto era una grilla con un botón por episodio: en One Piece son más
+     * de mil botones apilados ARRIBA del textarea, así que para escribir un
+     * comentario suelto había que scrollear la grilla entera. El select ocupa
+     * un renglón, el sistema operativo lo resuelve con su propia lista (con
+     * búsqueda por teclado) y en el celular abre la rueda nativa.
+     */
+    function buildRefSelectHtml(seleccion) {
         var refInfo = getItemRefInfo();
         if (!refInfo) return '';
 
-        var selectedType = parentRef ? parentRef.type : (_activeRef ? _activeRef.type : null);
-        var selectedNum  = parentRef ? parentRef.number : (_activeRef ? _activeRef.number : null);
-
-        var html = '<div class="comment-ref-section">';
-        html += '<div class="comment-ref-label">Referencia:</div>';
-        html += '<div class="comment-ref-options">';
-
-        var generalActive = (!selectedType && !selectedNum) ? ' is-selected' : '';
-        html += '<button type="button" class="comment-ref-general' + generalActive + '" data-ref-action="general">General</button>';
+        var elegido = refValue(seleccion);
+        var html = '<label class="comment-ref-picker">' +
+            '<span class="comment-ref-picker-label">Sobre</span>' +
+            '<select class="comment-ref-select">' +
+            '<option value=""' + (elegido ? '' : ' selected') + '>Toda la obra</option>';
 
         refInfo.groups.forEach(function (group) {
-            html += '<div class="comment-ref-group">';
-            if (refInfo.groups.length > 1) {
-                html += '<span class="comment-ref-group-label">' + esc(group.label) + '</span>';
-            }
-            html += '<div class="comment-ref-squares">';
+            var conGrupos = refInfo.groups.length > 1;
+            if (conGrupos) html += '<optgroup label="' + esc(group.label) + '">';
             for (var n = group.start; n <= group.end; n++) {
-                var isSelected = (group.type === selectedType && n === selectedNum);
-                var cls = 'comment-ref-sq cuadrado-item' + (isSelected ? ' is-selected' : '');
-                html += '<button type="button" class="' + cls + '" data-ref-action="select" data-ref-type="' + esc(group.type) + '" data-ref-number="' + n + '">' +
-                    String(n).padStart(2, '0') +
-                    '</button>';
+                var val = group.type + ':' + n;
+                html += '<option value="' + esc(val) + '"' + (val === elegido ? ' selected' : '') + '>' +
+                    esc(refLabel(group.type, n)) +
+                    '</option>';
             }
-            html += '</div>';
-            html += '</div>';
+            if (conGrupos) html += '</optgroup>';
         });
 
-        html += '</div>';
-        html += '</div>';
+        html += '</select></label>';
         return html;
     }
 
+    /**
+     * El textarea va PRIMERO: escribir es la acción principal y el resto
+     * (referencia, contador, botón) es un solo renglón debajo.
+     *
+     * Las respuestas no llevan selector: heredan la referencia del comentario
+     * padre, que es lo único que tiene sentido. Va en data-ref-* del form.
+     */
     function buildFormHtml(parentId, parentRef) {
-        var placeholder = parentId ? "Escribí tu respuesta..." : "Escribí un comentario...";
+        var placeholder = parentId ? "Escribí tu respuesta…" : "Escribí un comentario…";
         var idAttr = parentId ? ' data-parent-id="' + esc(parentId) + '"' : '';
-        var refSquares = isSignedIn() ? buildRefSquaresHtml(parentRef) : '';
 
-        return '<div class="comment-form"' + idAttr + '>' +
-            refSquares +
-            '<textarea class="comment-input" maxlength="' + MAX_LENGTH + '" placeholder="' + placeholder + '" rows="3"></textarea>' +
+        var refAttrs = '';
+        var picker = '';
+        if (parentId) {
+            if (parentRef) {
+                refAttrs = ' data-ref-type="' + esc(parentRef.type) + '" data-ref-number="' + esc(parentRef.number) + '"';
+            }
+        } else {
+            // Si hay un filtro activo, el comentario nuevo arranca apuntando
+            // ahí: es lo que la persona está mirando. Sin filtro se repite la
+            // última referencia elegida.
+            var porDefecto;
+            if (_activeFilter === 'general') porDefecto = null;
+            else if (_activeFilter) porDefecto = parseRefValue(_activeFilter);
+            else porDefecto = _activeRef;
+            picker = buildRefSelectHtml(porDefecto);
+        }
+
+        return '<div class="comment-form"' + idAttr + refAttrs + '>' +
+            '<textarea class="comment-input" maxlength="' + MAX_LENGTH + '" placeholder="' + placeholder + '" rows="2"></textarea>' +
             '<div class="comment-form-footer">' +
-                '<span class="comment-char-count">0 / ' + MAX_LENGTH + '</span>' +
-                '<button class="comment-submit-btn" data-action="submit"' + idAttr + '>Enviar</button>' +
+                picker +
+                '<label class="comment-spoiler-check">' +
+                    '<input type="checkbox" class="comment-spoiler-input"> Spoiler' +
+                '</label>' +
+                '<span class="comment-char-count" hidden></span>' +
+                '<button class="comment-submit-btn" data-action="submit"' + idAttr + '>' +
+                    (parentId ? 'Responder' : 'Comentar') +
+                '</button>' +
             '</div>' +
             '</div>';
     }
@@ -364,26 +493,16 @@
                     confirmDelete(commentId);
                 } else if (action === "submit") {
                     handleSubmit(btn);
+                } else if (action === "reveal") {
+                    _revelados.add(commentId);
+                    var card = _container.querySelector('.comment-card[data-comment-id="' + commentId + '"]');
+                    var tapa = card && card.querySelector(".comment-body.is-spoiler");
+                    if (tapa) tapa.classList.remove("is-spoiler");
                 } else if (action === "cancel-edit") {
                     renderAll();
                 } else if (action === "cancel-reply") {
                     var form = _container.querySelector('[data-reply-to="' + commentId + '"]');
                     if (form) form.innerHTML = "";
-                }
-                return;
-            }
-
-            var refBtn = e.target.closest("[data-ref-action]");
-            if (refBtn) {
-                var refAction = refBtn.getAttribute("data-ref-action");
-                if (refAction === "general") {
-                    _activeRef = null;
-                    _updateRefSelection(null, null);
-                } else if (refAction === "select") {
-                    var refType = refBtn.getAttribute("data-ref-type");
-                    var refNum = Number(refBtn.getAttribute("data-ref-number"));
-                    _activeRef = { type: refType, number: refNum };
-                    _updateRefSelection(refType, refNum);
                 }
                 return;
             }
@@ -398,11 +517,30 @@
         });
 
         _container.addEventListener("input", function (e) {
-            if (e.target.classList.contains("comment-input")) {
-                var counter = e.target.closest(".comment-form").querySelector(".comment-char-count");
-                if (counter) {
-                    counter.textContent = e.target.value.length + " / " + MAX_LENGTH;
-                }
+            if (!e.target.classList.contains("comment-input")) return;
+            autoGrow(e.target);
+            updateCounter(e.target);
+        });
+
+        // Recordar la referencia elegida para el próximo comentario: cuando
+        // alguien comenta el Ep. 5, casi siempre el que sigue también es del 5.
+        _container.addEventListener("change", function (e) {
+            if (e.target.classList.contains("comment-ref-select")) {
+                _activeRef = parseRefValue(e.target.value);
+            }
+        });
+
+        // Ctrl/Cmd+Enter envía, que es lo que espera cualquiera que escriba en
+        // una caja de texto de internet. Enter solo sigue haciendo salto de
+        // línea: un comentario de varios párrafos no se puede mandar sin querer.
+        _container.addEventListener("keydown", function (e) {
+            if (!e.target.classList.contains("comment-input")) return;
+            if (e.key !== "Enter" || !(e.ctrlKey || e.metaKey)) return;
+            var scope = e.target.closest(".comment-form") || e.target.closest(".comment-body");
+            var btn = scope && scope.querySelector('[data-action="submit"], [data-action="save-edit"]');
+            if (btn && !btn.disabled) {
+                e.preventDefault();
+                btn.click();
             }
         });
 
@@ -420,18 +558,28 @@
         }
     }
 
-    function _updateRefSelection(type, number) {
-        if (!_container) return;
-        _container.querySelectorAll(".comment-ref-general, .comment-ref-sq").forEach(function (el) {
-            el.classList.remove("is-selected");
-        });
-        if (!type && !number) {
-            var genBtn = _container.querySelector(".comment-ref-general");
-            if (genBtn) genBtn.classList.add("is-selected");
-        } else {
-            var sel = _container.querySelector('.comment-ref-sq[data-ref-type="' + type + '"][data-ref-number="' + number + '"]');
-            if (sel) sel.classList.add("is-selected");
+    // El textarea arranca en 2 renglones y crece con lo que se escribe, para no
+    // tener que redimensionarlo a mano. El tope lo pone el max-height del CSS,
+    // que a partir de ahí deja scrollear adentro.
+    function autoGrow(textarea) {
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+    }
+
+    // El contador aparece recién cerca del límite. Mostrar "0 / 2000" desde el
+    // primer momento es ruido: nadie se acerca a 2000 caracteres.
+    function updateCounter(textarea) {
+        var scope = textarea.closest(".comment-form") || textarea.closest(".comment-body");
+        var counter = scope && scope.querySelector(".comment-char-count");
+        if (!counter) return;
+        var restantes = MAX_LENGTH - textarea.value.length;
+        if (restantes > 100) {
+            counter.hidden = true;
+            return;
         }
+        counter.hidden = false;
+        counter.textContent = restantes + " restantes";
+        counter.classList.toggle("is-limit", restantes <= 0);
     }
 
     function toggleReplyForm(commentId) {
@@ -450,27 +598,6 @@
             formContainer.innerHTML = buildFormHtml(commentId, parentRef);
             var textarea = formContainer.querySelector(".comment-input");
             if (textarea) textarea.focus();
-
-            if (!formContainer._refBound) {
-                formContainer._refBound = true;
-                formContainer.addEventListener("click", function (e) {
-                    var refBtn = e.target.closest("[data-ref-action]");
-                    if (!refBtn) return;
-                    var refAction = refBtn.getAttribute("data-ref-action");
-                    if (refAction === "general") {
-                        formContainer.querySelectorAll(".comment-ref-general, .comment-ref-sq").forEach(function (el) {
-                            el.classList.remove("is-selected");
-                        });
-                        var genBtn = formContainer.querySelector(".comment-ref-general");
-                        if (genBtn) genBtn.classList.add("is-selected");
-                    } else if (refAction === "select") {
-                        formContainer.querySelectorAll(".comment-ref-general, .comment-ref-sq").forEach(function (el) {
-                            el.classList.remove("is-selected");
-                        });
-                        refBtn.classList.add("is-selected");
-                    }
-                });
-            }
         }
     }
 
@@ -485,15 +612,22 @@
         if (!bodyEl) return;
 
         var originalText = comment.body;
-        bodyEl.innerHTML = '<textarea class="comment-input comment-edit-input" maxlength="' + MAX_LENGTH + '" rows="3">' + esc(originalText) + '</textarea>' +
+        bodyEl.innerHTML = '<textarea class="comment-input comment-edit-input" maxlength="' + MAX_LENGTH + '" rows="2">' + esc(originalText) + '</textarea>' +
             '<div class="comment-form-footer">' +
-                '<span class="comment-char-count">' + originalText.length + ' / ' + MAX_LENGTH + '</span>' +
-                '<button class="comment-submit-btn" data-action="save-edit" data-comment-id="' + esc(commentId) + '">Guardar</button>' +
+                '<span class="comment-char-count" hidden></span>' +
                 '<button class="comment-action-btn" data-action="cancel-edit" data-comment-id="' + esc(commentId) + '">Cancelar</button>' +
+                '<button class="comment-submit-btn" data-action="save-edit" data-comment-id="' + esc(commentId) + '">Guardar</button>' +
             '</div>';
 
         var textarea = bodyEl.querySelector(".comment-edit-input");
-        if (textarea) textarea.focus();
+        if (textarea) {
+            autoGrow(textarea);
+            updateCounter(textarea);
+            textarea.focus();
+            // El cursor al final, no al principio: se entra a editar para
+            // agregar o corregir algo, no para reescribir desde cero.
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }
 
         var saveBtn = bodyEl.querySelector('[data-action="save-edit"]');
         if (saveBtn) {
@@ -509,10 +643,6 @@
             });
         }
 
-        textarea.addEventListener("input", function () {
-            var counter = bodyEl.querySelector(".comment-char-count");
-            if (counter) counter.textContent = textarea.value.length + " / " + MAX_LENGTH;
-        });
     }
 
     function confirmDelete(commentId) {
@@ -542,24 +672,37 @@
             return;
         }
 
+        // En el form de arriba manda el select; en una respuesta, la referencia
+        // que quedó heredada del comentario padre.
         var ref = null;
-        var selectedSq = form.querySelector(".comment-ref-sq.is-selected");
-        if (selectedSq) {
-            ref = { type: selectedSq.getAttribute("data-ref-type"), number: Number(selectedSq.getAttribute("data-ref-number")) };
-        } else if (!parentId) {
-            ref = _activeRef;
+        var select = form.querySelector(".comment-ref-select");
+        if (select) {
+            ref = parseRefValue(select.value);
+        } else if (form.getAttribute("data-ref-type")) {
+            ref = {
+                type: form.getAttribute("data-ref-type"),
+                number: Number(form.getAttribute("data-ref-number"))
+            };
         }
 
+        var textoOriginal = btn.textContent;
         btn.disabled = true;
-        btn.textContent = "Enviando...";
+        btn.textContent = "Enviando…";
 
         try {
+            var spoilerInput = form.querySelector(".comment-spoiler-input");
+            var esSpoilerNuevo = !!(spoilerInput && spoilerInput.checked);
+
             var newComment = await window.AppSupabase.addComment(
                 _category, _itemId, body, parentId,
                 ref ? ref.type : null,
-                ref ? ref.number : null
+                ref ? ref.number : null,
+                esSpoilerNuevo
             );
             _lastSubmit = Date.now();
+
+            // Lo que uno mismo acaba de escribir no se tapa: ya lo sabe.
+            _revelados.add(newComment.id);
 
             _allComments.unshift(newComment);
             buildRefCounts();
@@ -581,7 +724,7 @@
             showToast(err.message || "No se pudo enviar el comentario.", "error");
         } finally {
             btn.disabled = false;
-            btn.textContent = "Enviar";
+            btn.textContent = textoOriginal;
         }
     }
 
@@ -644,6 +787,7 @@
             _activeRef = null;
             _activeFilter = null;
             _cachedRefInfo = null;
+            _revelados.clear();
             buildRefCounts();
             renderAll();
         } catch (err) {

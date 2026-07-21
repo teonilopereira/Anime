@@ -1651,12 +1651,12 @@ input, select, textarea, button {
         font-size: 1.15rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search {
+    .mobile-bottom-nav .bottom-tab-more {
         min-width: 46px;
         font-size: 0.56rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+    .mobile-bottom-nav .bottom-tab-more .bottom-tab-icon {
         font-size: 1.15rem;
     }
 }
@@ -1675,12 +1675,12 @@ input, select, textarea, button {
         font-size: 1.05rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search {
+    .mobile-bottom-nav .bottom-tab-more {
         min-width: 42px;
         font-size: 0.52rem;
     }
 
-    .mobile-bottom-nav .bottom-tab-search .bottom-tab-icon {
+    .mobile-bottom-nav .bottom-tab-more .bottom-tab-icon {
         font-size: 1.05rem;
     }
 }
