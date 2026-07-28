@@ -214,6 +214,75 @@
         window.__navMoreClose = () => abrir(false);
     };
 
+    /**
+     * Retraer la navbar al bajar y devolverla al subir.
+     *
+     * La barra mide 76px y esta sticky: en una ficha larga o en el catalogo se
+     * come esa franja de pantalla todo el tiempo. Ahora se esconde cuando el
+     * lector va hacia abajo y vuelve apenas hace el gesto de subir, que es
+     * cuando la va a necesitar.
+     *
+     * `is-scrolled` (compactar el padding) ya estaba escrita en el CSS pero
+     * nadie la encendia: la barra se veia siempre igual de alta.
+     *
+     * Solo en desktop: por debajo de 700px la navbar de arriba ya vive fuera de
+     * pantalla y la maneja el boton "Mas" del bottom nav, asi que meterle un
+     * translate por scroll la dejaria peleando consigo misma.
+     */
+    const wireNavAutoHide = () => {
+        const nav = document.querySelector('.destiny-navbar');
+        if (!nav) return;
+
+        const esMobile = () => window.matchMedia('(max-width: 700px)').matches;
+
+        // Umbral de arranque: por debajo de esto la barra no se esconde nunca.
+        // Sin el, el rebote elastico del final de la pagina o un scroll de dos
+        // pixeles ya la hacian parpadear.
+        const INICIO = 120;
+        const MINIMO_GESTO = 8;
+
+        let ultimo = window.scrollY;
+        let pendiente = false;
+
+        const evaluar = () => {
+            pendiente = false;
+            const y = Math.max(0, window.scrollY);
+            const delta = y - ultimo;
+
+            if (esMobile()) {
+                nav.classList.remove('is-hidden', 'is-scrolled');
+                ultimo = y;
+                return;
+            }
+
+            nav.classList.toggle('is-scrolled', y > 10);
+
+            if (Math.abs(delta) < MINIMO_GESTO) return;
+
+            // Con el desplegable abierto no se retrae: se lo estaria llevando
+            // puesto justo cuando el mouse va bajando hacia sus items.
+            const menuAbierto = nav.querySelector('.nav-more.is-open');
+            const bajando = delta > 0 && y > INICIO && !menuAbierto;
+            nav.classList.toggle('is-hidden', bajando);
+
+            ultimo = y;
+        };
+
+        // El handler corre en cada frame como mucho: el evento de scroll se
+        // dispara muchisimo mas seguido que eso y no hace falta.
+        window.addEventListener('scroll', () => {
+            if (pendiente) return;
+            pendiente = true;
+            requestAnimationFrame(evaluar);
+        }, { passive: true });
+
+        // Con el teclado el foco puede caer en un item tapado por la barra
+        // retraida; si el foco entra a la navbar, se muestra.
+        nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
+
+        evaluar();
+    };
+
     // ── MOBILE BOTTOM NAV ──
     const injectMobileBottomNav = () => {
         if (document.querySelector('.mobile-bottom-nav')) return;
@@ -581,6 +650,7 @@
     injectNavBrand();
     injectNavToggle();
     injectNavLinks();
+    wireNavAutoHide();
     injectMobileBottomNav();
     injectLoginButton();
     injectFooter();
