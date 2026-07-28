@@ -38,8 +38,56 @@
     backdrop-filter: blur(14px);
 }
 
+/* Al bajar la barra se retrae hacia arriba y vuelve apenas se sube (lo maneja
+   wireNavAutoHide en js/core/common-ui.js). Se translada el 100% del alto mas
+   el margen de la sombra, para que no quede asomando una linea. */
+.destiny-navbar {
+    transition: transform 0.28s ease, min-height 0.2s ease, padding 0.2s ease;
+    will-change: transform;
+}
+
+.destiny-navbar.is-hidden {
+    transform: translateY(calc(-100% - 20px));
+}
+
 .destiny-navbar.is-scrolled {
     padding: 0 22px;
+}
+
+/* Compacta al despegarse de la cabecera: gana altura de lectura sin que la
+   barra desaparezca del todo. Solo en el layout de tres columnas: mas abajo la
+   barra se apila y bajarle el alto la deja apretada. */
+@media (min-width: 1181px) {
+    .destiny-navbar.is-scrolled {
+        min-height: 62px;
+    }
+
+    /* `.nav-btn.active` tiene la misma especificidad y esta definido mas
+       abajo, asi que sin nombrarlo aca el item de la pagina actual se quedaba
+       en 60px dentro de una fila de 50 y sobresalia. */
+    .destiny-navbar.is-scrolled .nav-links,
+    .destiny-navbar.is-scrolled .nav-btn,
+    .destiny-navbar.is-scrolled .nav-btn.active {
+        min-height: 50px;
+    }
+
+    .destiny-navbar.is-scrolled .nav-brand-mark {
+        width: 48px;
+        height: 40px;
+    }
+
+    .destiny-navbar.is-scrolled .nav-brand-jp {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .destiny-navbar {
+        transition: none;
+    }
+}
+body.reduce-motion .destiny-navbar {
+    transition: none;
 }
 
 .destiny-navbar::before,
