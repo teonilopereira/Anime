@@ -86,25 +86,6 @@
 </a>`;
     };
 
-    // ── NAV TOGGLE (Hamburger) ──
-    const injectNavToggle = () => {
-        const nav = document.querySelector('.destiny-navbar');
-        if (!nav || nav.querySelector('.nav-toggle')) return;
-
-        const toggle = document.createElement('button');
-        toggle.className = 'nav-toggle';
-        toggle.setAttribute('aria-label', 'Menú de navegación');
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.innerHTML = '<span class="nav-toggle-icon" aria-hidden="true"></span><span class="nav-toggle-text">Menú</span>';
-
-        toggle.addEventListener('click', () => {
-            const isOpen = nav.classList.toggle('is-open');
-            toggle.setAttribute('aria-expanded', String(isOpen));
-        });
-
-        nav.insertBefore(toggle, document.getElementById('nav-links-container'));
-    };
-
     // ── NAV LINKS ──
     const injectNavLinks = () => {
         const el = document.getElementById("nav-links-container");
@@ -130,10 +111,19 @@
 </a>`;
         }
 
+        // Saliendo de un catálogo (anime/manga/novelas) hacia una página del
+        // "Más", se guarda la posición del scroll para devolverla al volver.
+        // Solo ahí tiene sentido: es donde vive rememberCatalogPosition y donde
+        // hay una lista larga que perder. data-remember-catalog guarda la
+        // posición al click; data-restore-catalog pide restaurarla al volver
+        // (ambos los maneja installSecurityHandlers + restoreCatalogPosition).
+        const enCatalogo = archivo === "anime" || archivo === "manga" || archivo === "novelas";
+        const detourAttrs = enCatalogo ? ' data-remember-catalog="1" data-restore-catalog="1"' : '';
+
         const itemsMas = NAV_SECUNDARIOS.map((l) => {
             const current = l.id === secundarioActivo ? ' aria-current="page"' : '';
             const cls = l.id === secundarioActivo ? ' is-active' : '';
-            return `<a href="${l.href}" class="nav-more-item${cls}"${current}>
+            return `<a href="${l.href}" class="nav-more-item${cls}"${current}${detourAttrs}>
 <span class="nav-more-icon" aria-hidden="true"><i data-lucide="${l.icon}"></i></span><span data-i18n="${l.i18n}">${t(l.i18n, l.def)}</span>
 </a>`;
         }).join("");
@@ -157,44 +147,20 @@
         const menu = wrap.querySelector(".nav-more-menu");
         if (!btn || !menu) return;
 
-        let cierreDiferido = null;
-        const cancelarCierre = () => {
-            if (cierreDiferido) {
-                clearTimeout(cierreDiferido);
-                cierreDiferido = null;
-            }
-        };
-
         const abrir = (estado) => {
-            cancelarCierre();
             menu.hidden = !estado;
             wrap.classList.toggle("is-open", estado);
             btn.setAttribute("aria-expanded", String(estado));
         };
 
+        // Solo por click. Antes tambien abria con hover, y como el panel esta
+        // pegado a "Más", con solo rozar el boton se desplegaba y quedaba
+        // tapando el contenido de abajo sin que nadie lo pidiera. Ahora se abre
+        // al tocarlo y se contrae al volver a tocarlo (o al clickear afuera, con
+        // Escape, o al scrollear).
         btn.addEventListener("click", (e) => {
             e.stopPropagation();
             abrir(menu.hidden);
-        });
-
-        // Con el mouse encima alcanza: pedir un click para ver cuatro destinos
-        // hacia que el desplegable se sintiera escondido y no rapido.
-        //
-        // Solo para el mouse (pointerType): en tactil el primer toque emula un
-        // hover, asi que el menu se abriria sin que nadie se lo pida, y en los
-        // hibridos (notebook con pantalla tactil) el puntero fino existe igual.
-        wrap.addEventListener("pointerenter", (e) => {
-            if (e.pointerType !== "mouse") return;
-            abrir(true);
-        });
-
-        // Un respiro antes de cerrar: entre el borde del boton y el del panel
-        // hay unos pixeles muertos, y sin la espera el menu se cierra justo
-        // cuando el mouse los esta cruzando.
-        wrap.addEventListener("pointerleave", (e) => {
-            if (e.pointerType !== "mouse") return;
-            cancelarCierre();
-            cierreDiferido = setTimeout(() => abrir(false), 180);
         });
 
         // Cerrar al clickear afuera o con Escape: sin esto el panel queda
@@ -259,10 +225,14 @@
 
             if (Math.abs(delta) < MINIMO_GESTO) return;
 
-            // Con el desplegable abierto no se retrae: se lo estaria llevando
-            // puesto justo cuando el mouse va bajando hacia sus items.
-            const menuAbierto = nav.querySelector('.nav-more.is-open');
-            const bajando = delta > 0 && y > INICIO && !menuAbierto;
+            // El desplegable "Más" abierto tapa el contenido de abajo. Al hacer
+            // scroll se cierra: asi deja de cubrir lo que se esta leyendo y la
+            // barra puede retraerse sin arrastrarlo puesto.
+            if (nav.querySelector('.nav-more.is-open') && typeof window.__navMoreClose === 'function') {
+                window.__navMoreClose();
+            }
+
+            const bajando = delta > 0 && y > INICIO;
             nav.classList.toggle('is-hidden', bajando);
 
             ultimo = y;
@@ -604,6 +574,12 @@
                 if (typeof window.rememberCatalogPosition === 'function') {
                     window.rememberCatalogPosition();
                 }
+                // Los items del "Más" desde un catálogo llevan ambos data-attrs:
+                // como este `return` corta la rama de restore de más abajo, se
+                // marca acá que al volver al catálogo hay que restaurar.
+                if (rememberLink.getAttribute('data-restore-catalog') === '1') {
+                    try { sessionStorage.setItem('shouldRestoreCatalog', '1'); } catch (_) {}
+                }
                 return;
             }
 
@@ -648,7 +624,6 @@
     };
     ensureMainTarget();
     injectNavBrand();
-    injectNavToggle();
     injectNavLinks();
     wireNavAutoHide();
     injectMobileBottomNav();
