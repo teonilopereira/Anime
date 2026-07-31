@@ -325,6 +325,23 @@ for (const file of htmlFiles) {
         }
     }
 
+    // ── Resource hints (performance) ──
+    // Preconecta / resuelve DNS de las APIs e imagenes externas mas usadas para
+    // acelerar el primer request (sobre todo en movil). Se re-inyectan en cada
+    // build (idempotente) identificandolos por el atributo data-perf-hint.
+    const RESOURCE_HINTS = [
+        '<link rel="preconnect" href="https://graphql.anilist.co" crossorigin data-perf-hint>',
+        '<link rel="preconnect" href="https://api.mangadex.org" crossorigin data-perf-hint>',
+        '<link rel="dns-prefetch" href="https://uploads.mangadex.org" data-perf-hint>',
+        '<link rel="dns-prefetch" href="https://api.jikan.moe" data-perf-hint>',
+        '<link rel="dns-prefetch" href="https://s4.anilist.co" data-perf-hint>',
+    ];
+    src = src.replace(/\s*<link [^>]*\bdata-perf-hint\b[^>]*>/g, '');
+    src = src.replace(
+        /(\s*)<\/head>/,
+        RESOURCE_HINTS.map((h) => `$1    ${h}`).join('') + '$1</head>',
+    );
+
     // ── Verificacion de Search Console ──
     // Se borra y se re-inyecta en cada build (igual que la analitica): asi el
     // tag no se duplica al reconstruir y vaciar la constante lo saca de todos
