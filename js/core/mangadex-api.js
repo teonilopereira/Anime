@@ -38,8 +38,9 @@
      * Ahora se usa la del bundle, que siempre esta cargada antes que este
      * script. El fallback local queda por si alguien carga este archivo suelto.
      */
-    function mdFetch(path) {
+    function mdFetch(path, retries) {
         if (typeof window.mdFetch === 'function') return window.mdFetch(path);
+        if (retries === undefined) retries = 2;
 
         return new Promise(function (resolve, reject) {
             var controller = new AbortController();
@@ -55,12 +56,29 @@
             }).then(function (res) {
                 clearTimeout(timer);
                 if (!res.ok) {
+                    // MangaDex tambien hace rate-limit (429): reintentar con
+                    // backoff, respetando Retry-After, igual que anilistFetch.
+                    if (res.status === 429 && retries > 0) {
+                        var retryAfter = res.headers.get('Retry-After');
+                        var delay = retryAfter ? (parseInt(retryAfter, 10) * 1000) : Math.min(2000 * (4 - retries), 6000);
+                        if (delay > 15000) {
+                            reject(new Error('Límite de peticiones de MangaDex excedido. Esperá unos minutos.'));
+                            return;
+                        }
+                        console.warn('MangaDex rate limited (429), retrying in ' + delay + 'ms...');
+                        setTimeout(function () {
+                            mdFetch(path, retries - 1).then(resolve, reject);
+                        }, delay);
+                        return;
+                    }
                     return res.text().then(function (text) {
                         reject(new Error('MangaDex HTTP ' + res.status + ': ' + text.slice(0, 200)));
                     });
                 }
                 return res.json();
             }).then(function (json) {
+                // json puede venir undefined cuando se programo un reintento 429.
+                if (!json) return;
                 if (json.errors) {
                     reject(new Error('MangaDex error: ' + (json.errors[0]?.detail || 'Unknown')));
                     return;
