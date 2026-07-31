@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime Destiny — Árbol de Habilidades</title>
+<style>
+  :root{--ink:#eef3ff;--muted:#8595b5;--gold:#d9c48f;--line:rgba(150,170,210,.18)}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#04060d;
+    font-family:"Rajdhani","Segoe UI",system-ui,sans-serif;color:var(--ink)}
+  #sky{position:fixed;inset:0;display:block;background:
+    radial-gradient(1100px 900px at 50% 52%, #0a1120 0%, #070a14 55%, #03050b 100%)}
+  /* header (estilo juego) */
+  #hud{position:fixed;z-index:5;top:26px;left:30px;max-width:min(360px,80vw);pointer-events:none}
+  #hud .cat{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:2px}
+  #hud .name{font-family:"Orbitron",sans-serif;font-weight:800;font-size:24px;letter-spacing:.5px;
+    line-height:1.05;text-shadow:0 2px 18px rgba(0,0,0,.7)}
+  #hud .pts{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);margin:9px 0 8px;
+    display:flex;align-items:center;gap:8px}
+  #hud .pts s{width:26px;height:1px;background:var(--gold);display:inline-block;text-decoration:none}
+  #hud .pts b{color:var(--gold)}
+  #hud .desc{font-size:13.5px;color:var(--muted);line-height:1.5;max-width:320px}
+  /* bottom counter */
+  #foot{position:fixed;z-index:5;bottom:26px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none}
+  #foot .n{font-family:"Orbitron",sans-serif;font-size:30px;letter-spacing:2px;color:var(--gold);
+    text-shadow:0 0 22px rgba(217,196,143,.4)}
+  #foot .l{font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+  #foot .bar{width:220px;height:3px;margin:8px auto 0;background:rgba(150,170,210,.15);border-radius:3px;overflow:hidden}
+  #foot .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),#fff);transition:width .4s}
+  /* buttons + legend */
+  .btn{position:fixed;z-index:5;bottom:22px;right:22px;display:flex;gap:8px}
+  .btn button{font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
+    padding:8px 13px;border-radius:9px;border:1px solid var(--line);background:rgba(10,16,28,.85);transition:.14s}
+  .btn button:hover{border-color:var(--gold);box-shadow:0 0 14px rgba(217,196,143,.25)}
+  #keys{position:fixed;z-index:5;top:26px;right:30px;text-align:right;font-size:11.5px;color:var(--muted);pointer-events:none}
+  #keys b{color:var(--ink)}
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+
+<div id="hud">
+  <div class="cat" id="hCat">PROYECTO</div>
+  <div class="name" id="hName">ANIME DESTINY</div>
+  <div class="pts" id="hPts"><s></s><span>NÚCLEO DEL PROYECTO</span></div>
+  <div class="desc" id="hDesc">PWA de catálogo de anime, manga, novelas y juegos. Pasá el mouse sobre una habilidad para ver su rama; hacé click para desbloquearla.</div>
+</div>
+
+<div id="keys">Rueda: <b>zoom</b> · arrastrar: <b>mover</b><br>click: <b>desbloquear</b> · hover: <b>ver rama</b></div>
+
+<div id="foot">
+  <div class="n" id="fN">0</div>
+  <div class="l">Habilidades desbloqueadas</div>
+  <div class="bar"><i id="fBar"></i></div>
+</div>
+
+<div class="btn">
+  <button id="all">✦ Desbloquear todo</button>
+  <button id="reset">↺ Reiniciar</button>
+</div>
+
+<script>
+/* ============================================================
+   Árbol de habilidades: jerarquía real de carpetas del proyecto.
+   Centro = proyecto · anillo 1 = carpetas · anillo 2 = archivos.
+   ============================================================ */
+const CAT = {
+  html:    {c:'#7fd4ff', label:'Páginas HTML',  desc:'Las 15 páginas del sitio: portada, catálogos, detalle, perfil…'},
+  detalle: {c:'#ff9a3d', label:'js/detalle',    desc:'Ficha de detalle: datos, progreso, temporadas, temas, comentarios.'},
+  core:    {c:'#a98bff', label:'js/core',       desc:'Núcleo: arranque, config, i18n, auth, clientes de API y estado.'},
+  catalog: {c:'#ff5cc8', label:'js/catalog',    desc:'Catálogo: tarjetas, búsqueda, paginación y estados.'},
+  pages:   {c:'#5cff9e', label:'js/pages',      desc:'Controladores específicos de cada página.'},
+  data:    {c:'#3dffd8', label:'datos / utils', desc:'Datos de respaldo y utilidades compartidas.'},
+  security:{c:'#ff6d7c', label:'js/security',   desc:'Seguridad: sanitización de HTML y validación de datos.'},
+  api:     {c:'#5c8cff', label:'api/',          desc:'Integración externa: cliente de Supabase (ESM).'},
+  ui:      {c:'#ffe14d', label:'js/ui',         desc:'Interfaz: sistema de notificaciones toast.'},
+  bundle:  {c:'#eaf3ff', label:'bundle',        desc:'Bundle núcleo: 15 módulos concatenados por el build.'},
+};
+const ORDER = ['html','detalle','core','catalog','pages','data','security','api','ui','bundle'];
+const FILES = [
+  ['index.html','html','Portada / menú principal'],['anime.html','html','Catálogo de anime'],
+  ['manga.html','html','Catálogo de manga'],['novelas.html','html','Novelas ligeras'],
+  ['detalle.html','html','Ficha de detalle'],['mis-listas.html','html','Listas del usuario'],
+  ['usuario.html','html','Perfil de usuario'],['configuracion.html','html','Ajustes'],
+  ['comparar.html','html','Comparar dos títulos'],['ranking.html','html','Ranking de títulos'],
+  ['top.html','html','Top de juegos'],['Login.html','html','Inicio de sesión'],
+  ['privacidad.html','html','Privacidad'],['terminos.html','html','Términos'],['404.html','html','Error 404'],
+  ['detalle/data.js','detalle','Datos de la ficha'],['detalle/progress.js','detalle','Progreso de episodios'],
+  ['detalle/seasons.js','detalle','Cadena de temporadas'],['detalle/themes.js','detalle','Temas / openings'],
+  ['detalle/render.js','detalle','Render de la ficha'],['detalle/interactions.js','detalle','Likes / interacciones'],
+  ['detalle/comments.js','detalle','Comentarios'],
+  ['core/config.js','core','Configuración runtime'],['core/i18n.js','core','Internacionalización'],
+  ['core/namespace.js','core','window.AnimeDestiny + PWA'],['core/constants.js','core','Constantes globales'],
+  ['core/common-ui.js','core','Navbar / footer'],['core/user-store.js','core','Estado del usuario'],
+  ['core/auth.js','core','Autenticación'],['core/api.js','core','Cliente AniList (GraphQL)'],
+  ['core/mangadex-api.js','core','Cliente MangaDex'],['core/storage.js','core','localStorage wrapper'],
+  ['catalog/states.js','catalog','Estados de tarjetas'],['catalog/cards.js','catalog','Render de tarjetas'],
+  ['catalog/search.js','catalog','Buscador'],['catalog/pagination.js','catalog','Paginación'],
+  ['pages/script.js','pages','Controlador de catálogo'],['pages/mis-listas.js','pages','Controlador de listas'],
+  ['pages/usuario.js','pages','Controlador de perfil'],['pages/import-mal.js','pages','Importar desde MAL'],
+  ['pages/configuracion.js','pages','Controlador de ajustes'],['pages/comparar.js','pages','Controlador de comparación'],
+  ['pages/ranking.js','pages','Ranking de juegos'],['pages/ranking-top.js','pages','Ranking de títulos'],
+  ['pages/login.js','pages','Controlador de login'],
+  ['datos.js','data','Datos de respaldo'],['utils.js','data','Utilidades varias'],
+  ['security/sanitizer.js','security','Sanitización HTML'],['security/validator.js','security','Validación de datos'],
+  ['api/supabase-config.js','api','Cliente Supabase (ESM)'],
+  ['ui/toast.js','ui','Notificaciones toast'],
+  ['core-bundle.min.js','bundle','Bundle: 15 módulos'],
+];
+
+/* ===== engine ===== */
+const cv=document.getElementById('sky'),ctx=cv.getContext('2d');
+let W,H,DPR,R1,R2;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';
+  R1=150*DPR;R2=Math.min(W,H)*0.40;fitView();}
+addEventListener('resize',resize);
+
+// build tree
+const root={id:'ANIME DESTINY',group:'root',desc:'PWA de catálogo de anime, manga, novelas y juegos.',
+  depth:0,px:0,py:0,r:0,children:[],parent:null,unlocked:true,label:'ANIME DESTINY'};
+const byGroup={};FILES.forEach(f=>{(byGroup[f[1]]=byGroup[f[1]]||[]).push(f);});
+const cats=[],leaves=[];
+for(const g of ORDER){const cn={id:g,group:g,desc:CAT[g].desc,label:CAT[g].label,depth:1,parent:root,children:[],
+    unlocked:false};root.children.push(cn);cats.push(cn);
+  for(const [id,gg,desc] of byGroup[g]||[]){const ln={id,group:g,desc,label:id.split('/').pop(),depth:2,
+      parent:cn,children:[],unlocked:false};cn.children.push(ln);leaves.push(ln);}}
+const all=[root,...cats,...leaves];
+
+// radial layout: leaves get equal angular slots, cats centered, small gap between cats
+(function layout(){
+  const totalLeaves=leaves.length, gap=0.05, span=Math.PI*2-gap*cats.length, step=span/totalLeaves;
+  let cur=-Math.PI/2;
+  for(const cn of cats){const k=cn.children.length||1, catSpan=k*step;
+    cn.angle=cur+catSpan/2; cn.px=Math.cos(cn.angle)*R1||0; cn.py=Math.sin(cn.angle)*R1||0;
+    cn.children.forEach((ln,i)=>{ln.angle=cur+(i+0.5)*step;
+      ln.px=Math.cos(ln.angle)*R2; ln.py=Math.sin(ln.angle)*R2;});
+    cur+=catSpan+gap;}
+  root.px=0;root.py=0;
+  root.r=26*DPR; cats.forEach(c=>c.r=15*DPR); leaves.forEach(l=>l.r=9*DPR);
+})();
+function relayout(){R1=150*DPR;R2=Math.min(W,H)*0.40;
+  const totalLeaves=leaves.length, gap=0.05, span=Math.PI*2-gap*cats.length, step=span/totalLeaves;
+  let cur=-Math.PI/2;
+  for(const cn of cats){const k=cn.children.length||1,catSpan=k*step;cn.angle=cur+catSpan/2;
+    cn.px=Math.cos(cn.angle)*R1;cn.py=Math.sin(cn.angle)*R1;
+    cn.children.forEach((ln,i)=>{ln.angle=cur+(i+0.5)*step;ln.px=Math.cos(ln.angle)*R2;ln.py=Math.sin(ln.angle)*R2;});
+    cur+=catSpan+gap;}}
+
+let scale=1,pan={x:0,y:0};
+function fitView(){relayout();scale=Math.min(W,H)/(2*(R2+34*DPR))*0.92;pan.x=0;pan.y=0;}
+resize();
+
+// links
+const links=[];root.children.forEach(c=>{links.push([root,c]);c.children.forEach(l=>links.push([c,l]));});
+
+/* ===== helpers ===== */
+function hexA(h,a){const n=parseInt(h.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function colorOf(n){return n.group==='root'?'#ffffff':CAT[n.group].c;}
+function ancestors(n){const s=new Set();let p=n;while(p){s.add(p);p=p.parent;}return s;}
+function subtree(n){const s=new Set();(function go(x){s.add(x);x.children.forEach(go);})(n);return s;}
+
+/* ===== icons (line art) ===== */
+function icon(g,s){ctx.lineWidth=Math.max(1,s*0.09);ctx.lineJoin='round';ctx.lineCap='round';
+  const u=s*0.62; ctx.beginPath();
+  switch(g){
+    case 'root': for(let k=0;k<3;k++){ctx.save?0:0;ctx.beginPath();
+        ctx.ellipse(0,0,u,u*0.42,k*Math.PI/3,0,7);ctx.stroke();}
+        ctx.beginPath();ctx.arc(0,0,s*0.14,0,7);ctx.stroke();return;
+    case 'html': ctx.rect(-u*0.9,-u*0.7,u*1.8,u*1.4);ctx.moveTo(-u*0.9,-u*0.35);ctx.lineTo(u*0.9,-u*0.35);
+        ctx.moveTo(-u*0.2,0.05*u);ctx.lineTo(u*0.45,u*0.35);ctx.lineTo(-u*0.2,u*0.62);ctx.closePath();ctx.stroke();return;
+    case 'core': for(let k=0;k<6;k++){const a=k*Math.PI/3,b=a+Math.PI/3;
+        ctx.lineTo(Math.cos(a)*u,Math.sin(a)*u);}ctx.closePath();ctx.moveTo(u*0.42,0);ctx.arc(0,0,u*0.42,0,7);ctx.stroke();return;
+    case 'catalog': for(const[dx,dy]of [[-1,-1],[1,-1],[-1,1],[1,1]])ctx.rect(dx*u*0.62-u*0.34,dy*u*0.62-u*0.34,u*0.68,u*0.68);ctx.stroke();return;
+    case 'detalle': ctx.arc(-u*0.2,-u*0.2,u*0.62,0,7);ctx.moveTo(u*0.25,u*0.25);ctx.lineTo(u*0.85,u*0.85);ctx.stroke();return;
+    case 'pages': ctx.moveTo(-u*0.5,-u*0.8);ctx.lineTo(-u*0.5,u*0.75);ctx.lineTo(-u*0.05,u*0.3);
+        ctx.lineTo(u*0.2,u*0.85);ctx.lineTo(u*0.5,u*0.7);ctx.lineTo(u*0.2,u*0.18);ctx.lineTo(u*0.7,u*0.12);ctx.closePath();ctx.stroke();return;
+    case 'data': ctx.ellipse(0,-u*0.5,u*0.8,u*0.28,0,0,7);ctx.moveTo(-u*0.8,-u*0.5);ctx.lineTo(-u*0.8,u*0.5);
+        ctx.moveTo(u*0.8,-u*0.5);ctx.lineTo(u*0.8,u*0.5);ctx.ellipse(0,u*0.5,u*0.8,u*0.28,0,0,Math.PI);ctx.stroke();
+        ctx.beginPath();ctx.ellipse(0,0,u*0.8,u*0.28,0,0,Math.PI);ctx.stroke();return;
+    case 'security': ctx.moveTo(0,-u*0.85);ctx.lineTo(u*0.75,-u*0.45);ctx.lineTo(u*0.75,u*0.2);
+        ctx.quadraticCurveTo(u*0.75,u*0.75,0,u*0.95);ctx.quadraticCurveTo(-u*0.75,u*0.75,-u*0.75,u*0.2);
+        ctx.lineTo(-u*0.75,-u*0.45);ctx.closePath();ctx.moveTo(-u*0.3,0);ctx.lineTo(-u*0.05,u*0.3);ctx.lineTo(u*0.4,-u*0.3);ctx.stroke();return;
+    case 'api': ctx.arc(-u*0.35,u*0.1,u*0.45,Math.PI*0.5,Math.PI*1.5);ctx.arc(u*0.15,-u*0.15,u*0.5,Math.PI,Math.PI*2);
+        ctx.arc(u*0.45,u*0.1,u*0.4,Math.PI*1.5,Math.PI*0.5);ctx.lineTo(-u*0.35,u*0.55);ctx.stroke();return;
+    case 'ui': ctx.moveTo(-u*0.6,u*0.45);ctx.quadraticCurveTo(-u*0.6,-u*0.55,0,-u*0.7);
+        ctx.quadraticCurveTo(u*0.6,-u*0.55,u*0.6,u*0.45);ctx.closePath();ctx.moveTo(-u*0.18,u*0.45);
+        ctx.arc(0,u*0.45,u*0.18,0,Math.PI);ctx.stroke();return;
+    case 'bundle': ctx.rect(-u*0.7,-u*0.55,u*1.4,u*1.1);ctx.moveTo(-u*0.7,-u*0.15);ctx.lineTo(u*0.7,-u*0.15);
+        ctx.moveTo(0,-u*0.55);ctx.lineTo(0,u*0.55);ctx.stroke();return;
+    default: ctx.arc(0,0,u*0.5,0,7);ctx.stroke();
+  }
+}
+
+/* ===== render ===== */
+let hover=null, time=0;
+const sparks=[];
+function draw(){time+=0.016;
+  ctx.clearRect(0,0,W,H);
+  // background rings + stars (screen space)
+  ctx.save();ctx.translate(W/2,H/2);
+  ctx.strokeStyle='rgba(150,170,210,.05)';ctx.lineWidth=1*DPR;
+  for(let k=1;k<=5;k++){ctx.beginPath();ctx.arc(0,0,(R2*scale)*k/4.2,0,7);ctx.stroke();}
+  ctx.save();ctx.rotate(time*0.02);ctx.strokeStyle='rgba(150,170,210,.07)';
+  for(let k=0;k<3;k++){ctx.beginPath();ctx.arc(0,0,R2*scale*0.7,k*2.1,k*2.1+1.3);ctx.stroke();}
+  ctx.restore();ctx.restore();
+
+  ctx.save();ctx.translate(W/2+pan.x,H/2+pan.y);ctx.scale(scale,scale);
+  const anc=hover?ancestors(hover):null, sub=hover?subtree(hover):null;
+  const lit=n=>!hover||anc.has(n)||sub.has(n);
+
+  // links
+  for(const [a,b] of links){
+    const on=!hover||(lit(a)&&lit(b));
+    const bothUnlocked=a.unlocked&&b.unlocked;
+    const col=colorOf(b);
+    const mx=(a.px+b.px)/2,my=(a.py+b.py)/2;
+    ctx.strokeStyle=bothUnlocked?hexA(col,on?.9:.25):hexA('#9fb0d8',on?(hover?.5:.28):.06);
+    ctx.lineWidth=(b.depth===1?2.2:1.4)*DPR*(bothUnlocked?1.3:1);
+    ctx.beginPath();ctx.moveTo(a.px,a.py);ctx.quadraticCurveTo(mx,my,b.px,b.py);ctx.stroke();
+    if(bothUnlocked&&on){ctx.strokeStyle=hexA('#ffffff',.35);ctx.lineWidth=.7*DPR;
+      ctx.beginPath();ctx.moveTo(a.px,a.py);ctx.quadraticCurveTo(mx,my,b.px,b.py);ctx.stroke();}
+  }
+  // sparks (unlock animation)
+  ctx.globalCompositeOperation='lighter';
+  for(let i=sparks.length-1;i>=0;i--){const sp=sparks[i];sp.t+=0.045;if(sp.t>=1){sparks.splice(i,1);continue;}
+    const x=sp.a.px+(sp.b.px-sp.a.px)*sp.t,y=sp.a.py+(sp.b.py-sp.a.py)*sp.t;
+    const g=ctx.createRadialGradient(x,y,0,x,y,14*DPR);g.addColorStop(0,'rgba(255,255,255,.9)');
+    g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,14*DPR,0,7);ctx.fill();}
+  ctx.globalCompositeOperation='source-over';
+
+  // nodes
+  for(const n of all){
+    const col=colorOf(n), on=lit(n), isH=n===hover;
+    const pulse=n.unlocked?1+Math.sin(time*2.2+n.px)*0.05:1;
+    const r=n.r*(isH?1.35:1)*pulse;
+    // outer glow if unlocked/hover
+    if(n.unlocked||isH){ctx.globalCompositeOperation='lighter';
+      const gl=ctx.createRadialGradient(n.px,n.py,0,n.px,n.py,r*3);
+      gl.addColorStop(0,hexA(col,isH?.55:.4));gl.addColorStop(1,hexA(col,0));
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(n.px,n.py,r*3,0,7);ctx.fill();
+      ctx.globalCompositeOperation='source-over';}
+    // disc
+    if(n.unlocked){const bd=ctx.createRadialGradient(n.px-r*.3,n.py-r*.3,r*.1,n.px,n.py,r);
+      bd.addColorStop(0,'#ffffff');bd.addColorStop(1,hexA(col,.85));ctx.fillStyle=bd;}
+    else ctx.fillStyle=on?'rgba(20,26,42,.92)':'rgba(16,20,32,.6)';
+    ctx.beginPath();ctx.arc(n.px,n.py,r,0,7);ctx.fill();
+    // ring
+    ctx.strokeStyle=n.unlocked?hexA('#ffffff',.9):hexA(col,on?.85:.3);
+    ctx.lineWidth=(n.depth===0?2.6:n.depth===1?2:1.5)*DPR;ctx.beginPath();ctx.arc(n.px,n.py,r,0,7);ctx.stroke();
+    // icon
+    ctx.save();ctx.translate(n.px,n.py);
+    ctx.strokeStyle=n.unlocked?hexA('#08101e',on?.9:.5):hexA(col,on?.9:.35);
+    icon(n.group,r*0.9);ctx.restore();
+  }
+  ctx.restore();
+  requestAnimationFrame(draw);
+}
+
+/* ===== unlock ===== */
+function unlock(n){if(!n)return;const path=[];let p=n;while(p&&!p.unlocked){path.unshift(p);p=p.parent;}
+  path.forEach((node,i)=>{setTimeout(()=>{node.unlocked=true;
+    if(node.parent)sparks.push({a:node.parent,b:node,t:0});updateCounter();},i*90);});}
+function updateCounter(){const u=all.filter(n=>n.unlocked&&n.depth===2).length;
+  document.getElementById('fN').textContent=u;
+  document.getElementById('fBar').style.width=(u/leaves.length*100)+'%';}
+
+/* ===== info panel ===== */
+function showInfo(n){
+  const hCat=document.getElementById('hCat'),hName=document.getElementById('hName'),
+    hPts=document.getElementById('hPts'),hDesc=document.getElementById('hDesc');
+  if(!n){hCat.textContent='PROYECTO';hCat.style.color='var(--gold)';hName.textContent='ANIME DESTINY';
+    hPts.innerHTML='<s></s><span>NÚCLEO DEL PROYECTO</span>';
+    hDesc.textContent='PWA de catálogo de anime, manga, novelas y juegos. Hover para ver una rama; click para desbloquear.';return;}
+  const col=colorOf(n);
+  if(n.depth===0){showInfo(null);return;}
+  if(n.depth===1){hCat.textContent='RAMA';hCat.style.color=col;hName.textContent=CAT[n.group].label;hName.style.color='#fff';
+    hPts.innerHTML=`<s style="background:${col}"></s><span>${n.children.length} HABILIDADES</span>`;
+    hDesc.textContent=n.desc;}
+  else{hCat.textContent=CAT[n.group].label;hCat.style.color=col;hName.textContent=n.label;hName.style.color='#fff';
+    hPts.innerHTML=`<s style="background:${col}"></s><span>${n.unlocked?'DESBLOQUEADA':'1 PUNTO'} · ${n.id}</span>`;
+    hDesc.textContent=n.desc;}
+}
+
+/* ===== interaction ===== */
+function toWorld(cx,cy){return{x:(cx*DPR-W/2-pan.x)/scale,y:(cy*DPR-H/2-pan.y)/scale};}
+function pick(cx,cy){const p=toWorld(cx,cy);let best=null,bd=1e9;
+  for(const n of all){const d=Math.hypot(n.px-p.x,n.py-p.y);
+    if(d<Math.max(n.r*1.5,14*DPR)&&d<bd){bd=d;best=n;}}return best;}
+let drag=null,moved=false,last={x:0,y:0};
+cv.addEventListener('mousemove',e=>{
+  if(drag){pan.x+=(e.clientX-last.x)*DPR;pan.y+=(e.clientY-last.y)*DPR;last={x:e.clientX,y:e.clientY};moved=true;return;}
+  const n=pick(e.clientX,e.clientY);if(n!==hover){hover=n;showInfo(n);}cv.style.cursor=n?'pointer':'grab';});
+cv.addEventListener('mousedown',e=>{drag=true;moved=false;last={x:e.clientX,y:e.clientY};cv.style.cursor='grabbing';});
+addEventListener('mouseup',e=>{if(drag&&!moved){const n=pick(e.clientX,e.clientY);if(n&&n.depth>0)unlock(n);}drag=false;});
+cv.addEventListener('wheel',e=>{e.preventDefault();const f=e.deltaY<0?1.12:1/1.12;
+  const wx=(e.clientX*DPR-W/2-pan.x)/scale,wy=(e.clientY*DPR-H/2-pan.y)/scale;
+  scale=Math.max(.4,Math.min(4,scale*f));pan.x=e.clientX*DPR-W/2-wx*scale;pan.y=e.clientY*DPR-H/2-wy*scale;},{passive:false});
+// touch
+let tl=null;
+cv.addEventListener('touchstart',e=>{const t=e.touches[0];tl={x:t.clientX,y:t.clientY};moved=false;
+  const n=pick(t.clientX,t.clientY);hover=n;showInfo(n);},{passive:true});
+cv.addEventListener('touchmove',e=>{const t=e.touches[0];if(tl){pan.x+=(t.clientX-tl.x)*DPR;pan.y+=(t.clientY-tl.y)*DPR;
+  tl={x:t.clientX,y:t.clientY};moved=true;}},{passive:true});
+cv.addEventListener('touchend',()=>{if(tl&&!moved&&hover&&hover.depth>0)unlock(hover);tl=null;});
+
+document.getElementById('all').onclick=()=>{leaves.forEach((l,i)=>setTimeout(()=>{
+  let p=l;while(p){p.unlocked=true;p=p.parent;}if(l.parent)sparks.push({a:l.parent,b:l,t:0});updateCounter();},i*25));};
+document.getElementById('reset').onclick=()=>{all.forEach(n=>n.unlocked=(n.depth===0));updateCounter();fitView();showInfo(null);};
+
+updateCounter();showInfo(null);draw();
+</script>
+</body>
+</html>
