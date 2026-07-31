@@ -1613,7 +1613,7 @@ body.reduce-motion .catalog-neon-card {
 .catalog-band-card .cband-back-head {
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
+    justify-content: center;
     gap: 10px;
 }
 
@@ -1622,7 +1622,7 @@ body.reduce-motion .catalog-neon-card {
     font-family: "Orbitron", var(--font-display);
     font-size: 1rem;
     line-height: 1.2;
-    text-align: left;
+    text-align: center;
     color: var(--accent-cyan);
     text-shadow: 0 0 10px rgba(0, 242, 255, 0.35);
     display: -webkit-box;
@@ -1645,11 +1645,37 @@ body.reduce-motion .catalog-neon-card {
     margin-top: 2px;
 }
 
-.catalog-band-card .cband-back-actions {
+/* DETALLE: centrado y ancho completo (no se aplasta). margin-top:auto lo empuja
+   al espacio libre, sobre la fila de favorito/visto. */
+.catalog-band-card .cband-detail-wrap {
     margin-top: auto;
+    display: grid;
+    place-items: center;
+    padding: 2px 0;
+}
+
+.catalog-band-card .cband-detail-wrap .card-back-detail-btn {
+    width: 100%;
+    max-width: 200px;
+    min-height: 40px;
+    padding: 9px 16px;
+    margin: 0;
+    text-align: center;
+}
+
+/* Fila inferior: favorito + visto a la izquierda; el boton de girar a la
+   derecha, en la misma esquina que en el frente (dentro de la fila, sin
+   superponerse). */
+.catalog-band-card .cband-back-actions {
+    margin-top: 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.catalog-band-card .cband-back-actions .cband-flip-back {
+    margin-left: auto;
 }
 
 .catalog-band-card .cband-back-actions .action-btn {
@@ -1673,13 +1699,6 @@ body.reduce-motion .catalog-neon-card {
     box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
 }
 
-.catalog-band-card .cband-back-actions .card-back-detail-btn {
-    width: auto;
-    margin-left: auto;
-    min-height: 40px;
-    padding: 9px 16px;
-}
-
 @media (prefers-reduced-motion: reduce) {
     .catalog-band-card .cband-inner {
         transition: none;
@@ -1688,6 +1707,25 @@ body.reduce-motion .catalog-neon-card {
 
 @media (max-width: 520px) {
     .catalog-band-card .cband-inner {
-        height: 340px;
+        height: 384px;
+    }
+    /* En pantallas chicas compactamos el dorso para que nada se corte */
+    .catalog-band-card .cband-back {
+        gap: 6px;
+        padding: 12px 12px 14px;
+    }
+    .catalog-band-card .cband-back .card-back-title {
+        font-size: 0.86rem;
+        -webkit-line-clamp: 2;
+    }
+    .catalog-band-card .cband-detail-wrap .card-back-detail-btn {
+        min-height: 38px;
+        padding: 8px 12px;
+    }
+    .catalog-band-card .cband-back-actions .action-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
     }
 }
