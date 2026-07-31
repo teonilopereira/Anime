@@ -343,6 +343,16 @@ body.reduce-motion .destiny-navbar {
     -webkit-backdrop-filter: blur(14px);
 }
 
+/* El atributo `hidden` no alcanzaba para ocultar el panel: la regla del UA
+   `[hidden] { display: none }` pierde contra `.destiny-navbar .nav-more-menu`
+   de arriba (una regla de autor le gana a la del UA), asi que el desplegable
+   quedaba SIEMPRE pintado tapando el contenido, y clickear "Más" no lo
+   contraia. Esta regla, mas especifica, hace que cerrado (hidden) sea de
+   verdad display:none. */
+.destiny-navbar .nav-more-menu[hidden] {
+    display: none;
+}
+
 /* Puente invisible sobre los 8px que separan el botón del panel: son píxeles
    que no pertenecen a ningún elemento, así que al cruzarlos el puntero "sale"
    del menú y el hover lo cerraría en el camino. */
@@ -540,11 +550,6 @@ body.reduce-motion .destiny-navbar {
     box-shadow: 0 0 10px rgba(77, 134, 255, 0.35);
 }
 
-.destiny-navbar .nav-toggle {
-    position: relative;
-    z-index: 2;
-}
-
 @media (max-width: 1180px) {
     .destiny-navbar {
         grid-template-columns: 1fr;
@@ -600,10 +605,6 @@ body.reduce-motion .destiny-navbar {
 
     .destiny-navbar.is-scrolled {
         padding: 0 20px;
-    }
-
-    .destiny-navbar .nav-toggle {
-        display: none !important;
     }
 
     /* ── Mostrar bottom tab bar ── */
@@ -803,9 +804,6 @@ body.reduce-motion .destiny-navbar {
         font-size: 0.65rem;
     }
 
-    .destiny-navbar .nav-toggle {
-        min-height: 40px;
-    }
 }
 
 @media (max-width: 400px) {
@@ -877,11 +875,6 @@ body.reduce-motion .destiny-navbar {
         padding: 2px 8px;
         min-height: 20px;
         font-size: 0.6rem;
-    }
-
-    .destiny-navbar .nav-toggle {
-        min-height: 36px;
-        font-size: 0.75rem;
     }
 
     .destiny-navbar .nav-user {

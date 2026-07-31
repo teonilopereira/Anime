@@ -1074,13 +1074,10 @@ body[data-page="listas"] .lists-empty {
 @media (max-width: 480px) {
     .compare-controls {
         gap: 12px;
-        padding: 0 12px;
+        padding: 14px 12px;
     }
     .compare-picker {
         gap: 6px;
-    }
-    .compare-select {
-        width: 100%;
     }
     .cmp-body { padding: 14px; gap: 8px; }
     .cmp-title { font-size: 1.15rem; }
@@ -1089,8 +1086,16 @@ body[data-page="listas"] .lists-empty {
 
 @media (max-width: 400px) {
     .compare-grid { gap: 14px; }
-    .compare-controls { padding: 0 8px; gap: 8px; }
-    .compare-picker { flex-direction: column; }
+    .compare-controls { padding: 12px 10px; gap: 8px; }
+    /* El buscador necesita todo el ancho, así que el catálogo pasa arriba
+       apilado. En columna hay que resetear el flex-end y el ancho fijo del
+       catálogo: si no, align-items lo empuja a la derecha y el `flex: 0 0 128px`
+       se lee como alto y descoloca todo. */
+    .compare-picker {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cmp-field { flex: 0 0 auto; width: 100%; }
     .compare-select { font-size: 0.78rem; padding: 8px 10px; }
     .cmp-stats { grid-template-columns: repeat(2, 1fr); }
     .cmp-body { padding: 12px; }
@@ -1448,9 +1453,6 @@ input, select, textarea, button {
         font-size: 0.65rem;
     }
 
-    .destiny-navbar .nav-toggle {
-        min-height: 40px;
-    }
 }
 
 @media (max-width: 400px) {
@@ -1520,11 +1522,6 @@ input, select, textarea, button {
         font-size: 0.6rem;
     }
 
-    .destiny-navbar .nav-toggle {
-        min-height: 36px;
-        font-size: 0.75rem;
-    }
-
     .destiny-navbar .nav-user {
         padding-top: 6px;
     }
@@ -1578,11 +1575,6 @@ input, select, textarea, button {
         left: 8px;
     }
 
-    .destiny-navbar .nav-toggle {
-        min-height: 32px;
-        font-size: 0.7rem;
-    }
-
     .destiny-navbar .nav-btn,
     .destiny-navbar .nav-btn.active {
         min-height: 34px;
@@ -1624,14 +1616,6 @@ input, select, textarea, button {
         display: none;
     }
 
-    .nav-toggle-text {
-        display: none;
-    }
-
-    .destiny-navbar .nav-toggle {
-        padding: 4px 8px;
-        min-width: 0;
-    }
 }
 
 /* ==========================================

@@ -259,16 +259,49 @@ async function renderApiResult(item, apiCat) {
     return false;
 }
 
-async function cargarDetalleDesdeApi(id, categoria) {
+const DETALLE_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Último recurso cuando el id no resuelve: buscar la obra por nombre. Rescata
+// dos casos que antes morían en "No encontrado":
+//   1. la ficha se abrió con un id que ya no existe (o de la fuente equivocada);
+//   2. la API que le tocaba por id está caída y la otra fuente sí la tiene.
+// Para manga/novelas se prueba MangaDex primero (aporta portadas por volumen y
+// aggregate); el anime solo vive en AniList. Devuelve el primer match o null.
+async function buscarDetallePorTitulo(nombre, categoria) {
+    const titulo = String(nombre || '').trim();
+    if (titulo.length < 2) return null;
+
+    const esBiblioteca = categoria === 'manga' || categoria === 'novelas';
+    const fuentes = [];
+    if (esBiblioteca && typeof window.searchMangaDex === 'function') {
+        fuentes.push({ nombre: 'mangadex', buscar: () => window.searchMangaDex(titulo, 1) });
+    }
+    if (typeof window.buscarEnApi === 'function') {
+        fuentes.push({ nombre: 'anilist', buscar: () => window.buscarEnApi(titulo, categoria) });
+    }
+
+    for (const fuente of fuentes) {
+        try {
+            const resultados = await fuente.buscar();
+            const primero = Array.isArray(resultados) ? resultados[0] : null;
+            if (primero) return primero;
+        } catch (e) {
+            AnimeDestiny.reportError(fuente.nombre, 'Error al buscar detalle por título', { titulo, categoria, error: String(e?.message ?? e) });
+        }
+    }
+    return null;
+}
+
+async function cargarDetalleDesdeApi(id, categoria, nombre) {
     if (categoria !== 'manga' && categoria !== 'anime' && categoria !== 'novelas') return false;
 
     setDetailViewState('loading');
 
+    const esBiblioteca = categoria === 'manga' || categoria === 'novelas';
+
     // Fase 1: AniList por ID numérico
-    const numId = Number(id);
-    if (Number.isFinite(numId)) {
-        const apiCat = categoria === 'anime' ? 'anime' : 'manga';
-        const getById = apiCat === 'anime' ? window.getAnimeById : window.getMangaById;
+    if (Number.isFinite(Number(id))) {
+        const getById = categoria === 'anime' ? window.getAnimeById : window.getMangaById;
         if (typeof getById === 'function') {
             try {
                 const found = await getById(id);
@@ -279,8 +312,10 @@ async function cargarDetalleDesdeApi(id, categoria) {
         }
     }
 
-    // Fase 2: MangaDex por UUID (solo manga/novelas)
-    if ((categoria === 'manga' || categoria === 'novelas') && typeof window.getMangaDexById === 'function') {
+    // Fase 2: MangaDex por UUID (solo manga/novelas). Se exige UUID: con un id
+    // numérico la petición a /manga/{id} era un 400 asegurado y gastaba un
+    // request al pedo antes de caer al fallback.
+    if (esBiblioteca && DETALLE_UUID_RE.test(String(id)) && typeof window.getMangaDexById === 'function') {
         try {
             const found = await window.getMangaDexById(id);
             if (found) return renderApiResult(found, categoria);
@@ -288,6 +323,11 @@ async function cargarDetalleDesdeApi(id, categoria) {
             AnimeDestiny.reportError('mangadex', 'Error inesperado en getMangaDexById', { id, categoria, error: String(e?.message ?? e) });
         }
     }
+
+    // Fase 3: búsqueda por título (cierra la grieta del fallback y da plan B si
+    // una API está caída).
+    const porTitulo = await buscarDetallePorTitulo(nombre, categoria);
+    if (porTitulo) return renderApiResult(porTitulo, categoria);
 
     return false;
 }
@@ -311,7 +351,7 @@ function renderApiDetalle(item, apiCat) {
         return;
     }
 
-    cargarDetalleDesdeApi(params.id, params.cat).then(function (found) {
+    cargarDetalleDesdeApi(params.id, params.cat, params.nombre).then(function (found) {
         if (!found) {
             setDetailViewState('error', 'No encontrado', 'No se pudo encontrar el t\u00EDtulo en las APIs.');
         }
