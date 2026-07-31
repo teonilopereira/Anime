@@ -1047,3 +1047,8 @@ function renderDetalle(item, nombreUrl, categoria) {
         }
     }
 }
+
+// Helper puro expuesto para tests (sin efecto en runtime salvo el namespace).
+if (typeof window !== 'undefined') {
+    window.RenderPure = { formatCountdown };
+}

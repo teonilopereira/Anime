@@ -1486,5 +1486,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// Helpers puros expuestos para tests (sin efecto en runtime salvo el namespace).
+if (typeof window !== 'undefined') {
+    window.MisListasPure = { extractGenresFromInfo, topGenresFromEntries, franquiciaVista, FRANQUICIAS, KNOWN_GENRES };
+}
+
 
 
