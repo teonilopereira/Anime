@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime Destiny — Visualizaciones</title>
+<style>
+  :root{--ink:#eaf0ff;--muted:#8a97ba;--line:rgba(150,170,210,.16);--gold:#e8cf94}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100%;background:#05070f;color:var(--ink);
+    font-family:"Rajdhani","Segoe UI",system-ui,sans-serif;
+    background-image:radial-gradient(900px 600px at 20% 0%,#141a30 0%,transparent 55%),
+      radial-gradient(1000px 700px at 90% 20%,#1a1030 0%,transparent 55%);
+    padding:34px 22px 70px}
+  header{max-width:1050px;margin:0 auto 26px}
+  h1{margin:0 0 6px;font-family:"Orbitron",sans-serif;font-weight:800;font-size:26px;letter-spacing:.5px;
+    background:linear-gradient(90deg,#5ce1ff,#a86bff,#ff5cc8);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{color:var(--muted);font-size:14.5px;line-height:1.55;max-width:720px}
+  .lead b{color:#a86bff}
+  .grid{max-width:1050px;margin:0 auto;display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  a.card{display:flex;flex-direction:column;text-decoration:none;color:inherit;position:relative;
+    background:rgba(10,14,26,.75);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    transition:.18s;min-height:150px}
+  a.card:hover{transform:translateY(-3px);border-color:rgba(150,170,210,.42);
+    box-shadow:0 14px 40px rgba(0,0,0,.5)}
+  .thumb{height:96px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .thumb canvas{width:100%;height:100%;display:block}
+  .body{padding:13px 15px 15px}
+  .tag{position:absolute;top:10px;left:12px;z-index:2;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+    background:rgba(6,10,20,.8);border:1px solid var(--line);border-radius:20px;padding:3px 9px;color:var(--gold)}
+  .body h3{margin:0 0 4px;font-size:16.5px}
+  .body p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45}
+  .go{margin-top:10px;font-size:12px;font-weight:600;color:#5ce1ff;display:flex;align-items:center;gap:5px}
+  footer{max-width:1050px;margin:34px auto 0;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>⬡ ANIME DESTINY · VISUALIZACIONES</h1>
+  <p class="lead">Siete formas de ver el proyecto por dentro — desde su
+    <b>estructura</b> hasta un <b>mapa de calor de riesgo</b> para encontrar problemas más rápido.
+    Todo generado a partir de los archivos, conexiones y métricas reales del código. Elegí una:</p>
+</header>
+
+<main class="grid" id="grid"></main>
+<footer>Todas las páginas son autónomas (un solo HTML, sin dependencias). Abrilas directo o servílas con <code>npm run serve</code>.</footer>
+
+<script>
+const CARDS=[
+  {f:'arbol-diagnostico.html',t:'Árbol Diagnóstico',tag:'diagnóstico',accent:'#ff5d5d',kind:'heat',
+   d:'Mapa de calor de riesgo: color y tamaño marcan dónde mirar primero. Métricas reales (líneas, tests, fragilidad, churn), buscador de funciones, modo Colores e Interactuar. El más completo.'},
+  {f:'arbol-rpg-circular.html',t:'Árbol RPG Circular',tag:'skill tree',accent:'#a98bff',kind:'radial',
+   d:'Skill tree circular con hexágonos: el proyecto al centro y ramas hacia los costados. Cada nodo se abre en lo que contiene (carpeta → archivos → funciones).'},
+  {f:'arbol-rpg.html',t:'Árbol RPG',tag:'skill tree',accent:'#5cff9e',kind:'htree',
+   d:'Versión horizontal expandible: proyecto → carpetas → archivos → funciones reales. Click en un nodo para desplegar/plegar sus ramas.'},
+  {f:'arbol-habilidades.html',t:'Árbol de Habilidades',tag:'skill tree',accent:'#e8cf94',kind:'star',
+   d:'Estilo Jedi: círculo completo con el proyecto al centro e íconos por tipo. Desbloqueá habilidades y se ilumina la rama hasta el centro.'},
+  {f:'red-neuronal.html',t:'Red Neuronal',tag:'grafo',accent:'#a86bff',kind:'net',
+   d:'Grafo force-directed: cada archivo es una neurona y las conexiones reales (qué script carga cada página) son sinapsis con pulsos.'},
+  {f:'red-neuronal-cerebro.html',t:'Red Neuronal · Cerebro',tag:'grafo',accent:'#3df5c8',kind:'brain',
+   d:'Misma red con estética de tejido cerebral: somas con dendritas, axones curvos y potenciales de acción bioluminiscentes.'},
+  {f:'red-neuronal-hud.html',t:'Red Neuronal · HUD',tag:'grafo',accent:'#3ad0ff',kind:'hud',
+   d:'Consola técnica: neuronas hexagonales con anillo de grado, grid blueprint, buscador, minimapa y panel inspector de dependencias.'},
+];
+
+const grid=document.getElementById('grid');
+CARDS.forEach(c=>{
+  const a=document.createElement('a');a.className='card';a.href=c.f;
+  a.innerHTML=`<div class="thumb"><span class="tag" style="color:${c.accent}">${c.tag}</span><canvas></canvas></div>
+    <div class="body"><h3>${c.t}</h3><p>${c.d}</p><div class="go" style="color:${c.accent}">Abrir →</div></div>`;
+  grid.appendChild(a);
+  requestAnimationFrame(()=>drawThumb(a.querySelector('canvas'),c));
+});
+
+function drawThumb(cv,c){
+  const dpr=Math.min(devicePixelRatio||1,2),w=cv.clientWidth,h=cv.clientHeight;
+  cv.width=w*dpr;cv.height=h*dpr;const x=cv.getContext('2d');x.scale(dpr,dpr);
+  const g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,'#0c1120');g.addColorStop(1,'#141024');
+  x.fillStyle=g;x.fillRect(0,0,w,h);
+  const cx=w*0.5,cy=h*0.55;
+  const A=c.accent, hexA=(col,al)=>{const n=parseInt(col.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${al})`;};
+  function hexP(px,py,r,rot){x.beginPath();for(let k=0;k<6;k++){const a=rot+k*Math.PI/3;
+    const qx=px+Math.cos(a)*r,qy=py+Math.sin(a)*r;k?x.lineTo(qx,qy):x.moveTo(qx,qy);}x.closePath();}
+  const palette=['#a98bff','#ff5cc8','#ff9a3d','#5cff9e','#ff6d7c','#ffe14d','#5c8cff','#3dffd8','#7fd4ff'];
+  if(c.kind==='net'||c.kind==='brain'||c.kind==='hud'){
+    // grafo: nodos dispersos + conexiones
+    const pts=[];for(let i=0;i<16;i++){const an=i/16*6.28,rr=14+((i*37)%30);pts.push({x:cx+Math.cos(an)*rr*1.6,y:cy+Math.sin(an)*rr});}
+    x.strokeStyle=hexA(A,.35);x.lineWidth=1;
+    for(let i=0;i<pts.length;i++){const b=pts[(i*5+3)%pts.length];x.beginPath();
+      if(c.kind==='brain'){x.moveTo(cx,cy);x.quadraticCurveTo((cx+pts[i].x)/2,(cy+pts[i].y)/2-8,pts[i].x,pts[i].y);}
+      else{x.moveTo(pts[i].x,pts[i].y);x.lineTo(b.x,b.y);}x.stroke();}
+    for(const p of pts){x.fillStyle=hexA(A,.9);
+      if(c.kind==='hud'){hexP(p.x,p.y,3.5,0.4);x.fill();}else{x.beginPath();x.arc(p.x,p.y,2.6,0,7);x.fill();}}
+    x.fillStyle='#fff';x.beginPath();x.arc(cx,cy,4,0,7);x.fill();
+  }else if(c.kind==='star'){
+    // radial con lineas al centro
+    for(let i=0;i<9;i++){const an=i/9*6.28-1.57;const c2=palette[i];
+      x.strokeStyle=hexA(c2,.6);x.lineWidth=1.4;x.beginPath();x.moveTo(cx,cy);
+      const ex=cx+Math.cos(an)*46,ey=cy+Math.sin(an)*30;x.lineTo(ex,ey);x.stroke();
+      x.fillStyle=hexA(c2,.95);x.beginPath();x.arc(ex,ey,3,0,7);x.fill();}
+    x.fillStyle=A;x.beginPath();x.arc(cx,cy,5,0,7);x.fill();
+  }else if(c.kind==='htree'){
+    // arbol horizontal
+    const ox=18;x.strokeStyle=hexA(A,.5);x.lineWidth=1.3;
+    for(let i=0;i<6;i++){const y=14+i*(h-28)/5;x.beginPath();x.moveTo(ox,cy);x.quadraticCurveTo((ox+w*0.5)/2,y,w*0.55,y);x.stroke();
+      x.fillStyle=hexA(palette[i%palette.length],.9);x.beginPath();x.arc(w*0.55,y,3,0,7);x.fill();}
+    x.fillStyle='#fff';x.beginPath();x.arc(ox,cy,4.5,0,7);x.fill();
+  }else{
+    // radial/heat: ramas por color desde el centro, hexagonos
+    for(let i=0;i<9;i++){const an=i/9*6.28-1.57;const c2=c.kind==='heat'?['#3ddc84','#ffe14d','#ff9a3d','#ff4d5d'][i%4]:palette[i];
+      x.strokeStyle=hexA(c2,.5);x.lineWidth=1.4;
+      const mx=cx+Math.cos(an)*24,my=cy+Math.sin(an)*16;x.beginPath();x.moveTo(cx,cy);x.quadraticCurveTo(mx,my,cx+Math.cos(an)*44,cy+Math.sin(an)*28);x.stroke();
+      // sub-ramas
+      for(let j=0;j<2;j++){const a2=an+(j-0.5)*0.34,ex=cx+Math.cos(a2)*44,ey=cy+Math.sin(a2)*28;
+        x.fillStyle=hexA(c2,.92);hexP(ex,ey,3.4,a2);x.fill();}}
+    x.fillStyle=hexA(A,.95);hexP(cx,cy,6,0.5);x.fill();x.strokeStyle='#fff';x.lineWidth=1;hexP(cx,cy,6,0.5);x.stroke();
+  }
+}
+</script>
+</body>
+</html>
