@@ -38,7 +38,7 @@
 <body>
 <header>
   <h1>⬡ ANIME DESTINY · VISUALIZACIONES</h1>
-  <p class="lead">Siete formas de ver el proyecto por dentro — desde su
+  <p class="lead">Ocho formas de ver el proyecto por dentro — desde su
     <b>estructura</b> hasta un <b>mapa de calor de riesgo</b> para encontrar problemas más rápido.
     Todo generado a partir de los archivos, conexiones y métricas reales del código. Elegí una:</p>
 </header>
@@ -48,6 +48,8 @@
 
 <script>
 const CARDS=[
+  {f:'segundo-cerebro.html',t:'Segundo Cerebro',tag:'grafo',accent:'#ff7a3d',kind:'brain2',
+   d:'Estilo "second brain": dominios (carpetas) como anillos alrededor de un núcleo denso de archivos interconectados. Click en cualquier nodo abre una ficha con qué hace y qué contiene (funciones, tests, conexiones).'},
   {f:'arbol-diagnostico.html',t:'Árbol Diagnóstico',tag:'diagnóstico',accent:'#ff5d5d',kind:'heat',
    d:'Mapa de calor de riesgo: color y tamaño marcan dónde mirar primero. Métricas reales (líneas, tests, fragilidad, churn), buscador de funciones, modo Colores e Interactuar. El más completo.'},
   {f:'arbol-rpg-circular.html',t:'Árbol RPG Circular',tag:'skill tree',accent:'#a98bff',kind:'radial',
@@ -83,7 +85,19 @@ function drawThumb(cv,c){
   function hexP(px,py,r,rot){x.beginPath();for(let k=0;k<6;k++){const a=rot+k*Math.PI/3;
     const qx=px+Math.cos(a)*r,qy=py+Math.sin(a)*r;k?x.lineTo(qx,qy):x.moveTo(qx,qy);}x.closePath();}
   const palette=['#a98bff','#ff5cc8','#ff9a3d','#5cff9e','#ff6d7c','#ffe14d','#5c8cff','#3dffd8','#7fd4ff'];
-  if(c.kind==='net'||c.kind==='brain'||c.kind==='hud'){
+  if(c.kind==='brain2'){
+    // second brain: anillo de dominios + nucleo denso de puntos
+    const ring=Math.min(w,h)*0.42;
+    x.strokeStyle=hexA('#8aa',.18);x.lineWidth=1;x.beginPath();x.arc(cx,cy,ring,0,7);x.stroke();
+    const core=[];for(let i=0;i<22;i++){const an=(i*2.399),rr=6+((i*29)%22);core.push({x:cx+Math.cos(an)*rr*1.4,y:cy+Math.sin(an)*rr});}
+    x.strokeStyle=hexA(A,.4);x.lineWidth=1;
+    for(let i=0;i<core.length;i++){const b=core[(i*7+2)%core.length];x.beginPath();x.moveTo(core[i].x,core[i].y);x.lineTo(b.x,b.y);x.stroke();}
+    for(const p of core){x.fillStyle=hexA(A,.9);x.beginPath();x.arc(p.x,p.y,2,0,7);x.fill();}
+    const dc=['#5ce1ff','#3dffd8','#ffe14d','#ff9a3d','#a86bff','#ff5cc8','#5cff9e','#ff5d6c'];
+    for(let i=0;i<8;i++){const an=-1.57+i/8*6.28,ex=cx+Math.cos(an)*ring,ey=cy+Math.sin(an)*ring;
+      x.strokeStyle=hexA(dc[i],.8);x.lineWidth=1.6;x.beginPath();x.arc(ex,ey,4,0,7);x.stroke();
+      x.fillStyle=hexA('#0c1120',.9);x.beginPath();x.arc(ex,ey,3,0,7);x.fill();}
+  }else if(c.kind==='net'||c.kind==='brain'||c.kind==='hud'){
     // grafo: nodos dispersos + conexiones
     const pts=[];for(let i=0;i<16;i++){const an=i/16*6.28,rr=14+((i*37)%30);pts.push({x:cx+Math.cos(an)*rr*1.6,y:cy+Math.sin(an)*rr});}
     x.strokeStyle=hexA(A,.35);x.lineWidth=1;

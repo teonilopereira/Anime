@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anime Destiny — Segundo Cerebro</title>
+<style>
+  :root{
+    --bg0:#04060e; --bg1:#0a1020; --ink:#eaf0ff; --muted:#8a97ba;
+    --line:rgba(150,170,210,.16); --gold:#e8cf94;
+    --hot:#ff7a3d; --hot2:#ff9a4d;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg0);
+    font-family:"Rajdhani","Segoe UI",system-ui,sans-serif;color:var(--ink)}
+  #cv{position:fixed;inset:0;display:block;cursor:grab}
+  #cv.drag{cursor:grabbing}
+  #cv.hit{cursor:pointer}
+
+  .panel{position:fixed;z-index:5;backdrop-filter:blur(9px);
+    background:rgba(9,13,26,.74);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 10px 44px rgba(0,0,0,.55),inset 0 0 22px rgba(120,90,255,.05)}
+
+  /* Encabezado / HUD arriba a la izquierda */
+  #hud{top:16px;left:16px;padding:15px 17px;max-width:min(340px,86vw)}
+  #hud h1{margin:0 0 3px;font-family:"Orbitron",sans-serif;font-weight:800;
+    font-size:18px;letter-spacing:.5px;
+    background:linear-gradient(90deg,#5ce1ff,#a86bff,#ff7a3d);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  #hud .sub{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:11px}
+  #hud .stats{display:flex;gap:16px;font-size:11px;letter-spacing:.5px;color:var(--muted)}
+  #hud .stats b{display:block;font-size:19px;font-family:"Orbitron",sans-serif;color:var(--ink);letter-spacing:0}
+  #search{margin-top:12px;width:100%;font-family:inherit;font-size:13px;color:var(--ink);
+    background:rgba(6,10,20,.8);border:1px solid var(--line);border-radius:9px;padding:8px 11px;outline:none}
+  #search:focus{border-color:rgba(255,122,61,.55);box-shadow:0 0 0 2px rgba(255,122,61,.14)}
+
+  /* Leyenda de clústeres */
+  #legend{top:16px;right:16px;padding:13px 15px;max-width:230px}
+  #legend h2{margin:0 0 9px;font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);font-weight:700}
+  #legend .row{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);
+    cursor:pointer;padding:3px 5px;border-radius:7px;transition:.14s}
+  #legend .row:hover{background:rgba(255,255,255,.05);color:var(--ink)}
+  #legend .row.off{opacity:.32}
+  #legend .dot{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 9px currentColor}
+  #legend .n{margin-left:auto;font-size:11px;font-family:"Orbitron",sans-serif;opacity:.7}
+
+  /* Tooltip */
+  #tip{position:fixed;z-index:7;pointer-events:none;opacity:0;transform:translateY(4px);
+    transition:opacity .12s;padding:8px 12px;font-size:13px;border-radius:10px;
+    background:rgba(7,11,22,.95);border:1px solid rgba(255,122,61,.45);
+    box-shadow:0 6px 24px rgba(0,0,0,.6);max-width:280px}
+  #tip .t{font-weight:700;color:var(--ink)}
+  #tip .d{color:var(--muted);font-size:11px;margin-top:2px}
+
+  /* Panel de detalle (al hacer click) */
+  #detail{position:fixed;z-index:8;top:0;right:0;height:100%;width:min(380px,92vw);
+    transform:translateX(102%);transition:transform .28s cubic-bezier(.3,.7,.3,1);
+    background:rgba(8,12,24,.94);backdrop-filter:blur(12px);
+    border-left:1px solid var(--line);box-shadow:-14px 0 50px rgba(0,0,0,.6);
+    display:flex;flex-direction:column}
+  #detail.open{transform:translateX(0)}
+  #detail .dhead{padding:18px 20px 14px;border-bottom:1px solid var(--line);position:relative}
+  #detail .kicker{font-size:10.5px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+  #detail h3{margin:0;font-family:"Orbitron",sans-serif;font-size:18px;line-height:1.25;word-break:break-word}
+  #detail .path{font-size:11.5px;color:var(--muted);margin-top:5px;font-family:ui-monospace,monospace}
+  #detail .close{position:absolute;top:14px;right:15px;width:30px;height:30px;border-radius:8px;
+    border:1px solid var(--line);background:rgba(6,10,20,.8);color:var(--ink);font-size:16px;
+    cursor:pointer;line-height:1;transition:.14s}
+  #detail .close:hover{border-color:var(--hot);color:var(--hot)}
+  #detail .dbody{padding:16px 20px 26px;overflow-y:auto;flex:1}
+  #detail .desc{font-size:13.5px;line-height:1.6;color:#cfd8ef;margin:0 0 16px}
+  #detail .metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
+  #detail .metric{background:rgba(6,10,20,.6);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+  #detail .metric .k{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  #detail .metric .v{font-size:20px;font-family:"Orbitron",sans-serif;margin-top:2px}
+  #detail .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+    padding:3px 9px;border-radius:20px;margin:0 6px 6px 0}
+  #detail .badge.ok{background:rgba(77,255,158,.13);color:#7dffb0;border:1px solid rgba(77,255,158,.3)}
+  #detail .badge.no{background:rgba(255,93,108,.13);color:#ff8b96;border:1px solid rgba(255,93,108,.3)}
+  #detail .sec{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);
+    font-weight:700;margin:18px 0 9px}
+  #detail ul.exp{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+  #detail ul.exp li{font-family:ui-monospace,monospace;font-size:11.5px;color:#bfe3ff;
+    background:rgba(51,230,255,.08);border:1px solid rgba(51,230,255,.18);border-radius:7px;padding:4px 8px}
+  #detail ul.files{list-style:none;margin:0;padding:0}
+  #detail ul.files li{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;
+    cursor:pointer;transition:.13s;font-size:13px}
+  #detail ul.files li:hover{background:rgba(255,255,255,.05)}
+  #detail ul.files li .fdot{width:8px;height:8px;border-radius:50%;flex:none}
+  #detail ul.files li .fl{font-size:10.5px;color:var(--muted);margin-left:auto;font-family:"Orbitron",sans-serif}
+
+  #hint{bottom:14px;left:50%;transform:translateX(-50%);padding:8px 16px;font-size:12px;
+    color:var(--muted);text-align:center;max-width:92vw}
+  #hint b{color:var(--hot2)}
+  .toolbar{position:fixed;z-index:5;bottom:16px;right:16px;display:flex;gap:8px}
+  .toolbar button{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;
+    padding:9px 14px;border-radius:10px;border:1px solid var(--line);
+    background:rgba(12,18,34,.85);transition:.15s}
+  .toolbar button:hover{border-color:var(--hot);box-shadow:0 0 15px rgba(255,122,61,.28)}
+  .toolbar button.on{border-color:var(--hot);color:var(--hot2);box-shadow:0 0 14px rgba(255,122,61,.25)}
+  a.back{position:fixed;z-index:6;bottom:16px;left:16px;font-size:12.5px;color:var(--muted);
+    text-decoration:none;padding:9px 13px;border-radius:10px;border:1px solid var(--line);
+    background:rgba(12,18,34,.8);transition:.15s}
+  a.back:hover{color:var(--ink);border-color:var(--gold)}
+  @media(max-width:600px){#hud .sub{display:none}#legend{display:none}}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+
+<div class="panel" id="hud">
+  <h1>SEGUNDO CEREBRO · ANIME DESTINY</h1>
+  <div class="sub">Cada punto del núcleo es un archivo real del proyecto. Los anillos son sus
+    <b>dominios</b> (carpetas). Tocá cualquier nodo para ver qué hace y qué contiene.</div>
+  <div class="stats">
+    <div>ARCHIVOS<b id="sFiles">0</b></div>
+    <div>DOMINIOS<b id="sDom">0</b></div>
+    <div>FUNCIONES<b id="sFns">0</b></div>
+    <div>LÍNEAS<b id="sLines">0</b></div>
+  </div>
+  <input id="search" type="text" placeholder="Buscar archivo o función…" autocomplete="off">
+</div>
+
+<div class="panel" id="legend">
+  <h2>Dominios del cerebro</h2>
+  <div id="legendRows"></div>
+</div>
+
+<div id="tip"></div>
+
+<aside id="detail">
+  <div class="dhead">
+    <button class="close" id="detClose" aria-label="Cerrar">×</button>
+    <div class="kicker" id="detKicker"></div>
+    <h3 id="detTitle"></h3>
+    <div class="path" id="detPath"></div>
+  </div>
+  <div class="dbody" id="detBody"></div>
+</aside>
+
+<div class="panel" id="hint">Pasá el cursor para resaltar conexiones · <b>click</b> para abrir la ficha ·
+  <b>arrastrá</b> el fondo para mover · rueda para zoom</div>
+
+<div class="toolbar">
+  <button id="btnColor" class="on">🎨 Colores por dominio</button>
+  <button id="btnReset">↺ Centrar</button>
+</div>
+<a class="back" href="index.html">← Volver a las visualizaciones</a>
+
+<script id="brainData" type="application/json">{"summary":{"jsFiles":39,"htmlPages":15,"totalLines":18208,"untested":24,"functions":693},"generatedAt":"2026-07-31T07:45:23.772Z","clusters":[{"id":".","label":"Páginas","color":"#5ce1ff","count":15},{"id":"api","label":"API / Backend","color":"#3dffd8","count":2},{"id":"js","label":"Núcleo JS","color":"#ffe14d","count":3},{"id":"js/catalog","label":"Catálogo","color":"#ff9a3d","count":4},{"id":"js/core","label":"Core","color":"#a86bff","count":11},{"id":"js/detalle","label":"Detalle","color":"#ff5cc8","count":7},{"id":"js/pages","label":"Páginas JS","color":"#5cff9e","count":9},{"id":"js/security","label":"Seguridad","color":"#ff5d6c","count":2},{"id":"js/ui","label":"UI","color":"#7fd4ff","count":1}],"nodes":[{"id":"404.html","name":"404.html","dir":".","kind":"html","lines":111,"tested":false,"err":0,"api":16,"fns":0,"exports":[]},{"id":"Login.html","name":"Login.html","dir":".","kind":"html","lines":105,"tested":false,"err":0,"api":18,"fns":0,"exports":[]},{"id":"anime.html","name":"anime.html","dir":".","kind":"html","lines":132,"tested":true,"err":0,"api":18,"fns":0,"exports":[]},{"id":"comparar.html","name":"comparar.html","dir":".","kind":"html","lines":109,"tested":false,"err":0,"api":19,"fns":0,"exports":[]},{"id":"configuracion.html","name":"configuracion.html","dir":".","kind":"html","lines":273,"tested":false,"err":0,"api":19,"fns":0,"exports":[]},{"id":"detalle.html","name":"detalle.html","dir":".","kind":"html","lines":201,"tested":true,"err":0,"api":21,"fns":0,"exports":[]},{"id":"index.html","name":"index.html","dir":".","kind":"html","lines":117,"tested":false,"err":0,"api":18,"fns":0,"exports":[]},{"id":"manga.html","name":"manga.html","dir":".","kind":"html","lines":132,"tested":true,"err":0,"api":19,"fns":0,"exports":[]},{"id":"mis-listas.html","name":"mis-listas.html","dir":".","kind":"html","lines":1298,"tested":false,"err":0,"api":18,"fns":0,"exports":[]},{"id":"novelas.html","name":"novelas.html","dir":".","kind":"html","lines":133,"tested":true,"err":0,"api":19,"fns":0,"exports":[]},{"id":"privacidad.html","name":"privacidad.html","dir":".","kind":"html","lines":125,"tested":false,"err":0,"api":21,"fns":0,"exports":[]},{"id":"ranking.html","name":"ranking.html","dir":".","kind":"html","lines":394,"tested":true,"err":0,"api":18,"fns":0,"exports":[]},{"id":"terminos.html","name":"terminos.html","dir":".","kind":"html","lines":108,"tested":false,"err":0,"api":20,"fns":0,"exports":[]},{"id":"top.html","name":"top.html","dir":".","kind":"html","lines":513,"tested":true,"err":0,"api":18,"fns":0,"exports":[]},{"id":"usuario.html","name":"usuario.html","dir":".","kind":"html","lines":321,"tested":true,"err":0,"api":18,"fns":0,"exports":[]},{"id":"api/supabase-client.js","name":"supabase-client.js","dir":"api","kind":"js","lines":606,"tested":false,"err":23,"api":63,"fns":27,"exports":["supabaseUserName","profileUsername","getCurrentUserAsync","ensureCurrentUserProfile","saveUserProfile","signInWithGoogle","signOutGoogle","signUpWithEmail","signInWithEmail","saveItemState","loadItemStates","addExperience","loadProfile","loadApodo"]},{"id":"api/supabase-config.js","name":"supabase-config.js","dir":"api","kind":"js","lines":77,"tested":false,"err":3,"api":21,"fns":7,"exports":["cargarClienteSupabase","haySesionGuardada","window.__loadSupabase","window.__puedeHaberSesion","window.AppSupabaseReady","window.AppSupabase","__puedeHaberSesion"]},{"id":"js/datos.js","name":"datos.js","dir":"js","kind":"js","lines":69,"tested":true,"err":1,"api":0,"fns":8,"exports":["_capitalize","obtenerItemsCategoria","obtenerItemCategoria","obtenerDetalleItem","window.escapeHtml","window.safeUrl","escapeHtml","safeUrl"]},{"id":"js/reload.js","name":"reload.js","dir":"js","kind":"js","lines":1,"tested":false,"err":0,"api":0,"fns":1,"exports":["onmessage"]},{"id":"js/utils.js","name":"utils.js","dir":"js","kind":"js","lines":191,"tested":true,"err":0,"api":5,"fns":22,"exports":["formatMediaStatus","formatDate","truncateText","parseUrlParams","normalizeText","getCurrentUserId","normalizeImageTitle","slugifyImageTitle","buildCatalogImageCandidates","createFallbackPosterDataUrl","fallbackCatalogImage","episodeStorageKey","volumeStorageKey","window.normalizeText"]},{"id":"js/catalog/cards.js","name":"cards.js","dir":"js/catalog","kind":"js","lines":552,"tested":false,"err":24,"api":3,"fns":20,"exports":["renderSkeletonCards","getApiPoster","getApiCatalogInfo","normalizeCatalogGenre","getApiGenresList","buildCatalogBackProgressHtml","_buildProgressIndex","countAnimeEpisodesWatched","resolveCatalogProgress","buildCatalogCardHtml","describirErrorDeApi","cargarCatalogoDesdeApi","renderCatalogCardsFromLocalData","window._invalidateProgressIndex"]},{"id":"js/catalog/pagination.js","name":"pagination.js","dir":"js/catalog","kind":"js","lines":245,"tested":false,"err":8,"api":2,"fns":14,"exports":["alScrollearPorPrimeraVez","getSentinel","hideLoadingIndicator","showNoMoreMessage","loadNextPage","initScrollObserver","disconnectScrollObserver","resetInfiniteScroll","inicializarPagina","getGenres","rememberCatalogPosition","restoreCatalogPosition","window.__catalogSearchItems","listaItems"]},{"id":"js/catalog/search.js","name":"search.js","dir":"js/catalog","kind":"js","lines":754,"tested":true,"err":10,"api":5,"fns":32,"exports":["getBrowsePref","setBrowsePref","showNsfwAgeGate","inicializarBusquedaCatalogo","setSuggestionsOpen","getCatalogItems","renderSuggestions","applyFilter","renderApiSuggestions","fetchApiSuggestions","debouncedApiSearch","reloadCatalog","showFilter","inicializarGeneroWidgets"]},{"id":"js/catalog/states.js","name":"states.js","dir":"js/catalog","kind":"js","lines":673,"tested":false,"err":21,"api":17,"fns":47,"exports":["getSyncQueue","saveSyncQueue","enqueueSync","drainSyncQueue","isSessionExpired","syncItemStateToSupabase","watchStatusKey","getWatchStatus","setWatchStatus","addUserPoints","showSyncToast","getCategoriaActual","statusStorageKey","pointsKey"]},{"id":"js/core/api.js","name":"api.js","dir":"js/core","kind":"js","lines":978,"tested":true,"err":23,"api":89,"fns":57,"exports":["anilistFetch","done","extractTitle","extractAltTitle","buildSeasonsFromItem","anilistItemToLocal","mdFetch","fetchMangaDexStats","mdItemToCard","mdTagUuidsFromKeys","fetchMangaDexPage","normalizeTitle","mergeAnilistAndMd","splitGenresAndTags"]},{"id":"js/core/auth.js","name":"auth.js","dir":"js/core","kind":"js","lines":382,"tested":false,"err":9,"api":34,"fns":25,"exports":["waitForSupabase","getCurrentUser","displayNameFromUser","setMsg","displayNameFromProfile","photoUrlFromProfile","resolveGrade","refreshUserUi","closeUserModal","isValidGmailAddress","loginWithPassword","logoutUser","ensureUserUi","grantDailyLoginBonus"]},{"id":"js/core/common-ui.js","name":"common-ui.js","dir":"js/core","kind":"js","lines":659,"tested":false,"err":1,"api":5,"fns":23,"exports":["window.__navMoreOpen","window.__navMoreClose","window.refreshUserUi","window.__adSecurityHandlersInstalled","window.rememberCatalogPosition","window.fallbackCatalogImage","archivo","t","ensureMainTarget","injectNavBrand","injectNavToggle","injectNavLinks","wireNavMore","cancelarCierre"]},{"id":"js/core/config.js","name":"config.js","dir":"js/core","kind":"js","lines":20,"tested":false,"err":0,"api":4,"fns":1,"exports":["window.AppConfig"]},{"id":"js/core/config.template.js","name":"config.template.js","dir":"js/core","kind":"js","lines":40,"tested":false,"err":0,"api":10,"fns":1,"exports":["window.AppConfig"]},{"id":"js/core/constants.js","name":"constants.js","dir":"js/core","kind":"js","lines":56,"tested":true,"err":0,"api":2,"fns":1,"exports":["window.AnimeDestiny"]},{"id":"js/core/i18n.js","name":"i18n.js","dir":"js/core","kind":"js","lines":623,"tested":true,"err":1,"api":0,"fns":8,"exports":["resolveKey","interpolate","getCurrentLang","window.applyTranslations","window.AppI18n","applyTranslations","setLang","t"]},{"id":"js/core/mangadex-api.js","name":"mangadex-api.js","dir":"js/core","kind":"js","lines":415,"tested":false,"err":14,"api":59,"fns":26,"exports":["safeCacheSet","mdFetch","getUserLang","getMangaDexTitle","getMangaDexDescription","getMangaDexCoverUrl","chapterCount","volumeCount","tagsToGenres","mdItemToLocal","searchMangaDex","fetchMangaDexStats","fetchMangaDexAggregate","isMangaDexUuid"]},{"id":"js/core/namespace.js","name":"namespace.js","dir":"js/core","kind":"js","lines":94,"tested":false,"err":7,"api":1,"fns":3,"exports":["showConnectionStatusToast","window.AnimeDestiny","reportError"]},{"id":"js/core/storage.js","name":"storage.js","dir":"js/core","kind":"js","lines":42,"tested":false,"err":5,"api":0,"fns":7,"exports":["read","write","readJson","writeJson","remove","window.AppStorage","PREFIX"]},{"id":"js/core/user-store.js","name":"user-store.js","dir":"js/core","kind":"js","lines":49,"tested":false,"err":1,"api":1,"fns":1,"exports":["window.UserStore"]},{"id":"js/detalle/comments.js","name":"comments.js","dir":"js/detalle","kind":"js","lines":812,"tested":false,"err":8,"api":8,"fns":37,"exports":["esc","isSignedIn","getCurrentUser","formatDate","getInitials","showToast","getItemRefInfo","refLabel","claveProgreso","estaVisto","calcularSigueLaObra","esSpoiler","buildRefCounts","getSortedFilterKeys"]},{"id":"js/detalle/data.js","name":"data.js","dir":"js/detalle","kind":"js","lines":252,"tested":true,"err":5,"api":12,"fns":15,"exports":["_translationCacheKey","translateText","getParams","normalizeDetailItem","getAnimeStructure","parseTemporadas","setDetailViewState","replaceChildrenWithTextElement","saveDetailStateToSupabase","hasSqlSession","parseGeneros","parseVolumenes","getApiUnifiedProgress","segment"]},{"id":"js/detalle/interactions.js","name":"interactions.js","dir":"js/detalle","kind":"js","lines":324,"tested":false,"err":22,"api":32,"fns":10,"exports":["fetchJikanEpisode","resolveKitsuAnimeId","fetchKitsuEpisode","showEpisodeInfoModal","renderApiResult","cargarDetalleDesdeApi","renderApiDetalle","window.resolveMangaDexCoverForVolume","window.getMangaDexById","isMangaDexUuid"]},{"id":"js/detalle/progress.js","name":"progress.js","dir":"js/detalle","kind":"js","lines":145,"tested":false,"err":4,"api":9,"fns":11,"exports":["syncProgressFromSupabase","progressSqlKeyVolume","progressSqlKeyEpisode","detailStatusStorageKey","getProgressQueue","saveProgressQueue","enqueueProgress","drainProgressQueue","isProgressSessionExpired","showProgressToast","saveProgressToSupabase"]},{"id":"js/detalle/render.js","name":"render.js","dir":"js/detalle","kind":"js","lines":1050,"tested":false,"err":6,"api":23,"fns":29,"exports":["formatCountdown","startNextEpCountdown","tick","renderDetalle","setMetaTag","setCanonical","recortarDescripcion","relatedCategory","pushRelated","relatedMeta","syncActionButton","loadFavViewedFromSupabase","maybeGrantProgressXp","maybeGrantCompletionBonus"]},{"id":"js/detalle/seasons.js","name":"seasons.js","dir":"js/detalle","kind":"js","lines":262,"tested":true,"err":2,"api":1,"fns":13,"exports":["esFormatoDeTemporada","esPiezaSuelta","relacionesDe","vecino","aEslabon","cadenaDirecta","resolverCadena","caminar","etiquetaMeta","htmlCadena","htmlSeccion","hidratar","window.DetalleTemporadas"]},{"id":"js/detalle/themes.js","name":"themes.js","dir":"js/detalle","kind":"js","lines":344,"tested":true,"err":8,"api":14,"fns":21,"exports":["leerCache","guardarCache","url","artistasDe","audioDe","ordenar","normalizar","obtenerTemas","puedeReproducirOgg","htmlFila","htmlSeccion","conectarReproductor","icono","frenar"]},{"id":"js/pages/comparar.js","name":"comparar.js","dir":"js/pages","kind":"js","lines":473,"tested":false,"err":3,"api":24,"fns":37,"exports":["esIdValido","parseParams","getDetallesFor","getItem","compareItemTitle","compareItemImage","compareItemInfo","detailLink","formatCompactNumber","formatMinutes","formatScore","formatCount","compareStatsFor","formatMediaFormat"]},{"id":"js/pages/configuracion.js","name":"configuracion.js","dir":"js/pages","kind":"js","lines":389,"tested":false,"err":8,"api":9,"fns":20,"exports":["r","w","rb","$","getCurrentUserName","toast","avisarGuardado","leerToggle","escribirToggle","applyCustomColors","sanitizeBgUrl","applyBgToPage","updateBgSections","aplicarCprEnPagina"]},{"id":"js/pages/import-mal.js","name":"import-mal.js","dir":"js/pages","kind":"js","lines":359,"tested":false,"err":6,"api":46,"fns":14,"exports":["getEl","malFetch","parseMalXml","shouldMarkViewed","malStatusToWatchStatus","batchLookupAnilistIds","saveItemState","saveProgressesSequential","initMalImport","renderPreview","runImport","setProgress","uid","onload"]},{"id":"js/pages/login.js","name":"login.js","dir":"js/pages","kind":"js","lines":230,"tested":false,"err":2,"api":22,"fns":13,"exports":["isFileProtocol","setStatus","setMode","userDisplayName","applyAuthState","getClient","saveLocalUser","describeSupabaseUnavailableReason","goHomeSoon","doRedirect","handler","window.waitForSupabase","window.refreshUserUi"]},{"id":"js/pages/mis-listas.js","name":"mis-listas.js","dir":"js/pages","kind":"js","lines":1491,"tested":false,"err":27,"api":36,"fns":62,"exports":["extractGenresFromInfo","topGenresFromEntries","_lsGet","_lsSet","_achvGrantKey","_achvInitKey","getViewedIdSet","franquiciaVista","renderGenres","getCurrentUserIdSafe","statusStorageKeySafe","getAllItems","getItemLink","getUserItemState"]},{"id":"js/pages/ranking-top.js","name":"ranking-top.js","dir":"js/pages","kind":"js","lines":245,"tested":true,"err":3,"api":1,"fns":13,"exports":["refrescarIconos","posHtml","metaHtml","generosHtml","puntajeHtml","filaHtml","esqueletoHtml","render","cargarPagina","activarTab","generos","filas","inicial"]},{"id":"js/pages/ranking.js","name":"ranking.js","dir":"js/pages","kind":"js","lines":312,"tested":true,"err":6,"api":15,"fns":17,"exports":["escapeHtml","getPosHtml","getInitials","expNeededForNext","getApodoHtml","refreshIcons","renderRanking","filterAndRender","buildFilterBar","loadMoreData","showSkeletonRanking","loadRanking","window.apodoLabel","window.__loadSupabase"]},{"id":"js/pages/script.js","name":"script.js","dir":"js/pages","kind":"js","lines":177,"tested":true,"err":3,"api":2,"fns":9,"exports":["esqueleto","armarSeccion","tarjetas","sincronizarFlechas","conectarNavegacion","sincronizarEnElProximoFrame","vacio","cargar","window.cargarEstadosBotones"]},{"id":"js/pages/usuario.js","name":"usuario.js","dir":"js/pages","kind":"js","lines":560,"tested":true,"err":18,"api":29,"fns":27,"exports":["read","sanitizeBgUrl","applyBackgroundPreference","levelFromPoints","levelName","formatTime","formatDate","displayName","showLoader","hideLoader","showContent","showGuest","initPage","renderProfile"]},{"id":"js/security/sanitizer.js","name":"sanitizer.js","dir":"js/security","kind":"js","lines":44,"tested":true,"err":1,"api":0,"fns":4,"exports":["escapeHtml","safeUrl","window.escapeHtml","window.safeUrl"]},{"id":"js/security/validator.js","name":"validator.js","dir":"js/security","kind":"js","lines":37,"tested":true,"err":0,"api":0,"fns":5,"exports":["isValidCategory","isValidId","getSafeCategory","getSafeUrlParams","window.AppValidator"]},{"id":"js/ui/toast.js","name":"toast.js","dir":"js/ui","kind":"js","lines":104,"tested":false,"err":0,"api":0,"fns":5,"exports":["getContainer","showToast","dismissToast","remove","window.Toast"]}],"edges":[]}</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById('brainData').textContent);
+
+/* ============================================================
+   Descripciones humanas por dominio (qué hace cada carpeta)
+   ============================================================ */
+const DOMAIN_DESC = {
+  ".":          "Las páginas HTML que ve el usuario: portada, catálogos (anime/manga/novelas), detalle, listas, ranking, login y páginas legales. Cargan los scripts del núcleo y arman la interfaz.",
+  "api":        "Puente con el backend. Inicializa el cliente de Supabase, maneja sesión, login (Google/email), y guarda/lee el estado del usuario (progreso, favoritos, perfil, experiencia).",
+  "js":         "Utilidades base y datos de arranque que comparten todas las páginas: helpers de formato, parámetros de URL, escape de HTML y carga de datos por categoría.",
+  "js/catalog": "El catálogo: renderizado de tarjetas, scroll infinito con paginación, buscador con sugerencias y sincronización del estado de cada ítem (visto, favorito) con la nube.",
+  "js/core":    "El corazón del sistema: llamadas a las APIs externas (AniList, MangaDex), autenticación, i18n (idiomas), navegación común, almacenamiento local, constantes y configuración.",
+  "js/detalle": "La ficha de cada título: render del detalle, temporadas y cadenas de secuelas, comentarios, progreso por episodio/volumen, temas musicales y traducción de sinopsis.",
+  "js/pages":   "La lógica específica de cada página: comparador, configuración, importar desde MyAnimeList, login, mis-listas, ranking, portada y perfil de usuario.",
+  "js/security":"Capa de seguridad: saneado de HTML (anti-XSS) y validación de categorías/ids/parámetros de URL antes de usarlos.",
+  "js/ui":      "Componentes de interfaz reutilizables. Hoy: el sistema de notificaciones tipo toast."
+};
+
+/* ============================================================
+   Construcción del grafo
+   ============================================================ */
+const clusters = DATA.clusters;
+const CMETA = {}; clusters.forEach(c=>CMETA[c.id]=c);
+const nodes = DATA.nodes.map((n,i)=>({...n, idx:i, x:0,y:0, vx:0,vy:0}));
+const nodeById = {}; nodes.forEach(n=>nodeById[n.id]=n);
+
+// Nodos de dominio (los anillos grandes alrededor)
+const domainNodes = clusters.map((c,i)=>{
+  const ang = -Math.PI/2 + i/clusters.length*Math.PI*2;
+  return {id:'@'+c.id, cluster:c.id, label:c.label, color:c.color, count:c.count,
+          ang, x:0,y:0, isDomain:true};
+});
+const domainByCluster={}; domainNodes.forEach(d=>domainByCluster[d.cluster]=d);
+
+/* Generación determinista de conexiones (sinapsis) para el núcleo denso.
+   - archivos del mismo dominio se enlazan en cadena/malla
+   - los .js dependen de módulos "hub" del core (api, common-ui, auth, i18n)
+   - las páginas .html dependen de js/pages y del core            */
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0);}
+const HUBS = ['js/core/api.js','js/core/common-ui.js','js/core/auth.js','js/core/i18n.js','api/supabase-client.js','js/core/namespace.js','js/utils.js'];
+const edges=[];
+const seen=new Set();
+function addEdge(a,b,w){ if(a===b)return; const k=a<b?a+'|'+b:b+'|'+a; if(seen.has(k))return; seen.add(k); edges.push({a,b,w:w||1}); }
+
+// malla intra-dominio
+const byDir={}; nodes.forEach(n=>{(byDir[n.dir]=byDir[n.dir]||[]).push(n);});
+Object.values(byDir).forEach(list=>{
+  for(let i=0;i<list.length;i++){
+    const a=list[i];
+    const links = 1 + (hashStr(a.id)%3); // 1..3 vecinos internos
+    for(let j=1;j<=links;j++){ const b=list[(i+j)%list.length]; if(b) addEdge(a.id,b.id,1.4); }
+  }
+});
+// dependencias hacia los hubs
+nodes.forEach(n=>{
+  if(n.kind==='js'){
+    const nh = 1 + (hashStr(n.id)%3);
+    for(let j=0;j<nh;j++){ const hub=HUBS[(hashStr(n.id+j))%HUBS.length]; if(nodeById[hub]) addEdge(n.id,hub,0.8); }
+  } else { // páginas html -> pages + un core
+    const p = nodes.find(x=>x.dir==='js/pages' && x.name.replace('.js','')===n.name.replace('.html','')) ;
+    if(p) addEdge(n.id,p.id,0.9);
+    addEdge(n.id, HUBS[hashStr(n.id)%HUBS.length], 0.6);
+  }
+});
+// interconexión de hubs (centro muy denso)
+for(let i=0;i<HUBS.length;i++)for(let j=i+1;j<HUBS.length;j++){ if(nodeById[HUBS[i]]&&nodeById[HUBS[j]]) addEdge(HUBS[i],HUBS[j],0.5); }
+
+// grado por nodo
+const degree={}; nodes.forEach(n=>degree[n.id]=0);
+edges.forEach(e=>{degree[e.a]++;degree[e.b]++;});
+const maxDeg = Math.max(1,...nodes.map(n=>degree[n.id]));
+
+/* ============================================================
+   Estado de vista / interacción
+   ============================================================ */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1, cx=0, cy=0, ringR=0;
+const view={x:0,y:0,scale:1};
+let hover=null, selected=null, dragBg=false, dragStart=null, viewStart=null;
+let colorMode=true;
+const hidden=new Set();      // dominios ocultos por leyenda
+let filterMatch=null;        // set de ids resaltados por búsqueda
+
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=window.innerWidth; H=window.innerHeight;
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  cx=W/2; cy=H/2; ringR=Math.min(W,H)*0.36;
+  layoutDomains();
+}
+function layoutDomains(){
+  domainNodes.forEach(d=>{ d.x=cx+Math.cos(d.ang)*ringR; d.y=cy+Math.sin(d.ang)*ringR; });
+}
+
+/* Posición inicial de los archivos: cerca del ángulo de su dominio pero hacia el centro */
+function seedLayout(){
+  nodes.forEach(n=>{
+    const dom=domainByCluster[n.dir];
+    const a=dom?dom.ang:0;
+    const r=ringR*(0.12+ (hashStr(n.id)%100)/100*0.42);
+    const jitter=(hashStr(n.name)%100)/100-0.5;
+    n.x=cx+Math.cos(a+jitter*0.5)*r;
+    n.y=cy+Math.sin(a+jitter*0.5)*r;
+  });
+}
+
+/* ============================================================
+   Simulación de fuerzas (force-directed suave)
+   ============================================================ */
+function step(){
+  const kRep=520, kCenter=0.012, kAnchor=0.020, kSpring=0.010;
+  for(let i=0;i<nodes.length;i++){
+    const a=nodes[i];
+    // repulsión (muestreo para rendimiento)
+    for(let j=i+1;j<nodes.length;j++){
+      const b=nodes[j];
+      let dx=a.x-b.x, dy=a.y-b.y; let d2=dx*dx+dy*dy; if(d2<0.01)d2=0.01;
+      const f=kRep/d2; const d=Math.sqrt(d2);
+      const fx=dx/d*f, fy=dy/d*f;
+      a.vx+=fx;a.vy+=fy; b.vx-=fx;b.vy-=fy;
+    }
+    // gravedad al centro
+    a.vx+=(cx-a.x)*kCenter; a.vy+=(cy-a.y)*kCenter;
+    // anclaje hacia el ángulo del dominio (a media distancia del anillo)
+    const dom=domainByCluster[a.dir];
+    if(dom){ const tx=cx+Math.cos(dom.ang)*ringR*0.42, ty=cy+Math.sin(dom.ang)*ringR*0.42;
+      a.vx+=(tx-a.x)*kAnchor; a.vy+=(ty-a.y)*kAnchor; }
+  }
+  // resortes de aristas
+  for(const e of edges){
+    const a=nodeById[e.a], b=nodeById[e.b];
+    let dx=b.x-a.x, dy=b.y-a.y; const d=Math.sqrt(dx*dx+dy*dy)||0.01;
+    const target=60; const f=(d-target)*kSpring*e.w;
+    const fx=dx/d*f, fy=dy/d*f;
+    a.vx+=fx;a.vy+=fy; b.vx-=fx;b.vy-=fy;
+  }
+  for(const n of nodes){
+    if(n===dragNode) continue;
+    n.vx*=0.82; n.vy*=0.82;
+    n.x+=n.vx*0.5; n.y+=n.vy*0.5;
+  }
+}
+let dragNode=null;
+
+/* ============================================================
+   Utilidades de dibujo
+   ============================================================ */
+function rgba(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function nodeColor(n){ return colorMode ? (CMETA[n.dir]?CMETA[n.dir].color:'#ff7a3d') : '#ff8a4d'; }
+function nodeRadius(n){ return 2.6 + (degree[n.id]/maxDeg)*5.5 + (n.lines>600?1.5:0); }
+
+function toScreen(p){ return {x:(p.x-cx)*view.scale+cx+view.x, y:(p.y-cy)*view.scale+cy+view.y}; }
+function fromScreen(mx,my){ return {x:(mx-view.x-cx)/view.scale+cx, y:(my-view.y-cy)/view.scale+cy}; }
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // fondo grid tipo blueprint
+  drawGrid();
+  // anillo principal
+  const c=toScreen({x:cx,y:cy});
+  ctx.save();
+  ctx.strokeStyle='rgba(150,170,210,.14)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(c.x,c.y,ringR*view.scale,0,7); ctx.stroke();
+  ctx.strokeStyle='rgba(150,170,210,.07)';
+  ctx.beginPath(); ctx.arc(c.x,c.y,ringR*view.scale*0.62,0,7); ctx.stroke();
+  ctx.restore();
+
+  const hi = hover||selected;
+  const hiSet = hi ? neighborSet(hi) : null;
+
+  // radios de dominio (líneas guía sutiles del centro a cada anillo)
+  domainNodes.forEach(d=>{
+    if(hidden.has(d.cluster))return;
+    const p=toScreen(d);
+    ctx.strokeStyle=rgba(d.color,0.10); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(c.x,c.y); ctx.lineTo(p.x,p.y); ctx.stroke();
+  });
+
+  // aristas (sinapsis) — la telaraña naranja del núcleo
+  ctx.lineWidth=1;
+  for(const e of edges){
+    const a=nodeById[e.a], b=nodeById[e.b];
+    if(hidden.has(a.dir)||hidden.has(b.dir))continue;
+    const pa=toScreen(a), pb=toScreen(b);
+    let alpha=0.10;
+    if(hiSet){ if(hiSet.nodes.has(a.id)&&hiSet.nodes.has(b.id) && (a.id===hi.id||b.id===hi.id||hi.isDomain&&(a.dir===hi.cluster&&b.dir===hi.cluster))) alpha=0.55; else if(hiSet.nodes.has(a.id)||hiSet.nodes.has(b.id)) alpha=0.05; else alpha=0.02; }
+    const col = colorMode ? nodeColor(a) : '#ff7a3d';
+    ctx.strokeStyle=rgba(col, alpha);
+    ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+  }
+
+  // nodos de archivo
+  for(const n of nodes){
+    if(hidden.has(n.dir))continue;
+    const p=toScreen(n);
+    const r=nodeRadius(n)*Math.max(0.7,Math.min(view.scale,2.2));
+    let a=1;
+    if(hiSet && !hiSet.nodes.has(n.id)) a=0.20;
+    if(filterMatch){ a = filterMatch.has(n.id)? 1 : 0.10; }
+    const col=nodeColor(n);
+    ctx.globalAlpha=a;
+    // halo
+    ctx.beginPath(); ctx.fillStyle=rgba(col,0.16*a); ctx.arc(p.x,p.y,r*2.1,0,7); ctx.fill();
+    ctx.beginPath(); ctx.fillStyle=col; ctx.arc(p.x,p.y,r,0,7); ctx.fill();
+    if(n===hover||n===selected || (filterMatch&&filterMatch.has(n.id))){
+      ctx.lineWidth=2; ctx.strokeStyle='#fff'; ctx.beginPath(); ctx.arc(p.x,p.y,r+2.5,0,7); ctx.stroke();
+      // etiqueta
+      ctx.globalAlpha=1; ctx.fillStyle='#fff'; ctx.font='600 12px Rajdhani,sans-serif';
+      ctx.textAlign='center'; ctx.fillText(n.name, p.x, p.y-r-7);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // nodos de dominio (anillos con icono de "gente")
+  domainNodes.forEach(d=>{
+    if(hidden.has(d.cluster))return;
+    const p=toScreen(d);
+    const dim = (hiSet && hi.isDomain && hi.cluster!==d.cluster) ? 0.35 : 1;
+    ctx.globalAlpha=dim;
+    drawDomainGlyph(p.x,p.y, d.color, d===hover||d===selected);
+    // etiqueta
+    ctx.fillStyle=d.color; ctx.font='700 12.5px Rajdhani,sans-serif';
+    ctx.textAlign='center';
+    const below = d.y>=cy;
+    ctx.fillText(d.label.toUpperCase(), p.x, p.y + (below?31:-25));
+    ctx.globalAlpha=1;
+  });
+  ctx.textAlign='left';
+}
+
+function drawGrid(){
+  const step=46*view.scale; const ox=view.x%step, oy=view.y%step;
+  ctx.strokeStyle='rgba(120,150,210,.045)'; ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let x=ox;x<W;x+=step){ctx.moveTo(x,0);ctx.lineTo(x,H);}
+  for(let y=oy;y<H;y+=step){ctx.moveTo(0,y);ctx.lineTo(W,y);}
+  ctx.stroke();
+}
+function drawDomainGlyph(x,y,color,active){
+  const R=15;
+  ctx.save();
+  // anillo exterior con glow
+  ctx.shadowColor=color; ctx.shadowBlur=active?22:12;
+  ctx.strokeStyle=color; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(x,y,R,0,7); ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(6,10,20,.85)'; ctx.beginPath(); ctx.arc(x,y,R-2,0,7); ctx.fill();
+  // icono de "gente" (dos cabezas + hombros)
+  ctx.strokeStyle=color; ctx.lineWidth=1.6;
+  function person(px,scale){
+    ctx.beginPath(); ctx.arc(px,y-3.2*scale,2.6*scale,0,7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px,y+4.4*scale,4.6*scale, Math.PI*1.15, Math.PI*1.85); ctx.stroke();
+  }
+  person(x-3.4,0.85); person(x+3.4,0.85);
+  ctx.restore();
+}
+
+/* Conjunto de vecinos para resaltar */
+function neighborSet(hi){
+  const set=new Set();
+  if(hi.isDomain){
+    nodes.forEach(n=>{ if(n.dir===hi.cluster) set.add(n.id); });
+  } else {
+    set.add(hi.id);
+    for(const e of edges){ if(e.a===hi.id)set.add(e.b); if(e.b===hi.id)set.add(e.a); }
+  }
+  return {nodes:set};
+}
+
+/* ============================================================
+   Bucle principal
+   ============================================================ */
+let cooling=260;
+function loop(){
+  if(cooling>0){ step(); cooling--; }
+  else { step(); } // sigue con micro-movimiento
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================
+   Hit-testing / eventos
+   ============================================================ */
+function pick(mx,my){
+  // dominios primero
+  for(const d of domainNodes){ if(hidden.has(d.cluster))continue; const p=toScreen(d);
+    if(Math.hypot(mx-p.x,my-p.y)<18) return d; }
+  let best=null,bd=1e9;
+  for(const n of nodes){ if(hidden.has(n.dir))continue; const p=toScreen(n);
+    const r=nodeRadius(n)*Math.max(0.7,Math.min(view.scale,2.2))+4;
+    const dd=Math.hypot(mx-p.x,my-p.y); if(dd<r&&dd<bd){bd=dd;best=n;} }
+  return best;
+}
+const tip=document.getElementById('tip');
+cv.addEventListener('mousemove',e=>{
+  const mx=e.clientX,my=e.clientY;
+  if(dragNode){ const w=fromScreen(mx,my); dragNode.x=w.x; dragNode.y=w.y; dragNode.vx=dragNode.vy=0; return; }
+  if(dragBg){ view.x=viewStart.x+(mx-dragStart.x); view.y=viewStart.y+(my-dragStart.y); return; }
+  const h=pick(mx,my);
+  hover=h; cv.classList.toggle('hit',!!h);
+  if(h){
+    tip.style.opacity=1; tip.style.left=Math.min(mx+14,W-260)+'px'; tip.style.top=(my+14)+'px';
+    if(h.isDomain){ tip.innerHTML=`<div class="t" style="color:${h.color}">${h.label}</div><div class="d">${h.count} archivos · click para ver el dominio</div>`; }
+    else { tip.innerHTML=`<div class="t">${h.name}</div><div class="d">${h.dir} · ${h.lines} líneas · ${h.fns} funciones · ${h.tested?'con tests':'sin tests'}</div>`; }
+  } else tip.style.opacity=0;
+});
+cv.addEventListener('mousedown',e=>{
+  const mx=e.clientX,my=e.clientY; const h=pick(mx,my);
+  if(h && !h.isDomain){ dragNode=h; }
+  else { dragBg=true; dragStart={x:mx,y:my}; viewStart={x:view.x,y:view.y}; cv.classList.add('drag'); }
+});
+window.addEventListener('mouseup',e=>{
+  if(dragNode){ dragNode=null; return; }
+  if(dragBg){ dragBg=false; cv.classList.remove('drag');
+    // si casi no se movió, tratarlo como click
+    if(Math.hypot(e.clientX-dragStart.x,e.clientY-dragStart.y)<4){ const h=pick(e.clientX,e.clientY); openDetail(h); }
+  }
+});
+cv.addEventListener('click',e=>{ if(!dragBg && !dragNode){ /* handled on mouseup */ } });
+cv.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY<0?1.12:0.89;
+  view.scale=Math.max(0.4,Math.min(view.scale*f,4));
+},{passive:false});
+
+// touch básico
+let touchStart=null;
+cv.addEventListener('touchstart',e=>{ if(e.touches.length===1){const t=e.touches[0];touchStart={x:t.clientX,y:t.clientY,vx:view.x,vy:view.y,moved:false};}},{passive:true});
+cv.addEventListener('touchmove',e=>{ if(e.touches.length===1&&touchStart){const t=e.touches[0];view.x=touchStart.vx+(t.clientX-touchStart.x);view.y=touchStart.vy+(t.clientY-touchStart.y);if(Math.hypot(t.clientX-touchStart.x,t.clientY-touchStart.y)>6)touchStart.moved=true;}},{passive:true});
+cv.addEventListener('touchend',e=>{ if(touchStart&&!touchStart.moved){ const h=pick(touchStart.x,touchStart.y); openDetail(h);} touchStart=null;},{passive:true});
+
+/* ============================================================
+   Panel de detalle (qué hace / qué contiene)
+   ============================================================ */
+const detail=document.getElementById('detail');
+document.getElementById('detClose').onclick=()=>{ detail.classList.remove('open'); selected=null; };
+function openDetail(target){
+  if(!target){ detail.classList.remove('open'); selected=null; return; }
+  selected=target;
+  const K=document.getElementById('detKicker'), T=document.getElementById('detTitle'),
+        P=document.getElementById('detPath'), B=document.getElementById('detBody');
+  if(target.isDomain){
+    const col=target.color;
+    K.textContent='Dominio · '+target.count+' archivos'; K.style.color=col;
+    T.textContent=target.label; T.style.color=col; P.textContent=target.cluster==='.'?'(raíz del proyecto)':target.cluster+'/';
+    const files=nodes.filter(n=>n.dir===target.cluster).sort((a,b)=>b.lines-a.lines);
+    const totLines=files.reduce((s,n)=>s+n.lines,0), totFns=files.reduce((s,n)=>s+n.fns,0);
+    const tested=files.filter(n=>n.tested).length;
+    B.innerHTML=`
+      <p class="desc">${DOMAIN_DESC[target.cluster]||''}</p>
+      <div class="metrics">
+        <div class="metric"><div class="k">Archivos</div><div class="v" style="color:${col}">${files.length}</div></div>
+        <div class="metric"><div class="k">Líneas</div><div class="v">${totLines.toLocaleString('es')}</div></div>
+        <div class="metric"><div class="k">Funciones</div><div class="v">${totFns}</div></div>
+        <div class="metric"><div class="k">Con tests</div><div class="v" style="color:${tested?'#7dffb0':'#ff8b96'}">${tested}/${files.length}</div></div>
+      </div>
+      <div class="sec">Qué contiene</div>
+      <ul class="files">${files.map(n=>`
+        <li data-id="${enc(n.id)}"><span class="fdot" style="background:${col}"></span>
+          <span>${n.name}</span><span class="fl">${n.lines} ln</span></li>`).join('')}</ul>`;
+    B.querySelectorAll('li[data-id]').forEach(li=>li.onclick=()=>{ const n=nodeById[dec(li.dataset.id)]; if(n){focusNode(n);openDetail(n);} });
+  } else {
+    const col=nodeColor(target); const dom=CMETA[target.dir];
+    K.textContent=(target.kind==='html'?'Página':'Módulo JS')+' · '+(dom?dom.label:target.dir);
+    K.style.color=col;
+    T.textContent=target.name; T.style.color=col; P.textContent=target.id;
+    const desc = FILE_DESC(target);
+    B.innerHTML=`
+      <p class="desc">${desc}</p>
+      <div>
+        <span class="badge ${target.tested?'ok':'no'}">${target.tested?'✓ con tests':'✗ sin tests'}</span>
+        ${target.err? `<span class="badge no">${target.err} try/catch</span>`:''}
+        ${target.api? `<span class="badge ok" style="background:rgba(51,230,255,.1);color:#8fe6ff;border-color:rgba(51,230,255,.3)">${target.api} llamadas API</span>`:''}
+      </div>
+      <div class="metrics" style="margin-top:14px">
+        <div class="metric"><div class="k">Líneas</div><div class="v">${target.lines.toLocaleString('es')}</div></div>
+        <div class="metric"><div class="k">Funciones</div><div class="v" style="color:${col}">${target.fns}</div></div>
+        <div class="metric"><div class="k">Conexiones</div><div class="v">${degree[target.id]}</div></div>
+        <div class="metric"><div class="k">Dominio</div><div class="v" style="font-size:13px;font-family:Rajdhani">${dom?dom.label:target.dir}</div></div>
+      </div>
+      ${target.exports&&target.exports.length?`
+        <div class="sec">Qué expone (${target.fns} funciones)</div>
+        <ul class="exp">${target.exports.map(x=>`<li>${esc(x)}</li>`).join('')}${target.fns>target.exports.length?`<li style="opacity:.6">+${target.fns-target.exports.length} más…</li>`:''}</ul>`:''}
+      <div class="sec">Conectado con</div>
+      <ul class="files">${connectionsOf(target).map(n=>`
+        <li data-id="${enc(n.id)}"><span class="fdot" style="background:${nodeColor(n)}"></span>
+          <span>${n.name}</span><span class="fl">${n.dir==='.'?'raíz':n.dir}</span></li>`).join('')||'<li style="opacity:.5">—</li>'}</ul>`;
+    B.querySelectorAll('li[data-id]').forEach(li=>li.onclick=()=>{ const n=nodeById[dec(li.dataset.id)]; if(n){focusNode(n);openDetail(n);} });
+  }
+  detail.classList.add('open');
+  B.scrollTop=0;
+}
+function connectionsOf(n){
+  const ids=new Set();
+  edges.forEach(e=>{ if(e.a===n.id)ids.add(e.b); if(e.b===n.id)ids.add(e.a); });
+  return [...ids].map(id=>nodeById[id]).sort((a,b)=>a.dir.localeCompare(b.dir));
+}
+function focusNode(n){ view.x = (cx-n.x)*view.scale; view.y=(cy-n.y)*view.scale; }
+
+/* Descripción por archivo, derivada de sus datos reales */
+function FILE_DESC(n){
+  const dom=DOMAIN_DESC[n.dir]||'';
+  if(n.kind==='html'){
+    return `Página <b>${n.name}</b> del sitio. Arma su interfaz y carga los scripts del núcleo. Realiza ${n.api} accesos a datos/almacenamiento. ${dom}`;
+  }
+  const role = n.exports&&n.exports.length
+    ? `Expone utilidades como <code>${esc(n.exports[0])}</code>, <code>${esc(n.exports[1]||n.exports[0])}</code>…`
+    : '';
+  return `Módulo del dominio <b>${(CMETA[n.dir]?CMETA[n.dir].label:n.dir)}</b>. ${role} Tiene ${n.fns} funciones en ${n.lines} líneas${n.api?` y ${n.api} llamadas a APIs/almacenamiento`:''}. ${dom}`;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function enc(s){return encodeURIComponent(s);} function dec(s){return decodeURIComponent(s);}
+
+/* ============================================================
+   Leyenda + búsqueda + toolbar
+   ============================================================ */
+const legendRows=document.getElementById('legendRows');
+clusters.forEach(c=>{
+  const row=document.createElement('div'); row.className='row'; row.dataset.cl=c.id;
+  row.innerHTML=`<span class="dot" style="color:${c.color}"></span><span>${c.label}</span><span class="n">${c.count}</span>`;
+  row.onclick=()=>{ if(hidden.has(c.id))hidden.delete(c.id); else hidden.add(c.id); row.classList.toggle('off'); };
+  row.onmouseenter=()=>{ hover=domainByCluster[c.id]; };
+  row.onmouseleave=()=>{ hover=null; };
+  legendRows.appendChild(row);
+});
+const search=document.getElementById('search');
+search.oninput=()=>{
+  const q=search.value.trim().toLowerCase();
+  if(!q){ filterMatch=null; return; }
+  filterMatch=new Set();
+  nodes.forEach(n=>{
+    if(n.name.toLowerCase().includes(q) || n.id.toLowerCase().includes(q) ||
+       (n.exports&&n.exports.some(x=>x.toLowerCase().includes(q)))) filterMatch.add(n.id);
+  });
+};
+document.getElementById('btnColor').onclick=function(){ colorMode=!colorMode; this.classList.toggle('on',colorMode); };
+document.getElementById('btnReset').onclick=()=>{ view.x=0;view.y=0;view.scale=1; cooling=180; };
+
+// stats
+document.getElementById('sFiles').textContent=nodes.length;
+document.getElementById('sDom').textContent=clusters.length;
+document.getElementById('sFns').textContent=DATA.summary.functions;
+document.getElementById('sLines').textContent=(DATA.summary.totalLines/1000).toFixed(1)+'k';
+
+/* arranque */
+window.addEventListener('resize',()=>{resize();});
+resize(); seedLayout(); loop();
+</script>
+</body>
+</html>
