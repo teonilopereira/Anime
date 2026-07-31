@@ -32,6 +32,23 @@
   .body h3{margin:0 0 4px;font-size:16.5px}
   .body p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45}
   .go{margin-top:10px;font-size:12px;font-weight:600;color:#5ce1ff;display:flex;align-items:center;gap:5px}
+  /* Tarjeta destacada (principal) */
+  .featured{max-width:1050px;margin:0 auto 18px}
+  a.hero{display:grid;grid-template-columns:minmax(0,1.15fr) 1fr;text-decoration:none;color:inherit;
+    position:relative;background:linear-gradient(120deg,rgba(20,12,8,.85),rgba(10,14,26,.8));
+    border:1px solid rgba(255,122,61,.32);border-radius:20px;overflow:hidden;transition:.18s;min-height:240px}
+  a.hero:hover{transform:translateY(-3px);border-color:rgba(255,122,61,.6);
+    box-shadow:0 18px 55px rgba(0,0,0,.55),0 0 40px rgba(255,122,61,.12)}
+  a.hero .thumb{height:100%;min-height:240px;border-bottom:none;border-right:1px solid var(--line)}
+  a.hero .body{padding:26px 28px;display:flex;flex-direction:column;justify-content:center}
+  a.hero .star{position:absolute;top:14px;left:16px;z-index:3;font-size:10.5px;letter-spacing:1.6px;
+    text-transform:uppercase;font-weight:700;color:#0a0a0a;background:linear-gradient(90deg,#ff9a4d,#ff7a3d);
+    border-radius:20px;padding:4px 11px}
+  a.hero .body h3{font-size:26px;margin:0 0 8px;font-family:"Orbitron",sans-serif;
+    background:linear-gradient(90deg,#ff9a4d,#ffce8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  a.hero .body p{font-size:14px;line-height:1.55;color:#cdd6ee;margin:0}
+  a.hero .go{margin-top:16px;font-size:13.5px}
+  @media(max-width:640px){a.hero{grid-template-columns:1fr}a.hero .thumb{min-height:150px;height:150px;border-right:none;border-bottom:1px solid var(--line)}}
   footer{max-width:1050px;margin:34px auto 0;color:var(--muted);font-size:12px;text-align:center}
 </style>
 </head>
@@ -43,6 +60,7 @@
     Todo generado a partir de los archivos, conexiones y métricas reales del código. Elegí una:</p>
 </header>
 
+<section class="featured" id="featured"></section>
 <main class="grid" id="grid"></main>
 <footer>Todas las páginas son autónomas (un solo HTML, sin dependencias). Abrilas directo o servílas con <code>npm run serve</code>.</footer>
 
@@ -67,7 +85,19 @@ const CARDS=[
 ];
 
 const grid=document.getElementById('grid');
-CARDS.forEach(c=>{
+const featured=document.getElementById('featured');
+
+// La primera card es la principal (destacada, a lo ancho)
+const main=CARDS[0];
+const hero=document.createElement('a');hero.className='hero';hero.href=main.f;
+hero.innerHTML=`<div class="thumb"><span class="star">★ Destacado</span><canvas></canvas></div>
+  <div class="body"><span class="tag" style="position:static;background:none;border:none;padding:0;margin-bottom:6px;color:${main.accent}">${main.tag}</span>
+    <h3>${main.t}</h3><p>${main.d}</p><div class="go" style="color:${main.accent}">Abrir →</div></div>`;
+featured.appendChild(hero);
+requestAnimationFrame(()=>drawThumb(hero.querySelector('canvas'),main));
+
+// El resto va a la grilla
+CARDS.slice(1).forEach(c=>{
   const a=document.createElement('a');a.className='card';a.href=c.f;
   a.innerHTML=`<div class="thumb"><span class="tag" style="color:${c.accent}">${c.tag}</span><canvas></canvas></div>
     <div class="body"><h3>${c.t}</h3><p>${c.d}</p><div class="go" style="color:${c.accent}">Abrir →</div></div>`;
