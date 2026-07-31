@@ -53,6 +53,7 @@
   .btn button{font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
     padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(10,15,26,.85);transition:.14s}
   .btn button:hover{border-color:var(--gold)}
+  .btn button.on{border-color:var(--gold);color:var(--gold);background:rgba(232,207,148,.14)}
   #eye{position:fixed;z-index:7;bottom:14px;right:14px;width:40px;height:40px;border-radius:10px;
     border:1px solid var(--line);background:rgba(10,15,26,.85);backdrop-filter:blur(9px);color:var(--ink);
     cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:.14s}
@@ -88,6 +89,7 @@
   <button data-m="fragil">Fragilidad</button>
   <button data-m="churn">Churn</button>
   <button data-m="tests">Tests</button>
+  <button data-m="grupo">Colores</button>
 </div>
 
 <div class="panel" id="searchbox">
@@ -109,6 +111,7 @@
   <div class="note" id="legNote"></div>
 </div>
 <div class="btn">
+  <button id="move">✋ Interactuar</button>
   <button id="expand">✦ Expandir todo</button>
   <button id="collapse">↺ Plegar</button>
 </div>
@@ -143,12 +146,12 @@ for(const k of fkeys){const m=METRICS[k];const size=m.lines/mx.lines,frag=(m.err
   m._size=size;m._frag=frag;m._churn=ch;m._untested=untested;
   m._risk=0.40*size+0.22*frag+0.13*ch+0.25*untested;maxRisk=Math.max(maxRisk,m._risk);}
 for(const k of fkeys)METRICS[k]._risk/=maxRisk;
-function metricVal(m,mode){return mode==='size'?m._size:mode==='fragil'?m._frag:mode==='churn'?m._churn:
+function metricVal(m,mode){return mode==='grupo'?0.5:mode==='size'?m._size:mode==='fragil'?m._frag:mode==='churn'?m._churn:
   mode==='tests'?m._untested:m._risk;}
 
 /* ===== construir árbol ===== */
 let uid=0;
-function node(o){return Object.assign({id:uid++,children:[],expanded:false,x:null,y:null,tx:0,ty:0,tang:0,trad:0,r:0,val:0},o);}
+function node(o){return Object.assign({id:uid++,children:[],expanded:false,x:null,y:null,tx:0,ty:0,tang:0,trad:0,r:0,val:0,mdx:0,mdy:0},o);}
 const root=node({label:'ANIME DESTINY',kind:'root',group:'root',desc:'PWA de catálogo de anime, manga, novelas y juegos.',depth:0,expanded:true});
 for(const g of ORDER){
   const fol=node({label:FOLDERS[g].label,kind:'folder',group:g,desc:'Carpeta '+FOLDERS[g].label,depth:1,parent:root});
@@ -189,7 +192,7 @@ function setRadii(){(function setR(n){n.r=radiusOf(n);n.children.forEach(setR);}
 
 let scale=1,pan={x:0,y:0},leafCount=1;
 // huecos entre ramas (en "unidades de hoja") por nivel: mucho entre carpetas, poco entre funciones
-function gapU(d){return d===0?3.2:d===1?0.45:0.08;}
+function gapU(d){return d===0?3.2:d===1?0.6:0.6;}
 // variacion de distancia por nodo (rompe el anillo perfecto -> aspecto de ramas)
 function rjit(n){const h=Math.sin(n.id*12.9898+n.depth*7.13)*0.5+0.5;return 0.86+h*0.28;}
 function layout(){
@@ -204,7 +207,7 @@ function layout(){
       n.children.forEach((c,i)=>{place(c);if(i<n.children.length-1)cur+=gapU(n.depth)*step;});
       n.tang=(n.children[0].tang+n.children[n.children.length-1].tang)/2;
     }else{n.tang=cur+step/2;cur+=step;}
-    n.trad=n.depth?n.depth*RING*rjit(n):0;
+    n.trad=n.depth?n.depth*RING*(n.depth===3?1.16:1)*rjit(n):0;
     n.tx=Math.cos(n.tang)*n.trad;n.ty=Math.sin(n.tang)*n.trad;
   })(root);
   root.tx=0;root.ty=0;root.trad=0;
@@ -214,6 +217,9 @@ resize();addEventListener('resize',resize);
 function visible(){const out=[];(function go(n){out.push(n);if(n.expanded)n.children.forEach(go);})(root);return out;}
 function hexA(h,a){const n=parseInt(h.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
 function colorOf(n){return n.group==='root'?'#e8cf94':FOLDERS[n.group].c;}
+// color de cada nodo: por carpeta (modo Colores) o por calor de la metrica
+function nodeColor(n){if(mode==='grupo')return hex2rgb(colorOf(n));return heat(n.val);}
+function hex2rgb(h){const n=parseInt(h.slice(1),16);return`rgb(${n>>16&255},${n>>8&255},${n&255})`;}
 // heat scale
 const HEAT=[[61,220,132],[255,225,77],[255,154,61],[255,77,93]];
 function heat(t){t=Math.max(0,Math.min(1,t));const s=t*(HEAT.length-1),i=Math.floor(s),f=s-i,
@@ -253,18 +259,21 @@ function drawFrame(){
   ctx.clearRect(0,0,W,H);
   ctx.save();ctx.translate(W/2+pan.x,H/2+pan.y);ctx.scale(scale,scale);
   const vis=visible();
-  for(const n of vis){if(n.x===null){n.x=(n.parent?n.parent.x:0)||0;n.y=(n.parent?n.parent.y:0)||0;}
-    n.x+=(n.tx-n.x)*0.22;n.y+=(n.ty-n.y)*0.22;}
+  for(const n of vis){let tx=n.tx,ty=n.ty,p=n;while(p){tx+=p.mdx;ty+=p.mdy;p=p.parent;}
+    if(n.x===null){n.x=(n.parent?n.parent.x:0)||0;n.y=(n.parent?n.parent.y:0)||0;}
+    n.x+=(tx-n.x)*0.22;n.y+=(ty-n.y)*0.22;}
   const anc=new Set();if(hover){let p=hover;while(p){anc.add(p);p=p.parent;}}
   const searching=hits.size>0;
-  const showLeafLabels=leafCount<70||scale>1.35;
+  const showLeafLabels=leafCount<90||scale>1.2;
 
   // links
   for(const n of vis){if(!n.expanded)continue;
     for(const c of n.children){
       const on=!hover||anc.has(c)||c===hover||n===hover;
-      const col=heat(c.val);
-      const midR=(n.trad+c.trad)/2,cpx=Math.cos(n.tang)*midR,cpy=Math.sin(n.tang)*midR;
+      const col=nodeColor(c);
+      const midR=(n.trad+c.trad)/2,
+        cpx=Math.cos(n.tang)*midR+(n.x-Math.cos(n.tang)*n.trad),
+        cpy=Math.sin(n.tang)*midR+(n.y-Math.sin(n.tang)*n.trad);
       ctx.strokeStyle=rgbA(col,on?.4:.1);ctx.lineWidth=(c.depth<=1?2.4:c.depth===2?1.5:0.9)*DPR;ctx.lineCap='round';
       ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.quadraticCurveTo(cpx,cpy,c.x,c.y);ctx.stroke();
     }}
@@ -272,7 +281,7 @@ function drawFrame(){
   for(const n of vis){
     const on=(!hover||anc.has(n)||n.parent===hover)&&(!searching||hits.has(n)||isAncestorOfHit(n)||n.kind==='folder'||n.kind==='root');
     const isSel=n===sel,isH=n===hover,isHit=searching&&hits.has(n);
-    const hcol=heat(n.val);
+    const hcol=nodeColor(n);
     const grow= n.kind==='member'||n.kind==='script'?1:(0.72+0.9*n.val);
     const pulse=(isSel||isHit)?1+Math.sin(time*3.2)*0.06:1;
     const r=n.r*grow*(isH?1.3:1)*pulse, rot=n.tang+Math.PI/6;
@@ -300,7 +309,7 @@ function drawFrame(){
     if(!n.expanded&&n.children.length){ctx.fillStyle=rgbA(hcol,on?.95:.4);
       ctx.font=`${Math.max(8,r*0.95)}px "Orbitron",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('+',n.x,n.y+0.5);}
     // label
-    const wantLabel=n.kind==='root'||n.depth<3||n===hover||n.parent===hover||isHit||showLeafLabels;
+    const wantLabel=n.kind==='root'||n.depth<3||n===hover||n.parent===hover||n===sel||n.parent===sel||isHit||showLeafLabels;
     if(on&&wantLabel){
       if(n.kind==='root'){ctx.textAlign='center';ctx.textBaseline='top';ctx.font=`${13*DPR}px "Orbitron",sans-serif`;
         ctx.fillStyle='#fff';ctx.fillText(n.label,n.x,n.y+r+4*DPR);}
@@ -358,47 +367,65 @@ function pick(cx,cy){const p=toW(cx,cy);let best=null,bd=1e9;
 function toggle(n){if(!n.children.length)return;n.expanded=!n.expanded;
   if(n.expanded)for(const c of n.children){c.x=n.x;c.y=n.y;}layout();}
 const tip=document.getElementById('tip');
-let drag=false,moved=false,last={x:0,y:0};
+let interact=false; // modo "interactuar": arrastrar nodos (y su rama)
+let drag=false,moved=false,last={x:0,y:0},dragNode=null;
 cv.addEventListener('mousemove',e=>{
+  if(dragNode){const dx=(e.clientX-last.x)*DPR/scale,dy=(e.clientY-last.y)*DPR/scale;
+    dragNode.mdx+=dx;dragNode.mdy+=dy;last={x:e.clientX,y:e.clientY};moved=true;return;}
   if(drag){pan.x+=(e.clientX-last.x)*DPR;pan.y+=(e.clientY-last.y)*DPR;last={x:e.clientX,y:e.clientY};moved=true;return;}
-  const n=pick(e.clientX,e.clientY);hover=n;cv.style.cursor=n?'pointer':'grab';
+  const n=pick(e.clientX,e.clientY);hover=n;cv.style.cursor=n?(interact?'grab':'pointer'):'grab';
   if(n){tip.style.opacity=1;tip.style.left=Math.min(e.clientX+14,innerWidth-240)+'px';tip.style.top=(e.clientY+16)+'px';
     const extra=n.kind==='file'&&n.m?` · ${n.m.lines} líneas · ${n.m.tested?'con test':'SIN TEST'}`:(n.children.length?' · '+n.children.length+' dentro':'');
     tip.innerHTML=`<b>${n.path||n.label}</b>${extra}`;}else tip.style.opacity=0;});
-cv.addEventListener('mousedown',e=>{drag=true;moved=false;last={x:e.clientX,y:e.clientY};cv.style.cursor='grabbing';});
-addEventListener('mouseup',e=>{if(drag&&!moved){const n=pick(e.clientX,e.clientY);
-  if(n){sel=n;showInfo(n);toggle(n);}else{sel=null;showInfo(null);}}drag=false;});
+cv.addEventListener('mousedown',e=>{moved=false;last={x:e.clientX,y:e.clientY};
+  const n=interact?pick(e.clientX,e.clientY):null;
+  if(n){dragNode=n;cv.style.cursor='grabbing';}else{drag=true;cv.style.cursor='grabbing';}});
+addEventListener('mouseup',e=>{
+  if(dragNode&&!moved){sel=dragNode;showInfo(dragNode);toggle(dragNode);}
+  else if(drag&&!moved){const n=pick(e.clientX,e.clientY);
+    if(n){sel=n;showInfo(n);toggle(n);}else{sel=null;showInfo(null);}}
+  drag=false;dragNode=null;});
 cv.addEventListener('wheel',e=>{e.preventDefault();const f=e.deltaY<0?1.12:1/1.12;
   const wx=(e.clientX*DPR-W/2-pan.x)/scale,wy=(e.clientY*DPR-H/2-pan.y)/scale;scale=Math.max(.35,Math.min(3.5,scale*f));
   pan.x=e.clientX*DPR-W/2-wx*scale;pan.y=e.clientY*DPR-H/2-wy*scale;},{passive:false});
 let tl=null;
-cv.addEventListener('touchstart',e=>{const t=e.touches[0];tl={x:t.clientX,y:t.clientY};moved=false;hover=pick(t.clientX,t.clientY);},{passive:true});
-cv.addEventListener('touchmove',e=>{const t=e.touches[0];if(tl){pan.x+=(t.clientX-tl.x)*DPR;pan.y+=(t.clientY-tl.y)*DPR;tl={x:t.clientX,y:t.clientY};moved=true;}},{passive:true});
-cv.addEventListener('touchend',()=>{if(tl&&!moved&&hover){sel=hover;showInfo(hover);toggle(hover);}tl=null;});
+cv.addEventListener('touchstart',e=>{const t=e.touches[0];tl={x:t.clientX,y:t.clientY};moved=false;
+  hover=pick(t.clientX,t.clientY);dragNode=interact?hover:null;},{passive:true});
+cv.addEventListener('touchmove',e=>{const t=e.touches[0];if(!tl)return;
+  if(dragNode){dragNode.mdx+=(t.clientX-tl.x)*DPR/scale;dragNode.mdy+=(t.clientY-tl.y)*DPR/scale;}
+  else{pan.x+=(t.clientX-tl.x)*DPR;pan.y+=(t.clientY-tl.y)*DPR;}
+  tl={x:t.clientX,y:t.clientY};moved=true;},{passive:true});
+cv.addEventListener('touchend',()=>{if(tl&&!moved&&hover){sel=hover;showInfo(hover);toggle(hover);}tl=null;dragNode=null;});
 
 /* modes */
 const legNote={riesgo:'Combina tamaño + fragilidad + churn + falta de tests. Empezá por los rojos.',
   size:'Líneas de código. Archivos grandes = más lugar para un bug.',
   fragil:'catch + console.error + llamadas a API externas. Zona de fallos de red/datos.',
   churn:'Cantidad de commits que tocaron el archivo. Ojo: los HTML salen altos por el sello de versión del build.',
-  tests:'Rojo = SIN test · Verde = con test. Tocar un rojo es más arriesgado.'};
+  tests:'Rojo = SIN test · Verde = con test. Tocar un rojo es más arriesgado.',
+  grupo:'Cada rama con el color de su carpeta. Vista de estructura, sin señal de riesgo.'};
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#modes button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
   mode=b.dataset.m;setValues();
   document.getElementById('legTitle').textContent=b.textContent;
   document.getElementById('legNote').textContent=legNote[mode];
-  document.getElementById('legScale').style.background = mode==='tests'
-    ? 'linear-gradient(90deg,#3ddc84,#ff4d5d)' : 'linear-gradient(90deg,#3ddc84,#ffe14d,#ff9a3d,#ff4d5d)';
-  document.getElementById('legLo').textContent = mode==='tests'?'con test':'seguro';
-  document.getElementById('legHi').textContent = mode==='tests'?'sin test':'revisar primero';
+  document.getElementById('legScale').style.background = mode==='grupo'
+    ? 'linear-gradient(90deg,#a98bff,#ff5cc8,#ff9a3d,#5cff9e,#7fd4ff)'
+    : mode==='tests' ? 'linear-gradient(90deg,#3ddc84,#ff4d5d)'
+    : 'linear-gradient(90deg,#3ddc84,#ffe14d,#ff9a3d,#ff4d5d)';
+  document.getElementById('legLo').textContent = mode==='grupo'?'por carpeta':mode==='tests'?'con test':'seguro';
+  document.getElementById('legHi').textContent = mode==='grupo'?'':mode==='tests'?'sin test':'revisar primero';
   if(sel)showInfo(sel);
 });
 document.getElementById('legNote').textContent=legNote.riesgo;
 
+const moveBtn=document.getElementById('move');
+moveBtn.onclick=()=>{interact=!interact;moveBtn.classList.toggle('on',interact);
+  moveBtn.textContent=interact?'✋ Moviendo':'✋ Interactuar';};
 document.getElementById('expand').onclick=()=>{(function go(n){if(n.children.length){n.expanded=true;
   for(const c of n.children){if(c.x===null){c.x=n.x;c.y=n.y;}}n.children.forEach(go);}})(root);layout();fitTree();};
-function foldersView(){root.children.forEach(function c(n){n.expanded=false;n.children.forEach(c);});
-  root.expanded=true;root.children.forEach(f=>{f.expanded=true;for(const c of f.children){if(c.x===null){c.x=0;c.y=0;}}});
+function foldersView(){root.children.forEach(function c(n){n.expanded=false;n.mdx=0;n.mdy=0;n.children.forEach(c);});
+  root.expanded=true;root.mdx=0;root.mdy=0;root.children.forEach(f=>{f.expanded=true;for(const c of f.children){if(c.x===null){c.x=0;c.y=0;}}});
   layout();fitTree();}
 document.getElementById('collapse').onclick=()=>{sel=null;showInfo(null);
   document.getElementById('q').value='';hits=new Set();hitFiles=new Set();document.getElementById('qn').textContent='';
