@@ -240,6 +240,44 @@ window.toggleCardComplete = function (input, itemId) {
 };
 
 
+// Traduce el estado crudo de la API (AniList/MAL, en ingles) a una etiqueta
+// corta en espanol para la banda superior de la card.
+function translateCatalogStatus(status) {
+    const s = String(status || '').trim().toUpperCase();
+    const map = {
+        'RELEASING': 'En emisión',
+        'CURRENTLY AIRING': 'En emisión',
+        'CURRENTLY PUBLISHING': 'Publicándose',
+        'PUBLISHING': 'Publicándose',
+        'FINISHED': 'Finalizado',
+        'FINISHED AIRING': 'Finalizado',
+        'COMPLETED': 'Finalizado',
+        'NOT_YET_RELEASED': 'Próximamente',
+        'NOT YET AIRED': 'Próximamente',
+        'CANCELLED': 'Cancelado',
+        'HIATUS': 'En pausa',
+        'ON HIATUS': 'En pausa'
+    };
+    return map[s] || String(status || '').trim();
+}
+
+// Linea secundaria de la card (tipo · episodios), sin el estado: ese ya se
+// muestra en la banda superior, asi no se repite.
+function captionFromInfo(info, status) {
+    if (!info) return '';
+    const st = translateCatalogStatus(status).toLowerCase();
+    const raw = String(status || '').trim().toLowerCase();
+    return String(info)
+        .split('/')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .filter((s) => {
+            const low = s.toLowerCase();
+            return low !== st && low !== raw;
+        })
+        .join(' · ');
+}
+
 function buildCatalogCardHtml(options) {
     const {
         id,
@@ -255,64 +293,82 @@ function buildCatalogCardHtml(options) {
         categoria = 'manga',
         progressTotal = 0,
         volCount = 0,
-        chCount = 0
+        chCount = 0,
+        info = ''
     } = options;
 
     const flipId = `flip-${id}`;
     const safeId = escapeHtml(String(id));
+    const bandLabel = translateCatalogStatus(status) || 'En emisión';
+    const captionInfo = captionFromInfo(info, status);
     const detailBtn = showDetail
         ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">DETALLE</a>`
         : '';
-    const statusHtml = status
-        ? `<span class="card-back-status-badge">${escapeHtml(status)}</span>`
+    const statusHtml = bandLabel
+        ? `<span class="card-back-status-badge">${escapeHtml(bandLabel)}</span>`
+        : '';
+    const captionHtml = captionInfo
+        ? `<span class="cband-info">${escapeHtml(captionInfo)}</span>`
         : '';
     const genresAttr = genres ? ` data-genres="${escapeHtml(genres)}"` : '';
     const genresNormAttr = genresNorm ? ` data-genres-norm="${escapeHtml(genresNorm)}"` : '';
     const totalAttr = progressTotal > 0 ? ` data-total="${progressTotal}"` : '';
 
     var safeImg = safeUrl(image);
+    // Card vertical con banda de estado arriba (cian->purpura) y flip 3D. El
+    // frente muestra la portada + el titulo sobre un degradado inferior; el
+    // boton gira la card y el dorso trae las acciones (favorito, visto,
+    // seguimiento, detalle y progreso), con un boton para volver al frente.
+    // Se conservan los hooks funcionales: .catalog-neon-card para busqueda y
+    // generos, .flip-toggle + label para el giro, .fav-btn/.viewed-btn con
+    // data-action para la delegacion, .watch-status-select y el bloque
+    // [data-progress] que states.js actualiza.
     return `
-    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
-        <div class="catalog-card-shell">
-            <div class="card-corner card-corner-tr"></div>
-            <div class="card-corner card-corner-br"></div>
-            <div class="catalog-card-inner">
-                <div class="catalog-card-media">
-                    <div class="catalog-card-poster card-inner">
-                        <div class="card-front">
-                            <img src="${safeImg}" alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
-                        </div>
-                        <div class="card-back card-back-neon">
-                            <h2 class="card-back-title">${escapeHtml(title)}</h2>
-                            <div class="card-back-buttons-stack">
-                                ${detailBtn}
-                                ${statusHtml}
-                            </div>
-                            <select class="watch-status-select" data-item-id="${safeId}" aria-label="Estado de seguimiento">
-                                <option value="">— Seguimiento —</option>
-                                <option value="viendo">Viendo</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="pausado">En pausa</option>
-                                <option value="abandonado">Abandonado</option>
-                            </select>
-                            <div class="card-back-actions">
-                                <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                </button>
-                                <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
-                            </div>
-                            ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
-                        </div>
-                    </div>
+        <div class="cband-inner">
+            <div class="cband-face cband-front">
+                <div class="cband-media">
+                    <img src="${safeImg}" alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
                 </div>
-                <div class="catalog-card-bar">
-                    <span class="catalog-card-title">${escapeHtml(title)}</span>
-                    <label class="catalog-card-flip-btn" for="${flipId}" aria-label="Ver información de ${escapeHtml(title)}" title="Ver info">
+                <div class="cband-topbar">
+                    <span class="cband-dot"></span>
+                    <span class="cband-status">${escapeHtml(bandLabel)}</span>
+                </div>
+                <div class="cband-caption">
+                    <span class="catalog-card-title cband-title">${escapeHtml(title)}</span>
+                    ${captionHtml}
+                </div>
+                <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="Ver información de ${escapeHtml(title)}" title="Ver info">
+                    ${CATALOG_FLIP_ICON_SVG}
+                </label>
+            </div>
+            <div class="cband-face cband-back">
+                <div class="cband-back-head">
+                    <h2 class="card-back-title">${escapeHtml(title)}</h2>
+                    <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="Volver al frente" title="Volver">
                         ${CATALOG_FLIP_ICON_SVG}
                     </label>
+                </div>
+                <div class="cband-back-controls">
+                    ${statusHtml}
+                    <select class="watch-status-select" data-item-id="${safeId}" aria-label="Estado de seguimiento">
+                        <option value="">— Seguimiento —</option>
+                        <option value="viendo">Viendo</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="pausado">En pausa</option>
+                        <option value="abandonado">Abandonado</option>
+                    </select>
+                </div>
+                ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
+                <div class="cband-back-actions">
+                    <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                    <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    ${detailBtn}
                 </div>
             </div>
         </div>
@@ -430,7 +486,9 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             const genres = getApiGenresList(item);
             const genresNorm = genres.map((genre) => normalizeCatalogGenre(genre)).join('|');
             const detailCat = categoria === 'novelas' ? 'novelas' : categoria;
-            const detailUrl = 'detalle.html?cat=' + encodeURIComponent(detailCat) + '&id=' + encodeURIComponent(id);
+            // El titulo viaja en la URL para que la ficha pueda buscar por nombre
+            // como fallback si el id no resuelve (ver cargarDetalleDesdeApi).
+            const detailUrl = 'detalle.html?cat=' + encodeURIComponent(detailCat) + '&id=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(title);
             const searchIndex = [title, item.title_english, info, item.synopsis, item.type].concat(genres).filter(Boolean).join(' ').toLowerCase();
 
             const volCount = categoria !== 'anime' ? (item.volumes || 0) : 0;
@@ -445,6 +503,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                 genres: genres.join('|'),
                 genresNorm: genresNorm,
                 categoria: detailCat,
+                info: info,
                 progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
                 volCount: volCount,
                 chCount: chCount,
@@ -503,7 +562,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
         var image = item.img || item.image || item.cover_image || '';
         var genres = String(item.info || item.synopsis || '').split('/').map(function (g) { return g.trim(); }).filter(Boolean);
         var genresNorm = genres.map(function (g) { return normalizeCatalogGenre(g); }).join('|');
-        var detailUrl = 'detalle.html?cat=' + encodeURIComponent(categoria) + '&id=' + encodeURIComponent(id);
+        var detailUrl = 'detalle.html?cat=' + encodeURIComponent(categoria) + '&id=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(title);
         var searchIndex = [title, item.title_english, item.info, item.synopsis].concat(genres).filter(Boolean).join(' ').toLowerCase();
         var volCount = Number(item.volumes || 0);
         var chCount = Number(item.chapters || 0);
@@ -517,6 +576,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
             genres: genres.join('|'),
             genresNorm: genresNorm,
             categoria: categoria,
+            info: item.info || genres.join(' / '),
             progressTotal: volCount || chCount || Number(item.episodes || 0),
             volCount: volCount,
             chCount: chCount,

@@ -235,47 +235,6 @@ main { padding-bottom: 24px; }
     font-weight: 700;
 }
 
-.nav-toggle {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 9px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--nav-accent-soft);
-    background: var(--nav-accent-soft);
-    color: white;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    letter-spacing: 0.4px;
-    cursor: pointer;
-}
-
-.nav-toggle-icon,
-.nav-toggle-icon::before,
-.nav-toggle-icon::after {
-    display: block;
-    width: 18px;
-    height: 2px;
-    border-radius: 999px;
-    background: currentColor;
-}
-
-.nav-toggle-icon {
-    position: relative;
-}
-
-.nav-toggle-icon::before,
-.nav-toggle-icon::after {
-    content: "";
-    position: absolute;
-    left: 0;
-}
-
-.nav-toggle-icon::before { top: -6px; }
-.nav-toggle-icon::after { top: 6px; }
-
 .catalog-suggestions {
     position: absolute;
     left: 0;
@@ -1193,14 +1152,6 @@ main { padding-bottom: 24px; }
     .catalog-layout {
         grid-template-columns: 1fr;
     }
-
-    .compare-controls {
-        grid-template-columns: 1fr;
-    }
-
-    .compare-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 520px) {
@@ -1259,9 +1210,6 @@ main { padding-bottom: 24px; }
 }
 
 @media (max-width: 640px) {
-    .destiny-navbar .nav-toggle {
-        display: none !important;
-    }
     .destiny-navbar:not(.is-open) .nav-links,
     .destiny-navbar:not(.is-open) .nav-actions {
         display: none;

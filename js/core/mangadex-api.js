@@ -218,6 +218,9 @@
             }).filter(Boolean);
         });
     }
+    // Expuesto para el fallback por titulo de la ficha (interactions.js): cuando
+    // el id no resuelve, se rescata la obra buscandola por nombre.
+    window.searchMangaDex = searchMangaDex;
 
     // Puntaje y seguidores: la implementacion vive en js/core/api.js (bundle),
     // igual que mdFetch, porque el catalogo la necesita en paginas que no cargan
