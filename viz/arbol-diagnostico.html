@@ -49,10 +49,17 @@
     background:linear-gradient(90deg,#3ddc84,#ffe14d,#ff9a3d,#ff4d5d)}
   #leg .ends{display:flex;justify-content:space-between} #leg .note{margin-top:6px;opacity:.8;line-height:1.4}
   #leg b{color:var(--ink)}
-  .btn{position:fixed;z-index:5;bottom:14px;right:14px;display:flex;gap:8px}
+  .btn{position:fixed;z-index:5;bottom:14px;right:62px;display:flex;gap:8px}
   .btn button{font-family:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;
     padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(10,15,26,.85);transition:.14s}
   .btn button:hover{border-color:var(--gold)}
+  #eye{position:fixed;z-index:7;bottom:14px;right:14px;width:40px;height:40px;border-radius:10px;
+    border:1px solid var(--line);background:rgba(10,15,26,.85);backdrop-filter:blur(9px);color:var(--ink);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:.14s}
+  #eye:hover{border-color:var(--gold);box-shadow:0 0 14px rgba(232,207,148,.25)}
+  #eye.on{border-color:var(--gold);color:var(--gold)}
+  body.clean #hud,body.clean #modes,body.clean #searchbox,body.clean #info,
+  body.clean #leg,body.clean .btn,body.clean #hint{display:none!important}
   @media(max-width:720px){
     #info,#leg{display:none!important}
     #hud{left:8px;right:8px;top:8px;max-width:none;padding:8px 11px}#hud .sub{display:none}
@@ -61,7 +68,8 @@
     #modes button{flex:0 0 auto}
     #searchbox{top:100px;left:8px;right:8px;transform:none}
     #q{flex:1;width:auto;min-width:0}
-    .btn{bottom:10px;right:10px}.btn button{padding:9px 12px}
+    .btn{bottom:10px;right:60px}.btn button{padding:9px 12px}
+    #eye{bottom:10px;right:10px}
   }
 </style>
 </head>
@@ -104,6 +112,7 @@
   <button id="expand">✦ Expandir todo</button>
   <button id="collapse">↺ Plegar</button>
 </div>
+<button id="eye" title="Solo ver (ocultar controles)">👁</button>
 
 <script>
 /* ============================================================
@@ -382,6 +391,11 @@ function foldersView(){root.children.forEach(function c(n){n.expanded=false;n.ch
 document.getElementById('collapse').onclick=()=>{sel=null;showInfo(null);
   document.getElementById('q').value='';hits=new Set();hitFiles=new Set();document.getElementById('qn').textContent='';
   foldersView();};
+
+const eye=document.getElementById('eye');
+eye.onclick=()=>{const clean=document.body.classList.toggle('clean');eye.classList.toggle('on',clean);
+  eye.textContent=clean?'✕':'👁';eye.title=clean?'Mostrar controles':'Solo ver (ocultar controles)';
+  if(clean){sel=null;showInfo(null);}};
 
 foldersView();draw();
 </script>
