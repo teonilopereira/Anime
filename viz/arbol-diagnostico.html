@@ -188,13 +188,26 @@ function radiusOf(n){return n.kind==='root'?22*DPR:n.kind==='folder'?15*DPR:n.ki
 function setRadii(){(function setR(n){n.r=radiusOf(n);n.children.forEach(setR);})(root);}
 
 let scale=1,pan={x:0,y:0},leafCount=1;
-function layout(){let idx=0;leafCount=0;
+// huecos entre ramas (en "unidades de hoja") por nivel: mucho entre carpetas, poco entre funciones
+function gapU(d){return d===0?3.2:d===1?0.45:0.08;}
+// variacion de distancia por nodo (rompe el anillo perfecto -> aspecto de ramas)
+function rjit(n){const h=Math.sin(n.id*12.9898+n.depth*7.13)*0.5+0.5;return 0.86+h*0.28;}
+function layout(){
+  leafCount=0;
   (function cnt(n){if(n.expanded&&n.children.length)n.children.forEach(cnt);else leafCount++;})(root);
-  (function assign(n){
-    if(n.expanded&&n.children.length){n.children.forEach(assign);n.tang=(n.children[0].tang+n.children[n.children.length-1].tang)/2;}
-    else{n.tang=(idx+0.5)/leafCount*Math.PI*2-Math.PI/2;idx++;}
-    n.trad=n.depth*RING;n.tx=Math.cos(n.tang)*n.trad;n.ty=Math.sin(n.tang)*n.trad;
-  })(root);root.tx=0;root.ty=0;root.trad=0;
+  function Wt(n){if(n.expanded&&n.children.length){let s=0;n.children.forEach(c=>s+=Wt(c));
+    return s+gapU(n.depth)*(n.children.length-1);}return 1;}
+  const total=Wt(root)||1, endGap=0.6, step=(Math.PI*2-endGap)/total;
+  let cur=Math.PI/2+endGap/2; // abertura abajo, ramas abriendose hacia arriba/los costados
+  (function place(n){
+    if(n.expanded&&n.children.length){
+      n.children.forEach((c,i)=>{place(c);if(i<n.children.length-1)cur+=gapU(n.depth)*step;});
+      n.tang=(n.children[0].tang+n.children[n.children.length-1].tang)/2;
+    }else{n.tang=cur+step/2;cur+=step;}
+    n.trad=n.depth?n.depth*RING*rjit(n):0;
+    n.tx=Math.cos(n.tang)*n.trad;n.ty=Math.sin(n.tang)*n.trad;
+  })(root);
+  root.tx=0;root.ty=0;root.trad=0;
 }
 resize();addEventListener('resize',resize);
 
@@ -239,8 +252,6 @@ function draw(){requestAnimationFrame(draw);time+=0.016;
 function drawFrame(){
   ctx.clearRect(0,0,W,H);
   ctx.save();ctx.translate(W/2+pan.x,H/2+pan.y);ctx.scale(scale,scale);
-  ctx.strokeStyle='rgba(150,170,210,.05)';ctx.lineWidth=1*DPR;
-  for(let k=1;k<=3;k++){ctx.beginPath();ctx.arc(0,0,k*RING,0,7);ctx.stroke();}
   const vis=visible();
   for(const n of vis){if(n.x===null){n.x=(n.parent?n.parent.x:0)||0;n.y=(n.parent?n.parent.y:0)||0;}
     n.x+=(n.tx-n.x)*0.22;n.y+=(n.ty-n.y)*0.22;}
