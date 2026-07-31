@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T07:45:23.772Z",
+  "generatedAt": "2026-07-31T07:56:03.106Z",
   "note": "Riesgo = 0.40*tamaño + 0.22*fragilidad(catch+API) + 0.13*churn + 0.25*(sin test), normalizado 0..1. Acota dónde mirar; no señala el bug exacto. Regenerar con: npm run map",
   "summary": {
     "jsFiles": 39,
@@ -110,33 +110,114 @@
       "tested": 0,
       "churn": 3,
       "exports": [
-        "supabaseUserName()",
-        "profileUsername()",
-        "getCurrentUserAsync()",
-        "ensureCurrentUserProfile()",
-        "saveUserProfile()",
-        "signInWithGoogle()",
-        "signOutGoogle()",
-        "signUpWithEmail()",
-        "signInWithEmail()",
-        "saveItemState()",
-        "loadItemStates()",
-        "addExperience()",
-        "loadProfile()",
-        "loadApodo()",
-        "saveApodo()",
-        "setProgress()",
-        "loadProgress()",
-        "loadAllProgress()",
-        "loadComments()",
-        "addComment()",
-        "editComment()",
-        "deleteComment()",
-        "window.AppSupabase",
-        "window.AppSupabaseReady",
-        "itemData()",
-        "buildQuery()",
-        "PGRST202()"
+        {
+          "name": "window.AppSupabase",
+          "line": 16
+        },
+        {
+          "name": "window.AppSupabaseReady",
+          "line": 17
+        },
+        {
+          "name": "supabaseUserName()",
+          "line": 88
+        },
+        {
+          "name": "profileUsername()",
+          "line": 99
+        },
+        {
+          "name": "getCurrentUserAsync()",
+          "line": 112
+        },
+        {
+          "name": "ensureCurrentUserProfile()",
+          "line": 123
+        },
+        {
+          "name": "saveUserProfile()",
+          "line": 144
+        },
+        {
+          "name": "signInWithGoogle()",
+          "line": 189
+        },
+        {
+          "name": "signOutGoogle()",
+          "line": 204
+        },
+        {
+          "name": "signUpWithEmail()",
+          "line": 210
+        },
+        {
+          "name": "signInWithEmail()",
+          "line": 237
+        },
+        {
+          "name": "saveItemState()",
+          "line": 264
+        },
+        {
+          "name": "itemData()",
+          "line": 269
+        },
+        {
+          "name": "PGRST202()",
+          "line": 287
+        },
+        {
+          "name": "loadItemStates()",
+          "line": 299
+        },
+        {
+          "name": "buildQuery()",
+          "line": 304
+        },
+        {
+          "name": "addExperience()",
+          "line": 330
+        },
+        {
+          "name": "loadProfile()",
+          "line": 339
+        },
+        {
+          "name": "loadApodo()",
+          "line": 351
+        },
+        {
+          "name": "saveApodo()",
+          "line": 365
+        },
+        {
+          "name": "setProgress()",
+          "line": 385
+        },
+        {
+          "name": "loadProgress()",
+          "line": 414
+        },
+        {
+          "name": "loadAllProgress()",
+          "line": 431
+        },
+        {
+          "name": "loadComments()",
+          "line": 447
+        },
+        {
+          "name": "addComment()",
+          "line": 481
+        },
+        {
+          "name": "editComment()",
+          "line": 516
+        },
+        {
+          "name": "deleteComment()",
+          "line": 532
+        }
       ],
       "risk": 0.739
     },
@@ -149,13 +230,34 @@
       "tested": 0,
       "churn": 11,
       "exports": [
-        "cargarClienteSupabase()",
-        "haySesionGuardada()",
-        "window.__loadSupabase",
-        "window.__puedeHaberSesion",
-        "window.AppSupabaseReady",
-        "window.AppSupabase",
-        "__puedeHaberSesion()"
+        {
+          "name": "cargarClienteSupabase()",
+          "line": 18
+        },
+        {
+          "name": "window.__loadSupabase",
+          "line": 34
+        },
+        {
+          "name": "haySesionGuardada()",
+          "line": 39
+        },
+        {
+          "name": "window.__puedeHaberSesion",
+          "line": 61
+        },
+        {
+          "name": "__puedeHaberSesion()",
+          "line": 61
+        },
+        {
+          "name": "window.AppSupabaseReady",
+          "line": 66
+        },
+        {
+          "name": "window.AppSupabase",
+          "line": 72
+        }
       ],
       "risk": 0.443
     },
@@ -168,26 +270,86 @@
       "tested": 0,
       "churn": 8,
       "exports": [
-        "renderSkeletonCards()",
-        "getApiPoster()",
-        "getApiCatalogInfo()",
-        "normalizeCatalogGenre()",
-        "getApiGenresList()",
-        "buildCatalogBackProgressHtml()",
-        "_buildProgressIndex()",
-        "countAnimeEpisodesWatched()",
-        "resolveCatalogProgress()",
-        "buildCatalogCardHtml()",
-        "describirErrorDeApi()",
-        "cargarCatalogoDesdeApi()",
-        "renderCatalogCardsFromLocalData()",
-        "window._invalidateProgressIndex",
-        "window.toggleCardComplete",
-        "window.__catalogSearchItems",
-        "window.__renderDropdownGenres",
-        "legacyPct()",
-        "_invalidateProgressIndex()",
-        "toggleCardComplete()"
+        {
+          "name": "renderSkeletonCards()",
+          "line": 9
+        },
+        {
+          "name": "getApiPoster()",
+          "line": 26
+        },
+        {
+          "name": "getApiCatalogInfo()",
+          "line": 35
+        },
+        {
+          "name": "normalizeCatalogGenre()",
+          "line": 51
+        },
+        {
+          "name": "getApiGenresList()",
+          "line": 56
+        },
+        {
+          "name": "buildCatalogBackProgressHtml()",
+          "line": 84
+        },
+        {
+          "name": "_buildProgressIndex()",
+          "line": 141
+        },
+        {
+          "name": "window._invalidateProgressIndex",
+          "line": 184
+        },
+        {
+          "name": "_invalidateProgressIndex()",
+          "line": 184
+        },
+        {
+          "name": "countAnimeEpisodesWatched()",
+          "line": 185
+        },
+        {
+          "name": "resolveCatalogProgress()",
+          "line": 196
+        },
+        {
+          "name": "legacyPct()",
+          "line": 203
+        },
+        {
+          "name": "window.toggleCardComplete",
+          "line": 234
+        },
+        {
+          "name": "toggleCardComplete()",
+          "line": 234
+        },
+        {
+          "name": "buildCatalogCardHtml()",
+          "line": 242
+        },
+        {
+          "name": "describirErrorDeApi()",
+          "line": 326
+        },
+        {
+          "name": "cargarCatalogoDesdeApi()",
+          "line": 354
+        },
+        {
+          "name": "window.__catalogSearchItems",
+          "line": 379
+        },
+        {
+          "name": "window.__renderDropdownGenres",
+          "line": 466
+        },
+        {
+          "name": "renderCatalogCardsFromLocalData()",
+          "line": 488
+        }
       ],
       "risk": 0.597
     },
@@ -200,20 +362,62 @@
       "tested": 0,
       "churn": 7,
       "exports": [
-        "alScrollearPorPrimeraVez()",
-        "getSentinel()",
-        "hideLoadingIndicator()",
-        "showNoMoreMessage()",
-        "loadNextPage()",
-        "initScrollObserver()",
-        "disconnectScrollObserver()",
-        "resetInfiniteScroll()",
-        "inicializarPagina()",
-        "getGenres()",
-        "rememberCatalogPosition()",
-        "restoreCatalogPosition()",
-        "window.__catalogSearchItems",
-        "listaItems()"
+        {
+          "name": "alScrollearPorPrimeraVez()",
+          "line": 13
+        },
+        {
+          "name": "getSentinel()",
+          "line": 21
+        },
+        {
+          "name": "hideLoadingIndicator()",
+          "line": 32
+        },
+        {
+          "name": "showNoMoreMessage()",
+          "line": 37
+        },
+        {
+          "name": "loadNextPage()",
+          "line": 43
+        },
+        {
+          "name": "listaItems()",
+          "line": 84
+        },
+        {
+          "name": "initScrollObserver()",
+          "line": 109
+        },
+        {
+          "name": "disconnectScrollObserver()",
+          "line": 121
+        },
+        {
+          "name": "resetInfiniteScroll()",
+          "line": 128
+        },
+        {
+          "name": "inicializarPagina()",
+          "line": 145
+        },
+        {
+          "name": "window.__catalogSearchItems",
+          "line": 163
+        },
+        {
+          "name": "getGenres()",
+          "line": 172
+        },
+        {
+          "name": "rememberCatalogPosition()",
+          "line": 217
+        },
+        {
+          "name": "restoreCatalogPosition()",
+          "line": 224
+        }
       ],
       "risk": 0.448
     },
@@ -226,38 +430,134 @@
       "tested": 1,
       "churn": 6,
       "exports": [
-        "getBrowsePref()",
-        "setBrowsePref()",
-        "showNsfwAgeGate()",
-        "inicializarBusquedaCatalogo()",
-        "setSuggestionsOpen()",
-        "getCatalogItems()",
-        "renderSuggestions()",
-        "applyFilter()",
-        "renderApiSuggestions()",
-        "fetchApiSuggestions()",
-        "debouncedApiSearch()",
-        "reloadCatalog()",
-        "showFilter()",
-        "inicializarGeneroWidgets()",
-        "renderDropdownGenres()",
-        "window.__activeStateFilter",
-        "window.__catalogFilters",
-        "window.buscarNovelasEnApi",
-        "window.buscarEnApi",
-        "window.fetchMangaDexPage",
-        "window.__applyCatalogFilter",
-        "window.__reloadCatalog",
-        "window.__selectedGenres",
-        "window.__renderDropdownGenres",
-        "window.__genreQuery",
-        "window.__genreExpanded",
-        "uid()",
-        "syncBrowseTabs()",
-        "localList()",
-        "fixedGenres()",
-        "selectedGenres()",
-        "q()"
+        {
+          "name": "window.__activeStateFilter",
+          "line": 6
+        },
+        {
+          "name": "window.__catalogFilters",
+          "line": 7
+        },
+        {
+          "name": "getBrowsePref()",
+          "line": 9
+        },
+        {
+          "name": "setBrowsePref()",
+          "line": 16
+        },
+        {
+          "name": "showNsfwAgeGate()",
+          "line": 31
+        },
+        {
+          "name": "inicializarBusquedaCatalogo()",
+          "line": 59
+        },
+        {
+          "name": "setSuggestionsOpen()",
+          "line": 83
+        },
+        {
+          "name": "getCatalogItems()",
+          "line": 102
+        },
+        {
+          "name": "renderSuggestions()",
+          "line": 106
+        },
+        {
+          "name": "applyFilter()",
+          "line": 139
+        },
+        {
+          "name": "uid()",
+          "line": 143
+        },
+        {
+          "name": "renderApiSuggestions()",
+          "line": 218
+        },
+        {
+          "name": "fetchApiSuggestions()",
+          "line": 255
+        },
+        {
+          "name": "window.buscarNovelasEnApi",
+          "line": 264
+        },
+        {
+          "name": "window.buscarEnApi",
+          "line": 266
+        },
+        {
+          "name": "window.fetchMangaDexPage",
+          "line": 269
+        },
+        {
+          "name": "debouncedApiSearch()",
+          "line": 286
+        },
+        {
+          "name": "window.__applyCatalogFilter",
+          "line": 300
+        },
+        {
+          "name": "reloadCatalog()",
+          "line": 303
+        },
+        {
+          "name": "window.__reloadCatalog",
+          "line": 324
+        },
+        {
+          "name": "syncBrowseTabs()",
+          "line": 365
+        },
+        {
+          "name": "showFilter()",
+          "line": 415
+        },
+        {
+          "name": "inicializarGeneroWidgets()",
+          "line": 459
+        },
+        {
+          "name": "localList()",
+          "line": 469
+        },
+        {
+          "name": "fixedGenres()",
+          "line": 490
+        },
+        {
+          "name": "selectedGenres()",
+          "line": 634
+        },
+        {
+          "name": "window.__selectedGenres",
+          "line": 643
+        },
+        {
+          "name": "renderDropdownGenres()",
+          "line": 653
+        },
+        {
+          "name": "q()",
+          "line": 655
+        },
+        {
+          "name": "window.__renderDropdownGenres",
+          "line": 696
+        },
+        {
+          "name": "window.__genreQuery",
+          "line": 708
+        },
+        {
+          "name": "window.__genreExpanded",
+          "line": 715
+        }
       ],
       "risk": 0.315
     },
@@ -270,53 +570,194 @@
       "tested": 0,
       "churn": 7,
       "exports": [
-        "getSyncQueue()",
-        "saveSyncQueue()",
-        "enqueueSync()",
-        "drainSyncQueue()",
-        "isSessionExpired()",
-        "syncItemStateToSupabase()",
-        "watchStatusKey()",
-        "getWatchStatus()",
-        "setWatchStatus()",
-        "addUserPoints()",
-        "showSyncToast()",
-        "getCategoriaActual()",
-        "statusStorageKey()",
-        "pointsKey()",
-        "getUserPoints()",
-        "levelFromPoints()",
-        "countKeysWithPrefix()",
-        "countUserStatesBoth()",
-        "getPreference()",
-        "applyUserPreferences()",
-        "getPreferenceValue()",
-        "clearInlineBackgroundStyle()",
-        "applyBackgroundPreference()",
-        "getUserStateSummary()",
-        "buildSearchIndexForItem()",
-        "getProgressPercentForItem()",
-        "updateCardProgressIndicators()",
-        "toggleStatus()",
-        "applyRemoteStateToCards()",
-        "syncStatesFromSupabase()",
-        "cargarEstadosBotones()",
-        "window._invalidateProgressIndex",
-        "window.addUserPoints",
-        "window.cargarEstadosBotones",
-        "window.getProgressPercentForItem",
-        "window.buildSearchIndexForItem",
-        "window.getCategoriaActual",
-        "window.statusStorageKey",
-        "window.syncItemStateToSupabase",
-        "window.getUserPoints",
-        "window.levelFromPoints",
-        "window.pointsKey",
-        "window.setWatchStatus",
-        "window.getWatchStatus",
-        "window.WATCH_STATUSES",
-        "window.WATCH_STATUS_LABELS",
-        "syncCat()"
+        {
+          "name": "getSyncQueue()",
+          "line": 11
+        },
+        {
+          "name": "saveSyncQueue()",
+          "line": 16
+        },
+        {
+          "name": "enqueueSync()",
+          "line": 20
+        },
+        {
+          "name": "drainSyncQueue()",
+          "line": 26
+        },
+        {
+          "name": "isSessionExpired()",
+          "line": 47
+        },
+        {
+          "name": "syncItemStateToSupabase()",
+          "line": 54
+        },
+        {
+          "name": "watchStatusKey()",
+          "line": 78
+        },
+        {
+          "name": "getWatchStatus()",
+          "line": 82
+        },
+        {
+          "name": "setWatchStatus()",
+          "line": 88
+        },
+        {
+          "name": "addUserPoints()",
+          "line": 135
+        },
+        {
+          "name": "showSyncToast()",
+          "line": 172
+        },
+        {
+          "name": "getCategoriaActual()",
+          "line": 195
+        },
+        {
+          "name": "statusStorageKey()",
+          "line": 204
+        },
+        {
+          "name": "pointsKey()",
+          "line": 208
+        },
+        {
+          "name": "getUserPoints()",
+          "line": 212
+        },
+        {
+          "name": "levelFromPoints()",
+          "line": 217
+        },
+        {
+          "name": "countKeysWithPrefix()",
+          "line": 231
+        },
+        {
+          "name": "countUserStatesBoth()",
+          "line": 247
+        },
+        {
+          "name": "getPreference()",
+          "line": 263
+        },
+        {
+          "name": "applyUserPreferences()",
+          "line": 273
+        },
+        {
+          "name": "getPreferenceValue()",
+          "line": 279
+        },
+        {
+          "name": "clearInlineBackgroundStyle()",
+          "line": 288
+        },
+        {
+          "name": "applyBackgroundPreference()",
+          "line": 298
+        },
+        {
+          "name": "getUserStateSummary()",
+          "line": 320
+        },
+        {
+          "name": "buildSearchIndexForItem()",
+          "line": 327
+        },
+        {
+          "name": "getProgressPercentForItem()",
+          "line": 360
+        },
+        {
+          "name": "updateCardProgressIndicators()",
+          "line": 370
+        },
+        {
+          "name": "toggleStatus()",
+          "line": 428
+        },
+        {
+          "name": "window._invalidateProgressIndex",
+          "line": 444
+        },
+        {
+          "name": "syncCat()",
+          "line": 496
+        },
+        {
+          "name": "applyRemoteStateToCards()",
+          "line": 511
+        },
+        {
+          "name": "syncStatesFromSupabase()",
+          "line": 538
+        },
+        {
+          "name": "cargarEstadosBotones()",
+          "line": 560
+        },
+        {
+          "name": "window.addUserPoints",
+          "line": 657
+        },
+        {
+          "name": "window.cargarEstadosBotones",
+          "line": 658
+        },
+        {
+          "name": "window.getProgressPercentForItem",
+          "line": 659
+        },
+        {
+          "name": "window.buildSearchIndexForItem",
+          "line": 660
+        },
+        {
+          "name": "window.getCategoriaActual",
+          "line": 661
+        },
+        {
+          "name": "window.statusStorageKey",
+          "line": 662
+        },
+        {
+          "name": "window.syncItemStateToSupabase",
+          "line": 663
+        },
+        {
+          "name": "window.getUserPoints",
+          "line": 664
+        },
+        {
+          "name": "window.levelFromPoints",
+          "line": 665
+        },
+        {
+          "name": "window.pointsKey",
+          "line": 666
+        },
+        {
+          "name": "window.setWatchStatus",
+          "line": 667
+        },
+        {
+          "name": "window.getWatchStatus",
+          "line": 668
+        },
+        {
+          "name": "window.WATCH_STATUSES",
+          "line": 669
+        },
+        {
+          "name": "window.WATCH_STATUS_LABELS",
+          "line": 670
+        }
       ],
       "risk": 0.66
     },
@@ -329,63 +770,234 @@
       "tested": 1,
       "churn": 10,
       "exports": [
-        "anilistFetch()",
-        "done()",
-        "extractTitle()",
-        "extractAltTitle()",
-        "buildSeasonsFromItem()",
-        "anilistItemToLocal()",
-        "mdFetch()",
-        "fetchMangaDexStats()",
-        "mdItemToCard()",
-        "mdTagUuidsFromKeys()",
-        "fetchMangaDexPage()",
-        "normalizeTitle()",
-        "mergeAnilistAndMd()",
-        "splitGenresAndTags()",
-        "buildQueryParts()",
-        "buildDynamicQuery()",
-        "buildMultiPageQuery()",
-        "getCurrentSeason()",
-        "browseToQueryOpts()",
-        "getSearchCache()",
-        "setSearchCache()",
-        "_pruneOldCache()",
-        "getApiCache()",
-        "stableStringify()",
-        "fetchCached()",
-        "setApiCache()",
-        "window.getCurrentSeason",
-        "window.getTopAnimes",
-        "window.getTopMangas",
-        "window.getTopNovelas",
-        "window.getAnimeById",
-        "window.getAiringSchedule",
-        "window.getMangaById",
-        "window.buscarEnApi",
-        "window.mdFetch",
-        "window.fetchMangaDexPage",
-        "window.fetchMangaDexStats",
-        "window.mergeAnilistAndMd",
-        "window.buscarNovelasEnApi",
-        "genres()",
-        "va()",
-        "lista()",
-        "title()",
-        "desc()",
-        "hasD()",
-        "hasO()",
-        "cards()",
-        "numIds()",
-        "type()",
-        "getTopAnimes()",
-        "getTopMangas()",
-        "getTopNovelas()",
-        "getAnimeById()",
-        "getAiringSchedule()",
-        "getMangaById()",
-        "buscarEnApi()",
-        "buscarNovelasEnApi()"
+        {
+          "name": "anilistFetch()",
+          "line": 8
+        },
+        {
+          "name": "done()",
+          "line": 17
+        },
+        {
+          "name": "extractTitle()",
+          "line": 72
+        },
+        {
+          "name": "extractAltTitle()",
+          "line": 76
+        },
+        {
+          "name": "buildSeasonsFromItem()",
+          "line": 80
+        },
+        {
+          "name": "anilistItemToLocal()",
+          "line": 121
+        },
+        {
+          "name": "genres()",
+          "line": 127
+        },
+        {
+          "name": "va()",
+          "line": 222
+        },
+        {
+          "name": "mdFetch()",
+          "line": 288
+        },
+        {
+          "name": "fetchMangaDexStats()",
+          "line": 321
+        },
+        {
+          "name": "lista()",
+          "line": 321
+        },
+        {
+          "name": "mdItemToCard()",
+          "line": 342
+        },
+        {
+          "name": "title()",
+          "line": 345
+        },
+        {
+          "name": "desc()",
+          "line": 346
+        },
+        {
+          "name": "hasD()",
+          "line": 361
+        },
+        {
+          "name": "hasO()",
+          "line": 362
+        },
+        {
+          "name": "mdTagUuidsFromKeys()",
+          "line": 376
+        },
+        {
+          "name": "fetchMangaDexPage()",
+          "line": 387
+        },
+        {
+          "name": "cards()",
+          "line": 392
+        },
+        {
+          "name": "normalizeTitle()",
+          "line": 409
+        },
+        {
+          "name": "mergeAnilistAndMd()",
+          "line": 413
+        },
+        {
+          "name": "splitGenresAndTags()",
+          "line": 423
+        },
+        {
+          "name": "buildQueryParts()",
+          "line": 442
+        },
+        {
+          "name": "buildDynamicQuery()",
+          "line": 490
+        },
+        {
+          "name": "buildMultiPageQuery()",
+          "line": 507
+        },
+        {
+          "name": "getCurrentSeason()",
+          "line": 521
+        },
+        {
+          "name": "window.getCurrentSeason",
+          "line": 527
+        },
+        {
+          "name": "browseToQueryOpts()",
+          "line": 530
+        },
+        {
+          "name": "getSearchCache()",
+          "line": 580
+        },
+        {
+          "name": "setSearchCache()",
+          "line": 585
+        },
+        {
+          "name": "_pruneOldCache()",
+          "line": 595
+        },
+        {
+          "name": "getApiCache()",
+          "line": 615
+        },
+        {
+          "name": "stableStringify()",
+          "line": 638
+        },
+        {
+          "name": "fetchCached()",
+          "line": 657
+        },
+        {
+          "name": "setApiCache()",
+          "line": 676
+        },
+        {
+          "name": "window.getTopAnimes",
+          "line": 690
+        },
+        {
+          "name": "getTopAnimes()",
+          "line": 690
+        },
+        {
+          "name": "window.getTopMangas",
+          "line": 721
+        },
+        {
+          "name": "getTopMangas()",
+          "line": 721
+        },
+        {
+          "name": "window.getTopNovelas",
+          "line": 788
+        },
+        {
+          "name": "getTopNovelas()",
+          "line": 788
+        },
+        {
+          "name": "window.getAnimeById",
+          "line": 825
+        },
+        {
+          "name": "getAnimeById()",
+          "line": 825
+        },
+        {
+          "name": "window.getAiringSchedule",
+          "line": 857
+        },
+        {
+          "name": "numIds()",
+          "line": 857
+        },
+        {
+          "name": "getAiringSchedule()",
+          "line": 857
+        },
+        {
+          "name": "window.getMangaById",
+          "line": 899
+        },
+        {
+          "name": "getMangaById()",
+          "line": 899
+        },
+        {
+          "name": "window.buscarEnApi",
+          "line": 918
+        },
+        {
+          "name": "type()",
+          "line": 918
+        },
+        {
+          "name": "buscarEnApi()",
+          "line": 918
+        },
+        {
+          "name": "window.mdFetch",
+          "line": 952
+        },
+        {
+          "name": "window.fetchMangaDexPage",
+          "line": 953
+        },
+        {
+          "name": "window.fetchMangaDexStats",
+          "line": 954
+        },
+        {
+          "name": "window.mergeAnilistAndMd",
+          "line": 955
+        },
+        {
+          "name": "window.buscarNovelasEnApi",
+          "line": 957
+        },
+        {
+          "name": "buscarNovelasEnApi()",
+          "line": 957
+        }
       ],
       "risk": 0.644
     },
@@ -398,31 +1010,106 @@
       "tested": 0,
       "churn": 6,
       "exports": [
-        "waitForSupabase()",
-        "getCurrentUser()",
-        "displayNameFromUser()",
-        "setMsg()",
-        "displayNameFromProfile()",
-        "photoUrlFromProfile()",
-        "resolveGrade()",
-        "refreshUserUi()",
-        "closeUserModal()",
-        "isValidGmailAddress()",
-        "loginWithPassword()",
-        "logoutUser()",
-        "ensureUserUi()",
-        "grantDailyLoginBonus()",
-        "window.__puedeHaberSesion",
-        "window.__loadSupabase",
-        "window.getCurrentUser",
-        "window.waitForSupabase",
-        "window.ensureUserUi",
-        "window.refreshUserUi",
-        "window.logoutUser",
-        "window.apodoLabel",
-        "onReady()",
-        "apodoId()",
-        "apodoLabel()"
+        {
+          "name": "waitForSupabase()",
+          "line": 9
+        },
+        {
+          "name": "window.__puedeHaberSesion",
+          "line": 16
+        },
+        {
+          "name": "window.__loadSupabase",
+          "line": 19
+        },
+        {
+          "name": "onReady()",
+          "line": 26
+        },
+        {
+          "name": "getCurrentUser()",
+          "line": 33
+        },
+        {
+          "name": "displayNameFromUser()",
+          "line": 43
+        },
+        {
+          "name": "setMsg()",
+          "line": 57
+        },
+        {
+          "name": "displayNameFromProfile()",
+          "line": 62
+        },
+        {
+          "name": "photoUrlFromProfile()",
+          "line": 67
+        },
+        {
+          "name": "resolveGrade()",
+          "line": 97
+        },
+        {
+          "name": "apodoId()",
+          "line": 98
+        },
+        {
+          "name": "refreshUserUi()",
+          "line": 108
+        },
+        {
+          "name": "closeUserModal()",
+          "line": 173
+        },
+        {
+          "name": "isValidGmailAddress()",
+          "line": 177
+        },
+        {
+          "name": "loginWithPassword()",
+          "line": 181
+        },
+        {
+          "name": "logoutUser()",
+          "line": 287
+        },
+        {
+          "name": "ensureUserUi()",
+          "line": 304
+        },
+        {
+          "name": "grantDailyLoginBonus()",
+          "line": 313
+        },
+        {
+          "name": "window.getCurrentUser",
+          "line": 362
+        },
+        {
+          "name": "window.waitForSupabase",
+          "line": 363
+        },
+        {
+          "name": "window.ensureUserUi",
+          "line": 364
+        },
+        {
+          "name": "window.refreshUserUi",
+          "line": 365
+        },
+        {
+          "name": "window.logoutUser",
+          "line": 366
+        },
+        {
+          "name": "window.apodoLabel",
+          "line": 370
+        },
+        {
+          "name": "apodoLabel()",
+          "line": 370
+        }
       ],
       "risk": 0.571
     },
@@ -435,29 +1122,98 @@
       "tested": 0,
       "churn": 7,
       "exports": [
-        "window.__navMoreOpen",
-        "window.__navMoreClose",
-        "window.refreshUserUi",
-        "window.__adSecurityHandlersInstalled",
-        "window.rememberCatalogPosition",
-        "window.fallbackCatalogImage",
-        "archivo()",
-        "t()",
-        "ensureMainTarget()",
-        "injectNavBrand()",
-        "injectNavToggle()",
-        "injectNavLinks()",
-        "wireNavMore()",
-        "cancelarCierre()",
-        "abrir()",
-        "wireNavAutoHide()",
-        "esMobile()",
-        "evaluar()",
-        "injectMobileBottomNav()",
-        "injectLoginButton()",
-        "injectFooter()",
-        "r()",
-        "installSecurityHandlers()"
+        {
+          "name": "archivo()",
+          "line": 14
+        },
+        {
+          "name": "t()",
+          "line": 15
+        },
+        {
+          "name": "ensureMainTarget()",
+          "line": 55
+        },
+        {
+          "name": "injectNavBrand()",
+          "line": 75
+        },
+        {
+          "name": "injectNavToggle()",
+          "line": 89
+        },
+        {
+          "name": "injectNavLinks()",
+          "line": 108
+        },
+        {
+          "name": "wireNavMore()",
+          "line": 152
+        },
+        {
+          "name": "cancelarCierre()",
+          "line": 160
+        },
+        {
+          "name": "abrir()",
+          "line": 166
+        },
+        {
+          "name": "window.__navMoreOpen",
+          "line": 213
+        },
+        {
+          "name": "window.__navMoreClose",
+          "line": 214
+        },
+        {
+          "name": "wireNavAutoHide()",
+          "line": 231
+        },
+        {
+          "name": "esMobile()",
+          "line": 234
+        },
+        {
+          "name": "evaluar()",
+          "line": 245
+        },
+        {
+          "name": "injectMobileBottomNav()",
+          "line": 286
+        },
+        {
+          "name": "injectLoginButton()",
+          "line": 357
+        },
+        {
+          "name": "window.refreshUserUi",
+          "line": 375
+        },
+        {
+          "name": "injectFooter()",
+          "line": 434
+        },
+        {
+          "name": "r()",
+          "line": 548
+        },
+        {
+          "name": "installSecurityHandlers()",
+          "line": 593
+        },
+        {
+          "name": "window.__adSecurityHandlersInstalled",
+          "line": 596
+        },
+        {
+          "name": "window.rememberCatalogPosition",
+          "line": 604
+        },
+        {
+          "name": "window.fallbackCatalogImage",
+          "line": 636
+        }
       ],
       "risk": 0.577
     },
@@ -470,7 +1226,10 @@
       "tested": 0,
       "churn": 3,
       "exports": [
-        "window.AppConfig"
+        {
+          "name": "window.AppConfig",
+          "line": 18
+        }
       ],
       "risk": 0.341
     },
@@ -483,7 +1242,10 @@
       "tested": 0,
       "churn": 1,
       "exports": [
-        "window.AppConfig"
+        {
+          "name": "window.AppConfig",
+          "line": 38
+        }
       ],
       "risk": 0.354
     },
@@ -496,7 +1258,10 @@
       "tested": 1,
       "churn": 3,
       "exports": [
-        "window.AnimeDestiny"
+        {
+          "name": "window.AnimeDestiny",
+          "line": 52
+        }
       ],
       "risk": 0.036
     },
@@ -509,14 +1274,38 @@
       "tested": 1,
       "churn": 8,
       "exports": [
-        "resolveKey()",
-        "interpolate()",
-        "getCurrentLang()",
-        "window.applyTranslations",
-        "window.AppI18n",
-        "applyTranslations()",
-        "setLang()",
-        "t()"
+        {
+          "name": "resolveKey()",
+          "line": 500
+        },
+        {
+          "name": "interpolate()",
+          "line": 511
+        },
+        {
+          "name": "getCurrentLang()",
+          "line": 518
+        },
+        {
+          "name": "window.applyTranslations",
+          "line": 523
+        },
+        {
+          "name": "applyTranslations()",
+          "line": 523
+        },
+        {
+          "name": "window.AppI18n",
+          "line": 574
+        },
+        {
+          "name": "setLang()",
+          "line": 576
+        },
+        {
+          "name": "t()",
+          "line": 582
+        }
       ],
       "risk": 0.245
     },
@@ -529,32 +1318,110 @@
       "tested": 0,
       "churn": 7,
       "exports": [
-        "safeCacheSet()",
-        "mdFetch()",
-        "getUserLang()",
-        "getMangaDexTitle()",
-        "getMangaDexDescription()",
-        "getMangaDexCoverUrl()",
-        "chapterCount()",
-        "volumeCount()",
-        "tagsToGenres()",
-        "mdItemToLocal()",
-        "searchMangaDex()",
-        "fetchMangaDexStats()",
-        "fetchMangaDexAggregate()",
-        "isMangaDexUuid()",
-        "normalizeVolKey()",
-        "fetchMangaDexCoverMap()",
-        "getMangaDexVolumeCover()",
-        "resolveMangaDexId()",
-        "window.mdFetch",
-        "window.fetchMangaDexAggregate",
-        "window.getMangaDexById",
-        "window.resolveMangaDexCoverForVolume",
-        "hasDoujinshi()",
-        "hasOneShot()",
-        "getMangaDexById()",
-        "resolveMangaDexCoverForVolume()"
+        {
+          "name": "safeCacheSet()",
+          "line": 11
+        },
+        {
+          "name": "mdFetch()",
+          "line": 41
+        },
+        {
+          "name": "window.mdFetch",
+          "line": 42
+        },
+        {
+          "name": "getUserLang()",
+          "line": 76
+        },
+        {
+          "name": "getMangaDexTitle()",
+          "line": 80
+        },
+        {
+          "name": "getMangaDexDescription()",
+          "line": 87
+        },
+        {
+          "name": "getMangaDexCoverUrl()",
+          "line": 94
+        },
+        {
+          "name": "chapterCount()",
+          "line": 104
+        },
+        {
+          "name": "volumeCount()",
+          "line": 113
+        },
+        {
+          "name": "tagsToGenres()",
+          "line": 122
+        },
+        {
+          "name": "mdItemToLocal()",
+          "line": 131
+        },
+        {
+          "name": "hasDoujinshi()",
+          "line": 151
+        },
+        {
+          "name": "hasOneShot()",
+          "line": 155
+        },
+        {
+          "name": "searchMangaDex()",
+          "line": 210
+        },
+        {
+          "name": "fetchMangaDexStats()",
+          "line": 225
+        },
+        {
+          "name": "fetchMangaDexAggregate()",
+          "line": 238
+        },
+        {
+          "name": "window.fetchMangaDexAggregate",
+          "line": 262
+        },
+        {
+          "name": "window.getMangaDexById",
+          "line": 264
+        },
+        {
+          "name": "getMangaDexById()",
+          "line": 264
+        },
+        {
+          "name": "isMangaDexUuid()",
+          "line": 304
+        },
+        {
+          "name": "normalizeVolKey()",
+          "line": 308
+        },
+        {
+          "name": "fetchMangaDexCoverMap()",
+          "line": 317
+        },
+        {
+          "name": "getMangaDexVolumeCover()",
+          "line": 340
+        },
+        {
+          "name": "resolveMangaDexId()",
+          "line": 363
+        },
+        {
+          "name": "window.resolveMangaDexCoverForVolume",
+          "line": 390
+        },
+        {
+          "name": "resolveMangaDexCoverForVolume()",
+          "line": 390
+        }
       ],
       "risk": 0.66
     },
@@ -567,9 +1434,18 @@
       "tested": 0,
       "churn": 3,
       "exports": [
-        "showConnectionStatusToast()",
-        "window.AnimeDestiny",
-        "reportError()"
+        {
+          "name": "window.AnimeDestiny",
+          "line": 2
+        },
+        {
+          "name": "reportError()",
+          "line": 7
+        },
+        {
+          "name": "showConnectionStatusToast()",
+          "line": 50
+        }
       ],
       "risk": 0.376
     },
@@ -582,13 +1458,34 @@
       "tested": 0,
       "churn": 2,
       "exports": [
-        "read()",
-        "write()",
-        "readJson()",
-        "writeJson()",
-        "remove()",
-        "window.AppStorage",
-        "PREFIX()"
+        {
+          "name": "PREFIX()",
+          "line": 6
+        },
+        {
+          "name": "read()",
+          "line": 10
+        },
+        {
+          "name": "write()",
+          "line": 14
+        },
+        {
+          "name": "readJson()",
+          "line": 18
+        },
+        {
+          "name": "writeJson()",
+          "line": 25
+        },
+        {
+          "name": "remove()",
+          "line": 29
+        },
+        {
+          "name": "window.AppStorage",
+          "line": 33
+        }
       ],
       "risk": 0.347
     },
@@ -601,7 +1498,10 @@
       "tested": 0,
       "churn": 2,
       "exports": [
-        "window.UserStore"
+        {
+          "name": "window.UserStore",
+          "line": 47
+        }
       ],
       "risk": 0.342
     },
@@ -614,14 +1514,38 @@
       "tested": 1,
       "churn": 4,
       "exports": [
-        "_capitalize()",
-        "obtenerItemsCategoria()",
-        "obtenerItemCategoria()",
-        "obtenerDetalleItem()",
-        "window.escapeHtml",
-        "window.safeUrl",
-        "escapeHtml()",
-        "safeUrl()"
+        {
+          "name": "window.escapeHtml",
+          "line": 2
+        },
+        {
+          "name": "escapeHtml()",
+          "line": 2
+        },
+        {
+          "name": "window.safeUrl",
+          "line": 12
+        },
+        {
+          "name": "safeUrl()",
+          "line": 12
+        },
+        {
+          "name": "_capitalize()",
+          "line": 36
+        },
+        {
+          "name": "obtenerItemsCategoria()",
+          "line": 41
+        },
+        {
+          "name": "obtenerItemCategoria()",
+          "line": 52
+        },
+        {
+          "name": "obtenerDetalleItem()",
+          "line": 58
+        }
       ],
       "risk": 0.042
     },
@@ -634,43 +1558,154 @@
       "tested": 0,
       "churn": 3,
       "exports": [
-        "esc()",
-        "isSignedIn()",
-        "getCurrentUser()",
-        "formatDate()",
-        "getInitials()",
-        "showToast()",
-        "getItemRefInfo()",
-        "refLabel()",
-        "claveProgreso()",
-        "estaVisto()",
-        "calcularSigueLaObra()",
-        "esSpoiler()",
-        "buildRefCounts()",
-        "getSortedFilterKeys()",
-        "renderAll()",
-        "renderComment()",
-        "parseRefValue()",
-        "refValue()",
-        "buildRefSelectHtml()",
-        "buildFormHtml()",
-        "buildFilterBarHtml()",
-        "bindEvents()",
-        "autoGrow()",
-        "updateCounter()",
-        "toggleReplyForm()",
-        "startEdit()",
-        "confirmDelete()",
-        "handleSubmit()",
-        "handleEdit()",
-        "handleDelete()",
-        "load()",
-        "window.AnimeDestiny",
-        "MAX_LENGTH()",
-        "RATE_LIMIT()",
-        "REF_TYPES()",
-        "temporadas()",
-        "totalVols()"
+        {
+          "name": "MAX_LENGTH()",
+          "line": 7
+        },
+        {
+          "name": "RATE_LIMIT()",
+          "line": 9
+        },
+        {
+          "name": "REF_TYPES()",
+          "line": 10
+        },
+        {
+          "name": "esc()",
+          "line": 36
+        },
+        {
+          "name": "isSignedIn()",
+          "line": 40
+        },
+        {
+          "name": "getCurrentUser()",
+          "line": 44
+        },
+        {
+          "name": "formatDate()",
+          "line": 48
+        },
+        {
+          "name": "getInitials()",
+          "line": 65
+        },
+        {
+          "name": "showToast()",
+          "line": 71
+        },
+        {
+          "name": "getItemRefInfo()",
+          "line": 78
+        },
+        {
+          "name": "temporadas()",
+          "line": 88
+        },
+        {
+          "name": "totalVols()",
+          "line": 116
+        },
+        {
+          "name": "refLabel()",
+          "line": 131
+        },
+        {
+          "name": "claveProgreso()",
+          "line": 148
+        },
+        {
+          "name": "estaVisto()",
+          "line": 169
+        },
+        {
+          "name": "calcularSigueLaObra()",
+          "line": 185
+        },
+        {
+          "name": "esSpoiler()",
+          "line": 197
+        },
+        {
+          "name": "buildRefCounts()",
+          "line": 204
+        },
+        {
+          "name": "getSortedFilterKeys()",
+          "line": 217
+        },
+        {
+          "name": "renderAll()",
+          "line": 233
+        },
+        {
+          "name": "renderComment()",
+          "line": 282
+        },
+        {
+          "name": "parseRefValue()",
+          "line": 362
+        },
+        {
+          "name": "refValue()",
+          "line": 369
+        },
+        {
+          "name": "buildRefSelectHtml()",
+          "line": 382
+        },
+        {
+          "name": "buildFormHtml()",
+          "line": 415
+        },
+        {
+          "name": "buildFilterBarHtml()",
+          "line": 451
+        },
+        {
+          "name": "bindEvents()",
+          "line": 478
+        },
+        {
+          "name": "autoGrow()",
+          "line": 564
+        },
+        {
+          "name": "updateCounter()",
+          "line": 571
+        },
+        {
+          "name": "toggleReplyForm()",
+          "line": 585
+        },
+        {
+          "name": "startEdit()",
+          "line": 604
+        },
+        {
+          "name": "confirmDelete()",
+          "line": 648
+        },
+        {
+          "name": "handleSubmit()",
+          "line": 654
+        },
+        {
+          "name": "handleEdit()",
+          "line": 731
+        },
+        {
+          "name": "handleDelete()",
+          "line": 759
+        },
+        {
+          "name": "load()",
+          "line": 777
+        },
+        {
+          "name": "window.AnimeDestiny",
+          "line": 809
+        }
       ],
       "risk": 0.636
     },
@@ -683,21 +1718,66 @@
       "tested": 1,
       "churn": 5,
       "exports": [
-        "_translationCacheKey()",
-        "translateText()",
-        "getParams()",
-        "normalizeDetailItem()",
-        "getAnimeStructure()",
-        "parseTemporadas()",
-        "setDetailViewState()",
-        "replaceChildrenWithTextElement()",
-        "saveDetailStateToSupabase()",
-        "hasSqlSession()",
-        "parseGeneros()",
-        "parseVolumenes()",
-        "getApiUnifiedProgress()",
-        "segment()",
-        "rawCat()"
+        {
+          "name": "_translationCacheKey()",
+          "line": 3
+        },
+        {
+          "name": "translateText()",
+          "line": 10
+        },
+        {
+          "name": "segment()",
+          "line": 30
+        },
+        {
+          "name": "getParams()",
+          "line": 56
+        },
+        {
+          "name": "rawCat()",
+          "line": 58
+        },
+        {
+          "name": "normalizeDetailItem()",
+          "line": 72
+        },
+        {
+          "name": "getAnimeStructure()",
+          "line": 92
+        },
+        {
+          "name": "parseTemporadas()",
+          "line": 105
+        },
+        {
+          "name": "setDetailViewState()",
+          "line": 115
+        },
+        {
+          "name": "replaceChildrenWithTextElement()",
+          "line": 151
+        },
+        {
+          "name": "saveDetailStateToSupabase()",
+          "line": 159
+        },
+        {
+          "name": "hasSqlSession()",
+          "line": 190
+        },
+        {
+          "name": "parseGeneros()",
+          "line": 194
+        },
+        {
+          "name": "parseVolumenes()",
+          "line": 215
+        },
+        {
+          "name": "getApiUnifiedProgress()",
+          "line": 221
+        }
       ],
       "risk": 0.147
     },
@@ -710,16 +1790,46 @@
       "tested": 0,
       "churn": 5,
       "exports": [
-        "fetchJikanEpisode()",
-        "resolveKitsuAnimeId()",
-        "fetchKitsuEpisode()",
-        "showEpisodeInfoModal()",
-        "renderApiResult()",
-        "cargarDetalleDesdeApi()",
-        "renderApiDetalle()",
-        "window.resolveMangaDexCoverForVolume",
-        "window.getMangaDexById",
-        "isMangaDexUuid()"
+        {
+          "name": "fetchJikanEpisode()",
+          "line": 5
+        },
+        {
+          "name": "resolveKitsuAnimeId()",
+          "line": 39
+        },
+        {
+          "name": "fetchKitsuEpisode()",
+          "line": 62
+        },
+        {
+          "name": "showEpisodeInfoModal()",
+          "line": 97
+        },
+        {
+          "name": "isMangaDexUuid()",
+          "line": 202
+        },
+        {
+          "name": "window.resolveMangaDexCoverForVolume",
+          "line": 213
+        },
+        {
+          "name": "renderApiResult()",
+          "line": 254
+        },
+        {
+          "name": "cargarDetalleDesdeApi()",
+          "line": 262
+        },
+        {
+          "name": "window.getMangaDexById",
+          "line": 283
+        },
+        {
+          "name": "renderApiDetalle()",
+          "line": 294
+        }
       ],
       "risk": 0.574
     },
@@ -732,17 +1842,50 @@
       "tested": 0,
       "churn": 1,
       "exports": [
-        "syncProgressFromSupabase()",
-        "progressSqlKeyVolume()",
-        "progressSqlKeyEpisode()",
-        "detailStatusStorageKey()",
-        "getProgressQueue()",
-        "saveProgressQueue()",
-        "enqueueProgress()",
-        "drainProgressQueue()",
-        "isProgressSessionExpired()",
-        "showProgressToast()",
-        "saveProgressToSupabase()"
+        {
+          "name": "syncProgressFromSupabase()",
+          "line": 1
+        },
+        {
+          "name": "progressSqlKeyVolume()",
+          "line": 35
+        },
+        {
+          "name": "progressSqlKeyEpisode()",
+          "line": 38
+        },
+        {
+          "name": "detailStatusStorageKey()",
+          "line": 42
+        },
+        {
+          "name": "getProgressQueue()",
+          "line": 50
+        },
+        {
+          "name": "saveProgressQueue()",
+          "line": 55
+        },
+        {
+          "name": "enqueueProgress()",
+          "line": 59
+        },
+        {
+          "name": "drainProgressQueue()",
+          "line": 66
+        },
+        {
+          "name": "isProgressSessionExpired()",
+          "line": 81
+        },
+        {
+          "name": "showProgressToast()",
+          "line": 90
+        },
+        {
+          "name": "saveProgressToSupabase()",
+          "line": 110
+        }
       ],
       "risk": 0.397
     },
@@ -755,35 +1898,122 @@
       "tested": 0,
       "churn": 12,
       "exports": [
-        "formatCountdown()",
-        "startNextEpCountdown()",
-        "tick()",
-        "renderDetalle()",
-        "setMetaTag()",
-        "setCanonical()",
-        "recortarDescripcion()",
-        "relatedCategory()",
-        "pushRelated()",
-        "relatedMeta()",
-        "syncActionButton()",
-        "loadFavViewedFromSupabase()",
-        "maybeGrantProgressXp()",
-        "maybeGrantCompletionBonus()",
-        "onShareDone()",
-        "renderProgressPanel()",
-        "renderEpisodes()",
-        "buildEpButton()",
-        "renderChunk()",
-        "setActiveTab()",
-        "window.__nextEpTimer",
-        "window.__lastRenderedItem",
-        "window.__lastRenderedCategory",
-        "window.getWatchStatus",
-        "nextEpNum()",
-        "trailerId()",
-        "buildVolButton()",
-        "cadenaTemporadas()",
-        "syncPills()"
+        {
+          "name": "formatCountdown()",
+          "line": 5
+        },
+        {
+          "name": "startNextEpCountdown()",
+          "line": 15
+        },
+        {
+          "name": "window.__nextEpTimer",
+          "line": 19
+        },
+        {
+          "name": "tick()",
+          "line": 26
+        },
+        {
+          "name": "renderDetalle()",
+          "line": 39
+        },
+        {
+          "name": "window.__lastRenderedItem",
+          "line": 41
+        },
+        {
+          "name": "window.__lastRenderedCategory",
+          "line": 42
+        },
+        {
+          "name": "setMetaTag()",
+          "line": 99
+        },
+        {
+          "name": "setCanonical()",
+          "line": 110
+        },
+        {
+          "name": "recortarDescripcion()",
+          "line": 122
+        },
+        {
+          "name": "nextEpNum()",
+          "line": 164
+        },
+        {
+          "name": "trailerId()",
+          "line": 287
+        },
+        {
+          "name": "buildVolButton()",
+          "line": 307
+        },
+        {
+          "name": "cadenaTemporadas()",
+          "line": 406
+        },
+        {
+          "name": "relatedCategory()",
+          "line": 424
+        },
+        {
+          "name": "pushRelated()",
+          "line": 429
+        },
+        {
+          "name": "relatedMeta()",
+          "line": 448
+        },
+        {
+          "name": "window.getWatchStatus",
+          "line": 616
+        },
+        {
+          "name": "syncPills()",
+          "line": 616
+        },
+        {
+          "name": "syncActionButton()",
+          "line": 651
+        },
+        {
+          "name": "loadFavViewedFromSupabase()",
+          "line": 712
+        },
+        {
+          "name": "maybeGrantProgressXp()",
+          "line": 746
+        },
+        {
+          "name": "maybeGrantCompletionBonus()",
+          "line": 753
+        },
+        {
+          "name": "onShareDone()",
+          "line": 790
+        },
+        {
+          "name": "renderProgressPanel()",
+          "line": 812
+        },
+        {
+          "name": "renderEpisodes()",
+          "line": 920
+        },
+        {
+          "name": "buildEpButton()",
+          "line": 936
+        },
+        {
+          "name": "renderChunk()",
+          "line": 978
+        },
+        {
+          "name": "setActiveTab()",
+          "line": 994
+        }
       ],
       "risk": 0.785
     },
@@ -796,19 +2026,58 @@
       "tested": 1,
       "churn": 1,
       "exports": [
-        "esFormatoDeTemporada()",
-        "esPiezaSuelta()",
-        "relacionesDe()",
-        "vecino()",
-        "aEslabon()",
-        "cadenaDirecta()",
-        "resolverCadena()",
-        "caminar()",
-        "etiquetaMeta()",
-        "htmlCadena()",
-        "htmlSeccion()",
-        "hidratar()",
-        "window.DetalleTemporadas"
+        {
+          "name": "esFormatoDeTemporada()",
+          "line": 42
+        },
+        {
+          "name": "esPiezaSuelta()",
+          "line": 49
+        },
+        {
+          "name": "relacionesDe()",
+          "line": 54
+        },
+        {
+          "name": "vecino()",
+          "line": 63
+        },
+        {
+          "name": "aEslabon()",
+          "line": 86
+        },
+        {
+          "name": "cadenaDirecta()",
+          "line": 103
+        },
+        {
+          "name": "resolverCadena()",
+          "line": 128
+        },
+        {
+          "name": "caminar()",
+          "line": 134
+        },
+        {
+          "name": "etiquetaMeta()",
+          "line": 174
+        },
+        {
+          "name": "htmlCadena()",
+          "line": 181
+        },
+        {
+          "name": "htmlSeccion()",
+          "line": 213
+        },
+        {
+          "name": "hidratar()",
+          "line": 231
+        },
+        {
+          "name": "window.DetalleTemporadas",
+          "line": 254
+        }
       ],
       "risk": 0.099
     },
@@ -821,27 +2090,90 @@
       "tested": 1,
       "churn": 1,
       "exports": [
-        "leerCache()",
-        "guardarCache()",
-        "url()",
-        "artistasDe()",
-        "audioDe()",
-        "ordenar()",
-        "normalizar()",
-        "obtenerTemas()",
-        "puedeReproducirOgg()",
-        "htmlFila()",
-        "htmlSeccion()",
-        "conectarReproductor()",
-        "icono()",
-        "frenar()",
-        "hidratar()",
-        "window.DetalleThemes",
-        "arts()",
-        "lista()",
-        "temas()",
-        "titulo()",
-        "control()"
+        {
+          "name": "leerCache()",
+          "line": 48
+        },
+        {
+          "name": "guardarCache()",
+          "line": 61
+        },
+        {
+          "name": "url()",
+          "line": 75
+        },
+        {
+          "name": "artistasDe()",
+          "line": 90
+        },
+        {
+          "name": "arts()",
+          "line": 90
+        },
+        {
+          "name": "audioDe()",
+          "line": 103
+        },
+        {
+          "name": "ordenar()",
+          "line": 119
+        },
+        {
+          "name": "normalizar()",
+          "line": 129
+        },
+        {
+          "name": "lista()",
+          "line": 129
+        },
+        {
+          "name": "temas()",
+          "line": 133
+        },
+        {
+          "name": "titulo()",
+          "line": 136
+        },
+        {
+          "name": "obtenerTemas()",
+          "line": 165
+        },
+        {
+          "name": "puedeReproducirOgg()",
+          "line": 193
+        },
+        {
+          "name": "htmlFila()",
+          "line": 200
+        },
+        {
+          "name": "control()",
+          "line": 206
+        },
+        {
+          "name": "htmlSeccion()",
+          "line": 223
+        },
+        {
+          "name": "conectarReproductor()",
+          "line": 249
+        },
+        {
+          "name": "icono()",
+          "line": 254
+        },
+        {
+          "name": "frenar()",
+          "line": 261
+        },
+        {
+          "name": "hidratar()",
+          "line": 304
+        },
+        {
+          "name": "window.DetalleThemes",
+          "line": 337
+        }
       ],
       "risk": 0.173
     },
@@ -854,43 +2186,154 @@
       "tested": 0,
       "churn": 5,
       "exports": [
-        "esIdValido()",
-        "parseParams()",
-        "getDetallesFor()",
-        "getItem()",
-        "compareItemTitle()",
-        "compareItemImage()",
-        "compareItemInfo()",
-        "detailLink()",
-        "formatCompactNumber()",
-        "formatMinutes()",
-        "formatScore()",
-        "formatCount()",
-        "compareStatsFor()",
-        "formatMediaFormat()",
-        "autorDe()",
-        "periodoDe()",
-        "formatoRestante()",
-        "detallesPara()",
-        "categoryIcon()",
-        "categoryLabel()",
-        "renderCompareCard()",
-        "syncUrl()",
-        "actualizarUrl()",
-        "cerrarSugerencias()",
-        "elegir()",
-        "pintarSugerencias()",
-        "buscar()",
-        "window.getMangaDexById",
-        "window.buscarNovelasEnApi",
-        "window.buscarEnApi",
-        "window.fetchMangaDexPage",
-        "cat1()",
-        "cat2()",
-        "porRol()",
-        "det()",
-        "generos()",
-        "estado()"
+        {
+          "name": "esIdValido()",
+          "line": 6
+        },
+        {
+          "name": "parseParams()",
+          "line": 10
+        },
+        {
+          "name": "cat1()",
+          "line": 13
+        },
+        {
+          "name": "cat2()",
+          "line": 14
+        },
+        {
+          "name": "getDetallesFor()",
+          "line": 30
+        },
+        {
+          "name": "window.getMangaDexById",
+          "line": 32
+        },
+        {
+          "name": "getItem()",
+          "line": 41
+        },
+        {
+          "name": "compareItemTitle()",
+          "line": 47
+        },
+        {
+          "name": "compareItemImage()",
+          "line": 51
+        },
+        {
+          "name": "compareItemInfo()",
+          "line": 57
+        },
+        {
+          "name": "detailLink()",
+          "line": 62
+        },
+        {
+          "name": "formatCompactNumber()",
+          "line": 69
+        },
+        {
+          "name": "formatMinutes()",
+          "line": 78
+        },
+        {
+          "name": "formatScore()",
+          "line": 87
+        },
+        {
+          "name": "formatCount()",
+          "line": 93
+        },
+        {
+          "name": "compareStatsFor()",
+          "line": 106
+        },
+        {
+          "name": "formatMediaFormat()",
+          "line": 149
+        },
+        {
+          "name": "autorDe()",
+          "line": 170
+        },
+        {
+          "name": "porRol()",
+          "line": 172
+        },
+        {
+          "name": "periodoDe()",
+          "line": 179
+        },
+        {
+          "name": "formatoRestante()",
+          "line": 188
+        },
+        {
+          "name": "detallesPara()",
+          "line": 202
+        },
+        {
+          "name": "categoryIcon()",
+          "line": 220
+        },
+        {
+          "name": "categoryLabel()",
+          "line": 226
+        },
+        {
+          "name": "renderCompareCard()",
+          "line": 233
+        },
+        {
+          "name": "det()",
+          "line": 242
+        },
+        {
+          "name": "generos()",
+          "line": 247
+        },
+        {
+          "name": "estado()",
+          "line": 252
+        },
+        {
+          "name": "syncUrl()",
+          "line": 322
+        },
+        {
+          "name": "actualizarUrl()",
+          "line": 348
+        },
+        {
+          "name": "cerrarSugerencias()",
+          "line": 355
+        },
+        {
+          "name": "elegir()",
+          "line": 360
+        },
+        {
+          "name": "pintarSugerencias()",
+          "line": 368
+        },
+        {
+          "name": "buscar()",
+          "line": 384
+        },
+        {
+          "name": "window.buscarNovelasEnApi",
+          "line": 392
+        },
+        {
+          "name": "window.buscarEnApi",
+          "line": 394
+        },
+        {
+          "name": "window.fetchMangaDexPage",
+          "line": 397
+        }
       ],
       "risk": 0.558
     },
@@ -903,26 +2346,86 @@
       "tested": 0,
       "churn": 4,
       "exports": [
-        "r()",
-        "w()",
-        "rb()",
-        "$()",
-        "getCurrentUserName()",
-        "toast()",
-        "avisarGuardado()",
-        "leerToggle()",
-        "escribirToggle()",
-        "applyCustomColors()",
-        "sanitizeBgUrl()",
-        "applyBgToPage()",
-        "updateBgSections()",
-        "aplicarCprEnPagina()",
-        "aplicarCpr()",
-        "syncUI()",
-        "window.refreshUserUi",
-        "CPR_MIN()",
-        "CPR_MAX()",
-        "CPR_DEF()"
+        {
+          "name": "r()",
+          "line": 15
+        },
+        {
+          "name": "w()",
+          "line": 16
+        },
+        {
+          "name": "rb()",
+          "line": 17
+        },
+        {
+          "name": "$()",
+          "line": 18
+        },
+        {
+          "name": "getCurrentUserName()",
+          "line": 20
+        },
+        {
+          "name": "toast()",
+          "line": 30
+        },
+        {
+          "name": "avisarGuardado()",
+          "line": 41
+        },
+        {
+          "name": "leerToggle()",
+          "line": 59
+        },
+        {
+          "name": "escribirToggle()",
+          "line": 64
+        },
+        {
+          "name": "applyCustomColors()",
+          "line": 86
+        },
+        {
+          "name": "sanitizeBgUrl()",
+          "line": 103
+        },
+        {
+          "name": "applyBgToPage()",
+          "line": 113
+        },
+        {
+          "name": "updateBgSections()",
+          "line": 134
+        },
+        {
+          "name": "CPR_MIN()",
+          "line": 140
+        },
+        {
+          "name": "CPR_MAX()",
+          "line": 141
+        },
+        {
+          "name": "CPR_DEF()",
+          "line": 142
+        },
+        {
+          "name": "aplicarCprEnPagina()",
+          "line": 146
+        },
+        {
+          "name": "aplicarCpr()",
+          "line": 156
+        },
+        {
+          "name": "syncUI()",
+          "line": 162
+        },
+        {
+          "name": "window.refreshUserUi",
+          "line": 387
+        }
       ],
       "risk": 0.501
     },
@@ -935,20 +2438,62 @@
       "tested": 0,
       "churn": 2,
       "exports": [
-        "getEl()",
-        "malFetch()",
-        "parseMalXml()",
-        "shouldMarkViewed()",
-        "malStatusToWatchStatus()",
-        "batchLookupAnilistIds()",
-        "saveItemState()",
-        "saveProgressesSequential()",
-        "initMalImport()",
-        "renderPreview()",
-        "runImport()",
-        "setProgress()",
-        "uid()",
-        "onload()"
+        {
+          "name": "getEl()",
+          "line": 6
+        },
+        {
+          "name": "malFetch()",
+          "line": 8
+        },
+        {
+          "name": "parseMalXml()",
+          "line": 32
+        },
+        {
+          "name": "shouldMarkViewed()",
+          "line": 70
+        },
+        {
+          "name": "malStatusToWatchStatus()",
+          "line": 75
+        },
+        {
+          "name": "batchLookupAnilistIds()",
+          "line": 87
+        },
+        {
+          "name": "saveItemState()",
+          "line": 106
+        },
+        {
+          "name": "saveProgressesSequential()",
+          "line": 117
+        },
+        {
+          "name": "initMalImport()",
+          "line": 128
+        },
+        {
+          "name": "onload()",
+          "line": 145
+        },
+        {
+          "name": "renderPreview()",
+          "line": 174
+        },
+        {
+          "name": "runImport()",
+          "line": 216
+        },
+        {
+          "name": "setProgress()",
+          "line": 231
+        },
+        {
+          "name": "uid()",
+          "line": 278
+        }
       ],
       "risk": 0.569
     },
@@ -961,19 +2506,58 @@
       "tested": 0,
       "churn": 5,
       "exports": [
-        "isFileProtocol()",
-        "setStatus()",
-        "setMode()",
-        "userDisplayName()",
-        "applyAuthState()",
-        "getClient()",
-        "saveLocalUser()",
-        "describeSupabaseUnavailableReason()",
-        "goHomeSoon()",
-        "doRedirect()",
-        "handler()",
-        "window.waitForSupabase",
-        "window.refreshUserUi"
+        {
+          "name": "isFileProtocol()",
+          "line": 16
+        },
+        {
+          "name": "setStatus()",
+          "line": 19
+        },
+        {
+          "name": "setMode()",
+          "line": 23
+        },
+        {
+          "name": "userDisplayName()",
+          "line": 36
+        },
+        {
+          "name": "applyAuthState()",
+          "line": 47
+        },
+        {
+          "name": "getClient()",
+          "line": 69
+        },
+        {
+          "name": "window.waitForSupabase",
+          "line": 72
+        },
+        {
+          "name": "saveLocalUser()",
+          "line": 83
+        },
+        {
+          "name": "window.refreshUserUi",
+          "line": 84
+        },
+        {
+          "name": "describeSupabaseUnavailableReason()",
+          "line": 87
+        },
+        {
+          "name": "goHomeSoon()",
+          "line": 103
+        },
+        {
+          "name": "doRedirect()",
+          "line": 105
+        },
+        {
+          "name": "handler()",
+          "line": 110
+        }
       ],
       "risk": 0.469
     },
@@ -986,68 +2570,254 @@
       "tested": 0,
       "churn": 8,
       "exports": [
-        "extractGenresFromInfo()",
-        "topGenresFromEntries()",
-        "_lsGet()",
-        "_lsSet()",
-        "_achvGrantKey()",
-        "_achvInitKey()",
-        "getViewedIdSet()",
-        "franquiciaVista()",
-        "renderGenres()",
-        "getCurrentUserIdSafe()",
-        "statusStorageKeySafe()",
-        "getAllItems()",
-        "getItemLink()",
-        "getUserItemState()",
-        "matchesFilter()",
-        "renderMediaCard()",
-        "renderEmpty()",
-        "calendarDayLabel()",
-        "calendarCountdown()",
-        "getCalendarAnimeIds()",
-        "renderCalendario()",
-        "render()",
-        "setActiveChip()",
-        "downloadJson()",
-        "exportUserData()",
-        "renderAchievements()",
-        "computeApodoStats()",
-        "getActiveApodo()",
-        "getActiveApodoNick()",
-        "renderApodos()",
-        "equipApodo()",
-        "renderPoints()",
-        "renderProfileSummary()",
-        "getItemTs()",
-        "_getRemoteStatesMap()",
-        "bindControls()",
-        "renderActividad()",
-        "updateCategoryCards()",
-        "updateActividadMini()",
-        "renderStats()",
-        "recsMessage()",
-        "renderRecommendations()",
-        "cargarEstadosDesdeSupabase()",
-        "renderAll()",
-        "initConSupabase()",
-        "hideListsLoader()",
-        "window.addUserPoints",
-        "window.__profileData",
-        "window.refreshUserUi",
-        "window.waitForSupabase",
-        "pushItem()",
-        "startOfDay()",
-        "achvPts()",
-        "achvLvInfo()",
-        "fr()",
-        "lv()",
-        "pts()",
-        "setE()",
-        "setSub()",
-        "recs()",
-        "img()",
-        "test()"
+        {
+          "name": "extractGenresFromInfo()",
+          "line": 30
+        },
+        {
+          "name": "topGenresFromEntries()",
+          "line": 43
+        },
+        {
+          "name": "_lsGet()",
+          "line": 62
+        },
+        {
+          "name": "_lsSet()",
+          "line": 63
+        },
+        {
+          "name": "_achvGrantKey()",
+          "line": 64
+        },
+        {
+          "name": "_achvInitKey()",
+          "line": 65
+        },
+        {
+          "name": "getViewedIdSet()",
+          "line": 95
+        },
+        {
+          "name": "franquiciaVista()",
+          "line": 107
+        },
+        {
+          "name": "renderGenres()",
+          "line": 111
+        },
+        {
+          "name": "getCurrentUserIdSafe()",
+          "line": 124
+        },
+        {
+          "name": "statusStorageKeySafe()",
+          "line": 141
+        },
+        {
+          "name": "getAllItems()",
+          "line": 146
+        },
+        {
+          "name": "pushItem()",
+          "line": 149
+        },
+        {
+          "name": "getItemLink()",
+          "line": 196
+        },
+        {
+          "name": "getUserItemState()",
+          "line": 202
+        },
+        {
+          "name": "matchesFilter()",
+          "line": 224
+        },
+        {
+          "name": "renderMediaCard()",
+          "line": 233
+        },
+        {
+          "name": "renderEmpty()",
+          "line": 303
+        },
+        {
+          "name": "calendarDayLabel()",
+          "line": 317
+        },
+        {
+          "name": "startOfDay()",
+          "line": 320
+        },
+        {
+          "name": "calendarCountdown()",
+          "line": 328
+        },
+        {
+          "name": "getCalendarAnimeIds()",
+          "line": 340
+        },
+        {
+          "name": "renderCalendario()",
+          "line": 365
+        },
+        {
+          "name": "render()",
+          "line": 435
+        },
+        {
+          "name": "setActiveChip()",
+          "line": 459
+        },
+        {
+          "name": "downloadJson()",
+          "line": 465
+        },
+        {
+          "name": "exportUserData()",
+          "line": 478
+        },
+        {
+          "name": "renderAchievements()",
+          "line": 519
+        },
+        {
+          "name": "achvPts()",
+          "line": 545
+        },
+        {
+          "name": "achvLvInfo()",
+          "line": 548
+        },
+        {
+          "name": "fr()",
+          "line": 555
+        },
+        {
+          "name": "window.addUserPoints",
+          "line": 664
+        },
+        {
+          "name": "test()",
+          "line": 676
+        },
+        {
+          "name": "computeApodoStats()",
+          "line": 698
+        },
+        {
+          "name": "lv()",
+          "line": 712
+        },
+        {
+          "name": "getActiveApodo()",
+          "line": 718
+        },
+        {
+          "name": "getActiveApodoNick()",
+          "line": 726
+        },
+        {
+          "name": "renderApodos()",
+          "line": 733
+        },
+        {
+          "name": "equipApodo()",
+          "line": 761
+        },
+        {
+          "name": "window.__profileData",
+          "line": 778
+        },
+        {
+          "name": "window.refreshUserUi",
+          "line": 779
+        },
+        {
+          "name": "renderPoints()",
+          "line": 791
+        },
+        {
+          "name": "pts()",
+          "line": 800
+        },
+        {
+          "name": "renderProfileSummary()",
+          "line": 824
+        },
+        {
+          "name": "getItemTs()",
+          "line": 901
+        },
+        {
+          "name": "_getRemoteStatesMap()",
+          "line": 919
+        },
+        {
+          "name": "bindControls()",
+          "line": 929
+        },
+        {
+          "name": "renderActividad()",
+          "line": 955
+        },
+        {
+          "name": "updateCategoryCards()",
+          "line": 1048
+        },
+        {
+          "name": "setE()",
+          "line": 1066
+        },
+        {
+          "name": "updateActividadMini()",
+          "line": 1076
+        },
+        {
+          "name": "renderStats()",
+          "line": 1102
+        },
+        {
+          "name": "recsMessage()",
+          "line": 1150
+        },
+        {
+          "name": "renderRecommendations()",
+          "line": 1155
+        },
+        {
+          "name": "setSub()",
+          "line": 1159
+        },
+        {
+          "name": "recs()",
+          "line": 1218
+        },
+        {
+          "name": "img()",
+          "line": 1230
+        },
+        {
+          "name": "cargarEstadosDesdeSupabase()",
+          "line": 1259
+        },
+        {
+          "name": "renderAll()",
+          "line": 1391
+        },
+        {
+          "name": "initConSupabase()",
+          "line": 1404
+        },
+        {
+          "name": "window.waitForSupabase",
+          "line": 1406
+        },
+        {
+          "name": "hideListsLoader()",
+          "line": 1426
+        }
       ],
       "risk": 1
     },
@@ -1060,19 +2830,58 @@
       "tested": 1,
       "churn": 1,
       "exports": [
-        "refrescarIconos()",
-        "posHtml()",
-        "metaHtml()",
-        "generosHtml()",
-        "puntajeHtml()",
-        "filaHtml()",
-        "esqueletoHtml()",
-        "render()",
-        "cargarPagina()",
-        "activarTab()",
-        "generos()",
-        "filas()",
-        "inicial()"
+        {
+          "name": "refrescarIconos()",
+          "line": 36
+        },
+        {
+          "name": "posHtml()",
+          "line": 44
+        },
+        {
+          "name": "metaHtml()",
+          "line": 52
+        },
+        {
+          "name": "generosHtml()",
+          "line": 65
+        },
+        {
+          "name": "generos()",
+          "line": 65
+        },
+        {
+          "name": "puntajeHtml()",
+          "line": 73
+        },
+        {
+          "name": "filaHtml()",
+          "line": 81
+        },
+        {
+          "name": "esqueletoHtml()",
+          "line": 102
+        },
+        {
+          "name": "filas()",
+          "line": 103
+        },
+        {
+          "name": "render()",
+          "line": 119
+        },
+        {
+          "name": "cargarPagina()",
+          "line": 164
+        },
+        {
+          "name": "activarTab()",
+          "line": 205
+        },
+        {
+          "name": "inicial()",
+          "line": 240
+        }
       ],
       "risk": 0.096
     },
@@ -1085,23 +2894,74 @@
       "tested": 1,
       "churn": 4,
       "exports": [
-        "escapeHtml()",
-        "getPosHtml()",
-        "getInitials()",
-        "expNeededForNext()",
-        "getApodoHtml()",
-        "refreshIcons()",
-        "renderRanking()",
-        "filterAndRender()",
-        "buildFilterBar()",
-        "loadMoreData()",
-        "showSkeletonRanking()",
-        "loadRanking()",
-        "window.apodoLabel",
-        "window.__loadSupabase",
-        "window.waitForSupabase",
-        "ini()",
-        "label()"
+        {
+          "name": "escapeHtml()",
+          "line": 11
+        },
+        {
+          "name": "getPosHtml()",
+          "line": 17
+        },
+        {
+          "name": "getInitials()",
+          "line": 25
+        },
+        {
+          "name": "ini()",
+          "line": 27
+        },
+        {
+          "name": "expNeededForNext()",
+          "line": 36
+        },
+        {
+          "name": "getApodoHtml()",
+          "line": 47
+        },
+        {
+          "name": "label()",
+          "line": 48
+        },
+        {
+          "name": "window.apodoLabel",
+          "line": 49
+        },
+        {
+          "name": "refreshIcons()",
+          "line": 54
+        },
+        {
+          "name": "renderRanking()",
+          "line": 65
+        },
+        {
+          "name": "filterAndRender()",
+          "line": 177
+        },
+        {
+          "name": "buildFilterBar()",
+          "line": 192
+        },
+        {
+          "name": "loadMoreData()",
+          "line": 207
+        },
+        {
+          "name": "showSkeletonRanking()",
+          "line": 254
+        },
+        {
+          "name": "loadRanking()",
+          "line": 273
+        },
+        {
+          "name": "window.__loadSupabase",
+          "line": 279
+        },
+        {
+          "name": "window.waitForSupabase",
+          "line": 287
+        }
       ],
       "risk": 0.173
     },
@@ -1114,15 +2974,42 @@
       "tested": 1,
       "churn": 3,
       "exports": [
-        "esqueleto()",
-        "armarSeccion()",
-        "tarjetas()",
-        "sincronizarFlechas()",
-        "conectarNavegacion()",
-        "sincronizarEnElProximoFrame()",
-        "vacio()",
-        "cargar()",
-        "window.cargarEstadosBotones"
+        {
+          "name": "esqueleto()",
+          "line": 35
+        },
+        {
+          "name": "armarSeccion()",
+          "line": 43
+        },
+        {
+          "name": "tarjetas()",
+          "line": 63
+        },
+        {
+          "name": "sincronizarFlechas()",
+          "line": 88
+        },
+        {
+          "name": "conectarNavegacion()",
+          "line": 99
+        },
+        {
+          "name": "sincronizarEnElProximoFrame()",
+          "line": 115
+        },
+        {
+          "name": "vacio()",
+          "line": 129
+        },
+        {
+          "name": "cargar()",
+          "line": 133
+        },
+        {
+          "name": "window.cargarEstadosBotones",
+          "line": 149
+        }
       ],
       "risk": 0.084
     },
@@ -1135,33 +3022,114 @@
       "tested": 1,
       "churn": 5,
       "exports": [
-        "read()",
-        "sanitizeBgUrl()",
-        "applyBackgroundPreference()",
-        "levelFromPoints()",
-        "levelName()",
-        "formatTime()",
-        "formatDate()",
-        "displayName()",
-        "showLoader()",
-        "hideLoader()",
-        "showContent()",
-        "showGuest()",
-        "initPage()",
-        "renderProfile()",
-        "renderActivity()",
-        "toggleEditMode()",
-        "saveProfile()",
-        "toggleInfoEdit()",
-        "saveInfo()",
-        "uploadAvatarToSupabase()",
-        "window.waitForSupabase",
-        "window.__profileData",
-        "window.refreshUserUi",
-        "ext()",
-        "newName()",
-        "onerror()",
-        "onload()"
+        {
+          "name": "read()",
+          "line": 1
+        },
+        {
+          "name": "sanitizeBgUrl()",
+          "line": 5
+        },
+        {
+          "name": "applyBackgroundPreference()",
+          "line": 15
+        },
+        {
+          "name": "levelFromPoints()",
+          "line": 41
+        },
+        {
+          "name": "levelName()",
+          "line": 47
+        },
+        {
+          "name": "formatTime()",
+          "line": 55
+        },
+        {
+          "name": "formatDate()",
+          "line": 62
+        },
+        {
+          "name": "displayName()",
+          "line": 70
+        },
+        {
+          "name": "showLoader()",
+          "line": 109
+        },
+        {
+          "name": "hideLoader()",
+          "line": 113
+        },
+        {
+          "name": "showContent()",
+          "line": 117
+        },
+        {
+          "name": "showGuest()",
+          "line": 123
+        },
+        {
+          "name": "initPage()",
+          "line": 148
+        },
+        {
+          "name": "window.waitForSupabase",
+          "line": 150
+        },
+        {
+          "name": "window.__profileData",
+          "line": 198
+        },
+        {
+          "name": "window.refreshUserUi",
+          "line": 205
+        },
+        {
+          "name": "renderProfile()",
+          "line": 217
+        },
+        {
+          "name": "onerror()",
+          "line": 250
+        },
+        {
+          "name": "renderActivity()",
+          "line": 327
+        },
+        {
+          "name": "toggleEditMode()",
+          "line": 357
+        },
+        {
+          "name": "saveProfile()",
+          "line": 372
+        },
+        {
+          "name": "toggleInfoEdit()",
+          "line": 399
+        },
+        {
+          "name": "saveInfo()",
+          "line": 413
+        },
+        {
+          "name": "uploadAvatarToSupabase()",
+          "line": 460
+        },
+        {
+          "name": "ext()",
+          "line": 465
+        },
+        {
+          "name": "onload()",
+          "line": 487
+        },
+        {
+          "name": "newName()",
+          "line": 530
+        }
       ],
       "risk": 0.324
     },
@@ -1174,7 +3142,10 @@
       "tested": 0,
       "churn": 1,
       "exports": [
-        "onmessage()"
+        {
+          "name": "onmessage()",
+          "line": 1
+        }
       ],
       "risk": 0.317
     },
@@ -1187,10 +3158,22 @@
       "tested": 1,
       "churn": 4,
       "exports": [
-        "escapeHtml()",
-        "safeUrl()",
-        "window.escapeHtml",
-        "window.safeUrl"
+        {
+          "name": "escapeHtml()",
+          "line": 4
+        },
+        {
+          "name": "safeUrl()",
+          "line": 14
+        },
+        {
+          "name": "window.escapeHtml",
+          "line": 41
+        },
+        {
+          "name": "window.safeUrl",
+          "line": 42
+        }
       ],
       "risk": 0.034
     },
@@ -1203,11 +3186,26 @@
       "tested": 1,
       "churn": 1,
       "exports": [
-        "isValidCategory()",
-        "isValidId()",
-        "getSafeCategory()",
-        "getSafeUrlParams()",
-        "window.AppValidator"
+        {
+          "name": "isValidCategory()",
+          "line": 6
+        },
+        {
+          "name": "isValidId()",
+          "line": 10
+        },
+        {
+          "name": "getSafeCategory()",
+          "line": 14
+        },
+        {
+          "name": "getSafeUrlParams()",
+          "line": 19
+        },
+        {
+          "name": "window.AppValidator",
+          "line": 30
+        }
       ],
       "risk": 0.017
     },
@@ -1220,11 +3218,26 @@
       "tested": 0,
       "churn": 2,
       "exports": [
-        "getContainer()",
-        "showToast()",
-        "dismissToast()",
-        "remove()",
-        "window.Toast"
+        {
+          "name": "getContainer()",
+          "line": 11
+        },
+        {
+          "name": "showToast()",
+          "line": 26
+        },
+        {
+          "name": "dismissToast()",
+          "line": 69
+        },
+        {
+          "name": "remove()",
+          "line": 74
+        },
+        {
+          "name": "window.Toast",
+          "line": 96
+        }
       ],
       "risk": 0.356
     },
@@ -1237,28 +3250,94 @@
       "tested": 1,
       "churn": 4,
       "exports": [
-        "formatMediaStatus()",
-        "formatDate()",
-        "truncateText()",
-        "parseUrlParams()",
-        "normalizeText()",
-        "getCurrentUserId()",
-        "normalizeImageTitle()",
-        "slugifyImageTitle()",
-        "buildCatalogImageCandidates()",
-        "createFallbackPosterDataUrl()",
-        "fallbackCatalogImage()",
-        "episodeStorageKey()",
-        "volumeStorageKey()",
-        "window.normalizeText",
-        "window.AppUtils",
-        "window.getCurrentUserId",
-        "window.getCurrentUserIdSafe",
-        "window.formatMediaStatus",
-        "window.fallbackCatalogImage",
-        "window.episodeStorageKey",
-        "window.volumeStorageKey",
-        "tryNext()"
+        {
+          "name": "formatMediaStatus()",
+          "line": 8
+        },
+        {
+          "name": "formatDate()",
+          "line": 20
+        },
+        {
+          "name": "truncateText()",
+          "line": 26
+        },
+        {
+          "name": "parseUrlParams()",
+          "line": 32
+        },
+        {
+          "name": "normalizeText()",
+          "line": 36
+        },
+        {
+          "name": "window.normalizeText",
+          "line": 43
+        },
+        {
+          "name": "getCurrentUserId()",
+          "line": 45
+        },
+        {
+          "name": "normalizeImageTitle()",
+          "line": 60
+        },
+        {
+          "name": "slugifyImageTitle()",
+          "line": 69
+        },
+        {
+          "name": "buildCatalogImageCandidates()",
+          "line": 73
+        },
+        {
+          "name": "createFallbackPosterDataUrl()",
+          "line": 97
+        },
+        {
+          "name": "fallbackCatalogImage()",
+          "line": 127
+        },
+        {
+          "name": "tryNext()",
+          "line": 137
+        },
+        {
+          "name": "episodeStorageKey()",
+          "line": 161
+        },
+        {
+          "name": "volumeStorageKey()",
+          "line": 165
+        },
+        {
+          "name": "window.AppUtils",
+          "line": 181
+        },
+        {
+          "name": "window.getCurrentUserId",
+          "line": 184
+        },
+        {
+          "name": "window.getCurrentUserIdSafe",
+          "line": 185
+        },
+        {
+          "name": "window.formatMediaStatus",
+          "line": 186
+        },
+        {
+          "name": "window.fallbackCatalogImage",
+          "line": 187
+        },
+        {
+          "name": "window.episodeStorageKey",
+          "line": 188
+        },
+        {
+          "name": "window.volumeStorageKey",
+          "line": 189
+        }
       ],
       "risk": 0.093
     },

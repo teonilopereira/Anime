@@ -69,17 +69,21 @@ function isTested(r) {
 /* ---------- extracción por archivo ---------- */
 function countMatches(src, re) { return (src.match(re) || []).length; }
 function inventory(src) {
-  const names = new Set();
+  const seen = new Map(); // name -> line (primera aparición)
+  const lineAt = (idx) => src.slice(0, idx).split('\n').length;
+  const add = (name, idx) => { if (!seen.has(name)) seen.set(name, lineAt(idx)); };
   let m;
   const reFn = /(?:^|\s)function\s+([A-Za-z_$][\w$]*)\s*\(/g;
-  while ((m = reFn.exec(src))) names.add(m[1] + '()');
+  while ((m = reFn.exec(src))) add(m[1] + '()', m.index);
   const reWin = /window\.([A-Za-z_$][\w$]*)\s*=/g;
-  while ((m = reWin.exec(src))) names.add('window.' + m[1]);
+  while ((m = reWin.exec(src))) add('window.' + m[1], m.index);
   const reConst = /(?:^|\n)\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function|\()/g;
-  while ((m = reConst.exec(src))) names.add(m[1] + '()');
+  while ((m = reConst.exec(src))) add(m[1] + '()', m.index);
   const reMethod = /([A-Za-z_$][\w$]*)\s*[:=]\s*(?:async\s*)?function/g;
-  while ((m = reMethod.exec(src))) names.add(m[1] + '()');
-  return [...names];
+  while ((m = reMethod.exec(src))) add(m[1] + '()', m.index);
+  return [...seen.entries()]
+    .map(([name, line]) => ({ name, line }))
+    .sort((a, b) => a.line - b.line);
 }
 function scriptsOf(html) {
   const out = [];
