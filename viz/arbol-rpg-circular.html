@@ -147,9 +147,9 @@ let TOTAL=0;(function count(n){TOTAL++;n.children.forEach(count);})(root);
 const cv=document.getElementById('sky'),ctx=cv.getContext('2d');
 let W,H,DPR,RING;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*DPR;H=cv.height=innerHeight*DPR;
-  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';RING=Math.min(W,H)*0.145;layout();}
+  cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';RING=Math.min(W,H)*0.145;setRadii();layout();}
 function radiusOf(n){return n.kind==='root'?22*DPR:n.kind==='folder'?15*DPR:n.kind==='file'?10.5*DPR:6*DPR;}
-(function setR(n){n.r=radiusOf(n);n.children.forEach(setR);})(root);
+function setRadii(){(function setR(n){n.r=radiusOf(n);n.children.forEach(setR);})(root);}
 
 let scale=1,pan={x:0,y:0},leafCount=1;
 function layout(){let idx=0;leafCount=0;

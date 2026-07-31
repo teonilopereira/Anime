@@ -146,7 +146,8 @@ function relayout(){R1=150*DPR;R2=Math.min(W,H)*0.40;
   for(const cn of cats){const k=cn.children.length||1,catSpan=k*step;cn.angle=cur+catSpan/2;
     cn.px=Math.cos(cn.angle)*R1;cn.py=Math.sin(cn.angle)*R1;
     cn.children.forEach((ln,i)=>{ln.angle=cur+(i+0.5)*step;ln.px=Math.cos(ln.angle)*R2;ln.py=Math.sin(ln.angle)*R2;});
-    cur+=catSpan+gap;}}
+    cur+=catSpan+gap;}
+  root.r=26*DPR;cats.forEach(c=>c.r=15*DPR);leaves.forEach(l=>l.r=9*DPR);}
 
 let scale=1,pan={x:0,y:0};
 function fitView(){relayout();scale=Math.min(W,H)/(2*(R2+34*DPR))*0.92;pan.x=0;pan.y=0;}
