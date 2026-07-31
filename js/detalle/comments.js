@@ -293,7 +293,7 @@
         var avatarHtml;
         if (photoUrl) {
             avatarHtml = '<span class="comment-avatar comment-avatar-img">' +
-                '<img src="' + esc(photoUrl) + '" alt="" loading="lazy" data-initials="' + esc(initials) + '">' +
+                '<img src="' + esc(window.safeUrl ? window.safeUrl(photoUrl) : photoUrl) + '" alt="" loading="lazy" data-initials="' + esc(initials) + '">' +
                 '</span>';
         } else {
             avatarHtml = '<span class="comment-avatar">' + esc(initials) + '</span>';

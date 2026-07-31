@@ -95,7 +95,7 @@
             if (photoUrl) {
                 var initials = escapeHtml(getInitials(p.display_name || p.username));
                 avatarHtml = '<span class="ranking-avatar ranking-avatar-img">' +
-                    '<img src="' + escapeHtml(photoUrl) + '" alt="" loading="lazy" data-initials="' + initials + '">' +
+                    '<img src="' + escapeHtml(window.safeUrl ? window.safeUrl(photoUrl) : photoUrl) + '" alt="" loading="lazy" data-initials="' + initials + '">' +
                     '</span>';
             } else {
                 avatarHtml = '<span class="ranking-avatar">' + escapeHtml(getInitials(p.display_name || p.username)) + '</span>';
