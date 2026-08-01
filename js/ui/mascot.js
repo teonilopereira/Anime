@@ -71,7 +71,8 @@
         W:  "#ffffff", // ojo (blanco)
         P:  "#1f3a5c", // pupila / boca (azul oscuro suave)
         C:  "#ffc4dd", // mejilla (rosa suave)
-        T:  "#cdeeff"  // lágrima
+        T:  "#cdeeff", // lágrima
+        R:  "#ff4d6d"  // corazón (rojo/rosa) para los ojos enamorados
     };
 
     // Grilla del sprite: mayor resolución = más detalle/gráficos.
@@ -138,6 +139,23 @@
         setPx(px, cx - 0.7, 10.2, COL.W);
     }
 
+    // Corazón pequeño (ojo enamorado): dos lóbulos arriba + punta abajo.
+    function heartEye(px, cx, cy, c) {
+        disc(px, cx - 0.9, cy - 0.2, 1.0, c);
+        disc(px, cx + 0.9, cy - 0.2, 1.0, c);
+        setPx(px, cx - 1.1, cy + 0.7, c);
+        setPx(px, cx + 1.1, cy + 0.7, c);
+        setPx(px, cx - 0.5, cy + 1.2, c);
+        setPx(px, cx + 0.5, cy + 1.2, c);
+        setPx(px, cx, cy + 1.7, c);
+        setPx(px, cx, cy - 0.6, COL.H); // brillito
+    }
+
+    // Ojo dormido: párpado cerrado con una pestaña curva hacia abajo.
+    function sleepyEye(px, cx) {
+        arc(px, cx, 10.4, 2.0, 20, 160, COL.P);
+    }
+
     // ── Rasgos por expresión ───────────────────────────────────────────────
     function drawFace(px, expr) {
         var lx = 7.5, rx = 14.5; // centros de ojos
@@ -161,6 +179,16 @@
             disc(px, 11, 14.9, 0.7, COL.D);
         } else if (expr === "blink") {
             for (var i = -2; i <= 2; i++) { setPx(px, lx + i, 11, COL.P); setPx(px, rx + i, 11, COL.P); }
+        } else if (expr === "love") {
+            heartEye(px, lx, 10.8, COL.R);            // ojos de corazón
+            heartEye(px, rx, 10.8, COL.R);
+            disc(px, 4.4, 13.8, 1.2, COL.C);          // mejillas sonrojadas
+            disc(px, 17.6, 13.8, 1.2, COL.C);
+            smile(px, 11, 13.4, 3.0);                 // sonrisota
+            smile(px, 11, 13.4, 2.4);
+        } else if (expr === "sleep") {
+            sleepyEye(px, lx); sleepyEye(px, rx);     // párpados cerrados
+            disc(px, 11, 15.0, 0.9, COL.P);           // boquita entreabierta
         } else { // normal / info
             eye(px, lx, 0.2); eye(px, rx, 0.2);
             smile(px, 11, 12.9, 2.7);                 // sonrisa suave
@@ -212,6 +240,18 @@
     var currentExpr = "normal";
     var drag = null;        // estado del arrastre en curso
     var justDragged = false; // para no disparar el saludo al soltar tras mover
+    var zzz = null;         // "Zzz" flotante cuando duerme
+
+    // ── Cariño / mimos ─────────────────────────────────────────────────────
+    var petStreak = 0;      // clicks encadenados (mimos seguidos)
+    var lastPetAt = 0;      // timestamp del último mimo, para encadenar
+    var loveTimer = null;   // vuelve a la cara normal tras enamorarse
+
+    // ── Sueño por inactividad ──────────────────────────────────────────────
+    var sleeping = false;      // el slime está dormido
+    var lastActivity = 0;      // último movimiento/tecla/scroll del usuario
+    var sleepTimer = null;     // vigía que lo duerme tras un rato quieto
+    var IDLE_SLEEP_MS = 45000; // inactividad para empezar a dormir
 
     // ── Estado del motor de movimiento (paseo con física) ──────────────────
     // Todo en coordenadas de viewport (position: fixed), refiriéndose a la
@@ -270,15 +310,25 @@
         // Pausar el auto-ocultado mientras el mouse está sobre la mascota.
         pet.addEventListener("mouseenter", function () { clearTimeout(hideTimer); });
         bubble.addEventListener("mouseenter", function () { clearTimeout(hideTimer); });
+        // Al pasar el cursor por encima, si estaba dormido, despierta.
+        pet.addEventListener("mouseenter", wakeUp);
         // Arrastre para reubicar la mascota (no tapar botones).
         wireDrag();
 
+        // "Zzz" flotante para el modo dormido (oculto por CSS salvo al dormir).
+        zzz = document.createElement("div");
+        zzz.className = "mascot-zzz";
+        zzz.setAttribute("aria-hidden", "true");
+        zzz.textContent = "z";
+
         root.appendChild(bubble);
+        root.appendChild(zzz);
         root.appendChild(pet);
         document.body.appendChild(root);
 
         applyPosition();
         scheduleBlink();
+        wireActivity();
         // Arranca el paseo (si está permitido); si no, queda quieta y arrastrable.
         startEngine();
     }
@@ -731,17 +781,20 @@
         stopEngine();
         clearTimeout(hideTimer);
         clearTimeout(blinkTimer);
+        clearTimeout(loveTimer);
+        clearInterval(sleepTimer);
+        sleeping = false;
         root.remove();
-        root = pet = bubble = bubbleText = null;
+        root = pet = bubble = bubbleText = zzz = null;
     }
 
     // Parpadeo ocasional en reposo: da vida sin ser molesto.
     function scheduleBlink() {
         clearTimeout(blinkTimer);
-        if (reducedMotion()) return;
+        if (reducedMotion() || sleeping) return;
         var delay = 3500 + Math.random() * 4000;
         blinkTimer = setTimeout(function () {
-            if (pet && !bubble.classList.contains("is-visible")) {
+            if (pet && !sleeping && !bubble.classList.contains("is-visible")) {
                 var prev = currentExpr;
                 setExpr("blink");
                 setTimeout(function () { setExpr(prev); scheduleBlink(); }, 160);
@@ -760,6 +813,14 @@
     // Muestra el bocadillo con un texto y reinicia la animación de "hablar".
     // Mientras el slime habla, se detiene su paseo para que "venga a decirte".
     function showBubble(message, dur) {
+        // Si llega algo que decir mientras duerme, despierta sin el respingo
+        // (la cara ya la fijó quien llama a hablar).
+        if (sleeping) {
+            sleeping = false;
+            root.classList.remove("mascot-sleeping");
+            attentionUntil = 0;
+            lastActivity = performance.now();
+        }
         bubbleText.textContent = String(message);
         bubble.classList.remove("is-leaving");
         // Reinicia la animación de "hablar".
@@ -808,6 +869,26 @@
         scheduleBlink();
     }
 
+    // ── Corazones flotantes (feedback de cariño) ───────────────────────────
+    // Suelta unos corazones que suben y se desvanecen desde el slime. Puro CSS
+    // para la animación; JS solo los crea y los limpia al terminar.
+    function emitHearts(n) {
+        if (!root || reducedMotion()) return;
+        for (var i = 0; i < n; i++) {
+            (function (i) {
+                var h = document.createElement("span");
+                h.className = "mascot-heart";
+                h.setAttribute("aria-hidden", "true");
+                h.textContent = "❤";
+                // Dispersión horizontal y arranque escalonado por corazón.
+                h.style.setProperty("--hx", (Math.random() * 40 - 20).toFixed(0) + "px");
+                h.style.animationDelay = (i * 90) + "ms";
+                h.addEventListener("animationend", function () { h.remove(); });
+                root.appendChild(h);
+            })(i);
+        }
+    }
+
     // ── Interacción: tocar la mascota ──────────────────────────────────────
     var GREETINGS = [
         "¡Hola! Soy Rimuru. ¿Qué vas a ver hoy?",
@@ -817,13 +898,116 @@
         "Toca una noti y te la leo.",
         "¡Soy Rimuru, tu slime de confianza!"
     ];
+
+    // Saludos según la página: el slime "sabe" dónde estás y lo comenta.
+    var PAGE_GREETINGS = {
+        "index":         ["¡Bienvenido a Anime Destiny! ✨", "¿Descubrimos algo nuevo hoy?"],
+        "anime":         ["¿Qué anime maratoneamos? 🍿", "¡Buenísimo el catálogo de hoy!"],
+        "manga":         ["¿Un buen manga para leer? 📖", "Pasá página conmigo 📚"],
+        "novelas":       ["¿Nos clavamos una novela? 📓", "Historias largas, las mejores ✨"],
+        "detalle":       ["¿Te tiño esta ficha de tu color? 🎨", "¿A tu lista con esta?"],
+        "mis-listas":    ["¡Ordenemos tus listas! 🗂️", "¿Qué seguís viendo?"],
+        "ranking":       ["¡Al top del ranking! 🏆", "¿Quién manda hoy?"],
+        "top":           ["Los más grandes de todos 🏆", "¿Coincidís con el top?"],
+        "comparar":      ["Enfrentá dos obras ⚔️", "¿Cuál gana el duelo?"],
+        "configuracion": ["Toqueteá los ajustes 🛠️", "¿Me apagás? ¡No seas malo! 🥺"]
+    };
+
+    // Nombre de la página actual (sin extensión) para elegir el saludo.
+    function currentPage() {
+        try {
+            var p = (location.pathname.split("/").pop() || "index").toLowerCase();
+            p = p.replace(/\.html?$/, "");
+            return p || "index";
+        } catch (_) { return "index"; }
+    }
+
+    // Pool de saludos: los de la página + los genéricos, sin repetir.
+    function greetingPool() {
+        var page = PAGE_GREETINGS[currentPage()] || [];
+        return page.concat(GREETINGS);
+    }
     var greetIdx = 0;
+
+    // Frases de cariño cuando lo miman varias veces seguidas.
+    var LOVE_LINES = ["¡Me hacés cosquillas! 😆", "¡Te quiero! ❤", "¡Blop blop! 💕", "¡Más mimos, más! 🥰"];
+
     function onPetClick() {
         // Si el click viene de terminar un arrastre, no saludar.
         if (justDragged) { justDragged = false; return; }
+        wakeUp();
+
+        var now = performance.now();
+        // Mimos encadenados: si tocás rápido varias veces, el slime se enamora.
+        petStreak = (now - lastPetAt < 1600) ? petStreak + 1 : 1;
+        lastPetAt = now;
+
+        if (petStreak >= 3) {
+            setExpr("love");
+            emitHearts(Math.min(3 + petStreak, 7));
+            showBubble(pick(LOVE_LINES), DURATION());
+            clearTimeout(loveTimer);
+            loveTimer = setTimeout(function () {
+                if (currentExpr === "love") setExpr("normal");
+            }, DURATION());
+            return;
+        }
+
         setExpr("happy");
-        showBubble(GREETINGS[greetIdx % GREETINGS.length], DURATION());
+        var pool = greetingPool();
+        showBubble(pool[greetIdx % pool.length], DURATION());
         greetIdx++;
+    }
+
+    // ── Sueño por inactividad ──────────────────────────────────────────────
+    // Tras un rato sin actividad del usuario, el slime cabecea y se duerme con
+    // un "Zzz". Cualquier interacción (mover el mouse, teclear, tocarlo) lo
+    // despierta con un pequeño respingo.
+    var activityWired = false; // para no duplicar listeners al reactivar la mascota
+    function wireActivity() {
+        lastActivity = performance.now();
+        clearInterval(sleepTimer);
+        sleepTimer = setInterval(checkIdle, 5000);
+        if (activityWired) return;
+        activityWired = true;
+        var mark = function () { lastActivity = performance.now(); wakeUp(); };
+        var opts = { passive: true };
+        window.addEventListener("mousemove", mark, opts);
+        window.addEventListener("keydown", mark, opts);
+        window.addEventListener("scroll", mark, opts);
+        window.addEventListener("touchstart", mark, opts);
+        window.addEventListener("pointerdown", mark, opts);
+    }
+
+    function checkIdle() {
+        if (sleeping || !root) return;
+        if (bubble && bubble.classList.contains("is-visible")) return; // hablando
+        if (drag) return;                                              // en la mano
+        if (performance.now() - lastActivity < IDLE_SLEEP_MS) return;
+        goToSleep();
+    }
+
+    function goToSleep() {
+        if (sleeping || !root) return;
+        sleeping = true;
+        clearTimeout(blinkTimer);
+        if (phys) { phys.vx = 0; phys.face = 1; applyFace(); }
+        pauseRoam(3.6e6); // no deambula mientras duerme (se corta al despertar)
+        setExpr("sleep");
+        root.classList.add("mascot-sleeping");
+    }
+
+    function wakeUp() {
+        if (!sleeping) return;
+        sleeping = false;
+        root.classList.remove("mascot-sleeping");
+        attentionUntil = 0; // corta la pausa larga del paseo
+        lastActivity = performance.now();
+        // Pequeño respingo al despertar y vuelta a la normalidad.
+        setExpr("surprised");
+        setTimeout(function () { if (currentExpr === "surprised" && !sleeping) setExpr("normal"); }, 550);
+        scheduleBlink();
+        if (phys) nextDecision = performance.now() + 700;
     }
 
     // ── Encender / apagar en vivo (desde configuración) ────────────────────
