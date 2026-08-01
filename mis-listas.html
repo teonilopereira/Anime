@@ -769,8 +769,14 @@
         .recommend-icon { font-size: 1.4rem; }
         .recommend-grid-vertical {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            align-items: start;
+            justify-items: center;
+        }
+        .recommend-grid-vertical .card-container {
+            width: 100%;
+            max-width: 240px;
         }
 
         /* Ver más */

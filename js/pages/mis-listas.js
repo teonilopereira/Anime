@@ -271,7 +271,7 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
     const safeId = escapeHtml(String(item.id));
     const title = escapeHtml(item.titulo);
     return `
-    <div class="card-container catalog-neon-card" style="transform: scale(0.9); margin: -10px;" data-item-id="${safeId}" data-category="${escapeHtml(item.__category)}">
+    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(item.__category)}">
         <input class="flip-toggle" type="checkbox" id="flip-${safeId}">
         <div class="catalog-card-shell">
             <div class="catalog-card-inner">
