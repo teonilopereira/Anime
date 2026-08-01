@@ -22,6 +22,7 @@ function renderPoints() {
     // el número y la barra siempre coincidan.
     const level = lv.level;
     const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
+    const remain = Math.max(0, lv.next - lv.current);
 
     host.innerHTML = `
         <div class="points-card">
@@ -29,8 +30,11 @@ function renderPoints() {
                 <div class="points-title">Nivel ${level}</div>
                 <div class="points-value">${pts} pts</div>
             </div>
-            <div class="points-track" aria-hidden="true"><div class="points-fill" style="width:${pct}%"></div></div>
-            <div class="points-sub">Faltan ${Math.max(0, lv.next - lv.current)} pts para el próximo nivel.</div>
+            <div class="points-track" role="progressbar" aria-label="Progreso de nivel"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+                <div class="points-fill" style="width:${pct}%;--pctnum:${Math.max(pct, 1)}"></div>
+            </div>
+            <div class="points-sub">${lv.atMax ? '¡Nivel máximo alcanzado!' : `Faltan ${remain} pts para el próximo nivel.`}</div>
         </div>
     `;
 }
