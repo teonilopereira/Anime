@@ -1,35 +1,17 @@
 {
-  "generatedAt": "2026-07-31T07:45:23.772Z",
+  "generatedAt": "2026-08-01T02:07:13.304Z",
   "note": "Riesgo = 0.40*tamaño + 0.22*fragilidad(catch+API) + 0.13*churn + 0.25*(sin test), normalizado 0..1. Acota dónde mirar; no señala el bug exacto. Regenerar con: npm run map",
   "summary": {
     "jsFiles": 39,
     "htmlPages": 15,
-    "totalLines": 18208,
-    "untested": 24,
-    "functions": 693
+    "totalLines": 18374,
+    "untested": 13,
+    "functions": 733
   },
   "hotspots": [
     {
-      "file": "js/pages/mis-listas.js",
-      "risk": 1,
-      "lines": 1491,
-      "tested": false,
-      "err": 27,
-      "api": 36,
-      "churn": 8
-    },
-    {
-      "file": "js/detalle/render.js",
-      "risk": 0.785,
-      "lines": 1050,
-      "tested": false,
-      "err": 6,
-      "api": 23,
-      "churn": 12
-    },
-    {
       "file": "api/supabase-client.js",
-      "risk": 0.739,
+      "risk": 1,
       "lines": 606,
       "tested": false,
       "err": 23,
@@ -37,26 +19,17 @@
       "churn": 3
     },
     {
-      "file": "js/catalog/states.js",
-      "risk": 0.66,
-      "lines": 673,
-      "tested": false,
-      "err": 21,
-      "api": 17,
-      "churn": 7
-    },
-    {
-      "file": "js/core/mangadex-api.js",
-      "risk": 0.66,
-      "lines": 415,
-      "tested": false,
-      "err": 14,
-      "api": 59,
-      "churn": 7
+      "file": "js/pages/mis-listas.js",
+      "risk": 0.93,
+      "lines": 1502,
+      "tested": true,
+      "err": 27,
+      "api": 36,
+      "churn": 8
     },
     {
       "file": "js/core/api.js",
-      "risk": 0.644,
+      "risk": 0.867,
       "lines": 978,
       "tested": true,
       "err": 23,
@@ -65,7 +38,7 @@
     },
     {
       "file": "js/detalle/comments.js",
-      "risk": 0.636,
+      "risk": 0.86,
       "lines": 812,
       "tested": false,
       "err": 8,
@@ -73,31 +46,58 @@
       "churn": 3
     },
     {
-      "file": "js/catalog/cards.js",
-      "risk": 0.597,
-      "lines": 552,
+      "file": "js/detalle/interactions.js",
+      "risk": 0.826,
+      "lines": 364,
       "tested": false,
       "err": 24,
-      "api": 3,
-      "churn": 8
+      "api": 38,
+      "churn": 6
     },
     {
       "file": "js/core/common-ui.js",
-      "risk": 0.577,
-      "lines": 659,
+      "risk": 0.776,
+      "lines": 634,
       "tested": false,
-      "err": 1,
+      "err": 2,
       "api": 5,
-      "churn": 7
+      "churn": 8
     },
     {
-      "file": "js/detalle/interactions.js",
-      "risk": 0.574,
-      "lines": 324,
+      "file": "js/pages/configuracion.js",
+      "risk": 0.677,
+      "lines": 389,
       "tested": false,
-      "err": 22,
-      "api": 32,
+      "err": 8,
+      "api": 9,
+      "churn": 4
+    },
+    {
+      "file": "js/detalle/render.js",
+      "risk": 0.634,
+      "lines": 1050,
+      "tested": true,
+      "err": 6,
+      "api": 23,
+      "churn": 12
+    },
+    {
+      "file": "js/pages/login.js",
+      "risk": 0.634,
+      "lines": 230,
+      "tested": false,
+      "err": 2,
+      "api": 22,
       "churn": 5
+    },
+    {
+      "file": "js/catalog/pagination.js",
+      "risk": 0.605,
+      "lines": 245,
+      "tested": false,
+      "err": 8,
+      "api": 2,
+      "churn": 7
     }
   ],
   "files": {
@@ -138,7 +138,7 @@
         "buildQuery()",
         "PGRST202()"
       ],
-      "risk": 0.739
+      "risk": 1
     },
     "api/supabase-config.js": {
       "kind": "js",
@@ -157,16 +157,16 @@
         "window.AppSupabase",
         "__puedeHaberSesion()"
       ],
-      "risk": 0.443
+      "risk": 0.597
     },
     "js/catalog/cards.js": {
       "kind": "js",
-      "lines": 552,
+      "lines": 624,
       "err": 24,
-      "api": 3,
+      "api": 4,
       "todos": 0,
-      "tested": 0,
-      "churn": 8,
+      "tested": 1,
+      "churn": 10,
       "exports": [
         "renderSkeletonCards()",
         "getApiPoster()",
@@ -177,6 +177,8 @@
         "_buildProgressIndex()",
         "countAnimeEpisodesWatched()",
         "resolveCatalogProgress()",
+        "translateCatalogStatus()",
+        "captionFromInfo()",
         "buildCatalogCardHtml()",
         "describirErrorDeApi()",
         "cargarCatalogoDesdeApi()",
@@ -185,11 +187,18 @@
         "window.toggleCardComplete",
         "window.__catalogSearchItems",
         "window.__renderDropdownGenres",
+        "window.getApiPoster",
+        "window.getApiCatalogInfo",
+        "window.normalizeCatalogGenre",
+        "window.getApiGenresList",
+        "window.translateCatalogStatus",
+        "window.captionFromInfo",
+        "window.describirErrorDeApi",
         "legacyPct()",
         "_invalidateProgressIndex()",
         "toggleCardComplete()"
       ],
-      "risk": 0.597
+      "risk": 0.428
     },
     "js/catalog/pagination.js": {
       "kind": "js",
@@ -215,7 +224,7 @@
         "window.__catalogSearchItems",
         "listaItems()"
       ],
-      "risk": 0.448
+      "risk": 0.605
     },
     "js/catalog/search.js": {
       "kind": "js",
@@ -259,7 +268,7 @@
         "selectedGenres()",
         "q()"
       ],
-      "risk": 0.315
+      "risk": 0.422
     },
     "js/catalog/states.js": {
       "kind": "js",
@@ -267,7 +276,7 @@
       "err": 21,
       "api": 17,
       "todos": 0,
-      "tested": 0,
+      "tested": 1,
       "churn": 7,
       "exports": [
         "getSyncQueue()",
@@ -318,7 +327,7 @@
         "window.WATCH_STATUS_LABELS",
         "syncCat()"
       ],
-      "risk": 0.66
+      "risk": 0.467
     },
     "js/core/api.js": {
       "kind": "js",
@@ -387,16 +396,16 @@
         "buscarEnApi()",
         "buscarNovelasEnApi()"
       ],
-      "risk": 0.644
+      "risk": 0.867
     },
     "js/core/auth.js": {
       "kind": "js",
-      "lines": 382,
+      "lines": 390,
       "err": 9,
       "api": 34,
       "todos": 0,
-      "tested": 0,
-      "churn": 6,
+      "tested": 1,
+      "churn": 7,
       "exports": [
         "waitForSupabase()",
         "getCurrentUser()",
@@ -420,20 +429,21 @@
         "window.refreshUserUi",
         "window.logoutUser",
         "window.apodoLabel",
+        "window.AnimeDestiny",
         "onReady()",
         "apodoId()",
         "apodoLabel()"
       ],
-      "risk": 0.571
+      "risk": 0.356
     },
     "js/core/common-ui.js": {
       "kind": "js",
-      "lines": 659,
-      "err": 1,
+      "lines": 634,
+      "err": 2,
       "api": 5,
       "todos": 0,
       "tested": 0,
-      "churn": 7,
+      "churn": 8,
       "exports": [
         "window.__navMoreOpen",
         "window.__navMoreClose",
@@ -445,10 +455,8 @@
         "t()",
         "ensureMainTarget()",
         "injectNavBrand()",
-        "injectNavToggle()",
         "injectNavLinks()",
         "wireNavMore()",
-        "cancelarCierre()",
         "abrir()",
         "wireNavAutoHide()",
         "esMobile()",
@@ -459,7 +467,7 @@
         "r()",
         "installSecurityHandlers()"
       ],
-      "risk": 0.577
+      "risk": 0.776
     },
     "js/core/config.js": {
       "kind": "js",
@@ -472,7 +480,7 @@
       "exports": [
         "window.AppConfig"
       ],
-      "risk": 0.341
+      "risk": 0.462
     },
     "js/core/config.template.js": {
       "kind": "js",
@@ -485,7 +493,7 @@
       "exports": [
         "window.AppConfig"
       ],
-      "risk": 0.354
+      "risk": 0.481
     },
     "js/core/constants.js": {
       "kind": "js",
@@ -498,7 +506,7 @@
       "exports": [
         "window.AnimeDestiny"
       ],
-      "risk": 0.036
+      "risk": 0.048
     },
     "js/core/i18n.js": {
       "kind": "js",
@@ -518,16 +526,16 @@
         "setLang()",
         "t()"
       ],
-      "risk": 0.245
+      "risk": 0.327
     },
     "js/core/mangadex-api.js": {
       "kind": "js",
-      "lines": 415,
+      "lines": 434,
       "err": 14,
-      "api": 59,
+      "api": 70,
       "todos": 0,
-      "tested": 0,
-      "churn": 7,
+      "tested": 1,
+      "churn": 9,
       "exports": [
         "safeCacheSet()",
         "mdFetch()",
@@ -548,6 +556,7 @@
         "getMangaDexVolumeCover()",
         "resolveMangaDexId()",
         "window.mdFetch",
+        "window.searchMangaDex",
         "window.fetchMangaDexAggregate",
         "window.getMangaDexById",
         "window.resolveMangaDexCoverForVolume",
@@ -556,7 +565,7 @@
         "getMangaDexById()",
         "resolveMangaDexCoverForVolume()"
       ],
-      "risk": 0.66
+      "risk": 0.523
     },
     "js/core/namespace.js": {
       "kind": "js",
@@ -571,7 +580,7 @@
         "window.AnimeDestiny",
         "reportError()"
       ],
-      "risk": 0.376
+      "risk": 0.509
     },
     "js/core/storage.js": {
       "kind": "js",
@@ -579,7 +588,7 @@
       "err": 5,
       "api": 0,
       "todos": 0,
-      "tested": 0,
+      "tested": 1,
       "churn": 2,
       "exports": [
         "read()",
@@ -590,7 +599,7 @@
         "window.AppStorage",
         "PREFIX()"
       ],
-      "risk": 0.347
+      "risk": 0.046
     },
     "js/core/user-store.js": {
       "kind": "js",
@@ -598,12 +607,12 @@
       "err": 1,
       "api": 1,
       "todos": 0,
-      "tested": 0,
+      "tested": 1,
       "churn": 2,
       "exports": [
         "window.UserStore"
       ],
-      "risk": 0.342
+      "risk": 0.039
     },
     "js/datos.js": {
       "kind": "js",
@@ -623,7 +632,7 @@
         "escapeHtml()",
         "safeUrl()"
       ],
-      "risk": 0.042
+      "risk": 0.055
     },
     "js/detalle/comments.js": {
       "kind": "js",
@@ -672,16 +681,16 @@
         "temporadas()",
         "totalVols()"
       ],
-      "risk": 0.636
+      "risk": 0.86
     },
     "js/detalle/data.js": {
       "kind": "js",
-      "lines": 252,
+      "lines": 265,
       "err": 5,
       "api": 12,
       "todos": 0,
       "tested": 1,
-      "churn": 5,
+      "churn": 6,
       "exports": [
         "_translationCacheKey()",
         "translateText()",
@@ -696,32 +705,42 @@
         "parseGeneros()",
         "parseVolumenes()",
         "getApiUnifiedProgress()",
+        "window.getParams",
+        "window.normalizeDetailItem",
+        "window.getAnimeStructure",
+        "window.parseTemporadas",
+        "window.parseGeneros",
+        "window.parseVolumenes",
+        "window.getApiUnifiedProgress",
         "segment()",
         "rawCat()"
       ],
-      "risk": 0.147
+      "risk": 0.208
     },
     "js/detalle/interactions.js": {
       "kind": "js",
-      "lines": 324,
-      "err": 22,
-      "api": 32,
+      "lines": 364,
+      "err": 24,
+      "api": 38,
       "todos": 0,
       "tested": 0,
-      "churn": 5,
+      "churn": 6,
       "exports": [
         "fetchJikanEpisode()",
         "resolveKitsuAnimeId()",
         "fetchKitsuEpisode()",
         "showEpisodeInfoModal()",
         "renderApiResult()",
+        "buscarDetallePorTitulo()",
         "cargarDetalleDesdeApi()",
         "renderApiDetalle()",
         "window.resolveMangaDexCoverForVolume",
+        "window.searchMangaDex",
+        "window.buscarEnApi",
         "window.getMangaDexById",
         "isMangaDexUuid()"
       ],
-      "risk": 0.574
+      "risk": 0.826
     },
     "js/detalle/progress.js": {
       "kind": "js",
@@ -744,7 +763,7 @@
         "showProgressToast()",
         "saveProgressToSupabase()"
       ],
-      "risk": 0.397
+      "risk": 0.538
     },
     "js/detalle/render.js": {
       "kind": "js",
@@ -752,7 +771,7 @@
       "err": 6,
       "api": 23,
       "todos": 0,
-      "tested": 0,
+      "tested": 1,
       "churn": 12,
       "exports": [
         "formatCountdown()",
@@ -785,7 +804,7 @@
         "cadenaTemporadas()",
         "syncPills()"
       ],
-      "risk": 0.785
+      "risk": 0.634
     },
     "js/detalle/seasons.js": {
       "kind": "js",
@@ -810,7 +829,7 @@
         "hidratar()",
         "window.DetalleTemporadas"
       ],
-      "risk": 0.099
+      "risk": 0.134
     },
     "js/detalle/themes.js": {
       "kind": "js",
@@ -843,16 +862,16 @@
         "titulo()",
         "control()"
       ],
-      "risk": 0.173
+      "risk": 0.234
     },
     "js/pages/comparar.js": {
       "kind": "js",
-      "lines": 473,
+      "lines": 492,
       "err": 3,
       "api": 24,
       "todos": 0,
-      "tested": 0,
-      "churn": 5,
+      "tested": 1,
+      "churn": 6,
       "exports": [
         "esIdValido()",
         "parseParams()",
@@ -885,6 +904,20 @@
         "window.buscarNovelasEnApi",
         "window.buscarEnApi",
         "window.fetchMangaDexPage",
+        "window.esIdValido",
+        "window.parseParams",
+        "window.compareItemTitle",
+        "window.detailLink",
+        "window.formatCompactNumber",
+        "window.formatMinutes",
+        "window.formatScore",
+        "window.formatCount",
+        "window.formatMediaFormat",
+        "window.autorDe",
+        "window.periodoDe",
+        "window.formatoRestante",
+        "window.categoryIcon",
+        "window.categoryLabel",
         "cat1()",
         "cat2()",
         "porRol()",
@@ -892,7 +925,7 @@
         "generos()",
         "estado()"
       ],
-      "risk": 0.558
+      "risk": 0.344
     },
     "js/pages/configuracion.js": {
       "kind": "js",
@@ -924,16 +957,16 @@
         "CPR_MAX()",
         "CPR_DEF()"
       ],
-      "risk": 0.501
+      "risk": 0.677
     },
     "js/pages/import-mal.js": {
       "kind": "js",
-      "lines": 359,
+      "lines": 368,
       "err": 6,
       "api": 46,
       "todos": 2,
-      "tested": 0,
-      "churn": 2,
+      "tested": 1,
+      "churn": 3,
       "exports": [
         "getEl()",
         "malFetch()",
@@ -947,10 +980,11 @@
         "renderPreview()",
         "runImport()",
         "setProgress()",
+        "window.AnimeDestiny",
         "uid()",
         "onload()"
       ],
-      "risk": 0.569
+      "risk": 0.355
     },
     "js/pages/login.js": {
       "kind": "js",
@@ -975,15 +1009,15 @@
         "window.waitForSupabase",
         "window.refreshUserUi"
       ],
-      "risk": 0.469
+      "risk": 0.634
     },
     "js/pages/mis-listas.js": {
       "kind": "js",
-      "lines": 1491,
+      "lines": 1502,
       "err": 27,
       "api": 36,
       "todos": 0,
-      "tested": 0,
+      "tested": 1,
       "churn": 8,
       "exports": [
         "extractGenresFromInfo()",
@@ -1035,6 +1069,12 @@
         "window.addUserPoints",
         "window.__profileData",
         "window.refreshUserUi",
+        "window.extractGenresFromInfo",
+        "window.topGenresFromEntries",
+        "window.franquiciaVista",
+        "window.matchesFilter",
+        "window.calendarDayLabel",
+        "window.calendarCountdown",
         "window.waitForSupabase",
         "pushItem()",
         "startOfDay()",
@@ -1049,7 +1089,7 @@
         "img()",
         "test()"
       ],
-      "risk": 1
+      "risk": 0.93
     },
     "js/pages/ranking-top.js": {
       "kind": "js",
@@ -1074,7 +1114,7 @@
         "filas()",
         "inicial()"
       ],
-      "risk": 0.096
+      "risk": 0.129
     },
     "js/pages/ranking.js": {
       "kind": "js",
@@ -1103,7 +1143,7 @@
         "ini()",
         "label()"
       ],
-      "risk": 0.173
+      "risk": 0.232
     },
     "js/pages/script.js": {
       "kind": "js",
@@ -1124,7 +1164,7 @@
         "cargar()",
         "window.cargarEstadosBotones"
       ],
-      "risk": 0.084
+      "risk": 0.112
     },
     "js/pages/usuario.js": {
       "kind": "js",
@@ -1163,7 +1203,7 @@
         "onerror()",
         "onload()"
       ],
-      "risk": 0.324
+      "risk": 0.436
     },
     "js/reload.js": {
       "kind": "js",
@@ -1176,7 +1216,7 @@
       "exports": [
         "onmessage()"
       ],
-      "risk": 0.317
+      "risk": 0.43
     },
     "js/security/sanitizer.js": {
       "kind": "js",
@@ -1192,7 +1232,7 @@
         "window.escapeHtml",
         "window.safeUrl"
       ],
-      "risk": 0.034
+      "risk": 0.044
     },
     "js/security/validator.js": {
       "kind": "js",
@@ -1209,7 +1249,7 @@
         "getSafeUrlParams()",
         "window.AppValidator"
       ],
-      "risk": 0.017
+      "risk": 0.022
     },
     "js/ui/toast.js": {
       "kind": "js",
@@ -1217,7 +1257,7 @@
       "err": 0,
       "api": 0,
       "todos": 0,
-      "tested": 0,
+      "tested": 1,
       "churn": 2,
       "exports": [
         "getContainer()",
@@ -1226,7 +1266,7 @@
         "remove()",
         "window.Toast"
       ],
-      "risk": 0.356
+      "risk": 0.057
     },
     "js/utils.js": {
       "kind": "js",
@@ -1260,7 +1300,7 @@
         "window.volumeStorageKey",
         "tryNext()"
       ],
-      "risk": 0.093
+      "risk": 0.124
     },
     "404.html": {
       "kind": "html",
@@ -1269,7 +1309,7 @@
       "api": 16,
       "todos": 0,
       "tested": 0,
-      "churn": 32,
+      "churn": 35,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1279,7 +1319,7 @@
         "api/supabase-config.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.522
+      "risk": 0.711
     },
     "Login.html": {
       "kind": "html",
@@ -1288,7 +1328,7 @@
       "api": 18,
       "todos": 0,
       "tested": 0,
-      "churn": 36,
+      "churn": 39,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1301,7 +1341,7 @@
         "js/pages/login.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.542
+      "risk": 0.736
     },
     "anime.html": {
       "kind": "html",
@@ -1310,7 +1350,7 @@
       "api": 18,
       "todos": 0,
       "tested": 1,
-      "churn": 37,
+      "churn": 40,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1319,7 +1359,7 @@
         "js/core-bundle.min.js",
         "js/pages/script.js"
       ],
-      "risk": 0.243
+      "risk": 0.33
     },
     "comparar.html": {
       "kind": "html",
@@ -1327,8 +1367,8 @@
       "err": 0,
       "api": 19,
       "todos": 0,
-      "tested": 0,
-      "churn": 36,
+      "tested": 1,
+      "churn": 39,
       "loads": [
         "js/core/config.js",
         "js/core/namespace.js",
@@ -1339,7 +1379,7 @@
         "js/pages/script.js",
         "js/pages/comparar.js"
       ],
-      "risk": 0.545
+      "risk": 0.317
     },
     "configuracion.html": {
       "kind": "html",
@@ -1348,7 +1388,7 @@
       "api": 19,
       "todos": 0,
       "tested": 0,
-      "churn": 37,
+      "churn": 40,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1360,7 +1400,7 @@
         "js/pages/configuracion.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.605
+      "risk": 0.821
     },
     "detalle.html": {
       "kind": "html",
@@ -1369,7 +1409,7 @@
       "api": 21,
       "todos": 0,
       "tested": 1,
-      "churn": 38,
+      "churn": 41,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1385,7 +1425,7 @@
         "js/detalle/interactions.js",
         "js/detalle/comments.js"
       ],
-      "risk": 0.277
+      "risk": 0.376
     },
     "index.html": {
       "kind": "html",
@@ -1394,7 +1434,7 @@
       "api": 18,
       "todos": 0,
       "tested": 0,
-      "churn": 37,
+      "churn": 40,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1403,7 +1443,7 @@
         "js/core-bundle.min.js",
         "js/pages/script.js"
       ],
-      "risk": 0.55
+      "risk": 0.747
     },
     "manga.html": {
       "kind": "html",
@@ -1412,7 +1452,7 @@
       "api": 19,
       "todos": 0,
       "tested": 1,
-      "churn": 37,
+      "churn": 40,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1422,7 +1462,7 @@
         "js/core/mangadex-api.js",
         "js/pages/script.js"
       ],
-      "risk": 0.245
+      "risk": 0.333
     },
     "mis-listas.html": {
       "kind": "html",
@@ -1430,8 +1470,8 @@
       "err": 0,
       "api": 18,
       "todos": 0,
-      "tested": 0,
-      "churn": 37,
+      "tested": 1,
+      "churn": 40,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1440,7 +1480,7 @@
         "js/core-bundle.min.js",
         "js/pages/mis-listas.js"
       ],
-      "risk": 0.946
+      "risk": 0.856
     },
     "novelas.html": {
       "kind": "html",
@@ -1449,7 +1489,7 @@
       "api": 19,
       "todos": 0,
       "tested": 1,
-      "churn": 37,
+      "churn": 40,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1459,7 +1499,7 @@
         "js/core/mangadex-api.js",
         "js/pages/script.js"
       ],
-      "risk": 0.245
+      "risk": 0.333
     },
     "privacidad.html": {
       "kind": "html",
@@ -1468,7 +1508,7 @@
       "api": 21,
       "todos": 0,
       "tested": 0,
-      "churn": 33,
+      "churn": 36,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1478,7 +1518,7 @@
         "api/supabase-config.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.543
+      "risk": 0.739
     },
     "ranking.html": {
       "kind": "html",
@@ -1487,7 +1527,7 @@
       "api": 18,
       "todos": 0,
       "tested": 1,
-      "churn": 2,
+      "churn": 5,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1496,7 +1536,7 @@
         "js/core-bundle.min.js",
         "js/pages/ranking-top.js"
       ],
-      "risk": 0.185
+      "risk": 0.264
     },
     "terminos.html": {
       "kind": "html",
@@ -1505,7 +1545,7 @@
       "api": 20,
       "todos": 0,
       "tested": 0,
-      "churn": 33,
+      "churn": 36,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1515,7 +1555,7 @@
         "api/supabase-config.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.535
+      "risk": 0.728
     },
     "top.html": {
       "kind": "html",
@@ -1524,7 +1564,7 @@
       "api": 18,
       "todos": 0,
       "tested": 1,
-      "churn": 32,
+      "churn": 35,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1533,7 +1573,7 @@
         "js/core-bundle.min.js",
         "js/pages/ranking.js"
       ],
-      "risk": 0.349
+      "risk": 0.475
     },
     "usuario.html": {
       "kind": "html",
@@ -1542,7 +1582,7 @@
       "api": 18,
       "todos": 0,
       "tested": 1,
-      "churn": 39,
+      "churn": 42,
       "loads": [
         "js/core/config.js",
         "js/core/i18n.js",
@@ -1552,7 +1592,7 @@
         "js/pages/usuario.js",
         "js/pages/import-mal.js"
       ],
-      "risk": 0.314
+      "risk": 0.425
     }
   }
 }

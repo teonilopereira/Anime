@@ -1385,6 +1385,17 @@ async function cargarEstadosDesdeSupabase() {
     }
 }
 
+// Cargado como <script> clásico en producción, donde estas funciones ya son
+// globales. Los enlaces window explícitos permiten el import aislado en tests.
+if (typeof window !== 'undefined') {
+    window.extractGenresFromInfo = extractGenresFromInfo;
+    window.topGenresFromEntries = topGenresFromEntries;
+    window.franquiciaVista = franquiciaVista;
+    window.matchesFilter = matchesFilter;
+    window.calendarDayLabel = calendarDayLabel;
+    window.calendarCountdown = calendarCountdown;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const renderCurrentFilter = bindControls();
 
