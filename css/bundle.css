@@ -6269,3 +6269,170 @@ body.reduce-motion .destiny-navbar .nav-user-avatar {
         transition: none;
     }
 }
+
+/* ===== mascot.css ===== */
+/* ===== mascot.css =====
+   Mascota Slime: sprite pixel-art fijo en una esquina + bocadillo de diálogo.
+   Se sirve dentro del bundle (ver tools/build.js). */
+
+.mascot-root {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: var(--z-toast, 2000);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    /* El contenedor no debe robar clics fuera de la mascota/bocadillo. */
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ── Sprite ── */
+.mascot-pet {
+    pointer-events: auto;
+    width: 84px;
+    height: 74px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    /* Pixel-art nítido al escalar. */
+    image-rendering: pixelated;
+    filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
+    transform-origin: 50% 100%;
+    animation: mascot-idle 2.8s ease-in-out infinite;
+    transition: transform 0.15s ease;
+}
+.mascot-pet svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+.mascot-pet:hover {
+    transform: scale(1.06);
+}
+.mascot-pet:focus-visible {
+    outline: 2px solid var(--nav-accent, var(--accent-cyan));
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+
+/* Reposo: respiración/rebote suave del slime. */
+@keyframes mascot-idle {
+    0%, 100% { transform: translateY(0) scaleY(1) scaleX(1); }
+    50%      { transform: translateY(-4px) scaleY(1.03) scaleX(0.98); }
+}
+
+/* Hablar: el slime botea mientras aparece el bocadillo. */
+.mascot-pet.mascot-talking {
+    animation: mascot-talk 0.4s ease-in-out 2;
+}
+@keyframes mascot-talk {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    30%      { transform: translateY(-7px) scaleY(1.06) scaleX(0.94); }
+    60%      { transform: translateY(0) scaleY(0.92) scaleX(1.08); }
+}
+
+/* ── Bocadillo ── */
+.mascot-bubble {
+    pointer-events: auto;
+    position: relative;
+    max-width: min(260px, calc(100vw - 48px));
+    margin-right: 6px;
+    padding: 10px 30px 10px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
+    background: var(--surface-dark, rgba(15, 15, 20, 0.92));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    color: var(--text-main, #fff);
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+    transform-origin: bottom right;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    /* Oculto hasta que hay algo que decir: no ocupa espacio ni tapa clics. */
+    display: none;
+}
+.mascot-bubble.is-visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.mascot-bubble.is-leaving {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+}
+
+/* Colita del bocadillo apuntando al slime. */
+.mascot-bubble::after {
+    content: "";
+    position: absolute;
+    right: 22px;
+    bottom: -7px;
+    width: 14px;
+    height: 14px;
+    background: inherit;
+    border-right: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
+    border-bottom: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
+    transform: rotate(45deg);
+}
+
+.mascot-bubble-text {
+    display: block;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+
+.mascot-bubble-close {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted, #b0b0b0);
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 6px;
+}
+.mascot-bubble-close:hover {
+    color: var(--text-main, #fff);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Accesibilidad / rendimiento: sin movimiento ── */
+.mascot-reduced .mascot-pet,
+.mascot-reduced .mascot-pet.mascot-talking {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .mascot-pet,
+    .mascot-pet.mascot-talking {
+        animation: none;
+    }
+    .mascot-bubble {
+        transition: opacity 0.2s ease;
+    }
+}
+
+/* En pantallas chicas la mascota es un poco más pequeña y se corre. */
+@media (max-width: 640px) {
+    .mascot-root {
+        right: 12px;
+        bottom: 12px;
+    }
+    .mascot-pet {
+        width: 66px;
+        height: 58px;
+    }
+}

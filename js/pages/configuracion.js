@@ -54,7 +54,8 @@ const TOGGLES = {
     prefContenido:    { key: 'pref:contenido',  def: true,  onOff: ['personalizado', 'general'] },
     prefNotif:        { key: 'pref:notif',      def: false, onOff: ['on', 'off'] },
     prefCompact:      { key: 'pref:compactCards',  def: false },
-    prefReduceMotion: { key: 'pref:reduceMotion',  def: false }
+    prefReduceMotion: { key: 'pref:reduceMotion',  def: false },
+    prefMascot:       { key: 'pref:mascot',     def: true,  onOff: ['on', 'off'] }
 };
 
 function leerToggle(cfg) {
@@ -213,6 +214,12 @@ for (const id in TOGGLES) {
     });
 }
 
+// La mascota se enciende/apaga en vivo en esta misma página (además de guardar
+// la preferencia arriba), para que el cambio se vea al instante.
+$('prefMascot').addEventListener('change', function () {
+    if (window.Mascot) window.Mascot.setEnabled(this.checked);
+});
+
 // Los colores se aplican en vivo mientras arrastras (input) pero solo avisan al
 // soltar (change): con 'input' el toast se dispararia decenas de veces.
 for (const id in COLOR_KEYS) {
@@ -309,6 +316,7 @@ const PREF_KEYS = [
     'pref:bgMode', 'pref:bgColor', 'pref:bgImage',
     'pref:compactCards', 'pref:reduceMotion', 'pref:nsfw',
     'pref:notif', 'pref:contenido', 'pref:privacidad', 'pref:cardsPerRow',
+    'pref:mascot',
     ...Object.values(COLOR_KEYS)
 ];
 
