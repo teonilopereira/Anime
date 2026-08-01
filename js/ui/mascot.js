@@ -20,12 +20,23 @@
     // ── Preferencia ────────────────────────────────────────────────────────
     var PREF_KEY = "pref:mascot";
 
+    var POS_KEY = "pref:mascotPos";
+
     function readPref() {
         try { return localStorage.getItem(PREF_KEY); } catch (_) { return null; }
     }
     function isEnabled() {
         // Default ON: si nunca se tocó, la mascota está encendida.
         return readPref() !== "off";
+    }
+    function readPos() {
+        try {
+            var v = localStorage.getItem(POS_KEY);
+            return v ? JSON.parse(v) : null;
+        } catch (_) { return null; }
+    }
+    function writePos(p) {
+        try { localStorage.setItem(POS_KEY, JSON.stringify(p)); } catch (_) {}
     }
     function reducedMotion() {
         try {
@@ -160,6 +171,8 @@
     var hideTimer = null;
     var blinkTimer = null;
     var currentExpr = "normal";
+    var drag = null;        // estado del arrastre en curso
+    var justDragged = false; // para no disparar el saludo al soltar tras mover
 
     function setExpr(expr) {
         currentExpr = expr;
@@ -203,13 +216,82 @@
         // Pausar el auto-ocultado mientras el mouse está sobre la mascota.
         pet.addEventListener("mouseenter", function () { clearTimeout(hideTimer); });
         bubble.addEventListener("mouseenter", function () { clearTimeout(hideTimer); });
+        // Arrastre para reubicar la mascota (no tapar botones).
+        wireDrag();
 
         root.appendChild(bubble);
         root.appendChild(pet);
         document.body.appendChild(root);
 
+        applyPosition();
         scheduleBlink();
     }
+
+    // ── Arrastrar / posición ────────────────────────────────────────────────
+    // Fija la mascota en (left, top) recortando a la ventana para que nunca
+    // quede fuera de pantalla, y ancla el bocadillo al lado que corresponda.
+    function clampAndSet(left, top) {
+        var w = root.offsetWidth, h = root.offsetHeight;
+        var maxLeft = window.innerWidth - w - 4;
+        var maxTop = window.innerHeight - h - 4;
+        left = Math.max(4, Math.min(left, maxLeft));
+        top = Math.max(4, Math.min(top, maxTop));
+        root.style.left = left + "px";
+        root.style.top = top + "px";
+        root.style.right = "auto";
+        root.style.bottom = "auto";
+        // Si está en la mitad izquierda, el bocadillo abre hacia la derecha.
+        root.classList.toggle("mascot-left", (left + w / 2) < window.innerWidth / 2);
+    }
+
+    function applyPosition() {
+        var p = readPos();
+        if (!p) return; // sin posición guardada → default de CSS (abajo-derecha)
+        clampAndSet(p.left, p.top);
+    }
+
+    function wireDrag() {
+        pet.addEventListener("pointerdown", function (e) {
+            if (e.button != null && e.button !== 0) return; // solo botón primario
+            justDragged = false;
+            var r = root.getBoundingClientRect();
+            drag = { sx: e.clientX, sy: e.clientY, left: r.left, top: r.top, id: e.pointerId, moved: false };
+            try { pet.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+        pet.addEventListener("pointermove", function (e) {
+            if (!drag || e.pointerId !== drag.id) return;
+            var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+            if (!drag.moved && Math.sqrt(dx * dx + dy * dy) < 4) return; // umbral: click vs arrastre
+            if (!drag.moved) {
+                drag.moved = true;
+                justDragged = true;
+                root.classList.add("mascot-dragging");
+                clearTimeout(hideTimer);
+                hideBubble();
+            }
+            clampAndSet(drag.left + dx, drag.top + dy);
+        });
+        function endDrag(e) {
+            if (!drag || (e && e.pointerId !== drag.id)) return;
+            try { pet.releasePointerCapture(drag.id); } catch (_) {}
+            root.classList.remove("mascot-dragging");
+            if (drag.moved) {
+                var r = root.getBoundingClientRect();
+                writePos({ left: r.left, top: r.top });
+            }
+            drag = null;
+        }
+        pet.addEventListener("pointerup", endDrag);
+        pet.addEventListener("pointercancel", endDrag);
+    }
+
+    // Al cambiar el tamaño de la ventana, re-encajar si hay posición manual.
+    window.addEventListener("resize", function () {
+        if (root && root.style.left) {
+            var r = root.getBoundingClientRect();
+            clampAndSet(r.left, r.top);
+        }
+    });
 
     function removeDom() {
         if (!root) return;
@@ -289,6 +371,8 @@
     ];
     var greetIdx = 0;
     function onPetClick() {
+        // Si el click viene de terminar un arrastre, no saludar.
+        if (justDragged) { justDragged = false; return; }
         setExpr("happy");
         bubbleText.textContent = GREETINGS[greetIdx % GREETINGS.length];
         greetIdx++;
