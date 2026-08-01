@@ -1605,6 +1605,17 @@ body.reduce-motion .catalog-neon-card {
     flex-direction: column;
     gap: 10px;
     padding: 14px 14px 16px;
+    /* La cara tiene altura fija (por el flip 3D) y `overflow: hidden`. Si el
+       contenido del dorso (titulo largo, badge, select, progreso y acciones)
+       no entra, se recorta y los botones quedan fuera de alcance. Permitimos
+       scroll vertical dentro de la cara para que las acciones siempre sean
+       accesibles, en cualquier alto de card. */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--card-hud-rgb), 0.4) transparent;
     background:
         radial-gradient(circle at 50% 0%, rgba(var(--card-hud-rgb), 0.14), transparent 55%),
         linear-gradient(180deg, #0a1220, #0b1020);
@@ -1649,10 +1660,12 @@ body.reduce-motion .catalog-neon-card {
     margin-top: auto;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
 .catalog-band-card .cband-back-actions .action-btn {
+    flex: 0 0 auto;
     width: 40px;
     height: 40px;
     min-width: 40px;
@@ -1674,10 +1687,16 @@ body.reduce-motion .catalog-neon-card {
 }
 
 .catalog-band-card .cband-back-actions .card-back-detail-btn {
+    /* Ocupa el espacio restante junto a los dos circulos; cuando no entra en la
+       fila (cards angostas) hace wrap y cae a lo ancho completo debajo, en vez
+       de desbordar horizontalmente. */
+    flex: 1 1 96px;
     width: auto;
+    min-width: 96px;
     margin-left: auto;
     min-height: 40px;
     padding: 9px 16px;
+    text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1686,8 +1705,37 @@ body.reduce-motion .catalog-neon-card {
     }
 }
 
+/* Tablets / pantallas medianas: el grid pasa a columnas mas angostas
+   (minmax 170px), asi que ajustamos el alto y compactamos el dorso. */
+@media (max-width: 900px) {
+    .catalog-band-card .cband-inner {
+        height: 370px;
+    }
+
+    .catalog-band-card .cband-back {
+        gap: 8px;
+        padding: 12px 12px 14px;
+    }
+
+    .catalog-band-card .cband-back .card-back-title {
+        font-size: 0.92rem;
+    }
+}
+
 @media (max-width: 520px) {
     .catalog-band-card .cband-inner {
         height: 340px;
+    }
+
+    .catalog-band-card .cband-back {
+        gap: 7px;
+        padding: 11px 11px 13px;
+    }
+
+    /* En 2 columnas la card es muy angosta: el boton DETALLE pasa siempre a su
+       propia fila a lo ancho completo para no apretujar los circulos. */
+    .catalog-band-card .cband-back-actions .card-back-detail-btn {
+        flex-basis: 100%;
+        margin-left: 0;
     }
 }
