@@ -78,6 +78,7 @@ const CSS_SOURCES = ['base', 'theme', 'components', 'cards', 'responsive', 'dest
 const JS_SOURCES = [
     'js/core/constants.js',
     'js/core/api.js',
+    'js/core/api-mangadex.js',
     'js/datos.js',
     'js/core/user-store.js',
     'js/core/storage.js',

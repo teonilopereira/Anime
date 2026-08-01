@@ -1,0 +1,870 @@
+/* css/detalle-responsive.css — parte de la hoja de estilos de detalle.html.
+   Reglas responsive: temporadas, openings/endings, relacionados, comentarios, spoilers, filtros, y media queries.
+   Cargar en detalle.html en el orden: premium → local → responsive → extras
+   para preservar la cascada original de css/detalle.css. */
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 860px) {
+    .hero-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 20px 16px;
+    }
+    .portada-contenedor {
+        width: 160px;
+    }
+    .obra-detalles-principales {
+        align-items: center;
+    }
+    .estado-obra-badge,
+    .detail-status {
+        align-self: center;
+    }
+    .datos-clave-grid,
+    .detail-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .contenido-texto-section {
+        grid-template-columns: 1fr;
+    }
+    .progreso-general-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+    .acciones-der {
+        justify-content: center;
+    }
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    .detail-cover {
+        max-width: 220px;
+        margin: 0 auto;
+    }
+    .header-perfil {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    .header-acciones {
+        justify-content: center;
+    }
+}
+
+/* ── Temporadas (cadena de la franquicia) ── */
+.detail-section-seasons {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.season-chain {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+.season-chain-item {
+    display: grid;
+    grid-template-columns: 40px 46px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(188,19,254,0.15);
+    background: rgba(26,11,46,0.3);
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.2s ease;
+}
+a.season-chain-item:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 16px rgba(0,242,255,0.1);
+    transform: translateY(-2px);
+}
+/* La temporada abierta no es un link: se marca con el borde lateral cian y se
+   queda quieta al pasarle el mouse por encima. */
+.season-chain-item.is-current {
+    border-color: rgba(0,242,255,0.45);
+    background: linear-gradient(90deg, rgba(0,242,255,0.12), rgba(26,11,46,0.3));
+    cursor: default;
+}
+.season-chain-pos {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    text-align: center;
+    color: var(--accent-cyan);
+    opacity: 0.85;
+}
+.season-chain-cover {
+    display: block;
+    width: 46px;
+    height: 66px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.season-chain-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.season-chain-info { min-width: 0; }
+.season-chain-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+.season-chain-meta {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.season-chain-here {
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: rgba(0,242,255,0.15);
+    border: 1px solid rgba(0,242,255,0.4);
+    color: var(--accent-cyan);
+    font-family: var(--font-display);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+.season-chain-nota {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 520px) {
+    .season-chain-item { grid-template-columns: 30px 38px minmax(0, 1fr); gap: 10px; padding: 8px; }
+    .season-chain-cover { width: 38px; height: 54px; }
+    /* La chapa "ESTÁS ACÁ" no entra en una fila de 3 columnas: pasa a ocupar
+       el renglón de abajo, alineada con el título. */
+    .season-chain-here { grid-column: 3; justify-self: start; }
+}
+
+/* ── Openings y endings (AnimeThemes) ── */
+.detail-section-themes {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.theme-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 0;
+    list-style: none;
+}
+.theme-row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(188,19,254,0.15);
+    background: rgba(26,11,46,0.3);
+}
+.theme-row-tag {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-align: center;
+    color: var(--accent-cyan);
+    opacity: 0.85;
+}
+.theme-row-info { min-width: 0; }
+.theme-row-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+.theme-row-artist {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.theme-play {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,242,255,0.35);
+    background: rgba(0,242,255,0.08);
+    color: var(--accent-cyan);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-play:hover {
+    background: rgba(0,242,255,0.18);
+    box-shadow: 0 0 14px rgba(0,242,255,0.2);
+}
+.theme-play.is-playing {
+    background: var(--accent-cyan);
+    color: #0b0620;
+}
+.theme-play i { width: 16px; height: 16px; }
+.theme-nota,
+.theme-fuente {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.theme-fuente:hover { color: var(--accent-cyan); }
+
+@media (max-width: 520px) {
+    .theme-row { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; padding: 8px; }
+}
+
+/* ── Related section ── */
+.detail-section-related {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+/* Grilla de posters en vez de la fila de chips de texto que habia antes: al
+   lado de las cards de personajes, los relacionados sin imagen se leian como
+   una seccion a medio terminar. */
+.related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+}
+.related-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(188,19,254,0.15);
+    background: rgba(26,11,46,0.3);
+    overflow: hidden;
+    text-decoration: none;
+    color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.related-card:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 16px rgba(0,242,255,0.1);
+    transform: translateY(-2px);
+}
+.related-cover {
+    position: relative;
+    display: block;
+    aspect-ratio: 2 / 3;
+    background: rgba(255,255,255,0.04);
+}
+.related-cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.related-cover-empty {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: rgba(255,255,255,0.18);
+}
+.related-type-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    max-width: calc(100% - 12px);
+    padding: 2px 7px;
+    border-radius: var(--radius-pill);
+    background: rgba(5,5,10,0.82);
+    font-size: 0.6rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-cyan);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.related-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px 10px;
+}
+.related-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    /* Titulos largos a dos lineas: sin el clamp, una card estiraba toda la fila
+       de la grilla. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.related-meta {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+}
+
+@media (max-width: 520px) {
+    .hero-section {
+        min-height: 260px;
+    }
+    .hero-content {
+        min-height: 260px;
+        padding: 16px 12px;
+    }
+    .portada-contenedor {
+        width: 120px;
+    }
+    .datos-clave-grid,
+    .detail-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .dato-item,
+    .detail-stat {
+        padding: 8px 10px;
+    }
+    .titulo-obra {
+        font-size: 1.2rem;
+    }
+    .cuadrados-grid,
+    .ep-grid {
+        gap: 8px;
+    }
+    .cuadrado-item {
+        min-height: 56px;
+    }
+    .modal-content {
+        max-height: 90vh;
+    }
+    .modal-header {
+        padding: 14px 16px;
+    }
+    .modal-body {
+        padding: 14px 16px;
+    }
+    .detail-premium-root {
+        padding: 0 12px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        min-height: 220px;
+    }
+    .hero-content {
+        min-height: 220px;
+        padding: 14px 10px;
+        gap: 14px;
+    }
+    .portada-contenedor {
+        width: 100px;
+    }
+    .titulo-obra {
+        font-size: 1.05rem;
+    }
+    .dato-item,
+    .detail-stat {
+        padding: 6px 8px;
+        font-size: 0.78rem;
+    }
+    .btn-circular {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+    .detail-actions-bar .action-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+    .season-tab {
+        padding: 4px 10px;
+        font-size: 0.72rem;
+    }
+    .progreso-general-section {
+        padding: 12px 14px;
+    }
+    .capitulos-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 400px) {
+    .hero-section {
+        min-height: 180px;
+    }
+    .hero-content {
+        min-height: 180px;
+        padding: 10px 8px;
+        gap: 10px;
+    }
+    .portada-contenedor {
+        width: 80px;
+    }
+    .titulo-obra {
+        font-size: 0.9rem;
+    }
+    .detail-premium-root {
+        padding: 0 8px 24px;
+    }
+    .btn-circular {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+    .detail-actions-bar .action-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+    .ep-btn {
+        min-height: 44px;
+        font-size: 0.68rem;
+    }
+    .season-tab {
+        padding: 3px 8px;
+        font-size: 0.65rem;
+    }
+    .progreso-general-section {
+        padding: 10px 12px;
+    }
+    .contador-progreso {
+        padding: 3px 8px;
+        font-size: 0.72rem;
+    }
+}
+
+/* ── Comments Section ── */
+#comments-section {
+    margin-top: 32px;
+    padding: 24px;
+    background: var(--card-bg, rgba(15, 15, 30, 0.7));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    overflow-x: hidden;
+}
+.comments-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.comments-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.comments-count {
+    background: rgba(0, 242, 255, 0.12);
+    color: var(--accent-cyan);
+    border: 1px solid rgba(0, 242, 255, 0.25);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.comments-empty {
+    text-align: center;
+    padding: 24px 0;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.9rem;
+}
+.comments-loading, .comments-error {
+    text-align: center;
+    padding: 20px 0;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.88rem;
+}
+.comments-login-hint {
+    text-align: center;
+    padding: 14px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.88rem;
+}
+.comments-login-hint a {
+    color: var(--accent-cyan);
+    text-decoration: underline;
+    font-weight: 600;
+}
+/* Comment Form */
+.comment-form {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+}
+.comment-input {
+    width: 100%;
+    /* Arranca chico y crece solo (autoGrow en comments.js); el tope evita que
+       un comentario largo empuje el botón de enviar fuera de la pantalla. */
+    min-height: 56px;
+    max-height: 320px;
+    box-sizing: border-box;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.comment-input:focus {
+    border-color: rgba(0, 242, 255, 0.4);
+}
+.comment-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+.comment-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.comment-char-count {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.35);
+}
+.comment-char-count.is-limit {
+    color: #ff6b6b;
+}
+.comment-submit-btn {
+    padding: 8px 20px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--neon-purple));
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.comment-submit-btn:hover {
+    opacity: 0.85;
+}
+.comment-submit-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+/* Comment Card */
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.comment-card {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    transition: background 0.15s;
+}
+.comment-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.comment-card[data-depth="1"] {
+    margin-left: 28px;
+    border-left: 2px solid rgba(0, 242, 255, 0.2);
+}
+.comment-card[data-depth="2"] {
+    margin-left: 56px;
+    border-left: 2px solid rgba(188, 19, 254, 0.2);
+}
+.comment-card[data-depth="3"] {
+    margin-left: 80px;
+    border-left: 2px solid rgba(255, 255, 255, 0.06);
+}
+.comment-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: 10px;
+}
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(188, 19, 254, 0.2));
+    color: var(--accent-cyan);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+.comment-avatar-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.comment-author {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+.comment-date {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+.comment-edited {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.2);
+    font-style: italic;
+}
+.comment-body {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+.comment-actions {
+    display: flex;
+    gap: 12px;
+}
+.comment-action-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 2px 0;
+    transition: color 0.15s;
+}
+.comment-action-btn:hover {
+    color: var(--accent-cyan);
+}
+.comment-action-delete:hover {
+    color: #ef4444;
+}
+.comment-replies {
+    margin-top: 4px;
+}
+.comment-reply-form {
+    margin-top: 8px;
+}
+.comment-reply-form .comment-form {
+    margin-bottom: 0;
+    padding: 12px;
+}
+
+/* ── Selector de referencia (un renglón del footer del form) ── */
+.comment-ref-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    /* Empuja contador y botón al otro extremo del footer. */
+    margin-right: auto;
+    min-width: 0;
+}
+.comment-ref-picker-label {
+    font-size: 0.75rem;
+    color: var(--text-muted, #888);
+    white-space: nowrap;
+}
+.comment-ref-select {
+    max-width: 180px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.comment-ref-select:focus {
+    border-color: rgba(0,242,255,0.4);
+}
+/* La lista desplegable la dibuja el sistema operativo, que en varios usa fondo
+   claro: sin esto las opciones quedan blanco sobre blanco. */
+.comment-ref-select option,
+.comment-ref-select optgroup {
+    background: #140d24;
+    color: #fff;
+}
+
+/* ── Spoilers ───────────────────────────────────────────────── */
+.comment-spoiler-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: var(--text-muted, #888);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.comment-spoiler-input {
+    accent-color: var(--neon-purple, #bc13fe);
+    cursor: pointer;
+}
+.comment-spoiler-tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(255,107,107,0.15);
+    border: 1px solid rgba(255,107,107,0.35);
+    color: #ff8f8f;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+.comment-body.is-spoiler {
+    position: relative;
+    min-height: 44px;
+    display: grid;
+    place-items: center;
+}
+/* El texto sigue en el DOM (blur, no borrado) para no romper el alto de la
+   tarjeta ni el layout al destapar. user-select lo protege del "seleccionar
+   todo y copiar"; no es a prueba de inspector, pero acá alcanza. */
+.comment-body.is-spoiler .comment-spoiler-text {
+    filter: blur(6px);
+    opacity: 0.55;
+    user-select: none;
+    pointer-events: none;
+}
+.comment-spoiler-reveal {
+    position: absolute;
+    padding: 5px 14px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid rgba(255,107,107,0.4);
+    background: rgba(20,13,36,0.9);
+    color: #ff8f8f;
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.comment-spoiler-reveal:hover {
+    background: rgba(255,107,107,0.15);
+    border-color: #ff8f8f;
+}
+
+/* ── Filter bar ─────────────────────────────────────────────── */
+/* Una fila que scrollea en horizontal en vez de envolverse en varias: con
+   muchos episodios comentados, el wrap empujaba la lista de comentarios
+   varias pantallas hacia abajo. */
+.comment-filter-bar {
+    display: flex;
+    gap: 6px;
+    margin: 12px 0;
+    padding: 8px 0;
+    border-top: 1px solid var(--border, rgba(255,255,255,0.06));
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.comment-filter-btn {
+    flex: 0 0 auto;
+}
+.comment-filter-btn {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    border: 1px solid var(--border, rgba(255,255,255,0.1));
+    background: transparent;
+    color: var(--text-secondary, #aaa);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.comment-filter-btn:hover {
+    background: rgba(255,255,255,0.06);
+}
+.comment-filter-btn.is-active {
+    background: var(--accent, #6366f1);
+    color: #fff;
+    border-color: var(--accent, #6366f1);
+}
+
+/* ── Ref tag in comment header ──────────────────────────────── */
+.comment-ref-tag {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(99,102,241,0.15);
+    color: var(--accent, #6366f1);
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+    #comments-section {
+        padding: 16px;
+        margin-top: 20px;
+    }
+    .comment-card[data-depth="1"] { margin-left: 16px; }
+    .comment-card[data-depth="2"] { margin-left: 32px; }
+    .comment-card[data-depth="3"] { margin-left: 40px; }
+    /* 16px evita que iOS haga zoom al enfocar el campo. */
+    .comment-input { font-size: 16px; }
+    .comment-ref-select { min-height: 36px; font-size: 0.82rem; }
+    .comment-filter-btn { min-height: 36px; padding: 6px 12px; font-size: 0.82rem; }
+    .comment-action-btn { min-height: 36px; padding: 6px 10px; }
+    .comment-submit-btn { min-height: 40px; padding: 10px 24px; }
+}
+
+@media (max-width: 480px) {
+    /* El selector se lleva su renglón y el botón queda solo en el de abajo:
+       apretados en la misma línea, el "Comentar" quedaba de 40px de ancho. */
+    .comment-ref-picker { width: 100%; margin-right: 0; }
+    .comment-ref-select { flex: 1; max-width: none; }
+    .comment-form { padding: 12px; }
+}
+
+@media (max-width: 400px) {
+    #comments-section { padding: 12px; }
+    .comment-filter-btn { min-height: 34px; padding: 5px 10px; font-size: 0.78rem; }
+    .comment-action-btn { min-height: 34px; font-size: 0.72rem; }
+}
+
+/* ── Mobile: compensar bottom tab bar en detalle ── */
+@media (max-width: 700px) {
+    .detail-premium-root {
+        padding-bottom: 24px;
+    }
+    .detail-premium-back {
+        padding-bottom: 16px;
+    }
+}
+
+
