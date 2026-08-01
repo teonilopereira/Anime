@@ -3184,16 +3184,19 @@ window.getCurrentUser      = getCurrentUser;
 
     function levelFromPoints(points) {
         const p = Number(points) || 0;
+        const maxLevel = AnimeDestiny.Constants.XP_MAX_LEVEL || 50;
         let level = 1;
         let need = AnimeDestiny.Constants.XP_BASE || 100;
         let remaining = p;
-        while (remaining >= need) {
+        // Se corta al llegar al nivel máximo ANTES de subir, para no devolver un
+        // nivel por encima del tope ni un "next" desalineado con el nivel real.
+        while (remaining >= need && level < maxLevel) {
             remaining -= need;
             level += 1;
             need = Math.floor(need * (AnimeDestiny.Constants.XP_MULTIPLIER || 1.2));
-            if (level > (AnimeDestiny.Constants.XP_MAX_LEVEL || 50)) break;
         }
-        return { level, current: remaining, next: need };
+        const atMax = level >= maxLevel;
+        return { level, current: remaining, next: need, atMax };
     }
 
     function countKeysWithPrefix(prefix) {
