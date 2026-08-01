@@ -415,7 +415,7 @@ async function renderCalendario() {
                     const link = 'detalle.html?cat=anime&id=' + encodeURIComponent(ep.id);
                     return `
                     <a class="calendar-row" href="${escapeHtml(link)}">
-                        ${ep.img ? `<img class="calendar-cover" src="${safeUrl(ep.img)}" alt="" width="44" height="60" decoding="async" loading="lazy">` : '<span class="calendar-cover calendar-cover--empty"></span>'}
+                        ${ep.img ? `<img class="calendar-cover" src="${safeUrl(ep.img)}" alt="" width="44" height="60" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${escapeHtml(ep.title || '')}">` : '<span class="calendar-cover calendar-cover--empty"></span>'}
                         <span class="calendar-info">
                             <span class="calendar-title">${escapeHtml(ep.title)}</span>
                             <span class="calendar-meta">EP ${ep.episode || '?'} • ${escapeHtml(hora)} hs</span>
