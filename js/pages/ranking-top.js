@@ -18,6 +18,15 @@
     var tabsEl = document.querySelector(".trk-tabs");
     var escapeHtml = window.escapeHtml || function (s) { return s == null ? "" : String(s); };
 
+    // Traducción con fallback: si i18n aún no cargó, devolvemos el texto en español.
+    function tr(key, fallback, args) {
+        if (window.AppI18n && typeof window.AppI18n.t === "function") {
+            var out = window.AppI18n.t(key, args);
+            if (out && out.charAt(0) !== "[") return out;
+        }
+        return fallback;
+    }
+
     var CATEGORIAS = {
         anime:   { api: "getTopAnimes",  label: "Anime" },
         manga:   { api: "getTopMangas",  label: "Manga" },
@@ -79,7 +88,7 @@
     }
 
     function filaHtml(cat, item, pos) {
-        var titulo = item.title || "Sin título";
+        var titulo = item.title || tr("rank.sin_titulo", "Sin título");
         var poster = window.getApiPoster ? window.getApiPoster(item) : "";
         var url = "detalle.html?cat=" + encodeURIComponent(cat) + "&id=" + encodeURIComponent(item.id);
 
@@ -127,15 +136,15 @@
         if (estado.error && !estado.items.length) {
             lista.innerHTML = '<div class="trk-estado">' +
                 '<i data-lucide="wifi-off"></i>' +
-                "<p>No se pudo cargar el ranking. Puede ser un límite temporal de la API.</p>" +
-                '<button type="button" class="trk-btn" id="trkReintentar">Reintentar</button>' +
+                "<p>" + escapeHtml(tr("rank.error", "No se pudo cargar el ranking. Puede ser un límite temporal de la API.")) + "</p>" +
+                '<button type="button" class="trk-btn" id="trkReintentar">' + escapeHtml(tr("rank.reintentar", "Reintentar")) + "</button>" +
             "</div>";
             refrescarIconos();
             return;
         }
 
         if (!estado.items.length) {
-            lista.innerHTML = '<div class="trk-estado"><p>Sin resultados.</p></div>';
+            lista.innerHTML = '<div class="trk-estado"><p>' + escapeHtml(tr("rank.no_resultados", "Sin resultados.")) + "</p></div>";
             return;
         }
 
@@ -148,12 +157,14 @@
         }
         html += "</div>";
 
+        var catLabel = tr("rank.tab." + catActual, CATEGORIAS[catActual].label).toLowerCase();
+        var totalTxt = tr("rank.en_ranking", estado.items.length + " " + catLabel + " en el ranking",
+            { n: estado.items.length, cat: catLabel });
         html += '<div class="trk-pie">' +
-            '<span class="trk-total"><i data-lucide="list-ordered"></i> ' +
-                estado.items.length + " " + CATEGORIAS[catActual].label.toLowerCase() + " en el ranking</span>" +
+            '<span class="trk-total"><i data-lucide="list-ordered"></i> ' + escapeHtml(totalTxt) + "</span>" +
             (estado.hayMas
                 ? '<button type="button" class="trk-btn" id="trkCargarMas"' + (estado.cargando ? " disabled" : "") + ">" +
-                    (estado.cargando ? "Cargando..." : (estado.error ? "Reintentar" : "Cargar más")) + "</button>"
+                    escapeHtml(estado.cargando ? tr("rank.cargando", "Cargando...") : (estado.error ? tr("rank.reintentar", "Reintentar") : tr("rank.cargar_mas", "Cargar más"))) + "</button>"
                 : "") +
         "</div>";
 

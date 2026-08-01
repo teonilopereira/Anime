@@ -42,21 +42,21 @@
     </header>
 
     <main class="compare-page" id="main-content">
-        <div class="compare-controls" role="form" aria-label="Elegir títulos a comparar">
+        <div class="compare-controls" role="form" data-i18n="compare.aria.form" data-i18n-attr="aria-label" aria-label="Elegir títulos a comparar">
             <div class="compare-picker">
                 <div class="cmp-field cmp-field--cat">
-                    <label class="compare-label" for="cat1">Catálogo</label>
+                    <label class="compare-label" for="cat1" data-i18n="compare.label.catalogo">Catálogo</label>
                     <select id="cat1" class="compare-select">
-                        <option value="anime">Anime</option>
-                        <option value="manga">Manga</option>
-                        <option value="novelas">Novelas</option>
+                        <option value="anime" data-i18n="compare.opt.anime">Anime</option>
+                        <option value="manga" data-i18n="compare.opt.manga">Manga</option>
+                        <option value="novelas" data-i18n="compare.opt.novelas">Novelas</option>
                     </select>
                 </div>
                 <div class="cmp-field cmp-field--search">
-                    <label class="compare-label" for="search1">Primer título</label>
+                    <label class="compare-label" for="search1" data-i18n="compare.label.primero">Primer título</label>
                     <div class="cmp-search-wrap">
                         <span class="cmp-search-icon"><i data-lucide="search"></i></span>
-                        <input id="search1" class="cmp-search-input" type="search" placeholder="Buscá un título..." autocomplete="off">
+                        <input id="search1" class="cmp-search-input" type="search" data-i18n="compare.buscar_ph" data-i18n-attr="placeholder" placeholder="Buscá un título..." autocomplete="off">
                         <div class="cmp-suggestions" id="sug1"></div>
                     </div>
                 </div>
@@ -66,27 +66,27 @@
 
             <div class="compare-picker">
                 <div class="cmp-field cmp-field--cat">
-                    <label class="compare-label" for="cat2">Catálogo</label>
+                    <label class="compare-label" for="cat2" data-i18n="compare.label.catalogo">Catálogo</label>
                     <select id="cat2" class="compare-select">
-                        <option value="anime">Anime</option>
-                        <option value="manga">Manga</option>
-                        <option value="novelas">Novelas</option>
+                        <option value="anime" data-i18n="compare.opt.anime">Anime</option>
+                        <option value="manga" data-i18n="compare.opt.manga">Manga</option>
+                        <option value="novelas" data-i18n="compare.opt.novelas">Novelas</option>
                     </select>
                 </div>
                 <div class="cmp-field cmp-field--search">
-                    <label class="compare-label" for="search2">Segundo título</label>
+                    <label class="compare-label" for="search2" data-i18n="compare.label.segundo">Segundo título</label>
                     <div class="cmp-search-wrap">
                         <span class="cmp-search-icon"><i data-lucide="search"></i></span>
-                        <input id="search2" class="cmp-search-input" type="search" placeholder="Buscá un título..." autocomplete="off">
+                        <input id="search2" class="cmp-search-input" type="search" data-i18n="compare.buscar_ph" data-i18n-attr="placeholder" placeholder="Buscá un título..." autocomplete="off">
                         <div class="cmp-suggestions" id="sug2"></div>
                     </div>
                 </div>
             </div>
 
-            <button class="compare-btn" id="doCompare" type="button">Comparar</button>
+            <button class="compare-btn" id="doCompare" type="button" data-i18n="compare.boton">Comparar</button>
         </div>
 
-        <section class="compare-grid" aria-label="Resultado comparación">
+        <section class="compare-grid" data-i18n="compare.aria.resultado" data-i18n-attr="aria-label" aria-label="Resultado comparación">
             <div class="compare-card" id="compareA"></div>
             <div class="compare-card" id="compareB"></div>
         </section>
