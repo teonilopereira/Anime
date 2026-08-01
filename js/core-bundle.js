@@ -2064,12 +2064,25 @@ window.getCurrentUser      = getCurrentUser;
 
     var POS_KEY = "pref:mascotPos";
 
+    // Modo "paseo": el slime camina y salta solo por la pantalla, con gravedad,
+    // y se posa sobre la estructura real de la página (navbar, cards, títulos…).
+    // Preferencia independiente para poder tener la mascota quieta si molesta.
+    var ROAM_KEY = "pref:mascotRoam";
+
     function readPref() {
         try { return localStorage.getItem(PREF_KEY); } catch (_) { return null; }
     }
     function isEnabled() {
         // Default ON: si nunca se tocó, la mascota está encendida.
         return readPref() !== "off";
+    }
+    function roamPref() {
+        // Default ON: el slime se mueve salvo que lo apaguen explícitamente.
+        try { return localStorage.getItem(ROAM_KEY) !== "off"; } catch (_) { return true; }
+    }
+    // El paseo requiere que el usuario no haya pedido reducir el movimiento.
+    function roamEnabled() {
+        return roamPref() && !reducedMotion();
     }
     function readPos() {
         try {
@@ -2241,6 +2254,21 @@ window.getCurrentUser      = getCurrentUser;
     var drag = null;        // estado del arrastre en curso
     var justDragged = false; // para no disparar el saludo al soltar tras mover
 
+    // ── Estado del motor de movimiento (paseo con física) ──────────────────
+    // Todo en coordenadas de viewport (position: fixed), refiriéndose a la
+    // esquina superior-izquierda del sprite (mismo sistema que place()).
+    var phys = null;         // { x, y, vx, vy, w, h, face, ground }
+    var rafId = null;        // id del requestAnimationFrame en curso
+    var lastT = 0;           // timestamp del frame anterior (para dt)
+    var running = false;     // motor activo (paseo encendido y pestaña visible)
+    var platCache = { list: [], t: 0 };   // plataformas detectadas (con caché)
+    var mouse = { x: -1, y: -1, t: 0 };   // último puntero conocido
+    var nextDecision = 0;    // cuándo el slime vuelve a elegir qué hacer
+    var attentionUntil = 0;  // pausa el paseo (habla / click) hasta este tiempo
+    var lastReact = 0;       // cooldown de reacciones al contenido
+    var lastFlee = 0;        // cooldown del "susto" al acercar el cursor
+    var mouseWired = false;  // para no duplicar el listener global de puntero
+
     function setExpr(expr) {
         currentExpr = expr;
         if (pet) pet.innerHTML = buildSVG(expr);
@@ -2292,6 +2320,8 @@ window.getCurrentUser      = getCurrentUser;
 
         applyPosition();
         scheduleBlink();
+        // Arranca el paseo (si está permitido); si no, queda quieta y arrastrable.
+        startEngine();
     }
 
     // ── Arrastrar / posición ────────────────────────────────────────────────
@@ -2363,6 +2393,14 @@ window.getCurrentUser      = getCurrentUser;
             root.classList.remove("mascot-dragging");
             if (drag.moved) writePos(currentRatio());
             drag = null;
+            // Al soltarlo, si el paseo está activo lo dejamos caer desde donde
+            // quedó: la física lo lleva a posarse sobre la repisa más cercana.
+            if (running && phys) {
+                var r = root.getBoundingClientRect();
+                phys.x = r.left; phys.y = r.top; phys.vx = 0; phys.vy = 0;
+                phys.ground = null;
+                nextDecision = performance.now() + 500;
+            }
         }
         pet.addEventListener("pointerup", endDrag);
         pet.addEventListener("pointercancel", endDrag);
@@ -2374,16 +2412,364 @@ window.getCurrentUser      = getCurrentUser;
     function reflow() {
         if (!root || !root.style.left) return;
         requestAnimationFrame(function () {
+            // Con el paseo activo el motor controla la posición: solo refrescamos
+            // el tamaño del sprite y las plataformas, y re-encajamos la física
+            // dentro de la ventana (que pudo achicarse).
+            if (running && phys) {
+                refreshMetrics();
+                phys.x = Math.max(MARGIN, Math.min(phys.x, window.innerWidth - phys.w - MARGIN));
+                phys.ground = null; // recalcula dónde apoyarse tras el resize
+                return;
+            }
             var p = readPos();
             if (p && typeof p.rx === "number") placeByRatio(p.rx, p.ry);
             else { var r = root.getBoundingClientRect(); place(r.left, r.top); }
         });
     }
+    // Reescanear plataformas al hacer scroll (las repisas se mueven con la página).
+    window.addEventListener("scroll", function () { platCache.t = 0; }, { passive: true });
     window.addEventListener("resize", reflow);
     window.addEventListener("orientationchange", reflow);
 
+    // ── Motor de movimiento: paseo, gravedad e interacción con la página ────
+    //
+    // El slime deja de estar clavado en una esquina y pasa a "vivir" en la
+    // pantalla: camina, salta y cae con gravedad, aterrizando sobre el borde
+    // superior de elementos reales (navbar inferior, cards, títulos, footer…)
+    // que se detectan con getBoundingClientRect. También mira/sigue/esquiva el
+    // cursor y, al posarse sobre una card, comenta por el bocadillo.
+    //
+    // Todo con un único requestAnimationFrame; sin librerías (respeta el CSP).
+
+    var GRAV = 2600;         // aceleración de la gravedad (px/s²)
+    var WALK = 82;           // velocidad al caminar (px/s)
+    var JUMP_VY = -900;      // impulso de un salto normal (px/s) → alcanza ~155px
+    var JUMP_MAX = 1220;     // impulso máximo para trepar a repisas altas (px/s)
+
+    // Elementos que sirven de "repisa". Selectores robustos y genéricos: si un
+    // rect no cumple los filtros (ancho, altura, estar a la vista) se descarta,
+    // así funciona en cualquier página sin mantener una lista por vista.
+    var PLATFORM_SEL = [
+        ".mobile-bottom-nav", ".card-container", ".catalog-neon-card",
+        ".card", ".hero-section", ".cfg-panel", "footer",
+        "h1.title", "h2.title", ".section-title"
+    ].join(",");
+
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    // Refresca el tamaño del sprite (cambia con el ancho de pantalla por el
+    // clamp() del CSS) e invalida la caché de plataformas.
+    function refreshMetrics() {
+        if (!root || !phys) return;
+        phys.w = root.offsetWidth || 72;
+        phys.h = root.offsetHeight || 66;
+        platCache.t = 0;
+    }
+
+    // Detecta las repisas visibles (con caché corta para no escanear cada frame).
+    // Cada plataforma guarda `top` ya convertido a la Y del BORDE SUPERIOR del
+    // sprite cuando está parado encima, para que el aterrizaje sea una simple
+    // comparación. Se incluye el piso de la ventana como plataforma base.
+    function scanPlatforms() {
+        var now = performance.now();
+        if (platCache.list.length && now - platCache.t < 350) return platCache.list;
+
+        var W = window.innerWidth, H = window.innerHeight;
+        var floorTop = H - phys.h - MARGIN;
+        var out = [{ left: 0, right: W, top: floorTop, floor: true }];
+
+        var els = document.querySelectorAll(PLATFORM_SEL);
+        for (var i = 0; i < els.length && out.length < 60; i++) {
+            var el = els[i];
+            if (el === root || root.contains(el)) continue;
+            var r = el.getBoundingClientRect();
+            if (r.width < phys.w * 1.1 || r.height < 10) continue; // muy chico
+            if (r.right < 0 || r.left > W) continue;                // fuera de X
+            var top = r.top - phys.h;                               // Y del sprite parado
+            if (top < MARGIN + 2 || top > floorTop - 2) continue;   // fuera de Y útil
+            out.push({ left: Math.max(0, r.left), right: Math.min(W, r.right), top: top, el: el });
+        }
+        platCache = { list: out, t: now };
+        return out;
+    }
+
+    // Al caer (prevY→newY), busca la repisa MÁS ALTA que el sprite cruza con su
+    // centro horizontal dentro del rango de la repisa. Devuelve null si no toca.
+    function landingFor(prevY, newY, cx) {
+        var list = scanPlatforms(), best = null;
+        for (var i = 0; i < list.length; i++) {
+            var p = list[i];
+            if (cx < p.left - 6 || cx > p.right + 6) continue;
+            if (prevY <= p.top && newY >= p.top && (!best || p.top < best.top)) best = p;
+        }
+        return best;
+    }
+
+    // Pausa el paseo un rato (mientras habla o tras un click): se queda quieto.
+    function pauseRoam(ms) {
+        attentionUntil = performance.now() + (ms || DURATION());
+        if (phys) phys.vx = 0;
+    }
+
+    // Aplica el "mirar hacia" (flip horizontal) sobre el SVG, sin pelear con las
+    // animaciones de la mascota (idle/talk viven en .mascot-pet; el flip, en svg).
+    function applyFace() {
+        var svg = pet && pet.firstChild;
+        if (svg && svg.style) svg.style.transform = "scaleX(" + (phys.face || 1) + ")";
+    }
+
+    // Reacción contextual al posarse sobre un elemento real de la página.
+    function reactTo(plat, ts) {
+        if (!plat || plat.floor || !plat.el) return;
+        if (ts - lastReact < 9000 || Math.random() < 0.35) return; // sin spamear
+        var el = plat.el, title = null;
+        if (el.getAttribute) title = el.getAttribute("data-title");
+        if (!title && el.querySelector) {
+            var t = el.querySelector("[data-title]");
+            if (t) title = t.getAttribute("data-title");
+        }
+        var msg = null;
+        if (title) {
+            msg = pick([
+                "¿'" + title + "' a tu lista? 👀",
+                "¡'" + title + "' tiene buena pinta!",
+                "Marcá '" + title + "' como visto 👁"
+            ]);
+        } else if (el.matches && el.matches(".mobile-bottom-nav")) {
+            msg = "Tocá un ícono para navegar 📱";
+        } else if (el.matches && el.matches(".hero-section, h1, h2, .title, .section-title")) {
+            msg = pick(["¿Exploramos? 🚀", "¡Vamos a maratonear! ✨"]);
+        } else if (el.matches && el.matches("footer")) {
+            msg = "Llegaste al final 👋";
+        }
+        if (msg) { lastReact = ts; speak(msg); }
+    }
+
+    // Se ejecuta al aterrizar: squash de impacto + posible reacción.
+    function onLand(plat, ts) {
+        if (pet) {
+            pet.classList.remove("mascot-land");
+            void pet.offsetWidth;
+            pet.classList.add("mascot-land");
+        }
+        reactTo(plat, ts);
+    }
+
+    // Empieza a caminar en una dirección durante un tiempo.
+    function walk(dir, ms, ts) {
+        phys.vx = dir * WALK;
+        phys.face = dir < 0 ? -1 : 1;
+        nextDecision = ts + ms;
+    }
+
+    // Salto simple: impulso vertical fijo. El aterrizaje lo resuelve la física.
+    function jump(ts) {
+        if (!phys.ground) return;
+        phys.vy = JUMP_VY;
+        phys.ground = null;
+        nextDecision = ts + 600;
+    }
+
+    // Busca una repisa MÁS ALTA que la actual, alcanzable de un salto (por altura
+    // y por distancia horizontal), para "trepar" la estructura de la página.
+    function reachableTarget() {
+        var list = scanPlatforms();
+        var cx = phys.x + phys.w / 2;
+        var maxRise = (JUMP_MAX * JUMP_MAX) / (2 * GRAV);   // altura máx alcanzable
+        var best = null, bestScore = Infinity;
+        for (var i = 0; i < list.length; i++) {
+            var p = list[i];
+            if (p === phys.ground) continue;
+            var rise = phys.y - p.top;                       // cuánto hay que subir
+            if (rise < 12 || rise > maxRise) continue;       // ni plana ni imposible
+            var tx = Math.max(p.left, Math.min(cx, p.right)); // punto más cercano
+            var dx = Math.abs(tx - cx);
+            if (dx > 320) continue;                          // demasiado lejos
+            var score = rise + dx * 0.6;                     // prioriza cerca y bajo
+            if (score < bestScore) { bestScore = score; best = p; }
+        }
+        return best;
+    }
+
+    // Salto dirigido hacia una repisa concreta: calcula el impulso justo para
+    // superar su altura y se orienta hacia ella. La física + landingFor la posan.
+    function hopTo(plat, ts) {
+        if (!phys.ground) return;
+        var cx = phys.x + phys.w / 2;
+        var tx = Math.max(plat.left, Math.min(cx, plat.right));
+        var rise = phys.y - plat.top + 26;                  // + holgura para pasarla
+        var vy = Math.min(JUMP_MAX, Math.sqrt(2 * GRAV * Math.max(rise, 20)));
+        phys.vy = -vy;
+        var dir = tx < cx ? -1 : (tx > cx ? 1 : (Math.random() < 0.5 ? -1 : 1));
+        phys.vx = dir * WALK * 1.4;
+        phys.face = dir < 0 ? -1 : 1;
+        phys.ground = null;
+        nextDecision = ts + 700;
+    }
+
+    // "Cerebro": decide la próxima acción cuando está parado y no está ocupado.
+    function decide(ts) {
+        var cx = phys.x + phys.w / 2;
+        var mouseFresh = mouse.x >= 0 && ts - mouse.t < 2500;
+        var r = Math.random();
+
+        if (mouseFresh && r < 0.28) {
+            // Seguir el cursor: camina hacia su X (y salta si está más arriba).
+            var dir = mouse.x < cx ? -1 : 1;
+            walk(dir, rand(700, 1400), ts);
+            if (mouse.y < phys.y - 20 && Math.random() < 0.5) jump(ts);
+        } else if (r < 0.55) {
+            // Deambular: dirección al azar (o hacia el centro si está en un borde).
+            var d = cx < window.innerWidth * 0.15 ? 1 :
+                    cx > window.innerWidth * 0.85 ? -1 : (Math.random() < 0.5 ? -1 : 1);
+            walk(d, rand(800, 1800), ts);
+            if (Math.random() < 0.3) jump(ts); // saltito exploratorio
+        } else if (r < 0.72) {
+            // Trepar: si hay una repisa alcanzable más arriba, salta hacia ella;
+            // si no, un salto simple exploratorio.
+            var target = reachableTarget();
+            if (target) hopTo(target, ts); else jump(ts);
+        } else {
+            // Descansar un momento.
+            phys.vx = 0;
+            nextDecision = ts + rand(900, 2200);
+        }
+    }
+
+    // Susto: si el cursor se mete muy cerca y en movimiento, pega un salto para
+    // el lado contrario (con cooldown para que no sea epiléptico).
+    function maybeFlee(ts) {
+        if (!phys.ground || ts - lastFlee < 1500) return;
+        if (mouse.x < 0 || ts - mouse.t > 400) return;
+        var cx = phys.x + phys.w / 2, cy = phys.y + phys.h / 2;
+        if (Math.hypot(mouse.x - cx, mouse.y - cy) > phys.w * 0.9) return;
+        lastFlee = ts;
+        var dir = mouse.x < cx ? 1 : -1; // huir del cursor
+        phys.face = dir < 0 ? -1 : 1;
+        phys.vx = dir * WALK * 1.8;
+        phys.vy = JUMP_VY * 0.85;
+        phys.ground = null;
+        nextDecision = ts + 700;
+        setExpr("surprised");
+        setTimeout(function () { if (currentExpr === "surprised") setExpr("normal"); }, 500);
+    }
+
+    // Un paso de simulación.
+    function step(dt, ts) {
+        var W = window.innerWidth;
+
+        // Decisiones y reacciones solo cuando está parado y sin bocadillo activo.
+        if (ts >= attentionUntil) {
+            maybeFlee(ts);
+            if (phys.ground && ts >= nextDecision) decide(ts);
+        } else {
+            phys.vx = 0; // "viene a hablarte": se queda quieto mientras dice algo
+        }
+
+        // Mirar hacia el cursor cuando está quieto.
+        if (!phys.vx && mouse.x >= 0 && ts - mouse.t < 3000) {
+            phys.face = mouse.x < (phys.x + phys.w / 2) ? -1 : 1;
+        }
+
+        // Horizontal + rebote contra los bordes de la ventana.
+        phys.x += phys.vx * dt;
+        if (phys.x < MARGIN) { phys.x = MARGIN; phys.vx = Math.abs(phys.vx); phys.face = 1; }
+        var maxX = W - phys.w - MARGIN;
+        if (phys.x > maxX) { phys.x = maxX; phys.vx = -Math.abs(phys.vx); phys.face = -1; }
+
+        // Vertical: si está apoyado, comprueba que no se pasó del borde (si sí,
+        // cae); si está en el aire, integra gravedad y busca dónde aterrizar.
+        var prevY = phys.y, cx = phys.x + phys.w / 2;
+        if (phys.ground) {
+            if (cx < phys.ground.left - 3 || cx > phys.ground.right + 3) {
+                phys.ground = null; // caminó fuera de la repisa → cae
+            } else {
+                phys.y = phys.ground.top;
+            }
+        }
+        if (!phys.ground) {
+            phys.vy += GRAV * dt;
+            phys.y += phys.vy * dt;
+            if (phys.vy > 0) {
+                var land = landingFor(prevY, phys.y, cx);
+                if (land) { phys.y = land.top; phys.vy = 0; phys.ground = land; onLand(land, ts); }
+            }
+        }
+
+        place(phys.x, phys.y);
+        applyFace();
+    }
+
+    function tick(ts) {
+        // Solo reagenda mientras el motor está activo: si se detuvo (pestaña
+        // oculta, paseo apagado, DOM removido) el bucle muere en vez de girar.
+        if (!running || !phys) { rafId = null; return; }
+        rafId = requestAnimationFrame(tick);
+
+        // Mientras se arrastra, el usuario manda: sincronizamos la física con el
+        // DOM y no simulamos (al soltar, endDrag la deja caer y aterrizar).
+        if (drag) {
+            var rr = root.getBoundingClientRect();
+            phys.x = rr.left; phys.y = rr.top; phys.vx = 0; phys.vy = 0;
+            phys.ground = null; lastT = ts;
+            return;
+        }
+
+        if (!lastT) lastT = ts;
+        var dt = Math.min(0.05, (ts - lastT) / 1000); // clamp para saltos de pestaña
+        lastT = ts;
+        if (dt > 0) step(dt, ts);
+    }
+
+    function startEngine() {
+        if (!root || running || !roamEnabled()) return;
+        var r = root.getBoundingClientRect();
+        phys = { x: r.left, y: r.top, vx: 0, vy: 0, w: root.offsetWidth || 72,
+                 h: root.offsetHeight || 66, face: 1, ground: null };
+        root.classList.add("mascot-roaming");
+        running = true;
+        lastT = 0;
+        nextDecision = performance.now() + 600;
+        wireMouse();
+        if (rafId == null) rafId = requestAnimationFrame(tick);
+    }
+
+    function stopEngine() {
+        running = false;
+        if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
+        if (root) root.classList.remove("mascot-roaming");
+        var svg = pet && pet.firstChild;
+        if (svg && svg.style) svg.style.transform = ""; // vuelve a mirar de frente
+        phys = null;
+    }
+
+    function wireMouse() {
+        if (mouseWired) return;
+        mouseWired = true;
+        window.addEventListener("mousemove", function (e) {
+            mouse.x = e.clientX; mouse.y = e.clientY; mouse.t = performance.now();
+        }, { passive: true });
+        // Pausar el motor cuando la pestaña no se ve (ahorra batería/CPU).
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                if (running) { running = false; if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } }
+            } else if (root && roamEnabled() && !running) {
+                startEngine();
+            }
+        });
+    }
+
+    // API para configuración: encender/apagar el paseo en vivo.
+    function setRoaming(on) {
+        try { localStorage.setItem(ROAM_KEY, on ? "on" : "off"); } catch (_) {}
+        if (on) { if (root) startEngine(); }
+        else { stopEngine(); }
+    }
+
     function removeDom() {
         if (!root) return;
+        stopEngine();
         clearTimeout(hideTimer);
         clearTimeout(blinkTimer);
         root.remove();
@@ -2412,11 +2798,9 @@ window.getCurrentUser      = getCurrentUser;
             window.AnimeDestiny.Constants.TOAST_DURATION_MS) || 4000;
     };
 
-    function say(message, type, duration) {
-        if (!isEnabled()) return;
-        ensureDom();
-
-        setExpr(TYPE_FACE[type] || "normal");
+    // Muestra el bocadillo con un texto y reinicia la animación de "hablar".
+    // Mientras el slime habla, se detiene su paseo para que "venga a decirte".
+    function showBubble(message, dur) {
         bubbleText.textContent = String(message);
         bubble.classList.remove("is-leaving");
         // Reinicia la animación de "hablar".
@@ -2428,15 +2812,31 @@ window.getCurrentUser      = getCurrentUser;
             bubble.classList.add("is-visible");
         });
 
-        var dur = duration || DURATION();
         clearTimeout(hideTimer);
         hideTimer = setTimeout(hideBubble, dur);
+
+        // Pausa el paseo mientras hay algo en pantalla que leer.
+        pauseRoam(dur);
 
         // Al salir el mouse, reanuda el cierre con la mitad del tiempo.
         bubble.onmouseleave = pet.onmouseleave = function () {
             clearTimeout(hideTimer);
             hideTimer = setTimeout(hideBubble, dur / 2);
         };
+    }
+
+    function say(message, type, duration) {
+        if (!isEnabled()) return;
+        ensureDom();
+        setExpr(TYPE_FACE[type] || "normal");
+        showBubble(message, duration || DURATION());
+    }
+
+    // Reacción espontánea del slime al posarse sobre un elemento de la página.
+    function speak(message, expr) {
+        if (!bubble || bubble.classList.contains("is-visible")) return;
+        setExpr(expr || "happy");
+        showBubble(message, DURATION());
     }
 
     function hideBubble() {
@@ -2463,15 +2863,8 @@ window.getCurrentUser      = getCurrentUser;
         // Si el click viene de terminar un arrastre, no saludar.
         if (justDragged) { justDragged = false; return; }
         setExpr("happy");
-        bubbleText.textContent = GREETINGS[greetIdx % GREETINGS.length];
+        showBubble(GREETINGS[greetIdx % GREETINGS.length], DURATION());
         greetIdx++;
-        bubble.classList.remove("is-leaving");
-        pet.classList.remove("mascot-talking");
-        void pet.offsetWidth;
-        pet.classList.add("mascot-talking");
-        requestAnimationFrame(function () { bubble.classList.add("is-visible"); });
-        clearTimeout(hideTimer);
-        hideTimer = setTimeout(hideBubble, DURATION());
     }
 
     // ── Encender / apagar en vivo (desde configuración) ────────────────────
@@ -2513,7 +2906,9 @@ window.getCurrentUser      = getCurrentUser;
     window.Mascot = Object.freeze({
         say: say,
         setEnabled: setEnabled,
-        isEnabled: isEnabled
+        isEnabled: isEnabled,
+        setRoaming: setRoaming,
+        isRoaming: roamPref
     });
 
     // Mostrar la mascota al cargar si está activada (es una mascota que "vive"
