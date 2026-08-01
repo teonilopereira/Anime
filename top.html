@@ -23,7 +23,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=092f53ff">
+        <link rel="stylesheet" href="css/bundle.min.css?v=19552ce9">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
             margin: 30px auto;
             padding: 24px;
             border-radius: var(--radius-lg, 16px);
-            background: rgba(8, 6, 20, 0.72);
+            background: rgba(var(--surface-card-rgb), 0.72);
             border: 1px solid rgba(188, 19, 254, 0.18);
         }
 
@@ -88,8 +88,8 @@
             gap: 6px;
             padding: 5px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(var(--ink-rgb), 0.04);
+            border: 1px solid rgba(var(--ink-rgb), 0.08);
         }
         .ranking-tab {
             display: inline-flex;
@@ -108,7 +108,7 @@
         .ranking-tab svg { width: 15px; height: 15px; }
         .ranking-tab.is-active {
             background: linear-gradient(135deg, var(--neon-purple, #bc13fe), #7b2ff7);
-            color: #fff;
+            color: var(--text-main);
             box-shadow: 0 0 16px rgba(188, 19, 254, 0.45);
         }
         .ranking-tab:disabled { opacity: .4; cursor: not-allowed; }
@@ -122,8 +122,8 @@
             margin: -6px 0 18px;
             padding: 8px 16px;
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.10);
-            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(var(--ink-rgb), 0.10);
+            background: rgba(var(--ink-rgb), 0.03);
             color: var(--text-muted);
             text-decoration: none;
             font-family: 'Rajdhani', sans-serif;
@@ -147,15 +147,15 @@
             top: 50%;
             transform: translateY(-50%);
             display: flex;
-            color: var(--text-faint, rgba(255,255,255,.35));
+            color: var(--text-faint, rgba(var(--ink-rgb),.35));
             pointer-events: none;
         }
         .ranking-filter-icon svg { width: 17px; height: 17px; }
         .ranking-filter-input {
             width: 100%;
             padding: 13px 16px 13px 44px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(var(--ink-rgb), 0.04);
+            border: 1px solid rgba(var(--ink-rgb), 0.10);
             border-radius: 14px;
             color: var(--text-main);
             font-family: 'Rajdhani', sans-serif;
@@ -185,12 +185,12 @@
             font-size: 0.68rem;
             letter-spacing: 0.08em;
             color: var(--text-muted);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(var(--ink-rgb), 0.08);
         }
         .rank-head .rank-h-exp { text-align: right; color: var(--accent-cyan, #00f2ff); }
         .rank-row {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(255, 255, 255, 0.015);
+            border-bottom: 1px solid rgba(var(--ink-rgb), 0.05);
+            background: rgba(var(--ink-rgb), 0.015);
         }
         .rank-row:last-child { border-bottom: 0; }
         .rank-row-own {
@@ -234,7 +234,7 @@
             font-family: 'Orbitron', sans-serif;
             overflow: hidden;
             flex-shrink: 0;
-            border: 2px solid rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(var(--ink-rgb), 0.12);
         }
         .ranking-avatar-img { padding: 0; background: transparent; }
         .ranking-avatar-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
@@ -326,14 +326,14 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1.25rem;
             line-height: 1.1;
-            color: #fff;
+            color: var(--text-main);
         }
 
         /* Progreso hacia el proximo nivel */
         .rank-progress-track {
             height: 7px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(var(--ink-rgb), 0.08);
             overflow: hidden;
         }
         .rank-progress-fill {
@@ -356,8 +356,8 @@
             min-width: 76px;
             padding: 8px 12px;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(var(--ink-rgb), 0.03);
+            border: 1px solid rgba(var(--ink-rgb), 0.10);
         }
         .rank-row-own .rank-exp { border-color: rgba(188, 19, 254, 0.5); }
         .rank-exp-num {
@@ -458,7 +458,8 @@
             .ranking-footer { font-size: 12px; text-align: center; flex-wrap: wrap; }
         }
     </style>
-    <script src="js/vendor/lucide.min.js?v=092f53ff"></script>
+    <script src="js/vendor/lucide.min.js?v=19552ce9"></script>
+    <script src="js/core/theme.js?v=19552ce9"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="top">
@@ -500,12 +501,12 @@
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=092f53ff"></script>
-    <script src="js/core/i18n.js?v=092f53ff"></script>
-    <script src="js/core/namespace.js?v=092f53ff"></script>
-    <script src="api/supabase-config.js?v=092f53ff" type="module" async></script>
-    <script src="js/core-bundle.min.js?v=092f53ff" defer></script>
-    <script src="js/pages/ranking.js?v=092f53ff" defer></script>
+    <script src="js/core/config.js?v=19552ce9"></script>
+    <script src="js/core/i18n.js?v=19552ce9"></script>
+    <script src="js/core/namespace.js?v=19552ce9"></script>
+    <script src="api/supabase-config.js?v=19552ce9" type="module" async></script>
+    <script src="js/core-bundle.min.js?v=19552ce9" defer></script>
+    <script src="js/pages/ranking.js?v=19552ce9" defer></script>
 </body>
 </html>
 

@@ -22,7 +22,7 @@
     letter-spacing: 3px;
 }
 .perfil-page-header p {
-    color: rgba(255,255,255,0.65);
+    color: rgba(var(--ink-rgb),0.65);
     font-size: 1rem;
     margin: 0;
     font-family: var(--font-body);
@@ -30,7 +30,7 @@
 
 /* ── BLOQUE SUPERIOR: avatar + info + tarjetas ── */
 .perfil-top {
-    background: rgba(10, 5, 25, 0.82);
+    background: rgba(var(--surface-card-rgb), 0.82);
     border: 1px solid rgba(188,19,254,0.25);
     border-radius: 18px;
     padding: 28px 32px;
@@ -104,7 +104,7 @@
     justify-content: center;
     font-size: 0.7rem;
     font-family: var(--font-display);
-    color: #fff;
+    color: var(--text-main);
     opacity: 0;
     transition: opacity 0.2s;
     text-align: center;
@@ -131,7 +131,7 @@
     align-items: center;
     gap: 6px;
     font-size: 0.78rem;
-    color: rgba(255,255,255,0.7);
+    color: rgba(var(--ink-rgb),0.7);
     font-family: var(--font-body);
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -150,7 +150,7 @@
 }
 .perfil-cambiar-img-label {
     font-size: 0.72rem;
-    color: rgba(255,255,255,0.45);
+    color: rgba(var(--ink-rgb),0.45);
     font-family: var(--font-body);
     text-align: center;
 }
@@ -172,7 +172,7 @@
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: rgba(255,255,255,0.4);
+    color: rgba(var(--ink-rgb),0.4);
     font-family: var(--font-display);
     margin-bottom: 4px;
 }
@@ -180,7 +180,7 @@
     font-family: var(--font-display);
     font-size: 1.9rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-main);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -209,12 +209,12 @@
 .perfil-edit-icon:hover { opacity: 1; }
 .perfil-since {
     font-size: 0.85rem;
-    color: rgba(255,255,255,0.5);
+    color: rgba(var(--ink-rgb),0.5);
     font-family: var(--font-body);
     margin-top: 2px;
 }
 .perfil-since strong {
-    color: rgba(255,255,255,0.85);
+    color: rgba(var(--ink-rgb),0.85);
 }
 .perfil-action-btns {
     display: flex;
@@ -287,8 +287,8 @@
     gap: 14px;
 }
 .perfil-summary-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(var(--ink-rgb),0.04);
+    border: 1px solid rgba(var(--ink-rgb),0.08);
     border-radius: 12px;
     padding: 16px 14px 12px;
     display: flex;
@@ -304,7 +304,7 @@
     font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    color: rgba(255,255,255,0.4);
+    color: rgba(var(--ink-rgb),0.4);
     font-family: var(--font-display);
 }
 .perfil-card-value-row {
@@ -319,11 +319,11 @@
     font-family: var(--font-display);
     font-size: 1.7rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-main);
 }
 .perfil-card-sublabel {
     font-size: 0.72rem;
-    color: rgba(255,255,255,0.4);
+    color: rgba(var(--ink-rgb),0.4);
     font-family: var(--font-body);
 }
 .perfil-level-bar-wrap {
@@ -331,7 +331,7 @@
 }
 .perfil-level-bar-bg {
     height: 6px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(var(--ink-rgb),0.1);
     border-radius: 3px;
     overflow: hidden;
 }
@@ -344,7 +344,7 @@
 }
 .perfil-level-pct-text {
     font-size: 0.68rem;
-    color: rgba(255,255,255,0.4);
+    color: rgba(var(--ink-rgb),0.4);
     margin-top: 3px;
     font-family: var(--font-body);
 }
@@ -359,7 +359,7 @@
 
 /* Panel genérico */
 .perfil-panel {
-    background: rgba(10, 5, 25, 0.82);
+    background: rgba(var(--surface-card-rgb), 0.82);
     border: 1px solid rgba(188,19,254,0.18);
     border-radius: 16px;
     padding: 24px 26px;
@@ -372,7 +372,7 @@
     font-family: var(--font-display);
     font-size: 0.78rem;
     letter-spacing: 2px;
-    color: #fff;
+    color: var(--text-main);
     text-transform: uppercase;
     display: flex;
     align-items: center;
@@ -424,7 +424,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 13px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(var(--ink-rgb),0.06);
     gap: 10px;
 }
 .perfil-info-row:last-of-type { border-bottom: none; }
@@ -432,7 +432,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    color: rgba(255,255,255,0.6);
+    color: rgba(var(--ink-rgb),0.6);
     font-size: 0.88rem;
     font-family: var(--font-body);
 }
@@ -444,7 +444,7 @@
 }
 .perfil-info-row-val {
     font-size: 0.88rem;
-    color: rgba(255,255,255,0.85);
+    color: rgba(var(--ink-rgb),0.85);
     font-family: var(--font-body);
     font-weight: 600;
     text-align: right;
@@ -457,9 +457,9 @@
     justify-content: space-between;
     padding: 12px 14px;
     border-radius: 10px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(var(--ink-rgb),0.03);
     margin-bottom: 8px;
-    border: 1px solid rgba(255,255,255,0.05);
+    border: 1px solid rgba(var(--ink-rgb),0.05);
     transition: border-color 0.2s;
 }
 .perfil-stat-row:hover { border-color: rgba(188,19,254,0.2); }
@@ -481,13 +481,13 @@
 }
 .perfil-stat-label {
     font-size: 0.88rem;
-    color: #fff;
+    color: var(--text-main);
     font-family: var(--font-body);
     font-weight: 600;
 }
 .perfil-stat-sublabel {
     font-size: 0.72rem;
-    color: rgba(255,255,255,0.4);
+    color: rgba(var(--ink-rgb),0.4);
     font-family: var(--font-body);
 }
 .perfil-stat-val {
@@ -503,7 +503,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 13px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(var(--ink-rgb),0.06);
     gap: 10px;
 }
 .perfil-pref-row:last-of-type { border-bottom: none; }
@@ -511,7 +511,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    color: rgba(255,255,255,0.65);
+    color: rgba(var(--ink-rgb),0.65);
     font-size: 0.88rem;
     font-family: var(--font-body);
 }
@@ -534,7 +534,7 @@
 /* ── ACTIVIDAD RECIENTE ── */
 .perfil-activity-section {
     margin-top: 20px;
-    background: rgba(10, 5, 25, 0.82);
+    background: rgba(var(--surface-card-rgb), 0.82);
     border: 1px solid rgba(188,19,254,0.18);
     border-radius: 16px;
     padding: 22px 26px;
@@ -550,7 +550,7 @@
     font-family: var(--font-display);
     font-size: 0.78rem;
     letter-spacing: 2px;
-    color: #fff;
+    color: var(--text-main);
     text-transform: uppercase;
     display: flex;
     align-items: center;
@@ -578,8 +578,8 @@
     gap: 12px;
 }
 .perfil-activity-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(var(--ink-rgb),0.04);
+    border: 1px solid rgba(var(--ink-rgb),0.07);
     border-radius: 10px;
     padding: 14px 16px;
     display: flex;
@@ -612,19 +612,19 @@
     font-size: 0.85rem;
     font-family: var(--font-body);
     font-weight: 600;
-    color: #fff;
+    color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .perfil-activity-time {
     font-size: 0.72rem;
-    color: rgba(255,255,255,0.4);
+    color: rgba(var(--ink-rgb),0.4);
     font-family: var(--font-body);
 }
 .perfil-activity-arrow {
     font-size: 0.75rem;
-    color: rgba(255,255,255,0.25);
+    color: rgba(var(--ink-rgb),0.25);
 }
 
 /* Utility classes for migrated inline styles */
@@ -636,7 +636,7 @@
     text-align: center;
     margin-top: 30px;
     font-size: 0.78rem;
-    color: rgba(255,255,255,0.3);
+    color: rgba(var(--ink-rgb),0.3);
     font-family: var(--font-body);
     display: flex;
     align-items: center;
@@ -760,10 +760,10 @@
 
 /* ── Inputs de edición inline ── */
 .perfil-edit-input {
-    background: rgba(10, 5, 25, 0.85);
+    background: rgba(var(--surface-card-rgb), 0.85);
     border: 1.5px solid rgba(168, 85, 247, 0.6);
     border-radius: 8px;
-    color: #fff;
+    color: var(--text-main);
     font-family: var(--font-body);
     font-size: 0.9rem;
     padding: 6px 10px;
@@ -805,7 +805,7 @@
 .perfil-import-desc {
     margin: 0 0 1rem;
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(var(--ink-rgb), 0.55);
     line-height: 1.5;
 }
 
@@ -820,7 +820,7 @@
 .perfil-import-upload input[type="file"] {
     font-family: var(--font-body);
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(var(--ink-rgb), 0.7);
 }
 
 .perfil-btn-import-preview {
@@ -847,7 +847,7 @@
     font-size: 0.8rem;
     font-weight: 600;
     letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(var(--ink-rgb), 0.4);
     margin-bottom: 0.75rem;
     text-transform: uppercase;
 }
@@ -878,7 +878,7 @@
 .mal-preview-label {
     display: block;
     font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(var(--ink-rgb), 0.45);
     margin-top: 2px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -893,7 +893,7 @@
 
 .mal-progress-bar {
     height: 6px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(var(--ink-rgb), 0.08);
     border-radius: 3px;
     overflow: hidden;
     margin-bottom: 0.5rem;
@@ -908,7 +908,7 @@
 
 .mal-progress-text {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(var(--ink-rgb), 0.55);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -936,12 +936,12 @@
 }
 
 .mal-result-ok { color: #4ade80; }
-.mal-result-skip { color: rgba(255, 255, 255, 0.4); }
+.mal-result-skip { color: rgba(var(--ink-rgb), 0.4); }
 .mal-result-err { color: #ff6b6b; }
 
 .mal-result-note {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(var(--ink-rgb), 0.35);
     margin: 0.5rem 0 0;
 }
 
@@ -951,7 +951,7 @@
     margin: 60px auto;
     padding: 48px 40px;
     text-align: center;
-    background: rgba(10, 5, 25, 0.82);
+    background: rgba(var(--surface-card-rgb), 0.82);
     border: 1px solid rgba(188, 19, 254, 0.25);
     border-radius: 16px;
     backdrop-filter: blur(10px);
@@ -972,11 +972,11 @@
     font-family: var(--font-display);
     font-size: 1.2rem;
     letter-spacing: 2px;
-    color: #fff;
+    color: var(--text-main);
     margin: 0 0 12px;
 }
 .perfil-guest-text {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(var(--ink-rgb), 0.6);
     font-size: 0.95rem;
     line-height: 1.5;
     margin: 0 0 28px;
@@ -997,7 +997,7 @@
     padding: 12px 24px;
     border-radius: 8px;
     background: linear-gradient(135deg, rgba(188, 19, 254, 0.85), rgba(120, 10, 200, 0.85));
-    color: #fff;
+    color: var(--text-main);
     font-family: var(--font-display);
     font-size: 0.8rem;
     letter-spacing: 1.5px;
@@ -1010,7 +1010,7 @@
     box-shadow: 0 6px 24px rgba(188, 19, 254, 0.5);
 }
 .perfil-guest-btn-back {
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(var(--ink-rgb), 0.55);
     font-family: var(--font-display);
     font-size: 0.72rem;
     letter-spacing: 1px;

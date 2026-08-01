@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-092f53ff';
+const CACHE_NAME = 'anime-destiny-19552ce9';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -40,9 +40,13 @@ const ASSETS = [
   '/privacidad.html',
   '/terminos.html',
   '/404.html',
+  '/offline.html',
   '/css/bundle.css',
   '/css/bundle.min.css',
   '/js/core-bundle.min.js',
+  '/js/core/i18n.js',
+  '/js/core/theme.js',
+  '/js/pages/offline.js',
   '/manifest.json'
 ];
 
@@ -127,8 +131,10 @@ self.addEventListener('fetch', (event) => {
         return response;
       });
     }).catch(() => {
+      // Sin red y sin copia en caché: mostramos la página de respaldo offline
+      // en vez del 404 (que sugiere, erróneamente, que la ruta no existe).
       if (event.request.mode === 'navigate') {
-        return caches.match('/404.html');
+        return caches.match('/offline.html').then((res) => res || caches.match('/404.html'));
       }
     })
   );

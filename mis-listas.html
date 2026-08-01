@@ -21,7 +21,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=092f53ff">
+        <link rel="stylesheet" href="css/bundle.min.css?v=19552ce9">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
@@ -49,7 +49,7 @@
         .lists-sidebar::-webkit-scrollbar-thumb { background: rgba(77,134,255,0.3); border-radius: 2px; }
 
         .sidebar-profile {
-            background: rgba(255,255,255,0.04);
+            background: rgba(var(--ink-rgb),0.04);
             border: 1px solid rgba(77,134,255,0.25);
             border-radius: 14px;
             padding: 16px;
@@ -113,7 +113,7 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1.1rem;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
         }
         .lists-profile-avatar {
             width: 52px;
@@ -126,7 +126,7 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1.1rem;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             margin: 0 auto 10px;
         }
         .lists-profile-main { text-align: center; }
@@ -134,20 +134,20 @@
             font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            color: rgba(255,255,255,0.4);
+            color: rgba(var(--ink-rgb),0.4);
             font-family: 'Orbitron', sans-serif;
             display: block;
         }
         .lists-profile-name {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.95rem;
-            color: #fff;
+            color: var(--text-main);
             display: block;
             margin: 4px 0 8px;
         }
         .lists-profile-track {
             height: 5px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(var(--ink-rgb),0.1);
             border-radius: 3px;
             overflow: hidden;
             margin-bottom: 4px;
@@ -160,7 +160,7 @@
         }
         .lists-profile-meta {
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.5);
+            color: rgba(var(--ink-rgb),0.5);
             font-family: 'Rajdhani', sans-serif;
         }
         .lists-profile-actions {
@@ -217,8 +217,8 @@
             background: linear-gradient(145deg, #0e1a3a, #2f6bff);
         }
         .sidebar-guest-icon svg { width: 32px; height: 32px; }
-        .sidebar-guest-text { color: rgba(255,255,255,0.5); font-size: 0.8rem; font-family: 'Rajdhani', sans-serif; margin: 0 0 4px; }
-        .sidebar-guest-sub { color: rgba(255,255,255,0.35); font-size: 0.72rem; margin: 0; }
+        .sidebar-guest-text { color: rgba(var(--ink-rgb),0.5); font-size: 0.8rem; font-family: 'Rajdhani', sans-serif; margin: 0 0 4px; }
+        .sidebar-guest-sub { color: rgba(var(--ink-rgb),0.35); font-size: 0.72rem; margin: 0; }
         .sidebar-login-btn {
             display: inline-flex;
             align-items: center;
@@ -238,7 +238,7 @@
         }
         .sidebar-login-btn:hover {
             background: linear-gradient(135deg, rgba(28,70,240,0.6), rgba(77,134,255,0.4));
-            color: #fff;
+            color: var(--text-main);
             box-shadow: 0 0 20px rgba(77,134,255,0.4);
         }
         .sidebar-login-btn svg { width: 16px; height: 16px; }
@@ -256,7 +256,7 @@
             padding: 10px 14px;
             border-radius: 10px;
             text-decoration: none;
-            color: rgba(255,255,255,0.6);
+            color: rgba(var(--ink-rgb),0.6);
             font-family: 'Rajdhani', sans-serif;
             font-size: 0.9rem;
             font-weight: 600;
@@ -264,9 +264,9 @@
             border: 1px solid transparent;
         }
         .sidebar-link:hover {
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            border-color: rgba(255,255,255,0.08);
+            background: rgba(var(--ink-rgb),0.05);
+            color: var(--text-main);
+            border-color: rgba(var(--ink-rgb),0.08);
         }
         .sidebar-link {
             position: relative;
@@ -308,7 +308,7 @@
         }
         .quote-text {
             font-size: 0.82rem;
-            color: rgba(255,255,255,0.6);
+            color: rgba(var(--ink-rgb),0.6);
             font-style: italic;
             font-family: 'Rajdhani', sans-serif;
             line-height: 1.5;
@@ -344,7 +344,7 @@
             letter-spacing: 2px;
         }
         .lists-subtitle {
-            color: rgba(255,255,255,0.55);
+            color: rgba(var(--ink-rgb),0.55);
             font-size: 0.88rem;
             font-family: 'Rajdhani', sans-serif;
             margin: 0;
@@ -377,12 +377,12 @@
             box-shadow: 0 0 18px rgba(77,134,255,0.12);
         }
         .points-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .points-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #fff; }
+        .points-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--text-main); }
         .points-value { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #00f2ff; }
         .points-track {
             height: 8px;
-            background: rgba(255,255,255,0.09);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(var(--ink-rgb),0.09);
+            border: 1px solid rgba(var(--ink-rgb),0.08);
             border-radius: 999px;
             overflow: hidden;
         }
@@ -400,7 +400,7 @@
         }
         .points-sub {
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.4);
+            color: rgba(var(--ink-rgb),0.4);
             font-family: 'Rajdhani', sans-serif;
             margin-top: 5px;
         }
@@ -418,9 +418,9 @@
             gap: 6px;
             padding: 8px 16px;
             border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.65);
+            border: 1px solid rgba(var(--ink-rgb),0.12);
+            background: rgba(var(--ink-rgb),0.04);
+            color: rgba(var(--ink-rgb),0.65);
             font-family: 'Orbitron', sans-serif;
             font-size: 0.65rem;
             letter-spacing: 1px;
@@ -513,8 +513,8 @@
         }
         /* El color de la card es solo para acentos; restaurar texto */
         .category-card .cat-card-label,
-        .category-card .cat-card-count { color: #fff; }
-        .category-card .cat-card-sublabel { color: rgba(255,255,255,0.4); }
+        .category-card .cat-card-count { color: var(--text-main); }
+        .category-card .cat-card-sublabel { color: rgba(var(--ink-rgb),0.4); }
 
         .cat-card-head {
             display: flex;
@@ -539,13 +539,13 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 0.7rem;
             letter-spacing: 1.5px;
-            color: #fff;
+            color: var(--text-main);
         }
         .cat-card-count {
             font-family: 'Orbitron', sans-serif;
             font-size: 1.8rem;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             transition: color 0.25s;
         }
         .category-card.anime:hover .cat-card-count { color: #00f2ff; }
@@ -553,7 +553,7 @@
         .category-card.novelas:hover .cat-card-count { color: #f43f5e; }
         .cat-card-sublabel {
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.4);
+            color: rgba(var(--ink-rgb),0.4);
             font-family: 'Rajdhani', sans-serif;
         }
         .cat-card-link {
@@ -566,14 +566,14 @@
             text-decoration: none;
             padding: 6px 12px;
             border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(var(--ink-rgb),0.1);
+            color: rgba(var(--ink-rgb),0.5);
             transition: all 0.2s;
             align-self: flex-start;
         }
         .cat-card-link:hover {
-            color: #fff;
-            border-color: rgba(255,255,255,0.3);
+            color: var(--text-main);
+            border-color: rgba(var(--ink-rgb),0.3);
         }
 
         /* Actividad mini lista en la card */
@@ -584,17 +584,17 @@
             gap: 8px;
             padding: 6px 8px;
             border-radius: 8px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(var(--ink-rgb),0.03);
+            border: 1px solid rgba(var(--ink-rgb),0.05);
             font-size: 0.8rem;
             font-family: 'Rajdhani', sans-serif;
-            color: rgba(255,255,255,0.75);
+            color: rgba(var(--ink-rgb),0.75);
             transition: background 0.2s;
         }
-        .cat-activity-item:hover { background: rgba(255,255,255,0.06); }
+        .cat-activity-item:hover { background: rgba(var(--ink-rgb),0.06); }
         .cat-activity-item .ai-icon { font-size: 0.9rem; }
         .cat-activity-item .ai-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .cat-activity-item .ai-time { font-size: 0.7rem; color: rgba(255,255,255,0.35); white-space: nowrap; }
+        .cat-activity-item .ai-time { font-size: 0.7rem; color: rgba(var(--ink-rgb),0.35); white-space: nowrap; }
 
         /* ◆ GRID DE RESULTADOS (filas) ◆ */
         .lists-section { margin-bottom: 28px; }
@@ -602,7 +602,7 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 0.78rem;
             letter-spacing: 2px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(var(--ink-rgb),0.7);
             margin: 0 0 14px;
             text-transform: uppercase;
         }
@@ -620,9 +620,9 @@
             gap: 6px;
             padding: 8px 16px;
             border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.03);
-            color: rgba(255,255,255,0.55);
+            border: 1px solid rgba(var(--ink-rgb),0.1);
+            background: rgba(var(--ink-rgb),0.03);
+            color: rgba(var(--ink-rgb),0.55);
             font-family: 'Orbitron', sans-serif;
             font-size: 0.62rem;
             letter-spacing: 1px;
@@ -644,8 +644,8 @@
             grid-template-columns: 28px 42px 1fr auto 72px;
             gap: 12px;
             align-items: center;
-            background: rgba(10,5,25,0.8);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(var(--surface-card-rgb),0.8);
+            border: 1px solid rgba(var(--ink-rgb),0.07);
             border-radius: 12px;
             padding: 12px 16px;
             transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
@@ -674,7 +674,7 @@
         .row-rank {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.78rem;
-            color: rgba(255,255,255,0.3);
+            color: rgba(var(--ink-rgb),0.3);
             text-align: center;
         }
         .row-cover {
@@ -682,13 +682,13 @@
             height: 60px;
             object-fit: cover;
             border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(var(--ink-rgb),0.1);
         }
         .row-info { min-width: 0; }
         .row-title {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.82rem;
-            color: #fff;
+            color: var(--text-main);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -696,7 +696,7 @@
         }
         .row-desc {
             font-size: 0.78rem;
-            color: rgba(255,255,255,0.45);
+            color: rgba(var(--ink-rgb),0.45);
             font-family: 'Rajdhani', sans-serif;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -720,7 +720,7 @@
             border-radius: 999px;
             background: rgba(77,134,255,0.1);
             border: 1px solid rgba(77,134,255,0.22);
-            color: rgba(255,255,255,0.7);
+            color: rgba(var(--ink-rgb),0.7);
             font-family: 'Rajdhani', sans-serif;
             font-size: 0.68rem;
             font-weight: 600;
@@ -732,7 +732,7 @@
         .row-desc .genre-chip:hover {
             background: rgba(77,134,255,0.2);
             border-color: rgba(77,134,255,0.4);
-            color: #fff;
+            color: var(--text-main);
         }
         .row-status {
             text-align: right;
@@ -743,7 +743,7 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 0.85rem;
             font-weight: 700;
-            color: rgba(255,255,255,0.6);
+            color: rgba(var(--ink-rgb),0.6);
             text-align: right;
         }
 
@@ -751,16 +751,16 @@
         .lists-empty {
             text-align: center;
             padding: 48px 20px;
-            color: rgba(255,255,255,0.4);
-            border: 1px dashed rgba(255,255,255,0.1);
+            color: rgba(var(--ink-rgb),0.4);
+            border: 1px dashed rgba(var(--ink-rgb),0.1);
             border-radius: 14px;
             transition: border-color 0.2s;
         }
-        .lists-empty:hover { border-color: rgba(255,255,255,0.18); }
+        .lists-empty:hover { border-color: rgba(var(--ink-rgb),0.18); }
         .lists-empty h3 {
             font-family: 'Orbitron', sans-serif;
             font-size: 1rem;
-            color: rgba(255,255,255,0.55);
+            color: rgba(var(--ink-rgb),0.55);
             margin: 0 0 8px;
         }
         .lists-empty p { font-family: 'Rajdhani', sans-serif; margin: 0; }
@@ -794,9 +794,9 @@
             width: 100%;
             padding: 11px;
             border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.03);
-            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(var(--ink-rgb),0.1);
+            background: rgba(var(--ink-rgb),0.03);
+            color: rgba(var(--ink-rgb),0.5);
             font-family: 'Orbitron', sans-serif;
             font-size: 0.68rem;
             letter-spacing: 1px;
@@ -817,8 +817,8 @@
             gap: 12px;
         }
         .achievement-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(var(--ink-rgb),0.04);
+            border: 1px solid rgba(var(--ink-rgb),0.08);
             border-radius: 14px;
             padding: 16px;
             display: flex;
@@ -845,11 +845,11 @@
         .achievement-title {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.75rem;
-            color: #fff;
+            color: var(--text-main);
         }
         .achievement-desc {
             font-size: 0.8rem;
-            color: rgba(255,255,255,0.5);
+            color: rgba(var(--ink-rgb),0.5);
             font-family: 'Rajdhani', sans-serif;
         }
         .achievement-state {
@@ -857,7 +857,7 @@
             font-family: 'Orbitron', sans-serif;
             color: #00f2ff;
         }
-        .achievement-card.is-locked .achievement-state { color: rgba(255,255,255,0.3); }
+        .achievement-card.is-locked .achievement-state { color: rgba(var(--ink-rgb),0.3); }
 
         /* Apodo en el perfil del sidebar */
         .lists-profile-apodo {
@@ -880,8 +880,8 @@
             gap: 12px;
         }
         .apodo-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(var(--ink-rgb),0.04);
+            border: 1px solid rgba(var(--ink-rgb),0.08);
             border-radius: 14px;
             padding: 16px;
             display: flex;
@@ -913,7 +913,7 @@
         .apodo-nick {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.85rem;
-            color: #fff;
+            color: var(--text-main);
         }
         .apodo-badge {
             font-family: 'Orbitron', sans-serif;
@@ -922,8 +922,8 @@
             text-transform: uppercase;
             padding: 3px 9px;
             border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.12);
-            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(var(--ink-rgb),0.12);
+            color: rgba(var(--ink-rgb),0.5);
             white-space: nowrap;
         }
         .apodo-card.is-unlocked .apodo-badge {
@@ -937,7 +937,7 @@
         }
         .apodo-desc {
             font-size: 0.8rem;
-            color: rgba(255,255,255,0.5);
+            color: rgba(var(--ink-rgb),0.5);
             font-family: 'Rajdhani', sans-serif;
         }
 
@@ -948,8 +948,8 @@
             gap: 14px;
         }
         .stat-card {
-            background: rgba(10,5,25,0.8);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(var(--surface-card-rgb),0.8);
+            border: 1px solid rgba(var(--ink-rgb),0.08);
             border-radius: 14px;
             padding: 18px 20px;
             display: flex;
@@ -970,7 +970,7 @@
         }
         .stat-label {
             font-size: 0.78rem;
-            color: rgba(255,255,255,0.45);
+            color: rgba(var(--ink-rgb),0.45);
             font-family: 'Rajdhani', sans-serif;
         }
 
@@ -995,7 +995,7 @@
             margin-bottom: 8px;
             border-radius: 12px;
             background: rgba(10,12,24,0.8);
-            border: 1px solid rgba(255,255,255,0.07);
+            border: 1px solid rgba(var(--ink-rgb),0.07);
             text-decoration: none;
             transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
         }
@@ -1012,19 +1012,19 @@
             border: 1px solid rgba(77,134,255,0.25);
             display: block;
         }
-        .calendar-cover--empty { background: rgba(255,255,255,0.05); }
+        .calendar-cover--empty { background: rgba(var(--ink-rgb),0.05); }
         .calendar-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
         .calendar-title {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.82rem;
-            color: #fff;
+            color: var(--text-main);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .calendar-meta {
             font-size: 0.78rem;
-            color: rgba(255,255,255,0.5);
+            color: rgba(var(--ink-rgb),0.5);
             font-family: 'Rajdhani', sans-serif;
         }
         .calendar-countdown {
@@ -1098,7 +1098,8 @@
 }
     </style>
 
-    <script src="js/vendor/lucide.min.js?v=092f53ff"></script>
+    <script src="js/vendor/lucide.min.js?v=19552ce9"></script>
+    <script src="js/core/theme.js?v=19552ce9"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="listas" data-no-profile-strip="true">
@@ -1300,14 +1301,14 @@
         </main>
     </div>
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=092f53ff"></script>
-    <script src="js/core/i18n.js?v=092f53ff"></script>
-    <script src="js/core/namespace.js?v=092f53ff"></script>
-    <script type="module" src="api/supabase-config.js?v=092f53ff" async></script>
-    <script src="js/core-bundle.min.js?v=092f53ff" defer></script>
-    <script src="js/pages/mis-listas.js?v=092f53ff" defer></script>
-    <script src="js/pages/mis-listas-logros.js?v=092f53ff" defer></script>
-    <script src="js/pages/mis-listas-apodos.js?v=092f53ff" defer></script>
-    <script src="js/pages/mis-listas-puntos.js?v=092f53ff" defer></script>
+    <script src="js/core/config.js?v=19552ce9"></script>
+    <script src="js/core/i18n.js?v=19552ce9"></script>
+    <script src="js/core/namespace.js?v=19552ce9"></script>
+    <script type="module" src="api/supabase-config.js?v=19552ce9" async></script>
+    <script src="js/core-bundle.min.js?v=19552ce9" defer></script>
+    <script src="js/pages/mis-listas.js?v=19552ce9" defer></script>
+    <script src="js/pages/mis-listas-logros.js?v=19552ce9" defer></script>
+    <script src="js/pages/mis-listas-apodos.js?v=19552ce9" defer></script>
+    <script src="js/pages/mis-listas-puntos.js?v=19552ce9" defer></script>
 </body>
 

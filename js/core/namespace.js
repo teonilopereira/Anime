@@ -33,7 +33,6 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
             navigator.serviceWorker.register('/sw.js').then(function (reg) {
-                console.log('[AnimeDestiny:PWA] Service Worker registrado con éxito:', reg.scope);
                 reg.update();
             }).catch(function (err) {
                 console.warn('[AnimeDestiny:PWA] Error al registrar Service Worker:', err);

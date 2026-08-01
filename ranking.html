@@ -23,7 +23,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-    <link rel="stylesheet" href="css/bundle.min.css?v=092f53ff">
+    <link rel="stylesheet" href="css/bundle.min.css?v=19552ce9">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
             margin: 30px auto;
             padding: 24px;
             border-radius: var(--radius-lg, 16px);
-            background: rgba(8, 6, 20, 0.72);
+            background: rgba(var(--surface-card-rgb), 0.72);
             border: 1px solid rgba(188, 19, 254, 0.18);
         }
 
@@ -85,8 +85,8 @@
             gap: 6px;
             padding: 5px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(var(--ink-rgb), 0.04);
+            border: 1px solid rgba(var(--ink-rgb), 0.08);
         }
         .trk-tab {
             display: inline-flex;
@@ -106,7 +106,7 @@
         .trk-tab:hover { color: var(--text-main); }
         .trk-tab.is-active {
             background: linear-gradient(135deg, var(--neon-purple, #bc13fe), #7b2ff7);
-            color: #fff;
+            color: var(--text-main);
             box-shadow: 0 0 16px rgba(188, 19, 254, 0.45);
         }
 
@@ -122,8 +122,8 @@
             gap: 14px;
             align-items: center;
             padding: 10px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(255, 255, 255, 0.015);
+            border-bottom: 1px solid rgba(var(--ink-rgb), 0.05);
+            background: rgba(var(--ink-rgb), 0.015);
             color: inherit;
             text-decoration: none;
             transition: background .18s;
@@ -131,7 +131,7 @@
         .trk-fila:last-child { border-bottom: 0; }
         .trk-fila:hover { background: rgba(188, 19, 254, 0.10); }
         /* El podio se distingue con un borde lateral dorado/plata/bronce. */
-        .trk-fila--podio { background: rgba(255, 255, 255, 0.035); }
+        .trk-fila--podio { background: rgba(var(--ink-rgb), 0.035); }
         .trk-fila--podio:nth-child(1) { border-left: 2px solid #ffd54a; }
         .trk-fila--podio:nth-child(2) { border-left: 2px solid #cfd8e3; }
         .trk-fila--podio:nth-child(3) { border-left: 2px solid #d68a45; }
@@ -157,8 +157,8 @@
             height: 66px;
             border-radius: 8px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(var(--ink-rgb), 0.05);
+            border: 1px solid rgba(var(--ink-rgb), 0.10);
         }
         .trk-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -208,8 +208,8 @@
             min-width: 62px;
             padding: 8px 10px;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(var(--ink-rgb), 0.03);
+            border: 1px solid rgba(var(--ink-rgb), 0.10);
         }
         .trk-score-num {
             font-family: 'Orbitron', sans-serif;
@@ -282,8 +282,8 @@
             margin: -6px 0 18px;
             padding: 8px 16px;
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.10);
-            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(var(--ink-rgb), 0.10);
+            background: rgba(var(--ink-rgb), 0.03);
             color: var(--text-muted);
             text-decoration: none;
             font-family: 'Rajdhani', sans-serif;
@@ -338,7 +338,8 @@
             .trk-score-num { font-size: 0.95rem; }
         }
     </style>
-    <script src="js/vendor/lucide.min.js?v=092f53ff"></script>
+    <script src="js/vendor/lucide.min.js?v=19552ce9"></script>
+    <script src="js/core/theme.js?v=19552ce9"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="ranking">
@@ -361,10 +362,10 @@
                     <p class="trk-subtitle" data-i18n="rank.subtitulo">Los mejor puntuados por la comunidad.</p>
                 </div>
             </div>
-            <div class="trk-tabs" role="tablist" aria-label="Categoría del ranking">
-                <button class="trk-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="rankingLista" data-cat="anime"><i data-lucide="clapperboard"></i> Anime</button>
-                <button class="trk-tab" type="button" role="tab" aria-selected="false" aria-controls="rankingLista" data-cat="manga"><i data-lucide="book-open"></i> Manga</button>
-                <button class="trk-tab" type="button" role="tab" aria-selected="false" aria-controls="rankingLista" data-cat="novelas"><i data-lucide="book"></i> Novelas</button>
+            <div class="trk-tabs" role="tablist" data-i18n="rank.aria.categoria" data-i18n-attr="aria-label" aria-label="Categoría del ranking">
+                <button class="trk-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="rankingLista" data-cat="anime"><i data-lucide="clapperboard"></i> <span data-i18n="rank.tab.anime">Anime</span></button>
+                <button class="trk-tab" type="button" role="tab" aria-selected="false" aria-controls="rankingLista" data-cat="manga"><i data-lucide="book-open"></i> <span data-i18n="rank.tab.manga">Manga</span></button>
+                <button class="trk-tab" type="button" role="tab" aria-selected="false" aria-controls="rankingLista" data-cat="novelas"><i data-lucide="book"></i> <span data-i18n="rank.tab.novelas">Novelas</span></button>
             </div>
         </div>
 
@@ -372,7 +373,7 @@
              es la unica forma de llegar al de jugadores. -->
         <a class="trk-otro-ranking" href="top.html">
             <i data-lucide="users"></i>
-            <span>Ver el ranking de jugadores</span>
+            <span data-i18n="rank.ver_jugadores">Ver el ranking de jugadores</span>
             <i data-lucide="arrow-right"></i>
         </a>
 
@@ -383,11 +384,11 @@
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=092f53ff"></script>
-    <script src="js/core/i18n.js?v=092f53ff"></script>
-    <script src="js/core/namespace.js?v=092f53ff"></script>
-    <script src="api/supabase-config.js?v=092f53ff" type="module" async></script>
-    <script src="js/core-bundle.min.js?v=092f53ff" defer></script>
-    <script src="js/pages/ranking-top.js?v=092f53ff" defer></script>
+    <script src="js/core/config.js?v=19552ce9"></script>
+    <script src="js/core/i18n.js?v=19552ce9"></script>
+    <script src="js/core/namespace.js?v=19552ce9"></script>
+    <script src="api/supabase-config.js?v=19552ce9" type="module" async></script>
+    <script src="js/core-bundle.min.js?v=19552ce9" defer></script>
+    <script src="js/pages/ranking-top.js?v=19552ce9" defer></script>
 </body>
 </html>
