@@ -3,5 +3,7 @@ Allow: /
 Disallow: /api/
 Disallow: /scratch/
 Disallow: /tools/
+Disallow: /viz/
+Disallow: /docs/
 
 Sitemap: https://animedestiny.netlify.app/sitemap.xml

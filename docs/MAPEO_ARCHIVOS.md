@@ -1,89 +1,117 @@
 # MAPEO DE ARCHIVOS — Anime Destiny
 
-## Raíz (`Anime Destiny/`)
-
-### HTML (13 páginas)
-
-| Archivo | Propósito |
-|---|---|
-| `index.html` | Página principal / menú. Carga cadena completa de auth + catálogo. Nav/footer inyectados por `common-ui.js`. |
-| `anime.html` | Catálogo de anime. `data-page="anime"`. Carga scripts de catálogo + `api.js`. |
-| `manga.html` | Catálogo de manga. Carga `api.js` + `mangadex-api.js`. |
-| `novelas.html` | Catálogo de novelas ligeras. Carga `api.js` + `mangadex-api.js`. |
-| `top.html` | Ranking de juegos con tabs F2P/P2W. Catálogo parcial (`states.js`, `cards.js`, `pagination.js`; sin `search.js` ni `script.js`). Carga `juegos-tabs.js`. |
-| `detalle.html` | Página de detalle (anime, manga, novelas, juegos). Sin scripts de catálogo. Carga `api.js`, `mangadex-api.js`, `detalle.js` y módulos `js/detalle/*.js`. |
-| `manga-info.html` | Redirección legacy a `detalle.html`. Solo 15 líneas. |
-| `mis-listas.html` | Listas personales del usuario (favoritos, vistos, todo). Carga `mangadex-api.js` pero NO `api.js`. |
-| `Login.html` | Inicio de sesión (Google OAuth + email/password). Sin scripts de catálogo; tiene script inline de formulario. |
-| `usuario.html` | Perfil de usuario: datos personales, stats (nivel, XP, likes, vistos). Sin scripts de catálogo. |
-| `configuracion.html` | Configuración: efectos, animaciones, tamaño de tarjetas, datos locales. Sin scripts de catálogo. |
-| `comparar.html` | Comparación lado a lado de dos items del catálogo vía `cat1/id1/cat2/id2` en URL. |
-| `view_images.html` | Visor de imágenes de portadas de manga. Sin Supabase/auth. |
-
-### Otros archivos raíz
-
-| Archivo | Propósito |
-|---|---|
-| `.env` | Credenciales de Supabase (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Gitignored. |
-| `.gitignore` | Excluye `.env`, `js/core/config.js`, `node_modules/`, `dist/`, etc. |
-| `manifest.json` | Manifest PWA: nombre, descripción, iconos 192/512, color tema morado neón. |
-| `config.js` | Template de configuración (no usado en runtime). Valores vacíos, solo referencia. |
+> Referencia del árbol real del repositorio. Sitio **estático** desplegado en
+> Netlify/Vercel **sin paso de build remoto**: los artefactos (`css/bundle*.css`,
+> `js/core-bundle*.js`, `js/vendor/*`) se generan con `npm run build` y **se
+> versionan en git** a propósito. El CI verifica que estén al día.
 
 ---
 
-## `api/` — Clientes API legacy + configuración Supabase
+## Raíz — HTML (15 páginas)
 
-| Archivo | Propósito |
-|---|---|
-| `api.js` | Cliente AniList legacy. GraphQL. Cache con `localStorage`. Contraparte antigua de `js/core/api.js`. |
-| `supabase-config.js` | Módulo ES que crea el cliente Supabase desde `window.AppConfig`. Expone `window.AppSupabase` con métodos de auth, perfiles, estados y progreso. |
-| `datos.json` | Datos estáticos de respaldo (3078 líneas). Arrays de `manga`, `anime`, `juegos`, `novelas` usados cuando falla la API. |
+Cada página lleva `data-page="…"`; el navbar y el footer los inyecta
+`js/core/common-ui.js`.
 
----
-
-## `css/` — 8 hojas de estilo
-
-| Archivo | Propósito |
-|---|---|
-| `base.css` | Reset CSS y tokens de diseño (variables CSS: `--primary-purple`, `--neon-purple`, `--accent-cyan`, etc.). Fuentes Orbitron (títulos) y Rajdhani (cuerpo). |
-| `theme.css` | Tema oscuro cyberpunk: fondo con degradado radial, glows morados/cian. `background-attachment: fixed`. |
-| `components.css` | Estilos globales: navbar, botones, modales, formularios, skeletons, barras de progreso, tooltips. 1765 líneas. |
-| `cards.css` | Galería de tarjetas, animación flip 3D, modales de episodios/volúmenes, franjas de categoría. 3653 líneas. |
-| `responsive.css` | Media queries en 640/768/1024/1280px: cuadrícula, navbar, modales, tipografía. 1051 líneas. |
-| `destiny-navbar.css` | Estilos centralizados de navbar y botón de login. NO agregar estilos de login en bloques `<style>` de HTML. |
-| `usuario.css` | Estilos de la página de perfil: header, avatar, stats, formularios. |
-| `configuracion.css` | Estilos de la página de configuración: toggles, selector de tamaño de tarjetas. |
-
----
-
-## `js/` — Scripts raíz
-
-| Archivo | Propósito |
-|---|---|
-| `datos.js` | Declara `window.DATOS_WEB` con arrays de `manga`, `anime`, `juegos`, `novelas`. Normaliza filas de Supabase. Dispara evento `datosCargados`. |
-| `script.js` | Script compartido de catálogo: escucha evento `supabase-auth-changed` para refrescar botones. Gestiona visibilidad de "Continue Watching". |
-| `ui.js` | Utilidades de UI: `showElement()`, `hideElement()`, `openModal()`, `closeModal()`, `cargarEstadosBotones()`, `actualizarUI()`. |
-| `utils.js` | Utilidades generales: `formatDate()`, `truncateText()`, `parseUrlParams()`, `normalizeText()`, `getCurrentUserId()`. |
-| `detalle.js` | Orquestador legacy de la página de detalle (627 líneas). Contraparte de los módulos `js/detalle/*.js`. |
-| `juegos-tabs.js` | Sistema de tabs F2P/P2W en `top.html`. Filtra juegos por precio y maneja clicks en tabs. |
-| `manga-info.js` | Redirección legacy a `detalle.html`. Solo 5 líneas. |
-| `mis-listas.js` | Lógica de listas de usuario: tabs de categoría, carga de estados desde Supabase, renderizado, sección de actividad reciente. |
-| `comparar.js` | Lógica de comparación: lee `cat1/id1/cat2/id2` de URL, obtiene detalles, renderiza ambas columnas. |
+| Archivo | `data-page` | Propósito |
+|---|---|---|
+| `index.html` | `index` | Página principal / menú. Cadena completa de auth + catálogo. |
+| `anime.html` | `anime` | Catálogo de anime. Scripts de catálogo + `api.js`. |
+| `manga.html` | `manga` | Catálogo de manga. `api.js` + `mangadex-api.js`. |
+| `novelas.html` | `novelas` | Catálogo de novelas ligeras. `api.js` + `mangadex-api.js`. |
+| `top.html` | `top` | Ranking de juegos con tabs. Catálogo parcial. |
+| `detalle.html` | `detalle` | Detalle de anime/manga/novelas/juegos. Módulos `js/detalle/*.js`. |
+| `mis-listas.html` | `listas` | Listas personales (favoritos, vistos, todo), logros, apodos, puntos. |
+| `comparar.html` | `comparar` | Comparación lado a lado vía `cat1/id1/cat2/id2` en la URL. |
+| `ranking.html` | `ranking` | Ranking de usuarios (nivel, XP, apodos). |
+| `usuario.html` | `usuario` | Perfil: datos personales, stats (nivel, XP, likes, vistos). |
+| `configuracion.html` | `configuracion` | Efectos, animaciones, tamaño de tarjetas, datos locales, fondo. |
+| `Login.html` | `login` | Inicio de sesión (Google OAuth + email/password). |
+| `privacidad.html` | `privacidad` | Política de privacidad. |
+| `terminos.html` | `terminos` | Términos y condiciones. |
+| `404.html` | `404` | Página de error 404. |
 
 ---
 
-## `js/core/` — Infraestructura central
+## Raíz — Otros archivos
 
 | Archivo | Propósito |
 |---|---|
-| `config.js` | **Generado automáticamente** (gitignored). `window.AppConfig` con credenciales reales de Supabase. Producido por `tools/generate-config.js` desde `.env`. |
-| `config.template.js` | Template de configuración (trackeado por Git). Muestra la estructura esperada e instrucciones. |
-| `api.js` | Cliente actual de AniList (Cache API, TTL 30 min). Funciones: `searchAnilist()`, `getAnilistById()`, `getAnilistDetails()`, `getMultipleByIds()`. Enruta IDs numéricos a AniList, UUIDs a MangaDex. |
-| `mangadex-api.js` | Cliente de MangaDex (REST, Cache API, TTL 30 min). Funciones: `searchMangaDex()`, `getMangaDexById()`, `getMangaDexCover()`, `getMangaDexVolumes()`. |
-| `auth.js` | Módulo de autenticación. `waitForSupabase()`, `getCurrentUserId()`, `onAuthStateChanged()`, `refreshUserUi()`. Supabase es la única fuente de verdad (sin localStorage para tokens). |
-| `common-ui.js` | Inyecta navbar (logo + enlaces) y footer en `#nav-brand-container`, `#nav-links-container`, `#footer-container`. Último script defer en todas las páginas. No depende de auth. |
-| `storage.js` | Wrapper sobre `window.UserStore`. `read()`, `write()`, `remove()`, `clear()`. No persiste directamente a localStorage. |
-| `user-store.js` | Clase `PersistentStore` (Map en memoria + localStorage bajo clave `animeDestiny:userStore`). Expuesto como `window.UserStore`. |
+| `manifest.json` | Manifest PWA: nombre, iconos 192/512, color tema morado neón. |
+| `sw.js` | Service worker (caché offline de la PWA). |
+| `netlify.toml` | Cabeceras de seguridad (CSP, HSTS, etc.). **Sin comando de build.** |
+| `vercel.json` | Config de Vercel: rutas y cabeceras (espejo de `netlify.toml`). |
+| `_redirects` | Reglas de redirección de Netlify. |
+| `robots.txt` | Directivas para crawlers. Bloquea `/api/`, `/tools/`, `/viz/`, `/scratch/`. |
+| `sitemap.xml` | Mapa del sitio para SEO. |
+| `code-map.json` | Mapa del código (archivos, exports, métricas). Generado por `tools/code-map.js`. |
+| `package.json` | Scripts (`build`, `map`, `test`) y dependencias (`@supabase/supabase-js`, `lucide`). |
+| `vitest.config.js` | Configuración de Vitest (entorno jsdom). |
+| `.gitattributes` / `.gitignore` | `.gitignore` excluye `.env`, `js/core/config.js`, `node_modules/`, `dist/`, etc. |
+
+---
+
+## `api/` — Cliente Supabase
+
+| Archivo | Propósito |
+|---|---|
+| `supabase-config.js` | Bootstrap: crea el cliente desde `window.AppConfig` e importa `supabase-client.js` de forma diferida. Expone `window.AppSupabase` y `window.AppSupabaseReady`. |
+| `supabase-client.js` | Implementación de auth y datos: perfiles, estados de item, progreso, XP. Se carga **dinámicamente** desde `supabase-config.js`. |
+
+---
+
+## `css/` — Hojas de estilo
+
+**Generados por build (no editar a mano):** `bundle.css`, `bundle.min.css`.
+El resto son las fuentes que el build concatena.
+
+| Archivo | Propósito |
+|---|---|
+| `base.css` | Reset + tokens de diseño (variables CSS, fuentes Orbitron/Rajdhani). |
+| `theme.css` | Tema oscuro cyberpunk: fondo radial, glows morados/cian. |
+| `components.css` | Navbar, botones, modales, formularios, skeletons, tooltips. |
+| `cards.css` | Galería de tarjetas, flip 3D, modales de episodios/volúmenes. |
+| `responsive.css` | Media queries (640/768/1024/1280px). |
+| `destiny-navbar.css` | Navbar y botón de login (fuente única; no duplicar en `<style>` inline). |
+| `inicio.css` | Estilos de la página de inicio. |
+| `cards.css` / `advanced-filter.css` | Tarjetas y panel de filtros avanzados. |
+| `detalle-local.css`, `detalle-premium.css`, `detalle-responsive.css`, `detalle-extras.css` | Estilos de la página de detalle (repartidos por área). |
+| `usuario.css` | Perfil de usuario. |
+| `configuracion.css` | Página de configuración (toggles, selector de tamaño). |
+| `login.css` | Página de login. |
+| `mascot.css` | Mascota / pet interactivo (ver `js/ui/mascot.js`). |
+| `bundle.css` / `bundle.min.css` | **Generados.** Concatenación (y minificado) de las fuentes anteriores. |
+
+---
+
+## `js/` — Raíz
+
+**Generados por build:** `core-bundle.js`, `core-bundle.min.js` (concatenan los
+módulos de `js/core/`; las páginas cargan el `.min`).
+
+| Archivo | Propósito |
+|---|---|
+| `datos.js` | Datos estáticos de respaldo del catálogo (fallback si falla la API). |
+| `utils.js` | Utilidades: `formatDate`, `truncateText`, `parseUrlParams`, `normalizeText`, `episodeStorageKey`, etc. |
+| `reload.js` | Handler mínimo de recarga (`onmessage`) para el service worker. |
+
+---
+
+## `js/core/` — Infraestructura central (entra al `core-bundle`)
+
+| Archivo | Propósito |
+|---|---|
+| `config.js` | **Generado** (gitignored). `window.AppConfig` con credenciales de Supabase. Lo produce `tools/generate-config.cjs`. |
+| `config.template.js` | Template versionado que muestra la estructura esperada. |
+| `constants.js` | `window.AnimeDestiny.Constants` (timeouts, límites). |
+| `namespace.js` | Crea `window.AnimeDestiny`, `reportError`, toast de estado de conexión. |
+| `api.js` | Cliente AniList (GraphQL) + orquestación con MangaDex. Enruta IDs numéricos a AniList, UUIDs a MangaDex. |
+| `api-mangadex.js` | Helpers de bajo nivel de MangaDex (mapa de tags, fetch, merge con AniList) que consume `api.js`. Va en el bundle junto a `api.js`. |
+| `mangadex-api.js` | Cliente MangaDex de alto nivel (caché de portadas, placeholder, agregados). Cargado suelto en manga/novelas/detalle/comparar. |
+| `auth.js` | Autenticación sobre Supabase: `getCurrentUser`, `refreshUserUi`, login/logout, bonus diario. |
+| `common-ui.js` | Inyecta navbar y footer en todas las páginas. Último `defer`. |
+| `i18n.js` | Internacionalización: `applyTranslations`, `setLang`, `t`, `window.AppI18n`. |
+| `storage.js` | Wrapper sobre `window.UserStore` (`read`/`write`/`readJson`/`remove`). |
+| `user-store.js` | `PersistentStore` (Map en memoria + localStorage). Expuesto como `window.UserStore`. |
 
 ---
 
@@ -91,21 +119,53 @@
 
 | Archivo | Propósito |
 |---|---|
-| `cards.js` | Renderizado de tarjetas: `renderSkeletonCards()` (40 placeholders), `cargarCatalogo()`, flip 3D, barras de progreso, grilla de episodios/volúmenes. |
-| `pagination.js` | Scroll infinito con `IntersectionObserver` en `#scroll-sentinel`. Gestiona `currentPage`, `isLoadingPage`, `hasMorePages`. |
-| `search.js` | Búsqueda en vivo (debounce 400ms). Consulta `DATOS_WEB` + AniList + MangaDex. Dropdown de sugerencias, chips de género (18), `window.__activeStateFilter`. |
-| `states.js` | Sistema de favoritos/vistos. Cola de sincronización con Supabase. Cálculo de XP y niveles (100 XP por nivel, máx 50). Persistencia local vía `UserStore`. |
+| `cards.js` | Renderizado de tarjetas, skeletons, flip 3D, barras de progreso. |
+| `pagination.js` | Scroll infinito con `IntersectionObserver`; memoria de posición. |
+| `search.js` | Búsqueda en vivo (debounce), sugerencias, chips de género, age-gate NSFW. |
+| `states.js` | Favoritos/vistos, cola de sincronización con Supabase, XP/niveles, watch-status. |
 
 ---
 
-## `js/detalle/` — Módulos de detalle
+## `js/detalle/` — Página de detalle
 
 | Archivo | Propósito |
 |---|---|
-| `data.js` | Utilidades: `getParams()` (lee `id`, `nombre`, `cat` de URL), `normalizeDetailItem()`, `getApiChapterTotal()`. |
-| `interactions.js` | Interactividad: `wirePremiumDetailInteractions()` configura barra de progreso, grilla de episodios, botones favorito/visto, compartir, toggle de sinopsis. |
-| `progress.js` | Sincronización de progreso: `syncProgressFromSupabase()` obtiene claves de progreso desde Supabase y las escribe en `UserStore`. |
-| `render.js` | Renderizado: `renderDetalle()` y `renderApiDetalle()` dibujan la página completa (portada, título, sinopsis, metadatos, franquicia, grilla de progreso, botones). |
+| `data.js` | Utilidades: `getParams`, `normalizeDetailItem`, traducción, estructura de temporadas. |
+| `render.js` | Render principal (`renderDetalle`, `renderApiDetalle`), countdown del próximo episodio, meta tags. |
+| `render-sections.js` | Render de secciones auxiliares del detalle. |
+| `interactions.js` | Interactividad: modal de episodio, resolución de portadas MangaDex, carga desde API. |
+| `progress.js` | Sincronización de progreso con Supabase (cola offline). |
+| `comments.js` | Sistema de comentarios (spoilers, referencias, ordenamiento, filtros). |
+| `seasons.js` | Cadena de temporadas/relaciones (`window.DetalleTemporadas`). |
+| `themes.js` | Openings/endings vía AnimeThemes (caché, reproductor de audio). |
+
+---
+
+## `js/pages/` — Lógica por página
+
+| Archivo | Propósito |
+|---|---|
+| `script.js` | Script compartido de catálogo (secciones, flechas, estados de botones). |
+| `mis-listas.js` | Núcleo de las listas del usuario (categorías, géneros, estados). |
+| `mis-listas-logros.js` | Sistema de logros. |
+| `mis-listas-apodos.js` | Apodos del usuario. |
+| `mis-listas-puntos.js` | Puntos. |
+| `ranking.js` | Ranking de usuarios (render, filtros, carga incremental). |
+| `ranking-top.js` | Tabla del top (filas, tabs, iconos). |
+| `usuario.js` | Perfil: nivel/puntos, fondo personalizado, render de datos. |
+| `configuracion.js` | Toggles, colores personalizados, fondo, tamaño de tarjetas. |
+| `comparar.js` | Comparación de dos items (parseo de params, stats, columnas). |
+| `login.js` | Formulario de login, estados de auth, redirección. |
+| `import-mal.js` | Importación de listas de MyAnimeList (parseo XML, lookup AniList, progreso). |
+
+---
+
+## `js/ui/` — Componentes de UI
+
+| Archivo | Propósito |
+|---|---|
+| `toast.js` | Sistema de toasts (`window.Toast`: `showToast`, `dismissToast`). |
+| `mascot.js` | Mascota / pet interactivo 2D (sprite animado). |
 
 ---
 
@@ -113,67 +173,42 @@
 
 | Archivo | Propósito |
 |---|---|
-| `sanitizer.js` | Sanitización HTML: `escapeHtml()`, `stripTags()`, `sanitizeText()` (strip + escape + trim). |
-| `validator.js` | Validación de entrada: `isValidCategory()`, `isValidId()`, `getSafeCategory()`, `getSafeUrlParams()`. |
+| `sanitizer.js` | `escapeHtml`, `safeUrl` (también en `window`). |
+| `validator.js` | `isValidCategory`, `isValidId`, `getSafeCategory`, `getSafeUrlParams`. |
 
 ---
 
-## `tools/` — Scripts CLI (18 archivos)
+## `js/vendor/` — Dependencias vendorizadas (generadas por build)
 
 | Archivo | Propósito |
 |---|---|
-| `generate-config.js` | Lee `.env` y genera `js/core/config.js` con credenciales reales de Supabase. |
-| `auto-html.js` | Automatiza consistencia entre HTML: reemplaza footer, agrega `common-ui.js`, normaliza `config.js`, arregla iconos sociales. |
-| `fix-scripts.js` | Corrige etiquetas `<script>` mal cerradas de `config.js`. |
-| `replace-nav.js` | Reemplaza navbar/footer hardcodeados con divs placeholder en 11 HTMLs. |
-| `replace-pagination.js` | Reemplaza `div.modern-pagination` con `#scroll-sentinel` en anime/manga/novelas. |
-| `replace-store.js` | Migra llamadas `localStorage` a `UserStore` en JS. |
-| `insert-store.js` | Inserta `<script src="js/core/user-store.js">` en HTMLs. |
-| `add-manifest.js` | Agrega `<link rel="manifest">` a HTMLs que lo necesiten. |
-| `add-p2w.js` | Marca juegos con `precio >= 40000` como `p2w: true` en `datos.json`. |
-| `add_missing_manga_entries.js` | Agrega entradas de manga faltantes a `datos.js`. |
-| `clean-duplicates.js` | Elimina CSS duplicado y estilos inline de login de todos los HTMLs. |
-| `clean-scriptjs.js` | Elimina bloque duplicado de paginación en `js/script.js`. |
-| `fix_all.js` | Corrige caracteres corruptos (mojibake) en HTML y JS. |
-| `fix_datos_replacement.js` | Corrige mojibake específico en `datos.js`. |
-| `fix_manga_images.js` | Verifica que imágenes de manga existan en `images/manga/`. |
-| `fix_text.js` | Corrige mojibake en `mis-listas.js` y `script.js`. |
-| `update-html.js` | Script legacy (deprecado). Inserta scripts antiguos en HTMLs. |
+| `lucide.min.js` | Subconjunto de iconos Lucide empaquetado desde `tools/lucide-entry.js`. |
+| `supabase.esm.js` | SDK de Supabase auto-hospedado (evita abrir el CSP a un CDN externo). |
 
 ---
 
-## `server/` — Schema de Supabase
+## `tools/` — Scripts CLI
 
 | Archivo | Propósito |
 |---|---|
-| `schema-supabase.sql` | Schema inicial (205 líneas): tablas `profiles`, `item_states`, `progress_keys`, trigger `set_updated_at()`, políticas RLS, trigger `handle_new_user()`. |
+| `build.js` | Pipeline de build: genera `css/bundle*.css`, `js/core-bundle*.js`, `js/vendor/*` y estampa versión. |
+| `generate-config.cjs` | Lee `.env` y genera `js/core/config.js` con credenciales de Supabase. |
+| `code-map.js` | Genera `code-map.json` (mapa de archivos/exports/métricas). `npm run map`. |
+| `check-quality.js` | Chequeos de calidad del código. |
+| `lucide-entry.js` | Punto de entrada del bundle reducido de Lucide. |
+| `serve.cjs` | Servidor HTTP estático local para desarrollo. |
+| `fix_encoding.js` | Corrige caracteres corruptos (mojibake). |
+| `auto-html.js` | Consistencia entre HTML (footer, `common-ui.js`, iconos). |
+| `add_missing_manga_entries.js` | Agrega entradas de manga faltantes a los datos. |
 
 ---
 
-## `sql/` — Migraciones numeradas (01–12)
+## `server/` — Supabase
 
 | Archivo | Propósito |
 |---|---|
-| `01_schema_base.sql` | Schema base: `profiles`, `item_states`, `progress_keys`, triggers y RLS inicial. |
-| `02_fix_handle_new_user.sql` | Corrige `handle_new_user()` para extraer `raw_user_meta_data`. |
-| `03_schema_complete.sql` | Schema completo consolidado (copia de referencia). |
-| `04_add_profile_stats_columns.sql` | Agrega columnas `level`, `exp`, `total_likes`, `total_viewed`, `updated_stats_at` a `profiles`. |
-| `05_update_user_stats_trigger.sql` | Crea trigger que recalcula stats en `profiles` al insertar/actualizar `item_states`. |
-| `06_migration_user_progress.sql` | Crea tabla `user_progress` y `user_activity_log`. Triggers de sincronización. |
-| `07_fix_rebuild_progress.sql` | Agrega columnas faltantes a `user_progress`. Crea `rebuild_user_progress_row()`. |
-| `08_fix_stats_triggers.sql` | Relaja límite de `meta_size_limit` a 15000 bytes. Maneja DELETE en triggers. |
-| `09_fix_activity_log.sql` | Corrige `log_item_state_activity()` para DELETE. |
-| `10_final_additions.sql` | Política de lectura pública en `profiles`. Función `add_user_exp()`. |
-| `11_clean_duplicate_triggers.sql` | Limpia triggers duplicados en `item_states`. Versiones únicas y limpias. |
-| `12_fix_user_progress_rls.sql` | Agrega políticas RLS faltantes en `user_progress` (SELECT/INSERT/UPDATE). |
-
----
-
-## `sql/migrations/`
-
-| Archivo | Propósito |
-|---|---|
-| `add_user_stats_and_progress.sql` | Migración combinada opcional (250 líneas): stats + progreso + activity log + triggers en un solo archivo. |
+| `schema.sql` | Schema consolidado v2 (reemplaza versiones anteriores). Ejecutar en el SQL Editor. |
+| `migrations/001_…` a `007_…` | Migraciones incrementales: comentarios, referencias, watch-status, apodos, ranking, spoilers, hardening. |
 
 ---
 
@@ -181,18 +216,42 @@
 
 | Archivo | Propósito |
 |---|---|
-| `implementation_plan.md` | Plan de integración de MangaDex: enrutamiento UUID, creación de `mangadex-api.js`, búsqueda combinada. |
-| `README_ESTADISTICAS.md` | Documentación del sistema de estadísticas: nivel, XP, likes, vistos, progreso, triggers de Supabase. |
-| `SETUP_SUPABASE.md` | Guía paso a paso para configurar Supabase: proyecto, migraciones, auth providers, RLS. |
-| `task.md` | Checklist de tareas de integración MangaDex (completadas). |
-| `walkthrough.md` | Documentación de fixes aplicados: sesión, navbar, sincronización, refresh de tarjetas, progreso. |
+| `MAPEO_ARCHIVOS.md` | Este documento. |
+| `README_ESTADISTICAS.md` | Sistema de estadísticas (nivel, XP, likes, vistos, triggers). |
+| `SETUP_SUPABASE.md` | Guía de configuración de Supabase. |
+| `implementation_plan.md` | Plan de integración de MangaDex. |
+| `task.md` | Checklist de tareas. |
+| `walkthrough.md` | Fixes aplicados (sesión, navbar, sincronización, progreso). |
+| `segundo-cerebro.md` | Mapa del proyecto por dominios, generado desde `code-map.json`. |
+| `nav-preview.html` | Vista previa del navbar (herramienta de desarrollo). |
 
 ---
 
-## `images/` — Assets estáticos
+## `viz/` — Visualizaciones "Segundo Cerebro" (herramientas de desarrollo)
+
+Páginas HTML que visualizan la estructura del código a partir de `code-map.json`.
+No forman parte de la app de usuario; están excluidas del indexado en `robots.txt`.
 
 | Archivo | Propósito |
 |---|---|
-| `icon-192.png` | Icono PWA 192×192 para home screen. |
-| `icon-512.png` | Icono PWA 512×512 para splash screens. |
-| `Logo.png` | Logo de "Anime Destiny" usado en navbar. |
+| `index.html` | Hub de las visualizaciones. |
+| `segundo-cerebro.html` | Grafo de dominios/archivos (versión interactiva de `docs/segundo-cerebro.md`). |
+| `red-neuronal.html`, `red-neuronal-hud.html`, `red-neuronal-cerebro.html` | Variantes del grafo tipo red neuronal. |
+| `arbol-rpg.html`, `arbol-rpg-circular.html`, `arbol-habilidades.html`, `arbol-diagnostico.html` | Variantes de árbol de habilidades/diagnóstico. |
+
+---
+
+## `tests/` — Vitest
+
+`tests/setup.js` + `tests/unit/*.test.js` (seasons, themes, sanitizer, toast,
+validator, ranking-top, storage, i18n, user-store, api-multipage, utils).
+Se ejecutan con `npm test`.
+
+---
+
+## `images/` — Assets
+
+| Archivo | Propósito |
+|---|---|
+| `Logo.png` | Logo de "Anime Destiny" (navbar). |
+| `icon-192.png` / `icon-512.png` | Iconos PWA. |
