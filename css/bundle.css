@@ -3736,8 +3736,66 @@ body.reduce-motion .catalog-neon-card {
 }
 
 @media (max-width: 520px) {
+    /* En telefonos el catalogo pasa a 2 columnas y la card queda angosta:
+       el dorso se recompone para que su contenido entre sin recortarse. */
     .catalog-band-card .cband-inner {
-        height: 340px;
+        height: 360px;
+    }
+
+    .catalog-band-card .cband-back {
+        gap: 8px;
+        padding: 12px 12px 14px;
+    }
+
+    .catalog-band-card .cband-back-head {
+        gap: 8px;
+    }
+
+    .catalog-band-card .cband-back .card-back-title {
+        font-size: 0.9rem;
+        line-height: 1.15;
+    }
+
+    /* El boton de flip del dorso se achica un poco para no comerse el ancho
+       del titulo en pantallas chicas. */
+    .catalog-band-card .cband-back .cband-flip {
+        width: 32px;
+        height: 32px;
+        flex: 0 0 32px;
+    }
+
+    .catalog-band-card .cband-back .watch-status-select {
+        font-size: 0.7rem;
+    }
+
+    /* La fila de acciones (favorito, visto y DETALLE) no entra en una sola
+       linea cuando la card es angosta: los dos botones circulares quedan
+       centrados arriba y DETALLE ocupa el ancho completo debajo. */
+    .catalog-band-card .cband-back-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .catalog-band-card .cband-back-actions .card-back-detail-btn {
+        flex: 1 1 100%;
+        width: 100%;
+        margin-left: 0;
+        min-height: 38px;
+    }
+}
+
+@media (max-width: 380px) {
+    /* Telefonos muy angostos: ajuste fino de tipografia y botones del dorso. */
+    .catalog-band-card .cband-back .card-back-title {
+        font-size: 0.82rem;
+    }
+
+    .catalog-band-card .cband-back-actions .action-btn {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
     }
 }
 
