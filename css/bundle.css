@@ -6379,6 +6379,33 @@ body.reduce-motion .destiny-navbar .nav-user-avatar {
     60%      { transform: translateY(0) scaleY(0.92) scaleX(1.08); }
 }
 
+/* ── Modo paseo (el motor de mascot.js mueve el sprite por top/left) ──
+   La física ya aporta el movimiento, así que se apaga el rebote idle para que
+   no pelee con él; se reactivan hablar y el squash de aterrizaje con mayor
+   especificidad. El "mirar hacia" (scaleX ±1) va sobre el <svg>, no sobre
+   .mascot-pet, para no interferir con estas animaciones. */
+.mascot-root.mascot-roaming .mascot-pet {
+    animation: none;
+    /* left/top los fija el motor; sin transición para que el paso a paso sea
+       exacto frame a frame. */
+    transition: none;
+}
+.mascot-root.mascot-roaming .mascot-pet svg {
+    transition: transform 0.08s linear; /* flip de dirección suave */
+}
+.mascot-root.mascot-roaming .mascot-pet.mascot-talking {
+    animation: mascot-talk 0.4s ease-in-out 2;
+}
+.mascot-root.mascot-roaming .mascot-pet.mascot-land {
+    animation: mascot-land 0.3s ease-out;
+}
+/* Aterrizaje: aplasta al tocar la repisa y se recompone (pies anclados). */
+@keyframes mascot-land {
+    0%   { transform: translateY(-2px) scaleY(1.08) scaleX(0.92); }
+    55%  { transform: translateY(0) scaleY(0.82) scaleX(1.18); }
+    100% { transform: translateY(0) scaleY(1) scaleX(1); }
+}
+
 /* ── Bocadillo ── */
 .mascot-bubble {
     pointer-events: auto;

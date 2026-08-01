@@ -1031,6 +1031,77 @@ async function cargarEstadosDesdeSupabase() {
     }
 }
 
+// ─── Reparación de portadas guardadas sin URL ───────────────────────────
+// Metadatos viejos guardaban el id del item (o vacío) en vez de la URL de la
+// portada, así que en la lista salía el poster de respaldo (el degradado con
+// solo el título). Al cargar, se detectan esos ítems, se piden las portadas a
+// AniList por lote y se persiste la URL correcta (UserStore + Supabase) para
+// que no vuelva a pasar. Es idempotente: una vez reparados no hay más ítems
+// rotos, así que no dispara pedidos en las siguientes cargas.
+function _esPortadaRota(img) {
+    const s = String(img || '').trim();
+    if (!s) return true;                       // sin imagen
+    if (/^https?:\/\//i.test(s)) return false; // URL remota válida
+    if (/^data:image\//i.test(s)) return false;// data URI de imagen
+    if (s.indexOf('/') !== -1) return false;   // ruta relativa (images/...)
+    return true;                               // p.ej. "16498" (el id) → roto
+}
+
+async function repararPortadasFaltantes() {
+    if (typeof window.getCoversByIds !== 'function') return;
+    const userId = getCurrentUserIdSafe();
+    if (!userId || userId === 'Invitado') return;
+
+    const rotos = getAllItems().filter((it) => _esPortadaRota(it.img) && Number(it.id) > 0);
+    if (!rotos.length) return;
+
+    const covers = await window.getCoversByIds(rotos.map((it) => Number(it.id)));
+    if (!covers || !Object.keys(covers).length) return;
+
+    let cambiados = 0;
+    rotos.forEach((it) => {
+        const url = covers[String(it.id)];
+        if (!url) return;
+
+        // 1) Metadatos locales
+        const metaKey = 'u:' + userId + '|itemMeta:' + it.id;
+        let meta = {};
+        try { const raw = UserStore.getItem(metaKey); if (raw) meta = JSON.parse(raw) || {}; } catch (e) { meta = {}; }
+        meta.id = String(it.id);
+        meta.img = url;
+        if (!meta.__category && it.__category) meta.__category = it.__category;
+        if (!meta.titulo && it.titulo) meta.titulo = it.titulo;
+        UserStore.setItem(metaKey, JSON.stringify(meta));
+
+        // 2) Estados remotos en memoria (getAllItems los prioriza)
+        _remoteItemStates.forEach((st) => {
+            if (String(st.item_id) === String(it.id)) {
+                st.meta = st.meta || {};
+                st.meta.img = url;
+            }
+        });
+
+        // 3) Persistir a Supabase para que la corrección quede guardada
+        if (typeof window.syncItemStateToSupabase === 'function') {
+            const state = getUserItemState(userId, it);
+            window.syncItemStateToSupabase(
+                it.__category || meta.__category || 'listas',
+                String(it.id),
+                state.fav,
+                state.viewed,
+                meta,
+                state.wstatus
+            );
+        }
+        cambiados++;
+    });
+
+    if (cambiados) {
+        try { render(filterModeState); } catch (e) { console.warn('Re-render tras reparar portadas falló:', e); }
+        try { renderActividad(); } catch (e) {}
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const renderCurrentFilter = bindControls();
 
@@ -1067,6 +1138,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await cargarEstadosDesdeSupabase();
         renderAll();
+        // Repara portadas guardadas sin URL (metadatos viejos). No bloquea el
+        // render inicial: corre en segundo plano y re-renderiza si recupera algo.
+        repararPortadasFaltantes().catch((e) => console.warn('repararPortadasFaltantes:', e));
     }
 
     function hideListsLoader() {
@@ -1090,6 +1164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         await cargarEstadosDesdeSupabase();
         renderAll();
+        repararPortadasFaltantes().catch((e) => console.warn('repararPortadasFaltantes:', e));
     });
 
     // Sidebar tab logic

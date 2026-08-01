@@ -55,7 +55,8 @@ const TOGGLES = {
     prefNotif:        { key: 'pref:notif',      def: false, onOff: ['on', 'off'] },
     prefCompact:      { key: 'pref:compactCards',  def: false },
     prefReduceMotion: { key: 'pref:reduceMotion',  def: false },
-    prefMascot:       { key: 'pref:mascot',     def: true,  onOff: ['on', 'off'] }
+    prefMascot:       { key: 'pref:mascot',     def: true,  onOff: ['on', 'off'] },
+    prefRoam:         { key: 'pref:mascotRoam', def: true,  onOff: ['on', 'off'] }
 };
 
 function leerToggle(cfg) {
@@ -220,6 +221,11 @@ $('prefMascot').addEventListener('change', function () {
     if (window.Mascot) window.Mascot.setEnabled(this.checked);
 });
 
+// El modo paseo también se enciende/apaga en vivo.
+$('prefRoam').addEventListener('change', function () {
+    if (window.Mascot && window.Mascot.setRoaming) window.Mascot.setRoaming(this.checked);
+});
+
 // Los colores se aplican en vivo mientras arrastras (input) pero solo avisan al
 // soltar (change): con 'input' el toast se dispararia decenas de veces.
 for (const id in COLOR_KEYS) {
@@ -316,7 +322,7 @@ const PREF_KEYS = [
     'pref:bgMode', 'pref:bgColor', 'pref:bgImage',
     'pref:compactCards', 'pref:reduceMotion', 'pref:nsfw',
     'pref:notif', 'pref:contenido', 'pref:privacidad', 'pref:cardsPerRow',
-    'pref:mascot',
+    'pref:mascot', 'pref:mascotRoam',
     ...Object.values(COLOR_KEYS)
 ];
 
