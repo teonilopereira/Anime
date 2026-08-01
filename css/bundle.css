@@ -6284,9 +6284,9 @@ body.reduce-motion .destiny-navbar .nav-user-avatar {
     /* El contenedor mide lo que el sprite: así arrastrar por left/top es exacto
        y el bocadillo (posicionado en absoluto) no cambia el tamaño de la caja.
        Tamaño fluido: escala con el ancho de pantalla entre 56px y 84px, y la
-       altura sale sola del aspect-ratio del sprite (16x14). */
+       altura sale sola del aspect-ratio del sprite (22x20). */
     width: clamp(56px, 15vw, 84px);
-    aspect-ratio: 16 / 14;
+    aspect-ratio: 22 / 20;
     /* No robar clics fuera de la mascota/bocadillo. */
     pointer-events: none;
     user-select: none;
