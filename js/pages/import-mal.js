@@ -350,6 +350,15 @@
         });
     }
 
+    // Helpers puros de parseo/mapeo expuestos para tests (no son API pública).
+    window.AnimeDestiny = window.AnimeDestiny || {};
+    window.AnimeDestiny.internals = window.AnimeDestiny.internals || {};
+    window.AnimeDestiny.internals.malImport = {
+        parseMalXml: parseMalXml,
+        shouldMarkViewed: shouldMarkViewed,
+        malStatusToWatchStatus: malStatusToWatchStatus
+    };
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initMalImport);
     } else {

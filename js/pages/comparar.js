@@ -470,3 +470,22 @@ document.addEventListener('DOMContentLoaded', () => {
         else renderCompareCard(lado.host, lado.cat.value, null);
     });
 });
+
+// Cargado como <script> clásico en producción, donde estas funciones ya son
+// globales. Los enlaces window explícitos permiten el import aislado en tests.
+if (typeof window !== 'undefined') {
+    window.esIdValido = esIdValido;
+    window.parseParams = parseParams;
+    window.compareItemTitle = compareItemTitle;
+    window.detailLink = detailLink;
+    window.formatCompactNumber = formatCompactNumber;
+    window.formatMinutes = formatMinutes;
+    window.formatScore = formatScore;
+    window.formatCount = formatCount;
+    window.formatMediaFormat = formatMediaFormat;
+    window.autorDe = autorDe;
+    window.periodoDe = periodoDe;
+    window.formatoRestante = formatoRestante;
+    window.categoryIcon = categoryIcon;
+    window.categoryLabel = categoryLabel;
+}

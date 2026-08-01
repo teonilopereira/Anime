@@ -369,6 +369,14 @@ window.getCurrentUser      = getCurrentUser;
     // para no mantener una tercera copia de APODO_LABELS.
     window.apodoLabel          = function (id) { return APODO_LABELS[id] || ''; };
 
+    // Helpers puros expuestos para tests (no forman parte de la API pública).
+    window.AnimeDestiny = window.AnimeDestiny || {};
+    window.AnimeDestiny.internals = window.AnimeDestiny.internals || {};
+    window.AnimeDestiny.internals.auth = {
+        displayNameFromUser: displayNameFromUser,
+        isValidGmailAddress: isValidGmailAddress
+    };
+
     // Ejecución segura al cargar el DOM
     document.addEventListener('DOMContentLoaded', async () => {
         ensureUserUi();       // Crea el estado de carga neutro (...)
