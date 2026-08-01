@@ -9,9 +9,11 @@
     bottom: 18px;
     z-index: var(--z-toast, 2000);
     /* El contenedor mide lo que el sprite: así arrastrar por left/top es exacto
-       y el bocadillo (posicionado en absoluto) no cambia el tamaño de la caja. */
-    width: 84px;
-    height: 74px;
+       y el bocadillo (posicionado en absoluto) no cambia el tamaño de la caja.
+       Tamaño fluido: escala con el ancho de pantalla entre 56px y 84px, y la
+       altura sale sola del aspect-ratio del sprite (16x14). */
+    width: clamp(56px, 15vw, 84px);
+    aspect-ratio: 16 / 14;
     /* No robar clics fuera de la mascota/bocadillo. */
     pointer-events: none;
     user-select: none;
@@ -181,13 +183,14 @@
     }
 }
 
-/* En pantallas chicas la mascota es más pequeña y se sube para NO tapar la
-   barra inferior de navegación (.mobile-bottom-nav, ~60px). */
+/* En pantallas chicas la mascota se sube para NO tapar la barra inferior de
+   navegación (.mobile-bottom-nav, ~60px). El tamaño ya es fluido (clamp). */
 @media (max-width: 640px) {
     .mascot-root {
         right: 12px;
         bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-        width: 66px;
-        height: 58px;
+    }
+    .mascot-bubble {
+        font-size: 0.82rem;
     }
 }

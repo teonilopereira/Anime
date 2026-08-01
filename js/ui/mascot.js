@@ -228,26 +228,45 @@
     }
 
     // ── Arrastrar / posición ────────────────────────────────────────────────
-    // Fija la mascota en (left, top) recortando a la ventana para que nunca
-    // quede fuera de pantalla, y ancla el bocadillo al lado que corresponda.
-    function clampAndSet(left, top) {
-        var w = root.offsetWidth, h = root.offsetHeight;
-        var maxLeft = window.innerWidth - w - 4;
-        var maxTop = window.innerHeight - h - 4;
-        left = Math.max(4, Math.min(left, maxLeft));
-        top = Math.max(4, Math.min(top, maxTop));
+    var MARGIN = 8; // margen mínimo con los bordes de la ventana
+
+    // Rango de píxeles disponible para el borde superior-izquierdo del sprite.
+    function availX() { return Math.max(0, window.innerWidth - root.offsetWidth - MARGIN * 2); }
+    function availY() { return Math.max(0, window.innerHeight - root.offsetHeight - MARGIN * 2); }
+    function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+    // Fija la mascota en (left, top) recortada a la ventana para que nunca quede
+    // fuera de pantalla, y ancla el bocadillo al lado que corresponda.
+    function place(left, top) {
+        var w = root.offsetWidth;
+        left = Math.max(MARGIN, Math.min(left, MARGIN + availX()));
+        top = Math.max(MARGIN, Math.min(top, MARGIN + availY()));
         root.style.left = left + "px";
         root.style.top = top + "px";
         root.style.right = "auto";
         root.style.bottom = "auto";
-        // Si está en la mitad izquierda, el bocadillo abre hacia la derecha.
+        // Si su centro cae en la mitad izquierda, el bocadillo abre a la derecha.
         root.classList.toggle("mascot-left", (left + w / 2) < window.innerWidth / 2);
+    }
+
+    // Ubica por proporción (0..1) del área disponible: así la posición es
+    // responsive y sobrevive a rotar el móvil o cambiar de tamaño de pantalla.
+    function placeByRatio(rx, ry) {
+        place(MARGIN + rx * availX(), MARGIN + ry * availY());
+    }
+
+    // Proporción actual del sprite dentro del área disponible.
+    function currentRatio() {
+        var r = root.getBoundingClientRect();
+        var ax = availX() || 1, ay = availY() || 1;
+        return { rx: clamp01((r.left - MARGIN) / ax), ry: clamp01((r.top - MARGIN) / ay) };
     }
 
     function applyPosition() {
         var p = readPos();
         if (!p) return; // sin posición guardada → default de CSS (abajo-derecha)
-        clampAndSet(p.left, p.top);
+        if (typeof p.rx === "number") placeByRatio(p.rx, p.ry);
+        else if (typeof p.left === "number") place(p.left, p.top); // formato viejo
     }
 
     function wireDrag() {
@@ -269,29 +288,32 @@
                 clearTimeout(hideTimer);
                 hideBubble();
             }
-            clampAndSet(drag.left + dx, drag.top + dy);
+            place(drag.left + dx, drag.top + dy);
         });
         function endDrag(e) {
             if (!drag || (e && e.pointerId !== drag.id)) return;
             try { pet.releasePointerCapture(drag.id); } catch (_) {}
             root.classList.remove("mascot-dragging");
-            if (drag.moved) {
-                var r = root.getBoundingClientRect();
-                writePos({ left: r.left, top: r.top });
-            }
+            if (drag.moved) writePos(currentRatio());
             drag = null;
         }
         pet.addEventListener("pointerup", endDrag);
         pet.addEventListener("pointercancel", endDrag);
     }
 
-    // Al cambiar el tamaño de la ventana, re-encajar si hay posición manual.
-    window.addEventListener("resize", function () {
-        if (root && root.style.left) {
-            var r = root.getBoundingClientRect();
-            clampAndSet(r.left, r.top);
-        }
-    });
+    // Al cambiar el tamaño/orientación, reubicar por proporción si hay posición
+    // manual (o re-encajar la posición vieja en px). Se hace en rAF para leer
+    // el tamaño ya recalculado por el clamp de CSS.
+    function reflow() {
+        if (!root || !root.style.left) return;
+        requestAnimationFrame(function () {
+            var p = readPos();
+            if (p && typeof p.rx === "number") placeByRatio(p.rx, p.ry);
+            else { var r = root.getBoundingClientRect(); place(r.left, r.top); }
+        });
+    }
+    window.addEventListener("resize", reflow);
+    window.addEventListener("orientationchange", reflow);
 
     function removeDom() {
         if (!root) return;
