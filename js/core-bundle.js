@@ -810,6 +810,43 @@
         }
     };
 
+    // ─── Portadas por lote: recupera coverImage de un set de ids ───
+    // Se usa para reparar items guardados sin portada (metadatos viejos que
+    // guardaban el id en vez de la URL). Un solo request por cada 50 ids en vez
+    // de uno por item, para no chocar con el rate limit de AniList.
+    var COVERS_BY_IDS_QUERY = `
+        query ($ids: [Int]) {
+            Page(page: 1, perPage: 50) {
+                media(id_in: $ids) {
+                    id
+                    coverImage { extraLarge large }
+                }
+            }
+        }`;
+
+    window.getCoversByIds = async function (ids) {
+        var numIds = (Array.isArray(ids) ? ids : [])
+            .map(Number)
+            .filter(function (n) { return Number.isFinite(n) && n > 0; });
+        if (!numIds.length) return {};
+        numIds = Array.from(new Set(numIds));
+
+        var out = {};
+        try {
+            for (var i = 0; i < numIds.length; i += 50) {
+                var chunk = numIds.slice(i, i + 50);
+                var json = await anilistFetch(COVERS_BY_IDS_QUERY, { ids: chunk });
+                (json?.data?.Page?.media || []).forEach(function (m) {
+                    var url = m.coverImage?.extraLarge || m.coverImage?.large || '';
+                    if (m && m.id != null && url) out[String(m.id)] = url;
+                });
+            }
+        } catch (err) {
+            console.warn('getCoversByIds error:', err);
+        }
+        return out;
+    };
+
     window.buscarEnApi = async function (query, categoria) {
         var type = (categoria === 'manga' || categoria === 'novelas') ? 'MANGA' : 'ANIME';
         var cacheKey = type + '_' + query.trim().toLowerCase();
