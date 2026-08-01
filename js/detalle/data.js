@@ -249,3 +249,16 @@ function getApiUnifiedProgress(userId, itemId, progressArg, category) {
     const pct = total > 0 ? Math.min(100, Math.round((watched / total) * 100)) : 0;
     return { watched, pct };
 }
+
+// En producción este archivo se carga como <script> clásico, así que estas
+// funciones ya son globales. Los enlaces explícitos a window son redundantes
+// en el navegador pero permiten importar el módulo de forma aislada en tests.
+if (typeof window !== 'undefined') {
+    window.getParams = getParams;
+    window.normalizeDetailItem = normalizeDetailItem;
+    window.getAnimeStructure = getAnimeStructure;
+    window.parseTemporadas = parseTemporadas;
+    window.parseGeneros = parseGeneros;
+    window.parseVolumenes = parseVolumenes;
+    window.getApiUnifiedProgress = getApiUnifiedProgress;
+}

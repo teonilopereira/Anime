@@ -413,5 +413,21 @@
         return null;
     };
 
+    // Helpers puros de parseo expuestos bajo el namespace interno para poder
+    // testearlos sin depender de la red. No forman parte de la API pública.
+    AnimeDestiny.internals = AnimeDestiny.internals || {};
+    AnimeDestiny.internals.mangadex = {
+        getUserLang: getUserLang,
+        getMangaDexTitle: getMangaDexTitle,
+        getMangaDexDescription: getMangaDexDescription,
+        getMangaDexCoverUrl: getMangaDexCoverUrl,
+        chapterCount: chapterCount,
+        volumeCount: volumeCount,
+        tagsToGenres: tagsToGenres,
+        mdItemToLocal: mdItemToLocal,
+        isMangaDexUuid: isMangaDexUuid,
+        normalizeVolKey: normalizeVolKey
+    };
+
 })();
 

@@ -607,5 +607,17 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
     return true;
 }
 
+// Cargado como <script> clásico en producción, así que estas funciones ya son
+// globales. Los enlaces explícitos a window habilitan el import aislado en tests.
+if (typeof window !== 'undefined') {
+    window.getApiPoster = getApiPoster;
+    window.getApiCatalogInfo = getApiCatalogInfo;
+    window.normalizeCatalogGenre = normalizeCatalogGenre;
+    window.getApiGenresList = getApiGenresList;
+    window.translateCatalogStatus = translateCatalogStatus;
+    window.captionFromInfo = captionFromInfo;
+    window.describirErrorDeApi = describirErrorDeApi;
+}
+
 
 
