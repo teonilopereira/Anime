@@ -3538,7 +3538,7 @@ function buildCatalogCardHtml(options) {
     // data-action para la delegacion, .watch-status-select y el bloque
     // [data-progress] que states.js actualiza.
     return `
-    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${safeId}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="cband-inner">
             <div class="cband-face cband-front">
