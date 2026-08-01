@@ -1,9 +1,10 @@
 /**
  * mascot.js
- * Mascota 2D (Slime) que vive en una esquina de la pantalla y, cuando está
- * activada, ANUNCIA las notificaciones "hablando" por un bocadillo en vez de
- * mostrar el toast clásico. Envuelve a window.Toast: si la mascota está
- * apagada, delega en el toast de siempre; si está encendida, el slime habla.
+ * Mascota 2D (Rimuru, el slime de "Tensei Shitara Slime Datta Ken") que vive en
+ * una esquina de la pantalla y, cuando está activada, ANUNCIA las notificaciones
+ * "hablando" por un bocadillo en vez de mostrar el toast clásico. Envuelve a
+ * window.Toast: si la mascota está apagada, delega en el toast de siempre; si
+ * está encendida, Rimuru habla.
  *
  * El sprite es pixel-art dibujado con <rect> en un SVG (shape-rendering
  * crispEdges), así no dependemos de ningún asset externo y las expresiones se
@@ -60,17 +61,17 @@
         } catch (_) { return false; }
     }
 
-    // ── Paleta del sprite (slime azul) ─────────────────────────────────────
+    // ── Paleta del sprite (Rimuru: celeste pálido, glossy y translúcido) ────
     var COL = {
-        O:  "#0a2f5c", // contorno (azul muy oscuro)
-        D:  "#1657a3", // sombra
-        B:  "#2f83d6", // cuerpo (azul medio)
-        L:  "#63b3f2", // luz
-        H:  "#bfe6ff", // brillo glossy
+        O:  "#2f6aa8", // contorno (azul suave, no un negro duro)
+        D:  "#5aa9e0", // sombra
+        B:  "#8fd0f2", // cuerpo (celeste claro Rimuru)
+        L:  "#bce6fb", // luz
+        H:  "#eafaff", // brillo glossy (casi blanco)
         W:  "#ffffff", // ojo (blanco)
-        P:  "#0a2340", // pupila / boca
-        C:  "#ff9ec4", // mejilla (rosa)
-        T:  "#bfe9ff"  // lágrima
+        P:  "#1f3a5c", // pupila / boca (azul oscuro suave)
+        C:  "#ffc4dd", // mejilla (rosa suave)
+        T:  "#cdeeff"  // lágrima
     };
 
     // Grilla del sprite: mayor resolución = más detalle/gráficos.
@@ -263,7 +264,7 @@
         pet = document.createElement("button");
         pet.className = "mascot-pet";
         pet.type = "button";
-        pet.setAttribute("aria-label", "Slime — tu mascota. Tocá para saludar.");
+        pet.setAttribute("aria-label", "Rimuru — tu mascota slime. Tocá para saludar.");
         pet.innerHTML = buildSVG("normal");
         pet.addEventListener("click", onPetClick);
         // Pausar el auto-ocultado mientras el mouse está sobre la mascota.
@@ -809,12 +810,12 @@
 
     // ── Interacción: tocar la mascota ──────────────────────────────────────
     var GREETINGS = [
-        "¡Hola! ¿Qué vas a ver hoy?",
+        "¡Hola! Soy Rimuru. ¿Qué vas a ver hoy?",
         "¡Blop! Estoy aquí si me necesitás.",
         "¿Sumamos algo a tus listas?",
         "¡Ánimo con tu maratón! ✨",
         "Toca una noti y te la leo.",
-        "¡Soy tu slime de confianza!"
+        "¡Soy Rimuru, tu slime de confianza!"
     ];
     var greetIdx = 0;
     function onPetClick() {
