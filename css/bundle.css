@@ -3506,6 +3506,25 @@ body.reduce-motion .catalog-neon-card {
     transform: rotateY(180deg);
 }
 
+/* Bloqueo de clics de la cara que mira hacia atrás.
+   backface-visibility: hidden oculta la cara girada pero NO se hereda a sus
+   hijos posicionados (caption, botón de flip, topbar). Con preserve-3d esos
+   hijos siguen "de frente" para el hit-testing y roban los clics de la cara
+   visible, así que sobre el dorso no se podían apretar los botones (DETALLE,
+   favorito, visto). Se apagan explícitamente los eventos de puntero de la cara
+   que no está mirando al usuario en cada estado del flip. */
+.catalog-band-card .cband-back {
+    pointer-events: none;
+}
+
+.catalog-band-card .flip-toggle:checked ~ .cband-inner .cband-front {
+    pointer-events: none;
+}
+
+.catalog-band-card .flip-toggle:checked ~ .cband-inner .cband-back {
+    pointer-events: auto;
+}
+
 .catalog-band-card .cband-face {
     position: absolute;
     inset: 0;
