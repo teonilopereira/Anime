@@ -1,11 +1,57 @@
-/* Theme: paleta cyberpunk y variaciones por modulo. */
+/* Theme: paleta cyberpunk (oscuro por defecto) + tema claro conmutable.
+ *
+ * El tema claro se activa de dos formas, sin JS obligatorio:
+ *   - Preferencia del sistema: @media (prefers-color-scheme: light), salvo que
+ *     el usuario haya forzado oscuro con [data-theme="dark"].
+ *   - Elección explícita: [data-theme="light"] en <html> (la setea theme.js).
+ * El oscuro es el :root base, así que [data-theme="dark"] simplemente no dispara
+ * las anulaciones claras. */
 :root {
-    color-scheme: dark;
     --theme-bg:
         radial-gradient(circle at 15% 10%, rgba(188, 19, 254, 0.18), transparent 40%),
         radial-gradient(circle at 85% 20%, rgba(0, 242, 255, 0.10), transparent 45%),
         radial-gradient(circle at 35% 90%, rgba(188, 19, 254, 0.10), transparent 50%),
         linear-gradient(180deg, #000000 0%, var(--purple-gradient) 55%, #2b0a55 100%);
+}
+
+/* ── Anulaciones del tema claro ─────────────────────────────────────────────
+   Se listan dos veces (sistema y explícito) porque CSS no permite reutilizar un
+   bloque de declaraciones. Mantener ambos en sincronía. */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+        color-scheme: light;
+        --dark-bg: #f4f1fb;
+        --purple-gradient: #e9e3f7;
+        --ink-rgb: 28, 22, 44;
+        --surface-dark-rgb: 255, 255, 255;
+        --surface-card-rgb: 255, 255, 255;
+        --surface-panel-rgb: 245, 242, 252;
+        --text-main: #1b1530;
+        /* Acentos oscurecidos para contraste legible sobre fondo claro. */
+        --neon-purple: #8a10cf;
+        --accent-cyan: #0a8ba6;
+        --theme-bg:
+            radial-gradient(circle at 15% 10%, rgba(188, 19, 254, 0.10), transparent 42%),
+            radial-gradient(circle at 85% 20%, rgba(0, 242, 255, 0.08), transparent 45%),
+            linear-gradient(180deg, #ffffff 0%, #f1ecfb 55%, #e7def7 100%);
+    }
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+    --dark-bg: #f4f1fb;
+    --purple-gradient: #e9e3f7;
+    --ink-rgb: 28, 22, 44;
+    --surface-dark-rgb: 255, 255, 255;
+    --surface-card-rgb: 255, 255, 255;
+    --surface-panel-rgb: 245, 242, 252;
+    --text-main: #1b1530;
+    --neon-purple: #8a10cf;
+    --accent-cyan: #0a8ba6;
+    --theme-bg:
+        radial-gradient(circle at 15% 10%, rgba(188, 19, 254, 0.10), transparent 42%),
+        radial-gradient(circle at 85% 20%, rgba(0, 242, 255, 0.08), transparent 45%),
+        linear-gradient(180deg, #ffffff 0%, #f1ecfb 55%, #e7def7 100%);
 }
 
 body {

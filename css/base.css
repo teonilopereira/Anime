@@ -1,5 +1,6 @@
 /* Base: reset minimo, tipografias globales y variables compartidas. */
 :root {
+    color-scheme: dark;
     --primary-purple: #6a0dad;
     --dark-bg: #050505;
     --purple-gradient: #1a0b2e;
@@ -13,11 +14,18 @@
     --accent-cyan-10: rgba(0, 242, 255, 0.10);
     --nav-accent: var(--accent-cyan);
     --nav-accent-soft: var(--accent-cyan-18);
-    --surface-dark: rgba(5, 5, 10, 0.86);
-    --surface-card: rgba(10, 5, 25, 0.80);
+    /* Tinta base: todo blanco con alpha se expresa como rgba(var(--ink-rgb), α).
+       En claro se voltea a una tinta oscura y el texto/bordes se adaptan solos. */
+    --ink-rgb: 255, 255, 255;
+    /* Superficies como triples rgb: preservan el alpha de cada uso y voltean en claro. */
+    --surface-dark-rgb: 5, 5, 10;
+    --surface-card-rgb: 10, 5, 25;
+    --surface-panel-rgb: 26, 11, 46;
+    --surface-dark: rgba(var(--surface-dark-rgb), 0.86);
+    --surface-card: rgba(var(--surface-card-rgb), 0.80);
     --text-main: #ffffff;
-    --text-muted: rgba(255, 255, 255, 0.72);
-    --text-faint: rgba(255, 255, 255, 0.35);
+    --text-muted: rgba(var(--ink-rgb), 0.72);
+    --text-faint: rgba(var(--ink-rgb), 0.35);
     --font-display: "Orbitron", sans-serif;
     --font-body: "Rajdhani", sans-serif;
     --radius-sm: 10px;
