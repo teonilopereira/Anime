@@ -95,8 +95,47 @@
     }
 
     function createFallbackPosterDataUrl(title, subtitle) {
-        const safeTitle = String(title || 'Sin título').slice(0, 40);
+        const rawTitle = String(title || 'Sin título').slice(0, 60);
         const safeSubtitle = String(subtitle || '').slice(0, 45);
+        const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // Word-wrap del título: sin esto los títulos largos (p. ej. "Demon
+        // Slayer: Kimetsu no Yaiba") se dibujaban en una sola línea y se salían
+        // del poster, quedando recortados por ambos lados. Repartimos en varias
+        // líneas centradas y bajamos el tamaño de fuente según cuántas haya.
+        const maxChars = 14;
+        const words = rawTitle.split(/\s+/).filter(Boolean);
+        const lines = [];
+        let current = '';
+        words.forEach((word) => {
+            if (!current) {
+                current = word.length > maxChars ? word.slice(0, maxChars) : word;
+                return;
+            }
+            if ((current + ' ' + word).length <= maxChars) {
+                current += ' ' + word;
+            } else {
+                lines.push(current);
+                current = word.length > maxChars ? word.slice(0, maxChars) : word;
+            }
+        });
+        if (current) lines.push(current);
+        if (lines.length > 4) {
+            lines.length = 4;
+            lines[3] = lines[3].slice(0, maxChars - 1) + '…';
+        }
+
+        const fontSize = lines.length >= 4 ? 40 : (lines.length === 3 ? 46 : 54);
+        const lineHeight = Math.round(fontSize * 1.18);
+        const blockHeight = lines.length * lineHeight;
+        // Centrado vertical del bloque de título alrededor de la mitad del poster.
+        const firstBaseline = Math.round(400 - blockHeight / 2 + fontSize * 0.75);
+
+        const titleTspans = lines.map((line, i) =>
+            `<text x="300" y="${firstBaseline + i * lineHeight}" text-anchor="middle" fill="#00f2ff" font-size="${fontSize}" font-family="Orbitron, Arial, sans-serif" font-weight="700">${esc(line)}</text>`
+        ).join('');
+        const subtitleY = firstBaseline + blockHeight + 12;
+
         const svg = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="100%" height="100%">
                 <defs>
@@ -117,8 +156,8 @@
                 <rect width="600" height="800" fill="url(#glow1)"/>
                 <rect width="600" height="800" fill="url(#glow2)"/>
                 <rect x="36" y="36" width="528" height="728" rx="42" fill="none" stroke="#bc13fe" stroke-width="3"/>
-                <text x="300" y="230" text-anchor="middle" fill="#00f2ff" font-size="44" font-family="Orbitron, Arial, sans-serif" font-weight="700">${safeTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</text>
-                ${safeSubtitle ? `<text x="300" y="290" text-anchor="middle" fill="#ffffff" font-size="24" font-family="Rajdhani, Arial, sans-serif">${safeSubtitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</text>` : ''}
+                ${titleTspans}
+                ${safeSubtitle ? `<text x="300" y="${subtitleY}" text-anchor="middle" fill="#ffffff" font-size="24" font-family="Rajdhani, Arial, sans-serif">${esc(safeSubtitle)}</text>` : ''}
             </svg>
         `.trim();
         return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
