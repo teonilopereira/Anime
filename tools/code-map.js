@@ -61,9 +61,16 @@ try {
 /* ---------- tests: qué fuentes están cubiertas ---------- */
 const testBlob = testFiles.map(f => fs.readFileSync(f, 'utf8')).join('\n');
 function isTested(r) {
-  const base = path.basename(r).replace(/\.(js|html)$/, '');
-  // cubierto si algún test referencia la ruta o el basename distintivo del módulo
-  return testBlob.includes(r) || new RegExp(`[\\W_]${base}[\\W_.]`).test(testBlob);
+  // No hay tests unitarios de páginas HTML; una mención de 'detalle.html' en un
+  // assert de URL no es cobertura.
+  if (r.endsWith('.html')) return false;
+  // Cubierto si algún test importa la ruta del módulo (los tests hacen
+  // `import('../../<r>')`, así que r aparece como substring). Antes había un
+  // fallback por basename suelto, pero con la suite ya crecida colisionaba con
+  // nombres comunes ('search', 'render', 'datos') en prosa/identificadores y
+  // marcaba como testeados archivos que no lo estaban. La ruta completa es
+  // señal precisa y sin falsos positivos.
+  return testBlob.includes(r);
 }
 
 /* ---------- extracción por archivo ---------- */
