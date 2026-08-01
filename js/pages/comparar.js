@@ -4,6 +4,15 @@
 const CMP_ID_NUMERICO = /^[a-z]?\d+$/i;
 const CMP_ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Traducción con fallback: si i18n aún no cargó, devolvemos el texto en español.
+function cmpTr(key, fallback, args) {
+    if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+        const out = window.AppI18n.t(key, args);
+        if (out && out.charAt(0) !== '[') return out;
+    }
+    return fallback;
+}
+
 function esIdValido(id) {
     return CMP_ID_NUMERICO.test(id) || CMP_ID_UUID.test(id);
 }
@@ -46,7 +55,7 @@ async function getItem(cat, id) {
 // Los items pueden venir del catálogo local ({titulo, img, info}) o de la
 // API AniList/MangaDex ({title, images, ...}) — normalizamos los campos acá.
 function compareItemTitle(item) {
-    return item?.titulo || item?.title || 'Sin título';
+    return item?.titulo || item?.title || cmpTr('compare.sin_titulo', 'Sin título');
 }
 
 function compareItemImage(item) {
@@ -270,7 +279,7 @@ async function renderCompareCard(host, cat, item) {
 
     const coverHtml = img
         ? `<img src="${safeUrl(img)}" alt="${escapeHtml(titulo)}" width="460" height="290" decoding="async" loading="lazy">`
-        : `<span class="cmp-cover-empty">Sin portada</span>`;
+        : `<span class="cmp-cover-empty">${escapeHtml(cmpTr('compare.sin_portada', 'Sin portada'))}</span>`;
 
     host.innerHTML = `
         <article class="cmp-card cmp-card--${escapeHtml(cat)}">
@@ -286,7 +295,7 @@ async function renderCompareCard(host, cat, item) {
             <div class="cmp-body">
                 <h3 class="cmp-title" title="${escapeHtml(titulo)}">${escapeHtml(titulo)}</h3>
                 <p class="cmp-meta">${metaParts.map((p) => `<span>${escapeHtml(p)}</span>`).join('<i class="cmp-sep"></i>')}</p>
-                <p class="cmp-synopsis">${escapeHtml(sinopsis || 'Sin sinopsis disponible.')}</p>
+                <p class="cmp-synopsis">${escapeHtml(sinopsis || cmpTr('compare.sin_sinopsis', 'Sin sinopsis disponible.'))}</p>
                 <div class="cmp-details">
                     ${detalles.map((d) => `
                         <div class="cmp-detail">

@@ -19,13 +19,14 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=2aba1dea">
+        <link rel="stylesheet" href="css/bundle.min.css?v=85fccd66">
 
-    <link rel="stylesheet" href="css/configuracion.css?v=2aba1dea">
+    <link rel="stylesheet" href="css/configuracion.css?v=85fccd66">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
-    <script src="js/vendor/lucide.min.js?v=2aba1dea"></script>
+    <script src="js/vendor/lucide.min.js?v=85fccd66"></script>
+    <script src="js/core/theme.js?v=85fccd66"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="configuracion">
@@ -69,6 +70,14 @@
                     <select id="cfgIdioma">
                         <option value="es">🇪🇸 Español</option>
                         <option value="en">🇺🇸 English</option>
+                    </select>
+                </div>
+                <div class="cfg-field">
+                    <label for="cfgTema" data-i18n="config.tema">Tema</label>
+                    <select id="cfgTema">
+                        <option value="auto" data-i18n="config.tema.auto">🌗 Automático (sistema)</option>
+                        <option value="dark" data-i18n="config.tema.oscuro">🌙 Oscuro</option>
+                        <option value="light" data-i18n="config.tema.claro">☀️ Claro</option>
                     </select>
                 </div>
                 <p class="cfg-note" data-i18n="config.cuenta_nota">Tu correo y tu contraseña se gestionan desde la cuenta con la que iniciás sesión.</p>
@@ -277,17 +286,17 @@
     <!-- Toast -->
     <div class="cfg-toast" id="cfgToast"></div>
 
-    <script src="js/core/config.js?v=2aba1dea"></script>
-    <script src="js/core/i18n.js?v=2aba1dea"></script>
+    <script src="js/core/config.js?v=85fccd66"></script>
+    <script src="js/core/i18n.js?v=85fccd66"></script>
 
-    <script src="js/core/constants.js?v=2aba1dea"></script>
-    <script src="js/core/namespace.js?v=2aba1dea"></script>
-<script type="module" src="api/supabase-config.js?v=2aba1dea" async></script>
-    <script src="js/core/user-store.js?v=2aba1dea" defer></script>
-    <script src="js/core/auth.js?v=2aba1dea" defer></script>
+    <script src="js/core/constants.js?v=85fccd66"></script>
+    <script src="js/core/namespace.js?v=85fccd66"></script>
+<script type="module" src="api/supabase-config.js?v=85fccd66" async></script>
+    <script src="js/core/user-store.js?v=85fccd66" defer></script>
+    <script src="js/core/auth.js?v=85fccd66" defer></script>
 
-    <script src="js/ui/mascot.js?v=2aba1dea" defer></script>
-    <script src="js/pages/configuracion.js?v=2aba1dea" defer></script>
-    <script src="js/core/common-ui.js?v=2aba1dea" defer></script>
+    <script src="js/ui/mascot.js?v=85fccd66" defer></script>
+    <script src="js/pages/configuracion.js?v=85fccd66" defer></script>
+    <script src="js/core/common-ui.js?v=85fccd66" defer></script>
 </body>
 </html>

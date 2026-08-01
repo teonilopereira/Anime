@@ -58,7 +58,7 @@
 .detail-section-seasons {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid rgba(var(--ink-rgb),0.06);
 }
 .season-chain {
     display: flex;
@@ -74,9 +74,9 @@
     padding: 8px 12px;
     border-radius: var(--radius-md);
     border: 1px solid rgba(188,19,254,0.15);
-    background: rgba(26,11,46,0.3);
+    background: rgba(var(--surface-panel-rgb),0.3);
     text-decoration: none;
-    color: #fff;
+    color: var(--text-main);
     transition: all 0.2s ease;
 }
 a.season-chain-item:hover {
@@ -88,7 +88,7 @@ a.season-chain-item:hover {
    queda quieta al pasarle el mouse por encima. */
 .season-chain-item.is-current {
     border-color: rgba(0,242,255,0.45);
-    background: linear-gradient(90deg, rgba(0,242,255,0.12), rgba(26,11,46,0.3));
+    background: linear-gradient(90deg, rgba(0,242,255,0.12), rgba(var(--surface-panel-rgb),0.3));
     cursor: default;
 }
 .season-chain-pos {
@@ -104,8 +104,8 @@ a.season-chain-item:hover {
     height: 66px;
     border-radius: 6px;
     overflow: hidden;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(var(--ink-rgb),0.05);
+    border: 1px solid rgba(var(--ink-rgb),0.08);
 }
 .season-chain-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .season-chain-info { min-width: 0; }
@@ -151,7 +151,7 @@ a.season-chain-item:hover {
 .detail-section-themes {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid rgba(var(--ink-rgb),0.06);
 }
 .theme-list {
     display: flex;
@@ -169,7 +169,7 @@ a.season-chain-item:hover {
     padding: 8px 12px;
     border-radius: var(--radius-md);
     border: 1px solid rgba(188,19,254,0.15);
-    background: rgba(26,11,46,0.3);
+    background: rgba(var(--surface-panel-rgb),0.3);
 }
 .theme-row-tag {
     font-family: var(--font-display);
@@ -230,7 +230,7 @@ a.season-chain-item:hover {
 .detail-section-related {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid rgba(var(--ink-rgb),0.06);
 }
 /* Grilla de posters en vez de la fila de chips de texto que habia antes: al
    lado de las cards de personajes, los relacionados sin imagen se leian como
@@ -245,10 +245,10 @@ a.season-chain-item:hover {
     flex-direction: column;
     border-radius: var(--radius-md);
     border: 1px solid rgba(188,19,254,0.15);
-    background: rgba(26,11,46,0.3);
+    background: rgba(var(--surface-panel-rgb),0.3);
     overflow: hidden;
     text-decoration: none;
-    color: #fff;
+    color: var(--text-main);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 .related-card:hover {
@@ -260,7 +260,7 @@ a.season-chain-item:hover {
     position: relative;
     display: block;
     aspect-ratio: 2 / 3;
-    background: rgba(255,255,255,0.04);
+    background: rgba(var(--ink-rgb),0.04);
 }
 .related-cover img {
     display: block;
@@ -275,7 +275,7 @@ a.season-chain-item:hover {
     height: 100%;
     font-family: var(--font-display);
     font-size: 2rem;
-    color: rgba(255,255,255,0.18);
+    color: rgba(var(--ink-rgb),0.18);
 }
 .related-type-badge {
     position: absolute;
@@ -284,7 +284,7 @@ a.season-chain-item:hover {
     max-width: calc(100% - 12px);
     padding: 2px 7px;
     border-radius: var(--radius-pill);
-    background: rgba(5,5,10,0.82);
+    background: rgba(var(--surface-dark-rgb),0.82);
     font-size: 0.6rem;
     font-family: var(--font-display);
     text-transform: uppercase;
@@ -453,7 +453,7 @@ a.season-chain-item:hover {
     margin-top: 32px;
     padding: 24px;
     background: var(--card-bg, rgba(15, 15, 30, 0.7));
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(var(--ink-rgb), 0.06);
     border-radius: 12px;
     overflow-x: hidden;
 }
@@ -483,23 +483,23 @@ a.season-chain-item:hover {
 .comments-empty {
     text-align: center;
     padding: 24px 0;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(var(--ink-rgb), 0.4);
     font-size: 0.9rem;
 }
 .comments-loading, .comments-error {
     text-align: center;
     padding: 20px 0;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(var(--ink-rgb), 0.5);
     font-size: 0.88rem;
 }
 .comments-login-hint {
     text-align: center;
     padding: 14px;
     margin-bottom: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed rgba(255, 255, 255, 0.12);
+    background: rgba(var(--ink-rgb), 0.03);
+    border: 1px dashed rgba(var(--ink-rgb), 0.12);
     border-radius: 8px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(var(--ink-rgb), 0.5);
     font-size: 0.88rem;
 }
 .comments-login-hint a {
@@ -511,8 +511,8 @@ a.season-chain-item:hover {
 .comment-form {
     margin-bottom: 24px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(var(--ink-rgb), 0.02);
+    border: 1px solid rgba(var(--ink-rgb), 0.06);
     border-radius: 10px;
 }
 .comment-input {
@@ -524,9 +524,9 @@ a.season-chain-item:hover {
     box-sizing: border-box;
     padding: 12px;
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(var(--ink-rgb), 0.08);
     border-radius: 8px;
-    color: #fff;
+    color: var(--text-main);
     font-family: inherit;
     font-size: 0.9rem;
     line-height: 1.5;
@@ -538,7 +538,7 @@ a.season-chain-item:hover {
     border-color: rgba(0, 242, 255, 0.4);
 }
 .comment-input::placeholder {
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(var(--ink-rgb), 0.3);
 }
 .comment-form-footer {
     display: flex;
@@ -550,7 +550,7 @@ a.season-chain-item:hover {
 }
 .comment-char-count {
     font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(var(--ink-rgb), 0.35);
 }
 .comment-char-count.is-limit {
     color: #ff6b6b;
@@ -558,7 +558,7 @@ a.season-chain-item:hover {
 .comment-submit-btn {
     padding: 8px 20px;
     background: linear-gradient(135deg, var(--accent-cyan), var(--neon-purple));
-    color: #fff;
+    color: var(--text-main);
     font-weight: 700;
     font-size: 0.82rem;
     text-transform: uppercase;
@@ -583,13 +583,13 @@ a.season-chain-item:hover {
 }
 .comment-card {
     padding: 16px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: rgba(var(--ink-rgb), 0.02);
+    border: 1px solid rgba(var(--ink-rgb), 0.04);
     border-radius: 10px;
     transition: background 0.15s;
 }
 .comment-card:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--ink-rgb), 0.04);
 }
 .comment-card[data-depth="1"] {
     margin-left: 28px;
@@ -601,7 +601,7 @@ a.season-chain-item:hover {
 }
 .comment-card[data-depth="3"] {
     margin-left: 80px;
-    border-left: 2px solid rgba(255, 255, 255, 0.06);
+    border-left: 2px solid rgba(var(--ink-rgb), 0.06);
 }
 .comment-header {
     display: flex;
@@ -621,7 +621,7 @@ a.season-chain-item:hover {
     font-weight: 700;
     background: linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(188, 19, 254, 0.2));
     color: var(--accent-cyan);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(var(--ink-rgb), 0.08);
     overflow: hidden;
 }
 .comment-avatar-img img {
@@ -632,21 +632,21 @@ a.season-chain-item:hover {
 .comment-author {
     font-weight: 600;
     font-size: 0.88rem;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(var(--ink-rgb), 0.85);
 }
 .comment-date {
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(var(--ink-rgb), 0.3);
 }
 .comment-edited {
     font-size: 0.68rem;
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(var(--ink-rgb), 0.2);
     font-style: italic;
 }
 .comment-body {
     font-size: 0.88rem;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(var(--ink-rgb), 0.75);
     margin-bottom: 8px;
     word-break: break-word;
 }
@@ -657,7 +657,7 @@ a.season-chain-item:hover {
 .comment-action-btn {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(var(--ink-rgb), 0.35);
     font-size: 0.75rem;
     cursor: pointer;
     padding: 2px 0;
@@ -698,9 +698,9 @@ a.season-chain-item:hover {
     max-width: 180px;
     padding: 5px 8px;
     border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(var(--ink-rgb),0.1);
     background: rgba(0,0,0,0.3);
-    color: #fff;
+    color: var(--text-main);
     font-family: inherit;
     font-size: 0.78rem;
     cursor: pointer;
@@ -715,7 +715,7 @@ a.season-chain-item:hover {
 .comment-ref-select option,
 .comment-ref-select optgroup {
     background: #140d24;
-    color: #fff;
+    color: var(--text-main);
 }
 
 /* ── Spoilers ───────────────────────────────────────────────── */
@@ -788,7 +788,7 @@ a.season-chain-item:hover {
     gap: 6px;
     margin: 12px 0;
     padding: 8px 0;
-    border-top: 1px solid var(--border, rgba(255,255,255,0.06));
+    border-top: 1px solid var(--border, rgba(var(--ink-rgb),0.06));
     overflow-x: auto;
     scrollbar-width: thin;
 }
@@ -799,18 +799,18 @@ a.season-chain-item:hover {
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 0.78rem;
-    border: 1px solid var(--border, rgba(255,255,255,0.1));
+    border: 1px solid var(--border, rgba(var(--ink-rgb),0.1));
     background: transparent;
     color: var(--text-secondary, #aaa);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
 .comment-filter-btn:hover {
-    background: rgba(255,255,255,0.06);
+    background: rgba(var(--ink-rgb),0.06);
 }
 .comment-filter-btn.is-active {
     background: var(--accent, #6366f1);
-    color: #fff;
+    color: var(--text-main);
     border-color: var(--accent, #6366f1);
 }
 

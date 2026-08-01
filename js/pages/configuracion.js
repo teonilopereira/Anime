@@ -171,6 +171,9 @@ function syncUI() {
     // escribia pref:idioma, una clave que no leia nadie.
     $('cfgIdioma').value = r('pref:lang', 'es');
 
+    // El tema vive en pref:theme, que lee theme.js (aplicado en <head>).
+    if ($('cfgTema')) $('cfgTema').value = (window.AppTheme ? window.AppTheme.get() : r('pref:theme', 'auto'));
+
     for (var id in TOGGLES) {
         if (TOGGLES.hasOwnProperty(id)) $(id).checked = leerToggle(TOGGLES[id]);
     }
@@ -205,6 +208,14 @@ $('cfgIdioma').addEventListener('change', function () {
     if (window.AppI18n) window.AppI18n.setLang(this.value);
     avisarGuardado('✅ Idioma actualizado');
 });
+
+if ($('cfgTema')) {
+    $('cfgTema').addEventListener('change', function () {
+        if (window.AppTheme) window.AppTheme.set(this.value);
+        else w('pref:theme', this.value);
+        avisarGuardado('✅ Tema actualizado');
+    });
+}
 
 for (const id in TOGGLES) {
     if (!TOGGLES.hasOwnProperty(id)) continue;

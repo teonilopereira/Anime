@@ -23,7 +23,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=2aba1dea">
+        <link rel="stylesheet" href="css/bundle.min.css?v=85fccd66">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
             max-width: 800px;
             margin: 40px auto;
             padding: 24px;
-            background: rgba(10, 5, 25, 0.8);
+            background: rgba(var(--surface-card-rgb), 0.8);
             border: 1px solid rgba(188, 19, 254, 0.2);
             border-radius: 12px;
             font-family: 'Rajdhani', sans-serif;
@@ -61,7 +61,8 @@
             margin-bottom: 16px;
         }
     </style>
-    <script src="js/vendor/lucide.min.js?v=2aba1dea"></script>
+    <script src="js/vendor/lucide.min.js?v=85fccd66"></script>
+    <script src="js/core/theme.js?v=85fccd66"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body class="menu-page" data-page="privacidad">
@@ -76,48 +77,48 @@
     <main class="legal-container" id="main-content">
         <h1 data-i18n="privacy.title">Política de Privacidad</h1>
         <p data-i18n="privacy.updated">Última actualización: Julio 2026</p>
-        
-        <p>En Anime Destiny valoramos y respetamos tu privacidad. Esta política describe cómo recopilamos, utilizamos y protegemos la información personal que nos proporcionas al usar nuestra plataforma.</p>
 
-        <h2>1. Información que recopilamos</h2>
-        <p>Al registrarte y utilizar nuestra plataforma, recopilamos la siguiente información:</p>
+        <p data-i18n="privacy.intro">En Anime Destiny valoramos y respetamos tu privacidad. Esta política describe cómo recopilamos, utilizamos y protegemos la información personal que nos proporcionas al usar nuestra plataforma.</p>
+
+        <h2 data-i18n="privacy.h1">1. Información que recopilamos</h2>
+        <p data-i18n="privacy.s1.intro">Al registrarte y utilizar nuestra plataforma, recopilamos la siguiente información:</p>
         <ul>
-            <li><strong>Información de registro:</strong> Correo electrónico y nombre de usuario provisto a través del sistema de autenticación de Supabase.</li>
-            <li><strong>Datos de actividad:</strong> Tu progreso de lectura o visualización, tus listas de favoritos ("Me gusta") y marcados como "Vistos".</li>
-            <li><strong>Estadísticas básicas:</strong> Puntajes y niveles ganados por interacción de experiencia (XP).</li>
+            <li><strong data-i18n="privacy.s1.li1.k">Información de registro:</strong> <span data-i18n="privacy.s1.li1.v">Correo electrónico y nombre de usuario provisto a través del sistema de autenticación de Supabase.</span></li>
+            <li><strong data-i18n="privacy.s1.li2.k">Datos de actividad:</strong> <span data-i18n="privacy.s1.li2.v">Tu progreso de lectura o visualización, tus listas de favoritos («Me gusta») y marcados como «Vistos».</span></li>
+            <li><strong data-i18n="privacy.s1.li3.k">Estadísticas básicas:</strong> <span data-i18n="privacy.s1.li3.v">Puntajes y niveles ganados por interacción de experiencia (XP).</span></li>
         </ul>
 
-        <h2>2. Uso de la información</h2>
-        <p>Utilizamos los datos recopilados únicamente para:</p>
+        <h2 data-i18n="privacy.h2">2. Uso de la información</h2>
+        <p data-i18n="privacy.s2.intro">Utilizamos los datos recopilados únicamente para:</p>
         <ul>
-            <li>Permitir el acceso seguro a tu cuenta y sincronizar tu progreso entre múltiples dispositivos.</li>
-            <li>Mostrar tus estadísticas personalizadas de perfil y ranking global de usuarios.</li>
-            <li>Mejorar el sistema de recomendaciones locales basado en tu historial.</li>
+            <li data-i18n="privacy.s2.li1">Permitir el acceso seguro a tu cuenta y sincronizar tu progreso entre múltiples dispositivos.</li>
+            <li data-i18n="privacy.s2.li2">Mostrar tus estadísticas personalizadas de perfil y ranking global de usuarios.</li>
+            <li data-i18n="privacy.s2.li3">Mejorar el sistema de recomendaciones locales basado en tu historial.</li>
         </ul>
 
-        <h2>3. Almacenamiento y protección de datos</h2>
-        <p>Todos tus datos de autenticación y listas se almacenan de manera segura en las bases de datos de <strong>Supabase</strong>. Nosotros no vendemos ni compartimos tu información personal con terceros bajo ningún concepto.</p>
+        <h2 data-i18n="privacy.h3">3. Almacenamiento y protección de datos</h2>
+        <p data-i18n="privacy.s3.p">Todos tus datos de autenticación y listas se almacenan de manera segura en las bases de datos de Supabase. Nosotros no vendemos ni compartimos tu información personal con terceros bajo ningún concepto.</p>
 
-        <h2>4. Cookies y almacenamiento local</h2>
-        <p>Utilizamos almacenamiento local (<code>localStorage</code>) para guardar temporalmente tus preferencias estéticas (como el color del tema visual o el tamaño de las cards) y para mantener tu sesión activa de manera segura mediante el token de autenticación provisto por Supabase.</p>
+        <h2 data-i18n="privacy.h4">4. Cookies y almacenamiento local</h2>
+        <p data-i18n="privacy.s4.p">Utilizamos almacenamiento local (localStorage) para guardar temporalmente tus preferencias estéticas (como el color del tema visual o el tamaño de las cards) y para mantener tu sesión activa de manera segura mediante el token de autenticación provisto por Supabase.</p>
 
-        <h2>5. Tus derechos</h2>
-        <p>Tienes derecho en cualquier momento a solicitar la eliminación completa de tu cuenta y todos tus datos asociados. Puedes hacerlo directamente desde la sección de configuración de perfil en nuestra aplicación.</p>
+        <h2 data-i18n="privacy.h5">5. Tus derechos</h2>
+        <p data-i18n="privacy.s5.p">Tienes derecho en cualquier momento a solicitar la eliminación completa de tu cuenta y todos tus datos asociados. Puedes hacerlo directamente desde la sección de configuración de perfil en nuestra aplicación.</p>
 
-        <h2>6. Contacto</h2>
-        <p>Si tienes alguna consulta sobre nuestra política de privacidad, puedes contactarnos en: <code>contacto@animedestiny.local</code></p>
+        <h2 data-i18n="privacy.h6">6. Contacto</h2>
+        <p><span data-i18n="privacy.s6.p">Si tienes alguna consulta sobre nuestra política de privacidad, puedes contactarnos en:</span> <code>contacto@animedestiny.local</code></p>
     </main>
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=2aba1dea"></script>
-    <script src="js/core/i18n.js?v=2aba1dea"></script>
-    <script src="js/core/constants.js?v=2aba1dea"></script>
-    <script src="js/core/namespace.js?v=2aba1dea"></script>
-    <script src="js/datos.js?v=2aba1dea" defer></script>
-    <script type="module" src="api/supabase-config.js?v=2aba1dea" async></script>
+    <script src="js/core/config.js?v=85fccd66"></script>
+    <script src="js/core/i18n.js?v=85fccd66"></script>
+    <script src="js/core/constants.js?v=85fccd66"></script>
+    <script src="js/core/namespace.js?v=85fccd66"></script>
+    <script src="js/datos.js?v=85fccd66" defer></script>
+    <script type="module" src="api/supabase-config.js?v=85fccd66" async></script>
 
-    <script src="js/core/common-ui.js?v=2aba1dea" defer></script>
+    <script src="js/core/common-ui.js?v=85fccd66" defer></script>
 </body>
 </html>
 
