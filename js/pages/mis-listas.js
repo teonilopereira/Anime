@@ -531,10 +531,12 @@ function renderProfileSummary() {
             <span class="lists-profile-label">Perfil</span>
             <strong class="lists-profile-name">${escapeHtml(displayName)}</strong>
             <span class="lists-profile-apodo">${escapeHtml(getActiveApodoNick(userId))}</span>
-            <div class="lists-profile-track" aria-label="Progreso de nivel">
-                <div class="lists-profile-fill" style="width:${pct}%"></div>
+            <div class="lists-profile-track" role="progressbar" aria-label="Progreso de nivel"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+                <div class="lists-profile-fill" style="width:${pct}%;--pctnum:${Math.max(pct, 1)}"></div>
             </div>
-            <span class="lists-profile-meta">Nivel ${level} · ${pts} pts</span>
+            <span class="lists-profile-meta"><strong>Nivel ${level}</strong> · ${pts} pts</span>
+            <span class="lists-profile-hint">${lv.atMax ? '¡Nivel máximo alcanzado!' : `Faltan ${Math.max(0, lv.next - lv.current)} pts para el próximo nivel`}</span>
         </div>
         <div class="lists-profile-actions">
             <a class="lists-profile-btn" href="usuario.html">Editar perfil</a>

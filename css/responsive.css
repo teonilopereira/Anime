@@ -260,7 +260,7 @@ body[data-page="listas"] .lists-profile-name {
 body[data-page="listas"] .lists-profile-track {
     width: min(520px, 100%);
     height: 12px;
-    margin: 18px 0 8px;
+    margin: 16px auto 6px;
     border-radius: 999px;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.09);
@@ -269,8 +269,34 @@ body[data-page="listas"] .lists-profile-track {
 
 body[data-page="listas"] .lists-profile-fill {
     height: 100%;
+    min-width: 6px;
     border-radius: inherit;
-    background: linear-gradient(90deg, #ec4899, #a855f7 48%, #38bdf8);
+    /* El degradado se escala al ANCHO DEL TRACK (no al del relleno) via --pctnum,
+       así los colores no se comprimen cuando el nivel es bajo: el relleno solo
+       revela la porción izquierda del arcoíris completo. */
+    background-image: linear-gradient(90deg, #ec4899, #a855f7 48%, #38bdf8);
+    background-repeat: no-repeat;
+    background-size: calc(10000% / var(--pctnum, 100)) 100%;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.45);
+    transition: width 0.6s ease;
+}
+
+body[data-page="listas"] .lists-profile-meta {
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+body[data-page="listas"] .lists-profile-meta strong {
+    color: #7dd3fc;
+    font-weight: 700;
+}
+
+body[data-page="listas"] .lists-profile-hint {
+    display: block;
+    margin-top: 3px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 body[data-page="listas"] .lists-profile-actions {
