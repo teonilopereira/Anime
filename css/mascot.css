@@ -1,42 +1,50 @@
 /* ===== mascot.css =====
    Mascota Slime: sprite pixel-art fijo en una esquina + bocadillo de diálogo.
-   Se sirve dentro del bundle (ver tools/build.js). */
+   Se puede arrastrar (la posición se guarda). Se sirve dentro del bundle
+   (ver tools/build.js). */
 
 .mascot-root {
     position: fixed;
     right: 18px;
     bottom: 18px;
     z-index: var(--z-toast, 2000);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    /* El contenedor no debe robar clics fuera de la mascota/bocadillo. */
+    /* El contenedor mide lo que el sprite: así arrastrar por left/top es exacto
+       y el bocadillo (posicionado en absoluto) no cambia el tamaño de la caja.
+       Tamaño fluido: escala con el ancho de pantalla entre 56px y 84px, y la
+       altura sale sola del aspect-ratio del sprite (22x20). */
+    width: clamp(56px, 15vw, 84px);
+    aspect-ratio: 22 / 20;
+    /* No robar clics fuera de la mascota/bocadillo. */
     pointer-events: none;
     user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
 }
 
 /* ── Sprite ── */
 .mascot-pet {
     pointer-events: auto;
-    width: 84px;
-    height: 74px;
+    position: relative;
+    width: 100%;
+    height: 100%;
     padding: 0;
     border: 0;
     background: transparent;
-    cursor: pointer;
+    cursor: grab;
     /* Pixel-art nítido al escalar. */
     image-rendering: pixelated;
     filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
     transform-origin: 50% 100%;
     animation: mascot-idle 2.8s ease-in-out infinite;
     transition: transform 0.15s ease;
+    touch-action: none;
 }
 .mascot-pet svg {
     display: block;
     width: 100%;
     height: 100%;
     image-rendering: pixelated;
+    pointer-events: none;
 }
 .mascot-pet:hover {
     transform: scale(1.06);
@@ -45,6 +53,15 @@
     outline: 2px solid var(--nav-accent, var(--accent-cyan));
     outline-offset: 3px;
     border-radius: 8px;
+}
+
+/* Mientras se arrastra: sin rebote, cursor de agarre. */
+.mascot-root.mascot-dragging .mascot-pet,
+.mascot-root.mascot-dragging .mascot-pet:hover {
+    animation: none;
+    cursor: grabbing;
+    transform: scale(1.08);
+    transition: none;
 }
 
 /* Reposo: respiración/rebote suave del slime. */
@@ -66,9 +83,11 @@
 /* ── Bocadillo ── */
 .mascot-bubble {
     pointer-events: auto;
-    position: relative;
+    position: absolute;
+    bottom: calc(100% + 12px);
+    right: 0;
     max-width: min(260px, calc(100vw - 48px));
-    margin-right: 6px;
+    width: max-content;
     padding: 10px 30px 10px 14px;
     border-radius: 14px;
     border: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
@@ -84,7 +103,7 @@
     transform: translateY(8px) scale(0.96);
     transform-origin: bottom right;
     transition: opacity 0.2s ease, transform 0.2s ease;
-    /* Oculto hasta que hay algo que decir: no ocupa espacio ni tapa clics. */
+    /* Oculto hasta que hay algo que decir. */
     display: none;
 }
 .mascot-bubble.is-visible {
@@ -101,7 +120,7 @@
 .mascot-bubble::after {
     content: "";
     position: absolute;
-    right: 22px;
+    right: 24px;
     bottom: -7px;
     width: 14px;
     height: 14px;
@@ -109,6 +128,18 @@
     border-right: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
     border-bottom: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
     transform: rotate(45deg);
+}
+
+/* Si el slime está pegado a la izquierda, el bocadillo se ancla a la izquierda
+   para no salirse de pantalla. */
+.mascot-root.mascot-left .mascot-bubble {
+    right: auto;
+    left: 0;
+    transform-origin: bottom left;
+}
+.mascot-root.mascot-left .mascot-bubble::after {
+    right: auto;
+    left: 24px;
 }
 
 .mascot-bubble-text {
@@ -152,14 +183,14 @@
     }
 }
 
-/* En pantallas chicas la mascota es un poco más pequeña y se corre. */
+/* En pantallas chicas la mascota se sube para NO tapar la barra inferior de
+   navegación (.mobile-bottom-nav, ~60px). El tamaño ya es fluido (clamp). */
 @media (max-width: 640px) {
     .mascot-root {
         right: 12px;
-        bottom: 12px;
+        bottom: calc(72px + env(safe-area-inset-bottom, 0px));
     }
-    .mascot-pet {
-        width: 66px;
-        height: 58px;
+    .mascot-bubble {
+        font-size: 0.82rem;
     }
 }

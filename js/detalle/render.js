@@ -96,37 +96,6 @@ function renderDetalle(item, nombreUrl, categoria) {
     const pageTitle = `${item.titulo} | Anime Destiny`;
     document.title = pageTitle;
 
-    function setMetaTag(name, content, attrName = 'name') {
-        if (!content) return;
-        let meta = document.querySelector(`meta[${attrName}="${name}"]`);
-        if (!meta) {
-            meta = document.createElement('meta');
-            meta.setAttribute(attrName, name);
-            document.head.appendChild(meta);
-        }
-        meta.setAttribute('content', content);
-    }
-
-    function setCanonical(url) {
-        let link = document.querySelector('link[rel="canonical"]');
-        if (!link) {
-            link = document.createElement('link');
-            link.setAttribute('rel', 'canonical');
-            document.head.appendChild(link);
-        }
-        link.setAttribute('href', url);
-    }
-
-    // Google corta las descripciones cerca de los 155 caracteres; mandar la
-    // sinopsis entera no suma y se ve truncada.
-    function recortarDescripcion(texto, max = 155) {
-        const limpio = String(texto || '').replace(/\s+/g, ' ').trim();
-        if (limpio.length <= max) return limpio;
-        const corte = limpio.slice(0, max - 1);
-        const ultimoEspacio = corte.lastIndexOf(' ');
-        return (ultimoEspacio > max * 0.6 ? corte.slice(0, ultimoEspacio) : corte).trim() + '…';
-    }
-
     const isManga = categoria === 'manga' || !categoria;
     const isNovela = categoria === 'novelas';
     const isAnime = categoria === 'anime';
@@ -172,69 +141,9 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     const summaryText = resumen || item.sinopsis || item.descripcion || item.info || 'Sin sinopsis disponible.';
 
-    const metaDesc = recortarDescripcion(summaryText);
-
-    // El canonical se arma solo con cat + id, los unicos parametros que
-    // cambian que ficha se muestra. Los links del catalogo agregan &nombre=
-    // (y a futuro pueden sumar otros): si se copiara location.search entero,
-    // la misma obra tendria una URL canonica distinta por cada variante y
-    // Google las trataria como paginas duplicadas en vez de una sola.
-    const canonicalParams = new URLSearchParams();
-    if (categoria) canonicalParams.set('cat', categoria);
-    canonicalParams.set('id', String(item.id));
-    const canonicalUrl = window.location.origin + window.location.pathname
-        + '?' + canonicalParams.toString();
-
-    setMetaTag('description', metaDesc);
-    setMetaTag('og:title', pageTitle, 'property');
-    setMetaTag('og:description', metaDesc, 'property');
-    setMetaTag('og:image', item.img, 'property');
-    setMetaTag('og:url', canonicalUrl, 'property');
-    setMetaTag('og:type', isAnime ? 'video.tv_show' : 'book', 'property');
-    setMetaTag('twitter:card', 'summary_large_image');
-    setMetaTag('twitter:title', pageTitle);
-    setMetaTag('twitter:description', metaDesc);
-    setMetaTag('twitter:image', item.img);
-    setCanonical(canonicalUrl);
-
-    // Datos estructurados: habilitan los resultados enriquecidos de Google
-    // (imagen, puntuacion, cantidad de episodios) en vez de un link pelado.
-    (function inyectarJsonLd() {
-        const previo = document.getElementById('ld-json-item');
-        if (previo) previo.remove();
-
-        const numScore = Number(item.score ?? item.puntaje);
-        const datos = {
-            '@context': 'https://schema.org',
-            '@type': isAnime ? 'TVSeries' : 'Book',
-            name: item.titulo,
-            url: canonicalUrl,
-            description: metaDesc,
-            inLanguage: 'es'
-        };
-        if (item.img) datos.image = item.img;
-        if (generos.length) datos.genre = generos;
-        if (isAnime && Number(item.capitulos || item.episodios || item.episodes)) {
-            datos.numberOfEpisodes = Number(item.capitulos || item.episodios || item.episodes);
-        }
-        if (Number.isFinite(numScore) && numScore > 0) {
-            datos.aggregateRating = {
-                '@type': 'AggregateRating',
-                ratingValue: numScore,
-                bestRating: 10,
-                worstRating: 0,
-                ratingCount: 1
-            };
-        }
-
-        const script = document.createElement('script');
-        script.type = 'application/ld+json';
-        script.id = 'ld-json-item';
-        // textContent (no innerHTML): el contenido va como texto plano, sin
-        // riesgo de inyeccion con titulos o sinopsis raros.
-        script.textContent = JSON.stringify(datos);
-        document.head.appendChild(script);
-    })();
+    // Meta tags (description/OG/Twitter), canonical y JSON-LD: ver
+    // applyDetailSeo en js/detalle/render-sections.js.
+    applyDetailSeo(item, { categoria, isAnime, generos, summaryText, pageTitle });
 
     const demografiaHtml = item.demografia
         ? `<span class="card-demographic demographic-${escapeHtml(item.demografia)}">${escapeHtml(item.demografia)}</span>`
@@ -276,29 +185,8 @@ function renderDetalle(item, nombreUrl, categoria) {
         </div>
     `;
 
-    // ── Tráiler ──
-    // AniList devuelve site 'youtube' o 'dailymotion'. Solo se embebe YouTube
-    // (es el unico host abierto en el CSP de detalle.html) y con nocookie, para
-    // no dejarle una cookie de tracking al visitante que ni le da play.
-    //
-    // Va como fachada: se pinta la miniatura y el iframe recien se inserta al
-    // hacer clic. Cargarlo de entrada suma ~1 MB de JS de YouTube a una ficha
-    // donde la mayoria nunca toca play.
-    const trailer = item.trailer || null;
-    const trailerId = (trailer && trailer.site === 'youtube' && /^[\w-]{5,20}$/.test(String(trailer.id)))
-        ? String(trailer.id)
-        : '';
-    const trailerHtml = trailerId ? `
-        <div class="detail-section detail-section-trailer">
-            <h2 class="detail-section-title">TRÁILER</h2>
-            <div class="trailer-box">
-                <button class="trailer-facade" type="button" data-yt="${escapeHtml(trailerId)}" aria-label="Reproducir tráiler de ${escapeHtml(item.titulo)}">
-                    <img class="trailer-thumb" src="${safeUrl('https://img.youtube.com/vi/' + trailerId + '/hqdefault.jpg')}" alt="" loading="lazy">
-                    <span class="trailer-play"><i data-lucide="play"></i></span>
-                </button>
-            </div>
-        </div>
-    ` : '';
+    // ── Tráiler ── (ver buildTrailerHtml en js/detalle/render-sections.js)
+    const trailerHtml = buildTrailerHtml(item);
 
     let extraBlockHtml = '';
     let progressPanelHtml = '';
@@ -415,113 +303,14 @@ function renderDetalle(item, nombreUrl, categoria) {
     var mostrarThemes = isAnime && Themes && item.id != null;
     var themesHtml = mostrarThemes ? '<div id="detailThemes" hidden></div>' : '';
 
-    // ── Related items ──
-    var relationTypeLabels = {
-        'SEQUEL': 'Secuela', 'PREQUEL': 'Precuela', 'SIDE_STORY': 'Historia paralela',
-        'SPIN_OFF': 'Spin-off', 'ADAPTATION': 'Adaptaci\u00F3n', 'SUMMARY': 'Resumen',
-        'ALTERNATIVE': 'Alternativa', 'PARENT': 'Principal', 'CONTAINS': 'Contiene', 'OTHER': 'Otro'
-    };
-    function relatedCategory(fmt) {
-        if (fmt === 'NOVEL') return 'novelas';
-        return ['TV','TV_SHORT','MOVIE','SPECIAL','OVA','ONA','MUSIC'].indexOf(fmt) !== -1 ? 'anime' : 'manga';
-    }
-    var relatedMap = {};
-    function pushRelated(src) {
-        if (!src || String(src.id) === String(item.id) || !src.title) return;
-        // Las temporadas ya tienen su propia sección: repetirlas acá era
-        // justamente el amontonamiento que se vino a arreglar.
-        if (cadenaTemporadas && (src.relationType === 'SEQUEL' || src.relationType === 'PREQUEL') &&
-            Temporadas.esFormatoDeTemporada(src.format)) return;
-        var key = String(src.id);
-        if (relatedMap[key]) return;
-        relatedMap[key] = src;
-    }
-    (Array.isArray(item.relations) ? item.relations : []).forEach(pushRelated);
-    if (Array.isArray(item.seasons)) {
-        item.seasons.forEach(function (s, i) {
-            if (i === 0) return;
-            pushRelated({ relationType: 'SEQUEL', id: s.id, title: s.title, episodes: s.episodes || 0, format: s.format, seasonYear: s.seasonYear, img: s.img });
-        });
-    }
-    // Segunda linea de la card: año y cantidad de episodios/capitulos, lo que
-    // haya. Sin esto dos secuelas del mismo año eran indistinguibles.
-    function relatedMeta(r) {
-        var partes = [];
-        if (r.seasonYear) partes.push(r.seasonYear);
-        if (r.episodes) partes.push(r.episodes + (r.episodes === 1 ? ' ep' : ' eps'));
-        else if (r.chapters) partes.push(r.chapters + ' caps');
-        else if (r.volumes) partes.push(r.volumes + (r.volumes === 1 ? ' vol' : ' vols'));
-        return partes.join(' · ');
-    }
-    var relatedList = Object.keys(relatedMap).map(function (k) { return relatedMap[k]; }).slice(0, 12);
-    var relatedHtml = '';
-    if (relatedList.length) {
-        relatedHtml = '<div class="detail-section detail-section-related"><h2 class="detail-h2">Relacionados</h2><div class="related-grid">' +
-            relatedList.map(function (r) {
-                var cat = relatedCategory(r.format);
-                var label = relationTypeLabels[r.relationType] || r.relationType || 'Relacionado';
-                var meta = relatedMeta(r);
-                // Sin portada la card queda igual de alta que el resto: el hueco
-                // se rellena con la inicial del titulo en vez de descuadrar la
-                // grilla.
-                var portada = r.img
-                    ? '<img src="' + safeUrl(r.img) + '" alt="" loading="lazy" decoding="async" data-fallback-catalog="1" data-title="' + escapeHtml(r.title) + '">'
-                    : '<span class="related-cover-empty" aria-hidden="true">' + escapeHtml(String(r.title).charAt(0)) + '</span>';
-                return '<a class="related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
-                    '<span class="related-cover">' + portada +
-                        '<span class="related-type-badge">' + escapeHtml(label) + '</span>' +
-                    '</span>' +
-                    '<span class="related-body">' +
-                        '<span class="related-title">' + escapeHtml(r.title) + '</span>' +
-                        (meta ? '<span class="related-meta">' + escapeHtml(meta) + '</span>' : '') +
-                    '</span>' +
-                    '</a>';
-            }).join('') +
-            '</div></div>';
-    }
+    // ── Related items ── (ver buildRelatedHtml en js/detalle/render-sections.js)
+    var relatedHtml = buildRelatedHtml(item, cadenaTemporadas);
 
-    // ── Personajes y seiyuus ──
-    // Vienen en la misma query por id que el resto del detalle, asi que la
-    // seccion no cuesta un request extra. Solo AniList los tiene: en obras de
-    // MangaDex la lista llega vacia y la seccion no se pinta.
-    var characterRoleLabels = { MAIN: 'Principal', SUPPORTING: 'Secundario', BACKGROUND: 'Fondo' };
-    var characters = Array.isArray(item.characters) ? item.characters : [];
-    var charactersHtml = '';
-    if (characters.length) {
-        charactersHtml = '<div class="detail-section detail-section-chars"><h2 class="detail-h2">Personajes</h2><div class="char-grid">' +
-            characters.map(function (c) {
-                var roleLabel = characterRoleLabels[c.role] || '';
-                // La ficha del actor de voz ocupa la mitad derecha de la card y
-                // se omite entera cuando el personaje no tiene uno cargado
-                // (pasa en manga y en personajes de fondo).
-                var vaHtml = c.vaName
-                    ? '<div class="char-side char-side-va">' +
-                        '<div class="char-text char-text-right">' +
-                            '<span class="char-name">' + escapeHtml(c.vaName) + '</span>' +
-                            '<span class="char-role">Seiyū</span>' +
-                        '</div>' +
-                        (c.vaImage ? '<img class="char-face" src="' + safeUrl(c.vaImage) + '" alt="" loading="lazy">' : '') +
-                      '</div>'
-                    : '';
-                return '<div class="char-card">' +
-                    '<div class="char-side">' +
-                        (c.image ? '<img class="char-face" src="' + safeUrl(c.image) + '" alt="" loading="lazy">' : '') +
-                        '<div class="char-text">' +
-                            '<span class="char-name">' + escapeHtml(c.name) + '</span>' +
-                            (roleLabel ? '<span class="char-role">' + escapeHtml(roleLabel) + '</span>' : '') +
-                        '</div>' +
-                    '</div>' +
-                    vaHtml +
-                    '</div>';
-            }).join('') +
-            '</div></div>';
-    }
+    // ── Personajes y seiyuus ── (ver buildCharactersHtml en js/detalle/render-sections.js)
+    var charactersHtml = buildCharactersHtml(item);
 
-    // ── Banner ──
-    // Imagen ancha de AniList (bannerImage). No todas las obras tienen una.
-    var bannerHtml = item.bannerImage
-        ? '<div class="detail-banner"><img src="' + safeUrl(item.bannerImage) + '" alt="" loading="lazy" decoding="async"></div>'
-        : '';
+    // ── Banner ── (ver buildBannerHtml en js/detalle/render-sections.js)
+    var bannerHtml = buildBannerHtml(item);
 
     let backHref = isAnime ? 'anime.html' : (isNovela ? 'novelas.html' : 'manga.html');
     try {

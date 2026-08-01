@@ -59,6 +59,9 @@ function stubFetch(porLlamada) {
 beforeAll(async () => {
   await import('../../js/core/constants.js');
   await import('../../js/core/api.js');
+  // MangaDex se movió a su propio archivo; getTopMangas/getTopNovelas lo
+  // consumen vía window.*, así que hay que cargarlo también en el test.
+  await import('../../js/core/api-mangadex.js');
 });
 
 beforeEach(() => {
