@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Gestioná tu perfil, estadísticas y preferencias de cuenta.">
     <meta name="keywords" content="perfil, usuario, estadísticas, preferencias, anime destiny">
     <meta name="robots" content="noindex,follow">
@@ -23,14 +23,15 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=3825dede">
+        <link rel="stylesheet" href="css/bundle.min.css?v=196fb323">
 
-    <link rel="stylesheet" href="css/usuario.css?v=3825dede">
+    <link rel="stylesheet" href="css/usuario.css?v=196fb323">
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
-    <script src="js/vendor/lucide.min.js?v=3825dede"></script>
-    <script src="js/core/theme.js?v=3825dede"></script>
+    <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/fonts.css?v=196fb323">
+    <script src="js/vendor/lucide.min.js?v=196fb323" defer></script>
+    <script src="js/core/theme.js?v=196fb323"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="usuario">
@@ -310,12 +311,12 @@
     </main>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=3825dede"></script>
-    <script src="js/core/i18n.js?v=3825dede"></script>
-    <script src="js/core/namespace.js?v=3825dede"></script>
-    <script type="module" src="api/supabase-config.js?v=3825dede" async></script>
-    <script src="js/core-bundle.min.js?v=3825dede" defer></script>
-    <script src="js/pages/usuario.js?v=3825dede" defer></script>
-    <script src="js/pages/import-mal.js?v=3825dede" defer></script>
+    <script src="js/core/config.js?v=196fb323"></script>
+    <script src="js/core/i18n.js?v=196fb323"></script>
+    <script src="js/core/namespace.js?v=196fb323"></script>
+    <script type="module" src="api/supabase-config.js?v=196fb323" async></script>
+    <script src="js/core-bundle.min.js?v=196fb323" defer></script>
+    <script src="js/pages/usuario.js?v=196fb323" defer></script>
+    <script src="js/pages/import-mal.js?v=196fb323" defer></script>
 </body>
 </html>
