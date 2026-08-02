@@ -1776,3 +1776,48 @@ body.reduce-motion .catalog-neon-card {
         min-height: 36px;
     }
 }
+
+/* ==========================================
+   ESTADO VACÍO DEL CATÁLOGO (sin resultados / error de API)
+   Vive dentro de .gallery (grid), por eso debe ocupar todas
+   las columnas para no quedar comprimido en una sola celda.
+========================================== */
+.gallery .empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 640px;
+    margin: 24px auto;
+    padding: 48px 24px;
+    box-sizing: border-box;
+    border: 1px solid rgba(188, 19, 254, 0.18);
+    border-radius: 18px;
+    background: rgba(10, 14, 36, 0.55);
+    backdrop-filter: blur(6px);
+}
+.gallery .empty-state-kicker {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(188, 19, 254, 0.15);
+    color: var(--neon-purple, #bc13fe);
+    font-family: var(--font-display, 'Orbitron', sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+.gallery .empty-state h2 {
+    margin: 0 0 10px;
+    font-size: clamp(1.1rem, 3.4vw, 1.5rem);
+    line-height: 1.25;
+}
+.gallery .empty-state p {
+    margin: 0;
+    max-width: 42ch;
+    color: rgba(var(--ink-rgb, 232, 234, 246), 0.7);
+    line-height: 1.5;
+}
