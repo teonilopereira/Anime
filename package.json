@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node tools/build.js",
     "map": "node tools/code-map.js",
+    "check": "node tools/check-quality.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
