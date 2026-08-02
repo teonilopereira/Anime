@@ -2255,6 +2255,72 @@ window.getCurrentUser      = getCurrentUser;
         info: "normal"
     };
 
+    // ── Personajes seleccionables ─────────────────────────────────────────────
+    // Rimuru es el personaje embebido por defecto (modo 'sheet': un spritesheet
+    // con índices de fotogramas). Otras mascotas — generadas con PixelLab por
+    // tools/generate-mascots.js — se publican en window.MascotRegistry y usan el
+    // modo 'frames': cada animación es una lista de imágenes que se intercambian.
+    var CHAR_KEY = "pref:mascotChar";
+    var RIMURU = {
+        id: "rimuru", name: "Rimuru", anime: "Tensei Slime",
+        mode: "sheet", src: SHEET_SRC, cols: SHEET_COLS, rows: SHEET_ROWS, anims: ANIMS
+    };
+    function registry() { return Array.isArray(window.MascotRegistry) ? window.MascotRegistry : []; }
+    function allChars() { return [RIMURU].concat(registry()); }
+    function readChar() { try { return localStorage.getItem(CHAR_KEY) || "rimuru"; } catch (_) { return "rimuru"; } }
+    function findChar(id) {
+        var l = allChars();
+        for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i];
+        return RIMURU;
+    }
+
+    // Modo de render y, en modo 'frames', las listas de imágenes por animación.
+    var MASCOT_MODE = "sheet";
+    var FRAME_IMGS = null;
+
+    // Deriva un mapa ANIMS (índice+fps por estado) desde las listas de frames.
+    function framesToAnims(f) {
+        var out = {};
+        for (var k in f) {
+            if (!f.hasOwnProperty(k) || !f[k] || !f[k].length) continue;
+            var seq = [];
+            for (var i = 0; i < f[k].length; i++) seq.push(i);
+            out[k] = { f: seq, fps: (k === "walk" ? 10 : 6) };
+        }
+        if (!out.idle) out.idle = { f: [0], fps: 1 };
+        if (!out.walk) out.walk = out.idle;
+        if (!out.air)  out.air  = { f: [out.idle.f[0]], fps: 1 };
+        return out;
+    }
+
+    // Aplica un personaje: fija modo, hoja/frames y ANIMS. Si el sprite ya existe
+    // en el DOM, repinta al vuelo (permite cambiar de mascota sin recargar).
+    function applyChar(id) {
+        var c = findChar(id);
+        MASCOT_MODE = c.mode === "frames" ? "frames" : "sheet";
+        if (MASCOT_MODE === "frames") {
+            FRAME_IMGS = c.frames || {};
+            ANIMS = c.anims || framesToAnims(FRAME_IMGS);
+        } else {
+            SHEET_SRC  = c.src  || RIMURU.src;
+            SHEET_COLS = c.cols || 8;
+            SHEET_ROWS = c.rows || 5;
+            ANIMS = c.anims || RIMURU.anims;
+        }
+        if (sprite) {
+            if (MASCOT_MODE === "frames") {
+                sprite.style.backgroundSize = "100% 100%";
+                sprite.style.backgroundPosition = "center bottom";
+            } else {
+                sprite.style.backgroundImage = "url(" + SHEET_SRC + ")";
+                sprite.style.backgroundSize = "";      // vuelve al valor del CSS (800% 500%)
+                sprite.style.backgroundPosition = "0 0";
+            }
+            animName = null; animFrame = -1; _lastFrameKey = "";
+            setFrame(0, "idle");
+        }
+    }
+
     // ── Animador de fotogramas ───────────────────────────────────────────────
     // Un único rAF desplaza el background-position del <div.mascot-sprite> según
     // el grupo activo. El grupo sale de: dormido → 'sleep'; si hay expresión
@@ -2262,6 +2328,7 @@ window.getCurrentUser      = getCurrentUser;
     // (motionAnim: 'idle' | 'walk' | 'air').
     var motionAnim = "idle";
     var animRAF = null, animStart = 0, animName = null, animFrame = -1;
+    var _lastFrameKey = "";  // dedupe en modo 'frames' (nombre+idx)
 
     function activeAnim() {
         if (sleeping) return "sleep";
@@ -2273,8 +2340,19 @@ window.getCurrentUser      = getCurrentUser;
     // Coloca el fotograma `idx` (0..35) moviendo el fondo. Con background-size
     // de 800%×500% y el elemento del tamaño de UNA celda, la posición en % es
     // col/(cols-1) y row/(rows-1).
-    function setFrame(idx) {
+    function setFrame(idx, name) {
         if (!sprite) return;
+        // Modo 'frames' (mascotas generadas): cada fotograma es una imagen
+        // distinta; `idx` es la posición dentro de la lista de esa animación.
+        if (MASCOT_MODE === "frames") {
+            var list = (FRAME_IMGS && (FRAME_IMGS[name] || FRAME_IMGS.idle)) || [];
+            var src = list[idx] || list[0];
+            if (src) sprite.style.backgroundImage = "url(" + src + ")";
+            return;
+        }
+        // Modo 'sheet' (Rimuru): se desplaza el background-position dentro de la
+        // hoja. Con background-size cols×rows y el elemento del tamaño de UNA
+        // celda, la posición en % es col/(cols-1) y row/(rows-1).
         var col = idx % SHEET_COLS, row = (idx / SHEET_COLS) | 0;
         var px = SHEET_COLS > 1 ? (col / (SHEET_COLS - 1)) * 100 : 0;
         var py = SHEET_ROWS > 1 ? (row / (SHEET_ROWS - 1)) * 100 : 0;
@@ -2290,7 +2368,14 @@ window.getCurrentUser      = getCurrentUser;
         // Con movimiento reducido, congelamos en el primer fotograma del estado.
         var i = reducedMotion() ? 0 : Math.floor((ts - animStart) * a.fps / 1000) % a.f.length;
         var frame = a.f[i];
-        if (frame !== animFrame) { animFrame = frame; setFrame(frame); }
+        if (MASCOT_MODE === "frames") {
+            // El índice de frame se repite entre animaciones (idle[0], walk[0]…):
+            // hay que redibujar también cuando cambia la animación, no solo el idx.
+            var key = name + ":" + frame;
+            if (key !== _lastFrameKey) { _lastFrameKey = key; animFrame = frame; setFrame(frame, name); }
+        } else if (frame !== animFrame) {
+            animFrame = frame; setFrame(frame, name);
+        }
     }
 
     function startAnim() {
@@ -2384,9 +2469,9 @@ window.getCurrentUser      = getCurrentUser;
         sprite = document.createElement("div");
         sprite.className = "mascot-sprite";
         sprite.setAttribute("aria-hidden", "true");
-        sprite.style.backgroundImage = "url(" + SHEET_SRC + ")";
         pet.appendChild(sprite);
-        setFrame(0);
+        // Pinta el personaje elegido (Rimuru por defecto): imagen, modo y 1er frame.
+        applyChar(readChar());
         pet.addEventListener("click", onPetClick);
         // Pausar el auto-ocultado mientras el mouse está sobre la mascota.
         pet.addEventListener("mouseenter", function () { clearTimeout(hideTimer); });
@@ -3149,13 +3234,40 @@ window.getCurrentUser      = getCurrentUser;
         });
     }
 
+    // Cambia el personaje activo, lo persiste y repinta al vuelo si está en pantalla.
+    function setCharacter(id) {
+        try { localStorage.setItem(CHAR_KEY, id); } catch (_) { /* storage bloqueado */ }
+        applyChar(id);
+        return id;
+    }
+
+    // Lista para el selector: datos mínimos + una miniatura utilizable.
+    // 'sheet' → src de la hoja + cols/rows (el selector recorta la celda 0);
+    // 'frames' → la primera imagen de idle como miniatura directa.
+    function listCharacters() {
+        return allChars().map(function (c) {
+            var mode = c.mode === "frames" ? "frames" : "sheet";
+            var thumb = mode === "frames"
+                ? (c.frames && c.frames.idle && c.frames.idle[0]) || ""
+                : c.src;
+            return {
+                id: c.id, name: c.name, anime: c.anime || "",
+                mode: mode, thumb: thumb,
+                cols: c.cols || 8, rows: c.rows || 5
+            };
+        });
+    }
+
     // API pública.
     window.Mascot = Object.freeze({
         say: say,
         setEnabled: setEnabled,
         isEnabled: isEnabled,
         setRoaming: setRoaming,
-        isRoaming: roamPref
+        isRoaming: roamPref,
+        setCharacter: setCharacter,
+        getCharacter: readChar,
+        listCharacters: listCharacters
     });
 
     // Mostrar la mascota al cargar si está activada (es una mascota que "vive"

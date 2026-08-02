@@ -19,15 +19,15 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=edfbab4b">
+        <link rel="stylesheet" href="css/bundle.min.css?v=0265ed14">
 
-    <link rel="stylesheet" href="css/configuracion.css?v=edfbab4b">
+    <link rel="stylesheet" href="css/configuracion.css?v=0265ed14">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=edfbab4b">
-    <script src="js/vendor/lucide.min.js?v=edfbab4b" defer></script>
-    <script src="js/core/theme.js?v=edfbab4b"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=0265ed14">
+    <script src="js/vendor/lucide.min.js?v=0265ed14" defer></script>
+    <script src="js/core/theme.js?v=0265ed14"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="configuracion">
@@ -55,6 +55,20 @@
                 </div>
             </div>
             <a href="usuario.html" class="cfg-back-btn" data-i18n="config.volver_perfil">← Volver al perfil</a>
+        </div>
+
+        <!-- Generador de avatar en pixel art (PixelLab) -->
+        <div class="cfg-avatar-gen" id="avatarGen" style="display:none">
+            <label for="avatarPrompt" class="cfg-user-label" data-i18n="config.avatar.titulo">🎨 Generá tu avatar en pixel art</label>
+            <div class="cfg-avatar-gen-row">
+                <input type="text" id="avatarPrompt" maxlength="400"
+                       placeholder="ej: guerrero ninja con capa roja"
+                       data-i18n="config.avatar.placeholder" data-i18n-attr="placeholder">
+                <button class="cfg-btn cfg-btn-primary" id="avatarGenBtn"
+                        data-i18n="config.avatar.generar">GENERAR</button>
+            </div>
+            <div class="cfg-avatar-gen-hint" id="avatarGenHint"
+                 data-i18n="config.avatar.hint">Se crea con IA y queda como tu foto de perfil.</div>
         </div>
 
         <p class="cfg-note" data-i18n="config.autoguardado">Los cambios se guardan solos.</p>
@@ -148,6 +162,9 @@
                         <input type="checkbox" id="prefRoam">
                         <span class="cfg-switch-slider"></span>
                     </label>
+                </div>
+                <div class="cfg-action-stack" style="margin-top:10px">
+                    <a href="mascotas.html" class="cfg-btn cfg-btn-secondary cfg-btn-full" data-i18n="config.mascota.elegir">🐾 Elegí tu mascota</a>
                 </div>
             </div>
 
@@ -287,17 +304,17 @@
     <!-- Toast -->
     <div class="cfg-toast" id="cfgToast"></div>
 
-    <script src="js/core/config.js?v=edfbab4b"></script>
-    <script src="js/core/i18n.js?v=edfbab4b"></script>
+    <script src="js/core/config.js?v=0265ed14"></script>
+    <script src="js/core/i18n.js?v=0265ed14"></script>
 
-    <script src="js/core/constants.js?v=edfbab4b"></script>
-    <script src="js/core/namespace.js?v=edfbab4b"></script>
-<script type="module" src="api/supabase-config.js?v=edfbab4b" async></script>
-    <script src="js/core/user-store.js?v=edfbab4b" defer></script>
-    <script src="js/core/auth.js?v=edfbab4b" defer></script>
+    <script src="js/core/constants.js?v=0265ed14"></script>
+    <script src="js/core/namespace.js?v=0265ed14"></script>
+<script type="module" src="api/supabase-config.js?v=0265ed14" async></script>
+    <script src="js/core/user-store.js?v=0265ed14" defer></script>
+    <script src="js/core/auth.js?v=0265ed14" defer></script>
 
-    <script src="js/ui/mascot.js?v=edfbab4b" defer></script>
-    <script src="js/pages/configuracion.js?v=edfbab4b" defer></script>
-    <script src="js/core/common-ui.js?v=edfbab4b" defer></script>
+    <script src="js/ui/mascot.js?v=0265ed14" defer></script>
+    <script src="js/pages/configuracion.js?v=0265ed14" defer></script>
+    <script src="js/core/common-ui.js?v=0265ed14" defer></script>
 </body>
 </html>
