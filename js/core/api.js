@@ -523,6 +523,11 @@
         var cacheKey = 'topAnimes_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
         return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
+            // Con búsqueda de texto ignoramos el modo de descubrimiento: ordenar
+            // por relevancia (SEARCH_MATCH) y NO limitar por temporada/tendencia,
+            // que dejaban fuera títulos válidos (p. ej. buscar "Dxd" con
+            // "Temporada actual" activo devolvía cero resultados).
+            var animeSortOpts = filters.search ? { sort: 'SEARCH_MATCH' } : browseToQueryOpts(browse, true);
             var query = buildDynamicQuery(Object.assign({
                 type: 'ANIME',
                 search: filters.search || null,
@@ -530,7 +535,7 @@
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
                 formatIn: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC']
-            }, browseToQueryOpts(browse, true)));
+            }, animeSortOpts));
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
@@ -555,13 +560,16 @@
 
         return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
             var perPage = Math.floor(PER_PAGE / 3) || 13;
+            // Ver getTopAnimes: al buscar por texto priorizamos relevancia y no
+            // restringimos por modo de descubrimiento.
+            var mangaSortOpts = filters.search ? { sort: 'SEARCH_MATCH' } : browseToQueryOpts(browse, false);
             var baseOpts = Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false
-            }, browseToQueryOpts(browse, false));
+            }, mangaSortOpts);
             var baseVars = {};
             if (filters.search) baseVars.search = filters.search;
             if (split.genres.length) baseVars.genre_in = split.genres;
@@ -621,6 +629,9 @@
         var cacheKey = 'novonly_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
         return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
+            // Ver getTopAnimes: al buscar por texto priorizamos relevancia y no
+            // restringimos por modo de descubrimiento.
+            var novelaSortOpts = filters.search ? { sort: 'SEARCH_MATCH' } : browseToQueryOpts(browse, false);
             var query = buildDynamicQuery(Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
@@ -628,7 +639,7 @@
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
                 formatIn: ['NOVEL']
-            }, browseToQueryOpts(browse, false)));
+            }, novelaSortOpts));
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
