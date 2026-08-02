@@ -2118,16 +2118,19 @@ window.getCurrentUser      = getCurrentUser;
 
 /**
  * mascot.js
- * Mascota 2D (Rimuru, el slime de "Tensei Shitara Slime Datta Ken") que vive en
- * una esquina de la pantalla y, cuando está activada, ANUNCIA las notificaciones
- * "hablando" por un bocadillo en vez de mostrar el toast clásico. Envuelve a
- * window.Toast: si la mascota está apagada, delega en el toast de siempre; si
- * está encendida, Rimuru habla.
+ * Mascota 2D (Brote, un espíritu de planta) que vive en una esquina de la
+ * pantalla y, cuando está activada, ANUNCIA las notificaciones "hablando" por
+ * un bocadillo en vez de mostrar el toast clásico. Envuelve a window.Toast: si
+ * la mascota está apagada, delega en el toast de siempre; si está encendida,
+ * Brote habla.
+ *
+ * Brote es "acechante": se mueve lento y sigiloso, sigue el cursor y de vez en
+ * cuando se lanza hacia él con una embestida.
  *
  * El sprite es pixel-art animado a partir de un spritesheet (8×5 celdas de
  * 96×96) embebido como data-URI, así no dependemos de ningún asset externo.
- * Las "expresiones" y estados (reposo, caminar, salto, festejo…) se consiguen
- * eligiendo el grupo de fotogramas y desplazando el background-position.
+ * Las "expresiones" y estados (reposo, caminar, embestida, festejo…) se
+ * consiguen eligiendo el grupo de fotogramas y desplazando background-position.
  *
  * Preferencia: localStorage 'pref:mascot' = 'on' | 'off' (default: on).
  * Expone window.Mascot { say, setEnabled, isEnabled }.
@@ -2192,9 +2195,10 @@ window.getCurrentUser      = getCurrentUser;
     //  arriba (festejo), 18-20 embestida, 21-23 recompone · fila3 24-31 caminar
     //  · fila4 32-35 agazapado.
     var ANIMS = {
-        idle:      { f: [0, 1, 2, 3, 4, 5, 6, 7], fps: 8 },
-        walk:      { f: [24, 25, 26, 27, 28, 29, 30, 31], fps: 11 },
+        idle:      { f: [0, 1, 2, 3, 4, 5, 6, 7], fps: 6 },   // acecho lento
+        walk:      { f: [24, 25, 26, 27, 28, 29, 30, 31], fps: 8 },
         air:       { f: [17], fps: 1 },              // salto (brazos arriba)
+        dash:      { f: [18, 19, 20], fps: 14 },     // embestida hacia el cursor
         happy:     { f: [16, 17], fps: 6 },          // festejo
         love:      { f: [16, 17], fps: 7 },
         surprised: { f: [17], fps: 1 },
@@ -2220,10 +2224,12 @@ window.getCurrentUser      = getCurrentUser;
     // especial → esa; si no, del estado de movimiento que fija la física
     // (motionAnim: 'idle' | 'walk' | 'air').
     var motionAnim = "idle";
+    var dashUntil = 0;    // mientras embiste, la animación 'dash' manda
     var animRAF = null, animStart = 0, animName = null, animFrame = -1;
 
     function activeAnim() {
         if (sleeping) return "sleep";
+        if (performance.now() < dashUntil) return "dash";
         var e = EXPR_ANIM[currentExpr];
         if (e) return e;
         return motionAnim;
@@ -2299,7 +2305,7 @@ window.getCurrentUser      = getCurrentUser;
     var nextDecision = 0;    // cuándo el slime vuelve a elegir qué hacer
     var attentionUntil = 0;  // pausa el paseo (habla / click) hasta este tiempo
     var lastReact = 0;       // cooldown de reacciones al contenido
-    var lastFlee = 0;        // cooldown del "susto" al acercar el cursor
+    var lastPounce = 0;      // cooldown de la embestida hacia el cursor
     var mouseWired = false;  // para no duplicar el listener global de puntero
 
     // Fija la expresión: el animador de fotogramas reflejará el cambio en el
@@ -2339,7 +2345,7 @@ window.getCurrentUser      = getCurrentUser;
         pet = document.createElement("button");
         pet.className = "mascot-pet";
         pet.type = "button";
-        pet.setAttribute("aria-label", "Rimuru — tu mascota slime. Tocá para saludar.");
+        pet.setAttribute("aria-label", "Brote — tu mascota espíritu de planta. Tocá para saludar.");
         sprite = document.createElement("div");
         sprite.className = "mascot-sprite";
         sprite.setAttribute("aria-hidden", "true");
@@ -2492,9 +2498,11 @@ window.getCurrentUser      = getCurrentUser;
     // Todo con un único requestAnimationFrame; sin librerías (respeta el CSP).
 
     var GRAV = 2600;         // aceleración de la gravedad (px/s²)
-    var WALK = 82;           // velocidad al caminar (px/s)
+    var WALK = 46;           // velocidad al caminar (px/s) — lento, sigiloso
     var JUMP_VY = -900;      // impulso de un salto normal (px/s) → alcanza ~155px
     var JUMP_MAX = 1220;     // impulso máximo para trepar a repisas altas (px/s)
+    var POUNCE_VX = 340;     // velocidad horizontal de la embestida hacia el cursor
+    var POUNCE_CD = 5200;    // enfriamiento entre embestidas (ms)
 
     // Elementos que sirven de "repisa". Selectores robustos y genéricos: si un
     // rect no cumple los filtros (ancho, altura, estar a la vista) se descarta,
@@ -2582,16 +2590,16 @@ window.getCurrentUser      = getCurrentUser;
         var msg = null;
         if (title) {
             msg = pick([
-                "¿'" + title + "' a tu lista? 👀",
-                "¡'" + title + "' tiene buena pinta!",
-                "Marcá '" + title + "' como visto 👁"
+                "¿Plantamos '" + title + "' en tu lista? 🌱",
+                "'" + title + "' tiene semillas de las buenas 🌿",
+                "Dejá que '" + title + "' eche raíces en tu lista 🌿"
             ]);
         } else if (el.matches && el.matches(".mobile-bottom-nav")) {
-            msg = "Tocá un ícono para navegar 📱";
+            msg = "Tocá un ícono para pasear por el jardín 🌿";
         } else if (el.matches && el.matches(".hero-section, h1, h2, .title, .section-title")) {
-            msg = pick(["¿Exploramos? 🚀", "¡Vamos a maratonear! ✨"]);
+            msg = pick(["¿Exploramos el bosque? 🌳", "¡A maratonear entre las hojas! 🍃"]);
         } else if (el.matches && el.matches("footer")) {
-            msg = "Llegaste al final 👋";
+            msg = "Llegaste al claro del bosque 🌸";
         }
         if (msg) { lastReact = ts; speak(msg); }
     }
@@ -2658,51 +2666,54 @@ window.getCurrentUser      = getCurrentUser;
         nextDecision = ts + 700;
     }
 
-    // "Cerebro": decide la próxima acción cuando está parado y no está ocupado.
+    // "Cerebro" acechante: se mueve poco y lento. Cuando ve el cursor, lo sigue
+    // sigilosamente; casi nunca deambula al azar y rara vez trepa. Pasa buena
+    // parte del tiempo quieto, "al acecho" (la embestida la maneja maybePounce).
     function decide(ts) {
         var cx = phys.x + phys.w / 2;
-        var mouseFresh = mouse.x >= 0 && ts - mouse.t < 2500;
+        var mouseFresh = mouse.x >= 0 && ts - mouse.t < 3500;
         var r = Math.random();
 
-        if (mouseFresh && r < 0.28) {
-            // Seguir el cursor: camina hacia su X (y salta si está más arriba).
+        if (mouseFresh && r < 0.5) {
+            // Acechar: se acerca despacio hacia la X del cursor.
             var dir = mouse.x < cx ? -1 : 1;
-            walk(dir, rand(700, 1400), ts);
-            if (mouse.y < phys.y - 20 && Math.random() < 0.5) jump(ts);
-        } else if (r < 0.55) {
-            // Deambular: dirección al azar (o hacia el centro si está en un borde).
+            walk(dir, rand(600, 1200), ts);
+        } else if (r < 0.62) {
+            // Deambular poco (o hacia el centro si está pegado a un borde).
             var d = cx < window.innerWidth * 0.15 ? 1 :
                     cx > window.innerWidth * 0.85 ? -1 : (Math.random() < 0.5 ? -1 : 1);
-            walk(d, rand(800, 1800), ts);
-            if (Math.random() < 0.3) jump(ts); // saltito exploratorio
-        } else if (r < 0.72) {
-            // Trepar: si hay una repisa alcanzable más arriba, salta hacia ella;
-            // si no, un salto simple exploratorio.
+            walk(d, rand(500, 1100), ts);
+        } else if (r < 0.68) {
+            // Trepar rara vez: solo si hay una repisa alcanzable más arriba.
             var target = reachableTarget();
-            if (target) hopTo(target, ts); else jump(ts);
+            if (target) hopTo(target, ts);
+            else { phys.vx = 0; nextDecision = ts + rand(1200, 2600); }
         } else {
-            // Descansar un momento.
+            // Quedarse quieto, al acecho (lo más frecuente).
             phys.vx = 0;
-            nextDecision = ts + rand(900, 2200);
+            nextDecision = ts + rand(1400, 3400);
         }
     }
 
-    // Susto: si el cursor se mete muy cerca y en movimiento, pega un salto para
-    // el lado contrario (con cooldown para que no sea epiléptico).
-    function maybeFlee(ts) {
-        if (!phys.ground || ts - lastFlee < 1500) return;
-        if (mouse.x < 0 || ts - mouse.t > 400) return;
+    // Embestida: cada tanto, si el cursor está a media distancia, Brote se lanza
+    // hacia él con un pequeño impulso y la animación de embestida (cooldown para
+    // que sea algo ocasional, no constante).
+    function maybePounce(ts) {
+        if (!phys.ground || ts - lastPounce < POUNCE_CD) return;
+        if (mouse.x < 0 || ts - mouse.t > 500) return;
         var cx = phys.x + phys.w / 2, cy = phys.y + phys.h / 2;
-        if (Math.hypot(mouse.x - cx, mouse.y - cy) > phys.w * 0.9) return;
-        lastFlee = ts;
-        var dir = mouse.x < cx ? 1 : -1; // huir del cursor
-        phys.face = dir < 0 ? -1 : 1;
-        phys.vx = dir * WALK * 1.8;
-        phys.vy = JUMP_VY * 0.85;
+        var dx = mouse.x - cx, dist = Math.hypot(dx, mouse.y - cy);
+        // Ni encima (ya llegó) ni lejísimos; y solo a veces.
+        if (dist < phys.w * 1.1 || dist > 380) return;
+        if (Math.random() > 0.5) return;
+        lastPounce = ts;
+        var dir = dx < 0 ? -1 : 1;
+        phys.face = dir;
+        phys.vx = dir * POUNCE_VX;   // arranque veloz hacia el cursor
+        phys.vy = JUMP_VY * 0.42;    // saltito de embestida
         phys.ground = null;
-        nextDecision = ts + 700;
-        setExpr("surprised");
-        setTimeout(function () { if (currentExpr === "surprised") setExpr("normal"); }, 500);
+        dashUntil = ts + 640;        // muestra la animación de embestida
+        nextDecision = ts + 680;     // al terminar, decide() lo frena enseguida
     }
 
     // Un paso de simulación.
@@ -2711,7 +2722,7 @@ window.getCurrentUser      = getCurrentUser;
 
         // Decisiones y reacciones solo cuando está parado y sin bocadillo activo.
         if (ts >= attentionUntil) {
-            maybeFlee(ts);
+            maybePounce(ts);
             if (phys.ground && ts >= nextDecision) decide(ts);
         } else {
             phys.vx = 0; // "viene a hablarte": se queda quieto mientras dice algo
@@ -2927,26 +2938,26 @@ window.getCurrentUser      = getCurrentUser;
 
     // ── Interacción: tocar la mascota ──────────────────────────────────────
     var GREETINGS = [
-        "¡Hola! Soy Rimuru. ¿Qué vas a ver hoy?",
-        "¡Blop! Estoy aquí si me necesitás.",
-        "¿Sumamos algo a tus listas?",
-        "¡Ánimo con tu maratón! ✨",
-        "Toca una noti y te la leo.",
-        "¡Soy Rimuru, tu slime de confianza!"
+        "¡Hola! Soy Brote 🌱 ¿Qué historia germina hoy?",
+        "Bloop… crezco un poquito con cada capítulo 🌿",
+        "¿Regamos tu lista de pendientes? 💧",
+        "Respirá hondo y disfrutá tu maratón 🍃",
+        "Tocá una noti y te la susurro entre las hojas 🌱",
+        "Soy Brote, tu espíritu del bosque 🌳"
     ];
 
-    // Saludos según la página: el slime "sabe" dónde estás y lo comenta.
+    // Saludos según la página: Brote "sabe" dónde estás y lo comenta.
     var PAGE_GREETINGS = {
-        "index":         ["¡Bienvenido a Anime Destiny! ✨", "¿Descubrimos algo nuevo hoy?"],
-        "anime":         ["¿Qué anime maratoneamos? 🍿", "¡Buenísimo el catálogo de hoy!"],
-        "manga":         ["¿Un buen manga para leer? 📖", "Pasá página conmigo 📚"],
-        "novelas":       ["¿Nos clavamos una novela? 📓", "Historias largas, las mejores ✨"],
-        "detalle":       ["¿Te tiño esta ficha de tu color? 🎨", "¿A tu lista con esta?"],
-        "mis-listas":    ["¡Ordenemos tus listas! 🗂️", "¿Qué seguís viendo?"],
-        "ranking":       ["¡Al top del ranking! 🏆", "¿Quién manda hoy?"],
-        "top":           ["Los más grandes de todos 🏆", "¿Coincidís con el top?"],
-        "comparar":      ["Enfrentá dos obras ⚔️", "¿Cuál gana el duelo?"],
-        "configuracion": ["Toqueteá los ajustes 🛠️", "¿Me apagás? ¡No seas malo! 🥺"]
+        "index":         ["¡Bienvenido! Todo florece por aquí 🌸", "¿Qué semillita descubrimos hoy? 🌱"],
+        "anime":         ["¿Qué anime dejamos crecer? 🍿🌿", "El catálogo está en plena floración 🌸"],
+        "manga":         ["Una hoja tras otra… 📖🍃", "Pasá página como quien poda el jardín 🌿"],
+        "novelas":       ["Historias que echan raíces 📓🌱", "Las novelas largas son árboles frondosos 🌳"],
+        "detalle":       ["¿Le doy a esta ficha tu color? 🎨🌿", "¿La plantamos en tu lista? 🌱"],
+        "mis-listas":    ["Cuidemos tu jardín de listas 🪴", "¿Qué seguís cultivando? 🌿"],
+        "ranking":       ["Los que más han florecido 🏆🌸", "¿Coincidís con la cosecha? 🌾"],
+        "top":           ["Árboles centenarios del catálogo 🌳", "Los más grandes, bien enraizados 🏆"],
+        "comparar":      ["Dos plantas, un mismo sol ☀️🌿", "¿Cuál crece más fuerte?"],
+        "configuracion": ["Ajustá el clima de tu jardín 🛠️🌿", "¿Me marchitás? ¡No seas malito! 🥺🌱"]
     };
 
     // Nombre de la página actual (sin extensión) para elegir el saludo.
@@ -2966,7 +2977,12 @@ window.getCurrentUser      = getCurrentUser;
     var greetIdx = 0;
 
     // Frases de cariño cuando lo miman varias veces seguidas.
-    var LOVE_LINES = ["¡Me hacés cosquillas! 😆", "¡Te quiero! ❤", "¡Blop blop! 💕", "¡Más mimos, más! 🥰"];
+    var LOVE_LINES = [
+        "¡Me hacés cosquillas en las hojas! 😆🍃",
+        "¡Te quiero un montón! 🌷",
+        "¡Bloop bloop! Floreciendo de amor 🌸",
+        "¡Más mimos, son riego para el alma! 🥰💧"
+    ];
 
     function onPetClick() {
         // Si el click viene de terminar un arrastre, no saludar.
