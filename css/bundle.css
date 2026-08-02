@@ -546,6 +546,264 @@ main { padding-bottom: 24px; }
     padding: 4px 4px 2px;
 }
 
+/* Sugerencia resaltada por teclado (↑/↓) o al pasar el mouse */
+.catalog-suggestion.is-active {
+    transform: translateY(-1px);
+    background: rgba(0, 242, 255, 0.12);
+    border-color: rgba(0, 242, 255, 0.35);
+    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.15);
+}
+
+/* Coincidencia de la búsqueda dentro del título */
+.catalog-suggestion-mark {
+    background: transparent;
+    color: var(--nav-accent, #00f2ff);
+    font-weight: 700;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+/* Estado del desplegable: "Buscando…" / "Sin resultados" */
+.catalog-suggestion-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.86rem;
+    opacity: 0.7;
+}
+
+.catalog-suggestion-status[data-status="empty"] {
+    justify-content: center;
+    text-align: center;
+}
+
+.catalog-suggestion-spinner {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 242, 255, 0.25);
+    border-top-color: var(--nav-accent, #00f2ff);
+    animation: catalog-suggestion-spin 0.7s linear infinite;
+}
+
+@keyframes catalog-suggestion-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .catalog-suggestion-spinner { animation-duration: 1.6s; }
+    .catalog-suggestion.is-active { transform: none; }
+}
+
+/* Botón limpiar (×) dentro del input de búsqueda */
+.catalog-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(var(--ink-rgb), 0.06);
+    color: rgba(var(--ink-rgb), 0.6);
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.catalog-search-clear:hover {
+    background: rgba(188, 19, 254, 0.18);
+    color: var(--text-main);
+}
+
+.catalog-search-clear[hidden] {
+    display: none;
+}
+
+/* Reservar espacio a la derecha del texto cuando el botón × está visible */
+.catalog-search-inner:has(.catalog-search-clear:not([hidden])) .catalog-search-input {
+    padding-right: 30px;
+}
+
+/* Ocultar la × nativa de <input type="search"> para no duplicar el botón limpiar */
+.catalog-search-input::-webkit-search-cancel-button,
+.catalog-search-input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* ==========================================
+   BUSCADOR — ESTILO AMPLIADO
+========================================== */
+
+/* Animación de entrada del desplegable */
+.catalog-suggestions.is-open {
+    animation: catalog-suggestions-in 0.16s ease-out;
+    transform-origin: top center;
+}
+
+@keyframes catalog-suggestions-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.99); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Barra de acento a la izquierda del ítem activo/hover */
+.catalog-suggestion {
+    position: relative;
+}
+
+.catalog-suggestion::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 62%;
+    border-radius: 0 3px 3px 0;
+    background: var(--nav-accent, #00f2ff);
+    transition: transform 0.18s ease;
+}
+
+.catalog-suggestion.is-active::before,
+.catalog-suggestion:hover::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+.catalog-suggestion.is-active {
+    background: color-mix(in srgb, var(--nav-accent, #00f2ff) 12%, transparent);
+    border-color: color-mix(in srgb, var(--nav-accent, #00f2ff) 35%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--nav-accent, #00f2ff) 15%, transparent);
+}
+
+.catalog-suggestion-img {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(var(--ink-rgb), 0.08);
+}
+
+/* Cabecera de sección (recientes / en línea) */
+.catalog-suggestion-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 6px 2px;
+}
+
+.catalog-suggestion-head-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    font-weight: 700;
+    opacity: 0.5;
+}
+
+.catalog-suggestion-recent-clear {
+    border: none;
+    background: transparent;
+    color: var(--nav-accent, #00f2ff);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.catalog-suggestion-recent-clear:hover {
+    background: color-mix(in srgb, var(--nav-accent, #00f2ff) 14%, transparent);
+}
+
+/* Ítem de búsqueda reciente (es un <button>, no un enlace) */
+.catalog-suggestion--recent {
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    appearance: none;
+}
+
+.catalog-suggestion-recent-ico {
+    display: inline-flex;
+    color: rgba(var(--ink-rgb), 0.45);
+    flex-shrink: 0;
+}
+
+/* Etiqueta "En línea" de los resultados de la API, con punto pulsante */
+.catalog-suggestion-api-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.catalog-suggestion-api-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--nav-accent, #00f2ff);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--nav-accent, #00f2ff) 60%, transparent);
+    animation: catalog-api-pulse 1.8s ease-out infinite;
+}
+
+@keyframes catalog-api-pulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--nav-accent, #00f2ff) 55%, transparent); }
+    70%  { box-shadow: 0 0 0 6px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.catalog-suggestion-status-ico {
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+/* Pie con atajos de teclado */
+.catalog-suggestion-hint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 8px 10px 4px;
+    margin-top: 2px;
+    border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+    font-size: 0.72rem;
+    opacity: 0.6;
+}
+
+.catalog-suggestion-hint span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.catalog-suggestion-hint kbd {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.72rem;
+    line-height: 1;
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: rgba(var(--ink-rgb), 0.08);
+    border: 1px solid rgba(var(--ink-rgb), 0.12);
+}
+
+/* En dispositivos táctiles los atajos de teclado no aplican */
+@media (hover: none) {
+    .catalog-suggestion-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .catalog-suggestions.is-open { animation: none; }
+    .catalog-suggestion::before { transition: none; }
+    .catalog-suggestion-api-dot { animation: none; }
+}
+
 .nav-user {
     position: static;
     transform: none;
