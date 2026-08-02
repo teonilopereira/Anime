@@ -2447,7 +2447,7 @@ window.getCurrentUser      = getCurrentUser;
             // quedó: la física lo lleva a posarse sobre la repisa más cercana.
             if (running && phys) {
                 var r = root.getBoundingClientRect();
-                phys.x = r.left; phys.y = r.top; phys.vx = 0; phys.vy = 0;
+                phys.x = r.left; phys.y = r.top; phys.vx = 0; phys.vy = 0; phys.tvx = 0;
                 phys.ground = null;
                 nextDecision = performance.now() + 500;
             }
@@ -2493,6 +2493,10 @@ window.getCurrentUser      = getCurrentUser;
 
     var GRAV = 2600;         // aceleración de la gravedad (px/s²)
     var WALK = 82;           // velocidad al caminar (px/s)
+    var ACCEL = 950;         // aceleración horizontal en el piso (px/s²): el slime
+                             // no salta de golpe a la velocidad máxima, arranca y
+                             // frena de a poco → paso a paso más natural y con
+                             // "fricción" al aterrizar.
     var JUMP_VY = -900;      // impulso de un salto normal (px/s) → alcanza ~155px
     var JUMP_MAX = 1220;     // impulso máximo para trepar a repisas altas (px/s)
 
@@ -2559,7 +2563,7 @@ window.getCurrentUser      = getCurrentUser;
     // Pausa el paseo un rato (mientras habla o tras un click): se queda quieto.
     function pauseRoam(ms) {
         attentionUntil = performance.now() + (ms || DURATION());
-        if (phys) phys.vx = 0;
+        if (phys) phys.tvx = 0; // frena suave (la física lo lleva a 0 en step)
     }
 
     // Aplica el "mirar hacia" (flip horizontal) sobre el sprite, sin pelear con
@@ -2606,9 +2610,11 @@ window.getCurrentUser      = getCurrentUser;
         reactTo(plat, ts);
     }
 
-    // Empieza a caminar en una dirección durante un tiempo.
+    // Empieza a caminar en una dirección durante un tiempo. Fija una velocidad
+    // OBJETIVO (con una pizca de variación para que el andar no sea metronómico);
+    // la física acelera hacia ella suavemente en step().
     function walk(dir, ms, ts) {
-        phys.vx = dir * WALK;
+        phys.tvx = dir * WALK * rand(0.85, 1.12);
         phys.face = dir < 0 ? -1 : 1;
         nextDecision = ts + ms;
     }
@@ -2652,7 +2658,8 @@ window.getCurrentUser      = getCurrentUser;
         var vy = Math.min(JUMP_MAX, Math.sqrt(2 * GRAV * Math.max(rise, 20)));
         phys.vy = -vy;
         var dir = tx < cx ? -1 : (tx > cx ? 1 : (Math.random() < 0.5 ? -1 : 1));
-        phys.vx = dir * WALK * 1.4;
+        phys.vx = dir * WALK * 1.4;      // impulso balístico durante el salto
+        phys.tvx = 0;                    // al posarse en la repisa se asienta (frena)
         phys.face = dir < 0 ? -1 : 1;
         phys.ground = null;
         nextDecision = ts + 700;
@@ -2681,8 +2688,8 @@ window.getCurrentUser      = getCurrentUser;
             var target = reachableTarget();
             if (target) hopTo(target, ts); else jump(ts);
         } else {
-            // Descansar un momento.
-            phys.vx = 0;
+            // Descansar un momento (frena suave hacia 0).
+            phys.tvx = 0;
             nextDecision = ts + rand(900, 2200);
         }
     }
@@ -2697,7 +2704,8 @@ window.getCurrentUser      = getCurrentUser;
         lastFlee = ts;
         var dir = mouse.x < cx ? 1 : -1; // huir del cursor
         phys.face = dir < 0 ? -1 : 1;
-        phys.vx = dir * WALK * 1.8;
+        phys.vx = dir * WALK * 1.8;      // salto de susto (impulso)
+        phys.tvx = 0;                    // al caer, frena el correteo del susto
         phys.vy = JUMP_VY * 0.85;
         phys.ground = null;
         nextDecision = ts + 700;
@@ -2714,19 +2722,38 @@ window.getCurrentUser      = getCurrentUser;
             maybeFlee(ts);
             if (phys.ground && ts >= nextDecision) decide(ts);
         } else {
-            phys.vx = 0; // "viene a hablarte": se queda quieto mientras dice algo
+            phys.tvx = 0; // "viene a hablarte": frena suave y se queda a decir algo
         }
 
-        // Mirar hacia el cursor cuando está quieto.
-        if (!phys.vx && mouse.x >= 0 && ts - mouse.t < 3000) {
+        // Suavizado horizontal: en el piso, la velocidad se acerca a la deseada
+        // (tvx) con una aceleración limitada, así arranca y frena con naturalidad
+        // en vez de saltar de golpe a la velocidad máxima. En el aire se conserva
+        // el impulso balístico (no hay "control aéreo"); al aterrizar, la fricción
+        // del piso lo frena hacia tvx.
+        if (phys.ground) {
+            var tvx = phys.tvx || 0, dv = tvx - phys.vx, maxDv = ACCEL * dt;
+            if (dv > maxDv) phys.vx += maxDv;
+            else if (dv < -maxDv) phys.vx -= maxDv;
+            else phys.vx = tvx;
+        }
+
+        // Mirar hacia el cursor cuando está (casi) quieto.
+        if (Math.abs(phys.vx) < 6 && mouse.x >= 0 && ts - mouse.t < 3000) {
             phys.face = mouse.x < (phys.x + phys.w / 2) ? -1 : 1;
         }
 
-        // Horizontal + rebote contra los bordes de la ventana.
+        // Horizontal + rebote contra los bordes de la ventana (se invierte también
+        // la velocidad objetivo para que reencare hacia adentro, no hacia el muro).
         phys.x += phys.vx * dt;
-        if (phys.x < MARGIN) { phys.x = MARGIN; phys.vx = Math.abs(phys.vx); phys.face = 1; }
+        if (phys.x < MARGIN) {
+            phys.x = MARGIN;
+            phys.vx = Math.abs(phys.vx); phys.tvx = Math.abs(phys.tvx || 0); phys.face = 1;
+        }
         var maxX = W - phys.w - MARGIN;
-        if (phys.x > maxX) { phys.x = maxX; phys.vx = -Math.abs(phys.vx); phys.face = -1; }
+        if (phys.x > maxX) {
+            phys.x = maxX;
+            phys.vx = -Math.abs(phys.vx); phys.tvx = -Math.abs(phys.tvx || 0); phys.face = -1;
+        }
 
         // Vertical: si está apoyado, comprueba que no se pasó del borde (si sí,
         // cae); si está en el aire, integra gravedad y busca dónde aterrizar.
@@ -2764,7 +2791,7 @@ window.getCurrentUser      = getCurrentUser;
         // DOM y no simulamos (al soltar, endDrag la deja caer y aterrizar).
         if (drag) {
             var rr = root.getBoundingClientRect();
-            phys.x = rr.left; phys.y = rr.top; phys.vx = 0; phys.vy = 0;
+            phys.x = rr.left; phys.y = rr.top; phys.vx = 0; phys.vy = 0; phys.tvx = 0;
             phys.ground = null; lastT = ts;
             return;
         }
@@ -2778,7 +2805,7 @@ window.getCurrentUser      = getCurrentUser;
     function startEngine() {
         if (!root || running || !roamEnabled()) return;
         var r = root.getBoundingClientRect();
-        phys = { x: r.left, y: r.top, vx: 0, vy: 0, w: root.offsetWidth || 72,
+        phys = { x: r.left, y: r.top, vx: 0, vy: 0, tvx: 0, w: root.offsetWidth || 72,
                  h: root.offsetHeight || 66, face: 1, ground: null };
         root.classList.add("mascot-roaming");
         running = true;
@@ -3027,7 +3054,7 @@ window.getCurrentUser      = getCurrentUser;
         if (sleeping || !root) return;
         sleeping = true;
         clearTimeout(blinkTimer);
-        if (phys) { phys.vx = 0; phys.face = 1; applyFace(); }
+        if (phys) { phys.vx = 0; phys.tvx = 0; phys.face = 1; applyFace(); }
         pauseRoam(3.6e6); // no deambula mientras duerme (se corta al despertar)
         setExpr("sleep");
         root.classList.add("mascot-sleeping");
