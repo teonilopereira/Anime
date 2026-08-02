@@ -10,10 +10,10 @@
     z-index: var(--z-toast, 2000);
     /* El contenedor mide lo que el sprite: así arrastrar por left/top es exacto
        y el bocadillo (posicionado en absoluto) no cambia el tamaño de la caja.
-       Tamaño fluido: escala con el ancho de pantalla entre 56px y 84px, y la
-       altura sale sola del aspect-ratio del sprite (22x20). */
-    width: clamp(56px, 15vw, 84px);
-    aspect-ratio: 22 / 20;
+       Tamaño fluido: escala con el ancho de pantalla entre 64px y 96px. La
+       celda del spritesheet es cuadrada (96x96), de ahí el aspect-ratio 1. */
+    width: clamp(64px, 16vw, 96px);
+    aspect-ratio: 1 / 1;
     /* No robar clics fuera de la mascota/bocadillo. */
     pointer-events: none;
     user-select: none;
@@ -35,16 +35,23 @@
     image-rendering: pixelated;
     filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.45));
     transform-origin: 50% 100%;
-    animation: mascot-idle 2.8s ease-in-out infinite;
+    /* La animación de reposo la aporta el propio spritesheet (mascot.js), así
+       que aquí no hay rebote continuo; se conservan hablar y aterrizaje. */
     transition: transform 0.15s ease;
     touch-action: none;
 }
-.mascot-pet svg {
+/* Sprite: fondo = spritesheet 8×5; se muestra UNA celda y mascot.js recorre
+   los fotogramas moviendo background-position. */
+.mascot-pet .mascot-sprite {
     display: block;
     width: 100%;
     height: 100%;
+    background-repeat: no-repeat;
+    background-size: 800% 500%;
+    background-position: 0 0;
     image-rendering: pixelated;
     pointer-events: none;
+    transform-origin: 50% 100%;
 }
 .mascot-pet:hover {
     transform: scale(1.06);
@@ -62,12 +69,6 @@
     cursor: grabbing;
     transform: scale(1.08);
     transition: none;
-}
-
-/* Reposo: respiración/rebote suave del slime. */
-@keyframes mascot-idle {
-    0%, 100% { transform: translateY(0) scaleY(1) scaleX(1); }
-    50%      { transform: translateY(-4px) scaleY(1.03) scaleX(0.98); }
 }
 
 /* Hablar: el slime botea mientras aparece el bocadillo. */
@@ -91,7 +92,7 @@
        exacto frame a frame. */
     transition: none;
 }
-.mascot-root.mascot-roaming .mascot-pet svg {
+.mascot-root.mascot-roaming .mascot-pet .mascot-sprite {
     transition: transform 0.08s linear; /* flip de dirección suave */
 }
 .mascot-root.mascot-roaming .mascot-pet.mascot-talking {
@@ -220,10 +221,6 @@
     0%   { opacity: 0; transform: translateY(6px) scale(0.75); }
     35%  { opacity: 0.95; }
     100% { opacity: 0; transform: translateY(-16px) scale(1.2); }
-}
-/* Respiración más lenta y profunda mientras duerme (modo quieto). */
-.mascot-root.mascot-sleeping .mascot-pet {
-    animation-duration: 4.8s;
 }
 
 /* ── Corazones al mimarlo ── */

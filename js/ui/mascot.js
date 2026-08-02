@@ -6,9 +6,10 @@
  * window.Toast: si la mascota está apagada, delega en el toast de siempre; si
  * está encendida, Rimuru habla.
  *
- * El sprite es pixel-art dibujado con <rect> en un SVG (shape-rendering
- * crispEdges), así no dependemos de ningún asset externo y las expresiones se
- * cambian recomponiendo unos pocos píxeles.
+ * El sprite es pixel-art animado a partir de un spritesheet (8×5 celdas de
+ * 96×96) embebido como data-URI, así no dependemos de ningún asset externo.
+ * Las "expresiones" y estados (reposo, caminar, salto, festejo…) se consiguen
+ * eligiendo el grupo de fotogramas y desplazando el background-position.
  *
  * Preferencia: localStorage 'pref:mascot' = 'on' | 'off' (default: on).
  * Expone window.Mascot { say, setEnabled, isEnabled }.
@@ -61,22 +62,31 @@
         } catch (_) { return false; }
     }
 
-    // ── Paleta del sprite (Rimuru: celeste pálido, glossy y translúcido) ────
-    var COL = {
-        O:  "#2f6aa8", // contorno (azul suave, no un negro duro)
-        D:  "#5aa9e0", // sombra
-        B:  "#8fd0f2", // cuerpo (celeste claro Rimuru)
-        L:  "#bce6fb", // luz
-        H:  "#eafaff", // brillo glossy (casi blanco)
-        W:  "#ffffff", // ojo (blanco)
-        P:  "#1f3a5c", // pupila / boca (azul oscuro suave)
-        C:  "#ffc4dd", // mejilla (rosa suave)
-        T:  "#cdeeff", // lágrima
-        R:  "#ff4d6d"  // corazón (rojo/rosa) para los ojos enamorados
-    };
+    // ── Spritesheet ─────────────────────────────────────────────────────────
+    // Hoja de 8 columnas × 5 filas, celdas de 96×96, con el personaje anclado
+    // al PIE (borde inferior de cada celda). Embebida como data-URI (PNG
+    // indexado de 8 colores) para no depender de ningún asset externo.
+    var SHEET_COLS = 8, SHEET_ROWS = 5;
+    var SHEET_SRC = "data:image/png;base64,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";
 
-    // Grilla del sprite: mayor resolución = más detalle/gráficos.
-    var GW = 22, GH = 20;
+    // Grupos de fotogramas por estado/expresión (índices en la hoja, 0..35):
+    //  fila0 0-7  reposo/respiración · fila1 8-15 alt · fila2 16-17 brazos
+    //  arriba (festejo), 18-20 embestida, 21-23 recompone · fila3 24-31 caminar
+    //  · fila4 32-35 agazapado.
+    var ANIMS = {
+        idle:      { f: [0, 1, 2, 3, 4, 5, 6, 7], fps: 8 },
+        walk:      { f: [24, 25, 26, 27, 28, 29, 30, 31], fps: 11 },
+        air:       { f: [17], fps: 1 },              // salto (brazos arriba)
+        happy:     { f: [16, 17], fps: 6 },          // festejo
+        love:      { f: [16, 17], fps: 7 },
+        surprised: { f: [17], fps: 1 },
+        sad:       { f: [32, 33], fps: 3 },          // agazapado
+        sleep:     { f: [5], fps: 1 }                // pose baja, "asentado"
+    };
+    // Expresiones que mandan sobre el estado de movimiento mientras están activas.
+    var EXPR_ANIM = {
+        happy: "happy", love: "love", surprised: "surprised", sad: "sad"
+    };
 
     // Cada tipo de notificación se mapea a una expresión.
     var TYPE_FACE = {
@@ -86,153 +96,59 @@
         info: "normal"
     };
 
-    // ── Geometría / sombreado del cuerpo ───────────────────────────────────
-    // Elipse un poco más alta abajo → forma de gota/slime.
-    function inBlob(x, y) {
-        var nx = (x + 0.5 - 11) / 9.4;
-        var ny = (y + 0.5 - 11.4) / 8.9;
-        return nx * nx + ny * ny <= 1;
+    // ── Animador de fotogramas ───────────────────────────────────────────────
+    // Un único rAF desplaza el background-position del <div.mascot-sprite> según
+    // el grupo activo. El grupo sale de: dormido → 'sleep'; si hay expresión
+    // especial → esa; si no, del estado de movimiento que fija la física
+    // (motionAnim: 'idle' | 'walk' | 'air').
+    var motionAnim = "idle";
+    var animRAF = null, animStart = 0, animName = null, animFrame = -1;
+
+    function activeAnim() {
+        if (sleeping) return "sleep";
+        var e = EXPR_ANIM[currentExpr];
+        if (e) return e;
+        return motionAnim;
     }
 
-    // Sombreado: brillo glossy arriba-izquierda + degradado vertical.
-    function shadeAt(x, y) {
-        var cx = x + 0.5, cy = y + 0.5;
-        var gloss = Math.hypot(cx - 8, cy - 7);
-        if (gloss < 2.5) return COL.H;               // brillo principal
-        if (Math.hypot(cx - 15.5, cy - 6) < 1.4) return COL.H; // brillito 2
-        if (gloss < 3.9) return COL.L;
-        var t = cy / GH;
-        if (t < 0.42) return COL.L;                  // parte alta iluminada
-        if (t < 0.68) return COL.B;                  // medio
-        return COL.D;                                // base en sombra
+    // Coloca el fotograma `idx` (0..35) moviendo el fondo. Con background-size
+    // de 800%×500% y el elemento del tamaño de UNA celda, la posición en % es
+    // col/(cols-1) y row/(rows-1).
+    function setFrame(idx) {
+        if (!sprite) return;
+        var col = idx % SHEET_COLS, row = (idx / SHEET_COLS) | 0;
+        var px = SHEET_COLS > 1 ? (col / (SHEET_COLS - 1)) * 100 : 0;
+        var py = SHEET_ROWS > 1 ? (row / (SHEET_ROWS - 1)) * 100 : 0;
+        sprite.style.backgroundPosition = px + "% " + py + "%";
     }
 
-    // ── Utilidades de dibujo sobre una grilla ──────────────────────────────
-    function setPx(px, x, y, c) {
-        x = Math.round(x); y = Math.round(y);
-        if (y >= 0 && y < GH && x >= 0 && x < GW && inBlob(x, y)) px[y * GW + x] = c;
-    }
-    function disc(px, cx, cy, r, c) {
-        for (var y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) {
-            for (var x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
-                if (Math.hypot(x + 0.5 - cx, y + 0.5 - cy) <= r) setPx(px, x, y, c);
-            }
-        }
-    }
-    function arc(px, cx, cy, r, a0, a1, c) {
-        for (var a = a0; a <= a1; a += 5) {
-            var rad = a * Math.PI / 180;
-            setPx(px, cx + Math.cos(rad) * r, cy + Math.sin(rad) * r, c);
-            setPx(px, cx + Math.cos(rad) * (r - 0.9), cy + Math.sin(rad) * (r - 0.9), c);
-        }
+    function animTick(ts) {
+        if (!sprite) { animRAF = null; return; }
+        animRAF = requestAnimationFrame(animTick);
+        var name = activeAnim();
+        var a = ANIMS[name] || ANIMS.idle;
+        if (name !== animName) { animName = name; animStart = ts; }
+        // Con movimiento reducido, congelamos en el primer fotograma del estado.
+        var i = reducedMotion() ? 0 : Math.floor((ts - animStart) * a.fps / 1000) % a.f.length;
+        var frame = a.f[i];
+        if (frame !== animFrame) { animFrame = frame; setFrame(frame); }
     }
 
-    // Sonrisa: mitad inferior de un círculo (curva hacia arriba en los bordes).
-    function smile(px, cx, cy, r) { arc(px, cx, cy, r, 28, 152, COL.P); }
-    // Ceño triste: mitad superior de un círculo (curva hacia abajo en el centro).
-    function frown(px, cx, cy, r) { arc(px, cx, cy, r, 208, 332, COL.P); }
-
-    // Ojo redondo con pupila y brillito.
-    function eye(px, cx, look) {
-        disc(px, cx, 11, 2.1, COL.W);
-        disc(px, cx + look, 11.5, 1.15, COL.P);
-        setPx(px, cx - 0.7, 10.2, COL.W);
+    function startAnim() {
+        if (animRAF != null) return;
+        animName = null; animFrame = -1;
+        animStart = performance.now();
+        animRAF = requestAnimationFrame(animTick);
     }
 
-    // Corazón pequeño (ojo enamorado): dos lóbulos arriba + punta abajo.
-    function heartEye(px, cx, cy, c) {
-        disc(px, cx - 0.9, cy - 0.2, 1.0, c);
-        disc(px, cx + 0.9, cy - 0.2, 1.0, c);
-        setPx(px, cx - 1.1, cy + 0.7, c);
-        setPx(px, cx + 1.1, cy + 0.7, c);
-        setPx(px, cx - 0.5, cy + 1.2, c);
-        setPx(px, cx + 0.5, cy + 1.2, c);
-        setPx(px, cx, cy + 1.7, c);
-        setPx(px, cx, cy - 0.6, COL.H); // brillito
-    }
-
-    // Ojo dormido: párpado cerrado con una pestaña curva hacia abajo.
-    function sleepyEye(px, cx) {
-        arc(px, cx, 10.4, 2.0, 20, 160, COL.P);
-    }
-
-    // ── Rasgos por expresión ───────────────────────────────────────────────
-    function drawFace(px, expr) {
-        var lx = 7.5, rx = 14.5; // centros de ojos
-        if (expr === "happy") {
-            arc(px, lx, 11.8, 2.0, 200, 340, COL.P); // ojos felices ^
-            arc(px, rx, 11.8, 2.0, 200, 340, COL.P);
-            disc(px, 4.4, 13.4, 1.2, COL.C);          // mejillas
-            disc(px, 17.6, 13.4, 1.2, COL.C);
-            smile(px, 11, 13.0, 3.0);                 // sonrisota abierta
-            smile(px, 11, 13.0, 2.4);
-        } else if (expr === "sad") {
-            eye(px, lx, 0.2); eye(px, rx, -0.2);
-            disc(px, 5.0, 13.6, 1.15, COL.T);         // lágrima
-            disc(px, 5.0, 14.7, 0.7, COL.T);
-            setPx(px, 4.6, 13.1, COL.W);              // brillito de la lágrima
-            frown(px, 11, 16.9, 2.9);                 // boca triste
-            frown(px, 11, 16.9, 2.4);
-        } else if (expr === "surprised") {
-            eye(px, lx, 0); eye(px, rx, 0);
-            disc(px, 11, 14.7, 1.5, COL.P);           // boca "o"
-            disc(px, 11, 14.9, 0.7, COL.D);
-        } else if (expr === "blink") {
-            for (var i = -2; i <= 2; i++) { setPx(px, lx + i, 11, COL.P); setPx(px, rx + i, 11, COL.P); }
-        } else if (expr === "love") {
-            heartEye(px, lx, 10.8, COL.R);            // ojos de corazón
-            heartEye(px, rx, 10.8, COL.R);
-            disc(px, 4.4, 13.8, 1.2, COL.C);          // mejillas sonrojadas
-            disc(px, 17.6, 13.8, 1.2, COL.C);
-            smile(px, 11, 13.4, 3.0);                 // sonrisota
-            smile(px, 11, 13.4, 2.4);
-        } else if (expr === "sleep") {
-            sleepyEye(px, lx); sleepyEye(px, rx);     // párpados cerrados
-            disc(px, 11, 15.0, 0.9, COL.P);           // boquita entreabierta
-        } else { // normal / info
-            eye(px, lx, 0.2); eye(px, rx, 0.2);
-            smile(px, 11, 12.9, 2.7);                 // sonrisa suave
-            smile(px, 11, 12.9, 2.2);
-        }
-    }
-
-    // ── Render del sprite → SVG de <rect> (crisp) ──────────────────────────
-    function buildSVG(expr) {
-        var px = new Array(GW * GH);
-        var x, y;
-        // 1) cuerpo sombreado + contorno
-        for (y = 0; y < GH; y++) {
-            for (x = 0; x < GW; x++) {
-                if (!inBlob(x, y)) continue;
-                var edge = !inBlob(x - 1, y) || !inBlob(x + 1, y) ||
-                           !inBlob(x, y - 1) || !inBlob(x, y + 1);
-                px[y * GW + x] = edge ? COL.O : shadeAt(x, y);
-            }
-        }
-        // 2) cara
-        drawFace(px, expr);
-
-        // Sombra en el piso (debajo del slime) para dar volumen.
-        var rects = '<ellipse cx="11" cy="19.3" rx="7.2" ry="1.25" ' +
-            'fill="rgba(0,0,0,0.28)"/>';
-        for (y = 0; y < GH; y++) {
-            for (x = 0; x < GW; x++) {
-                var c = px[y * GW + x];
-                if (c) rects += rect(x, y, c);
-            }
-        }
-        return '<svg viewBox="0 0 ' + GW + ' ' + GH + '" xmlns="http://www.w3.org/2000/svg" ' +
-            'shape-rendering="crispEdges" aria-hidden="true" focusable="false">' +
-            rects + '</svg>';
-    }
-
-    function rect(x, y, color) {
-        return '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="' + color + '"/>';
+    function stopAnim() {
+        if (animRAF != null) { cancelAnimationFrame(animRAF); animRAF = null; }
     }
 
     // ── DOM ────────────────────────────────────────────────────────────────
     var root = null;     // contenedor fijo
-    var pet = null;      // el sprite (botón)
+    var pet = null;      // el botón que contiene al sprite
+    var sprite = null;   // <div> con el spritesheet de fondo
     var bubble = null;   // bocadillo
     var bubbleText = null;
     var hideTimer = null;
@@ -268,9 +184,10 @@
     var lastFlee = 0;        // cooldown del "susto" al acercar el cursor
     var mouseWired = false;  // para no duplicar el listener global de puntero
 
+    // Fija la expresión: el animador de fotogramas reflejará el cambio en el
+    // próximo frame (ya no se redibuja nada a mano).
     function setExpr(expr) {
         currentExpr = expr;
-        if (pet) pet.innerHTML = buildSVG(expr);
     }
 
     function ensureDom() {
@@ -305,7 +222,12 @@
         pet.className = "mascot-pet";
         pet.type = "button";
         pet.setAttribute("aria-label", "Rimuru — tu mascota slime. Tocá para saludar.");
-        pet.innerHTML = buildSVG("normal");
+        sprite = document.createElement("div");
+        sprite.className = "mascot-sprite";
+        sprite.setAttribute("aria-hidden", "true");
+        sprite.style.backgroundImage = "url(" + SHEET_SRC + ")";
+        pet.appendChild(sprite);
+        setFrame(0);
         pet.addEventListener("click", onPetClick);
         // Pausar el auto-ocultado mientras el mouse está sobre la mascota.
         pet.addEventListener("mouseenter", function () { clearTimeout(hideTimer); });
@@ -327,6 +249,7 @@
         document.body.appendChild(root);
 
         applyPosition();
+        startAnim();
         scheduleBlink();
         wireActivity();
         // Arranca el paseo (si está permitido); si no, queda quieta y arrastrable.
@@ -521,11 +444,11 @@
         if (phys) phys.vx = 0;
     }
 
-    // Aplica el "mirar hacia" (flip horizontal) sobre el SVG, sin pelear con las
-    // animaciones de la mascota (idle/talk viven en .mascot-pet; el flip, en svg).
+    // Aplica el "mirar hacia" (flip horizontal) sobre el sprite, sin pelear con
+    // las animaciones de la mascota (talk/land viven en .mascot-pet; el flip, en
+    // .mascot-sprite).
     function applyFace() {
-        var svg = pet && pet.firstChild;
-        if (svg && svg.style) svg.style.transform = "scaleX(" + (phys.face || 1) + ")";
+        if (sprite && sprite.style) sprite.style.transform = "scaleX(" + ((phys && phys.face) || 1) + ")";
     }
 
     // Reacción contextual al posarse sobre un elemento real de la página.
@@ -706,6 +629,9 @@
             }
         }
 
+        // Estado de movimiento para el animador de fotogramas.
+        motionAnim = !phys.ground ? "air" : (Math.abs(phys.vx) > 1 ? "walk" : "idle");
+
         place(phys.x, phys.y);
         applyFace();
     }
@@ -748,8 +674,8 @@
         running = false;
         if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
         if (root) root.classList.remove("mascot-roaming");
-        var svg = pet && pet.firstChild;
-        if (svg && svg.style) svg.style.transform = ""; // vuelve a mirar de frente
+        if (sprite && sprite.style) sprite.style.transform = ""; // mira de frente
+        motionAnim = "idle";
         phys = null;
     }
 
@@ -779,29 +705,21 @@
     function removeDom() {
         if (!root) return;
         stopEngine();
+        stopAnim();
         clearTimeout(hideTimer);
         clearTimeout(blinkTimer);
         clearTimeout(loveTimer);
         clearInterval(sleepTimer);
         sleeping = false;
         root.remove();
-        root = pet = bubble = bubbleText = zzz = null;
+        root = pet = sprite = bubble = bubbleText = zzz = null;
     }
 
-    // Parpadeo ocasional en reposo: da vida sin ser molesto.
+    // El spritesheet ya trae su propia animación de reposo (respiración), así
+    // que el parpadeo dibujado a mano dejó de tener sentido. Se conserva la
+    // función como no-op para no tocar sus llamadores.
     function scheduleBlink() {
         clearTimeout(blinkTimer);
-        if (reducedMotion() || sleeping) return;
-        var delay = 3500 + Math.random() * 4000;
-        blinkTimer = setTimeout(function () {
-            if (pet && !sleeping && !bubble.classList.contains("is-visible")) {
-                var prev = currentExpr;
-                setExpr("blink");
-                setTimeout(function () { setExpr(prev); scheduleBlink(); }, 160);
-            } else {
-                scheduleBlink();
-            }
-        }, delay);
     }
 
     // ── Hablar ─────────────────────────────────────────────────────────────
