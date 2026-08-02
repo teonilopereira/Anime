@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Elegí la mascota que te acompaña en Anime Destiny.">
+    <meta name="robots" content="noindex,follow">
+    <link rel="canonical" href="https://animedestiny.netlify.app/mascotas.html">
+    <title>Anime Destiny | Elegí tu mascota</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+    <link rel="stylesheet" href="css/bundle.min.css?v=a6a39a78">
+    <link rel="stylesheet" href="css/mascotas.css?v=a6a39a78">
+    <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/fonts.css?v=a6a39a78">
+    <script src="js/vendor/lucide.min.js?v=a6a39a78" defer></script>
+    <script src="js/core/theme.js?v=a6a39a78"></script>
+    <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
+</head>
+<body data-page="mascotas">
+    <nav class="destiny-navbar">
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
+        <div class="nav-actions">
+            <div id="nav-login-container"></div>
+        </div>
+    </nav>
+
+    <main class="msc-page" id="main-content">
+        <header class="msc-page-header">
+            <h1 data-i18n="mascotas.titulo">ELEGÍ TU MASCOTA</h1>
+            <p data-i18n="mascotas.subtitulo">Tocá una mascota para que te acompañe por la app.</p>
+        </header>
+        <p class="msc-note" data-i18n="mascotas.nota">El cambio se aplica al instante y se guarda en este dispositivo.</p>
+
+        <div class="msc-grid" id="mscGrid" aria-live="polite"></div>
+
+        <p class="msc-note" style="margin-top:26px">
+            <a href="configuracion.html" data-i18n="mascotas.volver">← Volver a configuración</a>
+        </p>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <div class="msc-toast" id="mscToast" role="status" aria-live="polite"></div>
+
+    <script src="js/core/config.js?v=a6a39a78"></script>
+    <script src="js/core/i18n.js?v=a6a39a78"></script>
+    <script src="js/core/constants.js?v=a6a39a78"></script>
+    <script src="js/core/namespace.js?v=a6a39a78"></script>
+    <script type="module" src="api/supabase-config.js?v=a6a39a78" async></script>
+    <script src="js/core/user-store.js?v=a6a39a78" defer></script>
+    <script src="js/core/auth.js?v=a6a39a78" defer></script>
+
+    <!-- El registro de mascotas debe cargarse ANTES que mascot.js -->
+    <script src="js/ui/mascots.js?v=a6a39a78" defer></script>
+    <script src="js/ui/mascot.js?v=a6a39a78" defer></script>
+    <script src="js/pages/mascotas.js?v=a6a39a78" defer></script>
+    <script src="js/core/common-ui.js?v=a6a39a78" defer></script>
+</body>
+</html>
