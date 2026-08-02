@@ -1,6 +1,8 @@
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const TEXT_PATTERNS = ['Ã', 'â'];
 const HTML_FILES = [
@@ -18,7 +20,13 @@ const HTML_FILES = [
   'view_images.html'
 ].map((name) => path.join(ROOT, name)).filter((file) => fs.existsSync(file));
 
-const SKIP_DIRS = new Set(['.git', '.agents', '.codex', 'node_modules']);
+// vendor: bundles de terceros (no es nuestro codigo). tools: scripts de Node que
+// usan import.meta y no se pueden validar con `new Function`. Ambos quedan fuera
+// del muro de calidad, que solo cubre el JS del navegador que se sirve al usuario.
+const SKIP_DIRS = new Set(['.git', '.agents', '.codex', 'node_modules', 'vendor', 'tools']);
+
+// Archivos de configuracion (vitest.config.js, etc.): ESM de Node, no assets del navegador.
+const isConfigFile = (name) => /\.config\.[cm]?js$/.test(name);
 
 function walkJsFiles(dir) {
   const files = [];
@@ -30,7 +38,7 @@ function walkJsFiles(dir) {
       files.push(...walkJsFiles(fullPath));
       continue;
     }
-    if (entry.isFile() && entry.name.endsWith('.js') && !entry.name.startsWith('.fix-')) {
+    if (entry.isFile() && entry.name.endsWith('.js') && !entry.name.startsWith('.fix-') && !isConfigFile(entry.name)) {
       files.push(fullPath);
     }
   }

@@ -22,6 +22,11 @@ jobs:
       - name: Tests
         run: npm test
 
+      # Muro de calidad: detecta mojibake en los HTML y errores de sintaxis en el
+      # JS del navegador antes de que lleguen a produccion.
+      - name: Verificar calidad
+        run: npm run check
+
       # Los bundles (css/bundle.min.css, js/core-bundle.min.js, js/vendor/) se
       # versionan en el repo. Si alguien edita una fuente y olvida `npm run build`,
       # produccion queda sirviendo codigo viejo. Este paso reconstruye y falla si
