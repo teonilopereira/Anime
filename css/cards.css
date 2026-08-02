@@ -1627,6 +1627,12 @@ body.reduce-motion .catalog-neon-card {
     background:
         radial-gradient(circle at 50% 0%, rgba(var(--card-hud-rgb), 0.14), transparent 55%),
         linear-gradient(180deg, #0a1220, #0b1020);
+    /* Red de seguridad: si el contenido del dorso llega a superar la altura
+       fija de la card (títulos largos + progreso + acciones), se puede
+       desplazar en vez de quedar recortado por el overflow:hidden de la cara. */
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--card-hud-rgb), 0.4) transparent;
 }
 
 .catalog-band-card .cband-back-head {
@@ -1664,14 +1670,23 @@ body.reduce-motion .catalog-neon-card {
     margin-top: 2px;
 }
 
+/* Acciones del dorso: los dos botones circulares (favorito y visto) van en una
+   fila centrada y el botón DETALLE ocupa el ancho completo debajo. Antes DETALLE
+   era `width:auto; margin-left:auto`, así que en cards angostas (2 columnas en
+   móvil) se comprimía hasta que el texto "DETALLE" se apilaba letra por letra en
+   vertical y se salía de la card. Con flex-wrap + flex:1 1 100% el botón nunca se
+   estruja: siempre baja a su propia fila a ancho completo. */
 .catalog-band-card .cband-back-actions {
     margin-top: auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 10px;
 }
 
 .catalog-band-card .cband-back-actions .action-btn {
+    flex: 0 0 auto;
     width: 40px;
     height: 40px;
     min-width: 40px;
@@ -1693,10 +1708,13 @@ body.reduce-motion .catalog-neon-card {
 }
 
 .catalog-band-card .cband-back-actions .card-back-detail-btn {
-    width: auto;
-    margin-left: auto;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
     min-height: 40px;
     padding: 9px 16px;
+    white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1738,19 +1756,9 @@ body.reduce-motion .catalog-neon-card {
         font-size: 0.7rem;
     }
 
-    /* La fila de acciones (favorito, visto y DETALLE) no entra en una sola
-       linea cuando la card es angosta: los dos botones circulares quedan
-       centrados arriba y DETALLE ocupa el ancho completo debajo. */
-    .catalog-band-card .cband-back-actions {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-    }
-
+    /* La fila de acciones ya es wrap con DETALLE a ancho completo (regla base);
+       en móvil solo se rebaja un poco la altura del botón de detalle. */
     .catalog-band-card .cband-back-actions .card-back-detail-btn {
-        flex: 1 1 100%;
-        width: 100%;
-        margin-left: 0;
         min-height: 38px;
     }
 }
