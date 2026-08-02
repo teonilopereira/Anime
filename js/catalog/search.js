@@ -175,9 +175,82 @@ function inicializarBusquedaCatalogo() {
         suggestionBox.appendChild(el);
         el.setAttribute('data-status', type);
         el.setAttribute('role', 'status');
-        el.innerHTML = type === 'loading'
-            ? '<span class="catalog-suggestion-spinner" aria-hidden="true"></span><span>' + escapeHtml(text || 'Buscando…') + '</span>'
-            : '<span>' + escapeHtml(text || 'Sin resultados.') + '</span>';
+        if (type === 'loading') {
+            el.innerHTML = '<span class="catalog-suggestion-spinner" aria-hidden="true"></span><span>' + escapeHtml(text || 'Buscando…') + '</span>';
+        } else {
+            el.innerHTML = '<svg class="catalog-suggestion-status-ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>' + escapeHtml(text || 'Sin resultados.') + '</span>';
+        }
+        ensureHint();
+    }
+
+    // ── Pie con atajos de teclado (se mantiene como último hijo del desplegable) ──
+    function ensureHint() {
+        if (!suggestionBox) return;
+        const has = suggestionBox.querySelectorAll('.catalog-suggestion').length > 0;
+        let h = suggestionBox.querySelector('.catalog-suggestion-hint');
+        if (!has) { if (h) h.remove(); return; }
+        if (!h) {
+            h = document.createElement('div');
+            h.className = 'catalog-suggestion-hint';
+            h.setAttribute('aria-hidden', 'true');
+            h.innerHTML = '<span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>↵</kbd> abrir</span><span><kbd>esc</kbd> cerrar</span>';
+        }
+        suggestionBox.appendChild(h); // reubicar como último hijo
+    }
+
+    // ── Búsquedas recientes (persistidas por categoría) ──
+    const RECENT_KEY = 'catalog:recent:' + (categoria || 'all');
+    const RECENT_MAX = 6;
+    function getRecent() {
+        try {
+            const arr = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+            return Array.isArray(arr) ? arr.filter((s) => typeof s === 'string' && s.trim()).slice(0, RECENT_MAX) : [];
+        } catch (_) { return []; }
+    }
+    function commitRecent(query) {
+        const q = String(query || '').trim();
+        if (!q) return;
+        try {
+            const list = getRecent().filter((s) => normalizeText(s) !== normalizeText(q));
+            list.unshift(q);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, RECENT_MAX)));
+        } catch (_) {}
+    }
+    function clearRecent() {
+        try { localStorage.removeItem(RECENT_KEY); } catch (_) {}
+    }
+    function renderRecent() {
+        if (!suggestionBox) return;
+        const recents = getRecent();
+        if (!recents.length) {
+            suggestionBox.classList.remove('is-open');
+            suggestionBox.innerHTML = '';
+            setSuggestionsOpen(false);
+            return;
+        }
+        suggestionBox.innerHTML =
+            '<div class="catalog-suggestion-head">' +
+                '<span class="catalog-suggestion-head-label">Búsquedas recientes</span>' +
+                '<button type="button" class="catalog-suggestion-recent-clear">Borrar</button>' +
+            '</div>' +
+            recents.map((q, i) =>
+                '<button type="button" class="catalog-suggestion catalog-suggestion--recent" id="catalogSuggestion-recent-' + i + '" role="option" aria-selected="false" data-query="' + escapeHtml(q) + '">' +
+                    '<span class="catalog-suggestion-recent-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg></span>' +
+                    '<span class="catalog-suggestion-title">' + escapeHtml(q) + '</span>' +
+                '</button>'
+            ).join('');
+        clearActiveSuggestion();
+        ensureHint();
+        suggestionBox.classList.add('is-open');
+        setSuggestionsOpen(true);
+    }
+    // Rellena el input con una búsqueda reciente y recarga el catálogo.
+    function applyRecent(query) {
+        input.value = query;
+        syncClearBtn();
+        if (suggestionBox) suggestionBox.classList.remove('is-open');
+        setSuggestionsOpen(false);
+        reloadCatalog();
     }
 
     let emptyMsg = document.getElementById('searchEmptyMsg');
@@ -230,6 +303,7 @@ function inicializarBusquedaCatalogo() {
         if (!matches.length) setSuggestionStatus('loading', 'Buscando…');
 
         clearActiveSuggestion();
+        ensureHint();
         suggestionBox.classList.add('is-open');
         setSuggestionsOpen(true);
     }
@@ -348,11 +422,19 @@ function inicializarBusquedaCatalogo() {
             section.appendChild(a);
         });
 
-        if (!section.children.length) { if (prev) prev.remove(); return; }
+        if (!section.querySelectorAll('a').length) { if (prev) prev.remove(); return; }
+        // Etiqueta de sección "En línea" como primer hijo (una sola vez).
+        if (!section.querySelector('.catalog-suggestion-api-header')) {
+            const header = document.createElement('div');
+            header.className = 'catalog-suggestion-api-header';
+            header.innerHTML = '<span class="catalog-suggestion-api-dot" aria-hidden="true"></span>En línea';
+            section.insertBefore(header, section.firstChild);
+        }
         if (!prev) suggestionBox.appendChild(section);
         // Llegaron resultados de la API: quitar el "Buscando…" / "Sin resultados".
         setSuggestionStatus('none');
-        if (suggestionBox.classList.contains('is-open') || section.children.length) {
+        ensureHint();
+        if (suggestionBox.classList.contains('is-open') || section.querySelectorAll('a').length) {
             suggestionBox.classList.add('is-open');
             setSuggestionsOpen(true);
         }
@@ -360,7 +442,7 @@ function inicializarBusquedaCatalogo() {
 
     // Cuenta cuántas sugerencias locales hay actualmente en el desplegable.
     function hasLocalSuggestions() {
-        return !!suggestionBox && !!suggestionBox.querySelector('.catalog-suggestion:not(.catalog-suggestion--api)');
+        return !!suggestionBox && !!suggestionBox.querySelector('.catalog-suggestion:not(.catalog-suggestion--api):not(.catalog-suggestion--recent)');
     }
 
     async function fetchApiSuggestions(rawQuery) {
@@ -424,6 +506,8 @@ function inicializarBusquedaCatalogo() {
 
     // ── Server-side reload when filters change ──
     function reloadCatalog() {
+        // Guardar el término buscado en el historial reciente.
+        commitRecent(input.value);
         const cat = document.body.getAttribute('data-page');
         const usaApi = cat === 'anime' || cat === 'manga' || cat === 'novelas';
         if (!usaApi) { applyFilter(); return; }
@@ -536,9 +620,15 @@ function inicializarBusquedaCatalogo() {
         }
         if (e.key === 'Enter') {
             e.preventDefault();
-            // Con una sugerencia resaltada, Enter la abre; si no, recarga el catálogo.
+            // Con una sugerencia resaltada, Enter la abre; una búsqueda reciente
+            // rellena el campo; si no hay nada activo, recarga el catálogo.
             const current = activeIndex >= 0 ? items[activeIndex] : null;
+            if (current && current.dataset && current.dataset.query != null) {
+                applyRecent(current.dataset.query);
+                return;
+            }
             if (current && current.href) {
+                commitRecent(input.value);
                 window.location.href = current.href;
                 return;
             }
@@ -549,7 +639,12 @@ function inicializarBusquedaCatalogo() {
             reloadCatalog();
         }
     });
-    input.addEventListener('focus', () => { syncClearBtn(); renderSuggestions(input.value); });
+    // Al enfocar: con texto, sugerencias; vacío, búsquedas recientes.
+    input.addEventListener('focus', () => {
+        syncClearBtn();
+        if (normalizeText(input.value)) renderSuggestions(input.value);
+        else renderRecent();
+    });
     input.addEventListener('blur', () => {
         window.setTimeout(() => {
             if (suggestionBox) {
@@ -569,9 +664,23 @@ function inicializarBusquedaCatalogo() {
         });
         // mousedown (no click) para ganarle al blur que cierra el desplegable.
         suggestionBox.addEventListener('mousedown', (e) => {
-            const item = e.target.closest('.catalog-suggestion');
-            if (item && item.href) {
+            // Botón "Borrar" del historial de búsquedas recientes.
+            if (e.target.closest('.catalog-suggestion-recent-clear')) {
                 e.preventDefault();
+                clearRecent();
+                renderRecent();
+                return;
+            }
+            const item = e.target.closest('.catalog-suggestion');
+            if (!item) return;
+            if (item.dataset && item.dataset.query != null) {
+                e.preventDefault();
+                applyRecent(item.dataset.query);
+                return;
+            }
+            if (item.href) {
+                e.preventDefault();
+                commitRecent(input.value);
                 window.location.href = item.href;
             }
         });
@@ -591,6 +700,7 @@ function inicializarBusquedaCatalogo() {
             setSuggestionsOpen(false);
             input.focus();
             reloadCatalog();
+            renderRecent();
         });
     }
     syncClearBtn();
