@@ -41,7 +41,6 @@ const ASSETS = [
   '/terminos.html',
   '/404.html',
   '/offline.html',
-  '/css/bundle.css',
   '/css/bundle.min.css',
   '/css/fonts.css',
   '/fonts/orbitron-latin.woff2',
