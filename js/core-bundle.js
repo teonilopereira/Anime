@@ -4524,6 +4524,25 @@ function showNsfwAgeGate(onConfirm) {
     });
 }
 
+/* ─── Resalta la coincidencia de la búsqueda dentro del título ───
+   Escapa cada tramo por separado para no romper el marcado al insertar <mark>.
+   La coincidencia es case-insensitive sobre el texto original: si no aparece
+   de forma literal (p. ej. difiere por acentos), devuelve el título escapado
+   sin resaltar, sin corromperlo nunca. */
+function highlightMatch(text, query) {
+    const t = String(text ?? '');
+    const q = String(query ?? '').trim();
+    if (!q) return escapeHtml(t);
+    const idx = t.toLowerCase().indexOf(q.toLowerCase());
+    if (idx === -1) return escapeHtml(t);
+    const before = t.slice(0, idx);
+    const match = t.slice(idx, idx + q.length);
+    const after = t.slice(idx + q.length);
+    return escapeHtml(before) +
+        '<mark class="catalog-suggestion-mark">' + escapeHtml(match) + '</mark>' +
+        escapeHtml(after);
+}
+
 
 function inicializarBusquedaCatalogo() {
     const categoria = document.body.getAttribute('data-page');
@@ -4547,9 +4566,86 @@ function inicializarBusquedaCatalogo() {
         inputWrap.appendChild(suggestionBox);
     }
 
+    // ── Accesibilidad: patrón combobox + listbox ──
+    if (suggestionBox) {
+        suggestionBox.setAttribute('role', 'listbox');
+        suggestionBox.setAttribute('aria-label', 'Sugerencias de búsqueda');
+    }
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-expanded', 'false');
+    input.setAttribute('aria-controls', 'catalogSuggestions');
+
+    // ── Botón para limpiar la búsqueda (×), inyectado para las 3 páginas ──
+    let clearSearchBtn = document.getElementById('catalogSearchClear');
+    if (!clearSearchBtn && inputWrap) {
+        clearSearchBtn = document.createElement('button');
+        clearSearchBtn.id = 'catalogSearchClear';
+        clearSearchBtn.type = 'button';
+        clearSearchBtn.className = 'catalog-search-clear';
+        clearSearchBtn.setAttribute('aria-label', 'Limpiar búsqueda');
+        clearSearchBtn.hidden = true;
+        clearSearchBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        inputWrap.appendChild(clearSearchBtn);
+    }
+    function syncClearBtn() {
+        if (clearSearchBtn) clearSearchBtn.hidden = !input.value;
+    }
+
     // Toggle overflow on the container when suggestions open/close
     function setSuggestionsOpen(open) {
         if (searchContainer) searchContainer.classList.toggle('has-suggestions', open);
+        input.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (!open) clearActiveSuggestion();
+    }
+
+    // ── Estado de navegación por teclado dentro del listado de sugerencias ──
+    let activeIndex = -1;
+    function getSuggestionItems() {
+        return suggestionBox ? Array.from(suggestionBox.querySelectorAll('.catalog-suggestion')) : [];
+    }
+    function clearActiveSuggestion() {
+        activeIndex = -1;
+        if (!suggestionBox) return;
+        suggestionBox.querySelectorAll('.catalog-suggestion.is-active').forEach((el) => {
+            el.classList.remove('is-active');
+            el.setAttribute('aria-selected', 'false');
+        });
+        input.removeAttribute('aria-activedescendant');
+    }
+    function setActiveSuggestion(index) {
+        const items = getSuggestionItems();
+        if (!items.length) { clearActiveSuggestion(); return; }
+        // Envolver el índice para que ↓ desde el último vuelva al primero y viceversa.
+        activeIndex = (index + items.length) % items.length;
+        items.forEach((el, i) => {
+            const on = i === activeIndex;
+            el.classList.toggle('is-active', on);
+            el.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const current = items[activeIndex];
+        if (current) {
+            if (!current.id) current.id = 'catalogSuggestion-' + activeIndex;
+            input.setAttribute('aria-activedescendant', current.id);
+            current.scrollIntoView({ block: 'nearest' });
+        }
+    }
+    function setSuggestionStatus(type, text) {
+        if (!suggestionBox) return;
+        let el = suggestionBox.querySelector('.catalog-suggestion-status');
+        if (type === 'none') { if (el) el.remove(); return; }
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'catalog-suggestion-status';
+            suggestionBox.appendChild(el);
+        }
+        // Mantener el estado siempre como último hijo, debajo de los resultados.
+        suggestionBox.appendChild(el);
+        el.setAttribute('data-status', type);
+        el.setAttribute('role', 'status');
+        el.innerHTML = type === 'loading'
+            ? '<span class="catalog-suggestion-spinner" aria-hidden="true"></span><span>' + escapeHtml(text || 'Buscando…') + '</span>'
+            : '<span>' + escapeHtml(text || 'Sin resultados.') + '</span>';
     }
 
     let emptyMsg = document.getElementById('searchEmptyMsg');
@@ -4577,29 +4673,31 @@ function inicializarBusquedaCatalogo() {
         if (!q) {
             suggestionBox.classList.remove('is-open');
             suggestionBox.innerHTML = '';
+            setSuggestionsOpen(false);
             return;
         }
 
+        const rawQuery = String(query || '').trim();
         const matches = getCatalogItems()
             .filter((entry) => normalizeText(entry.searchIndex || '').includes(q))
             .slice(0, AnimeDestiny.Constants.SUGGESTION_LIMIT || 6);
 
-        if (!matches.length) {
-            suggestionBox.classList.remove('is-open');
-            setSuggestionsOpen(false);
-            suggestionBox.innerHTML = '';
-            return;
-        }
-
-        suggestionBox.innerHTML = matches.map((entry) => `
-            <a class="catalog-suggestion" href="detalle.html?cat=${encodeURIComponent(categoria)}&id=${encodeURIComponent(entry.item.id)}&nombre=${encodeURIComponent(entry.item.titulo)}">
+        suggestionBox.innerHTML = matches.map((entry, i) => `
+            <a class="catalog-suggestion" id="catalogSuggestion-local-${i}" role="option" aria-selected="false" href="detalle.html?cat=${encodeURIComponent(categoria)}&id=${encodeURIComponent(entry.item.id)}&nombre=${encodeURIComponent(entry.item.titulo)}">
                 ${entry.item.imagen ? `<img class="catalog-suggestion-img" src="${safeUrl(entry.item.imagen)}" alt="" width="36" height="50" decoding="async" loading="lazy">` : ''}
                 <span class="catalog-suggestion-body">
-                    <span class="catalog-suggestion-title">${escapeHtml(entry.item.titulo)}</span>
+                    <span class="catalog-suggestion-title">${highlightMatch(entry.item.titulo, rawQuery)}</span>
                     <span class="catalog-suggestion-meta">${escapeHtml(entry.item.info || entry.item.status || '')}</span>
                 </span>
             </a>
         `).join('');
+
+        // Sin coincidencias locales todavía mostramos el desplegable con un estado
+        // "Buscando…" porque la búsqueda en la API se dispara tras el debounce y
+        // sus resultados se anexan después.
+        if (!matches.length) setSuggestionStatus('loading', 'Buscando…');
+
+        clearActiveSuggestion();
         suggestionBox.classList.add('is-open');
         setSuggestionsOpen(true);
     }
@@ -4694,8 +4792,11 @@ function inicializarBusquedaCatalogo() {
 
         const section = prev || document.createElement('div');
         section.className = 'catalog-suggestion-api-section';
+        section.setAttribute('role', 'group');
+        section.setAttribute('aria-label', 'Más resultados');
         const seenIds = new Set();
         section.querySelectorAll('a').forEach(a => { const m = a.href.match(/[?&]id=([^&]+)/); if (m) seenIds.add(m[1]); });
+        let apiIdx = section.querySelectorAll('a').length;
 
         filtered.forEach(item => {
             const rawId = String(item.id);
@@ -4703,10 +4804,13 @@ function inicializarBusquedaCatalogo() {
             seenIds.add(rawId);
             const id = encodeURIComponent(rawId);
             const imgUrl = item.images?.jpg?.image_url || item.images?.webp?.image_url || '';
-            const title = escapeHtml(item.title || '');
+            const title = highlightMatch(item.title || '', rawQuery);
             const meta = escapeHtml(item.type || item.status || '');
             const a = document.createElement('a');
             a.className = 'catalog-suggestion catalog-suggestion--api';
+            a.id = 'catalogSuggestion-api-' + (apiIdx++);
+            a.setAttribute('role', 'option');
+            a.setAttribute('aria-selected', 'false');
             a.href = `detalle.html?cat=${encodeURIComponent(String(categoria))}&id=${id}&nombre=${encodeURIComponent(String(item.title || ''))}`;
             a.innerHTML = `${imgUrl ? `<img class="catalog-suggestion-img" src="${safeUrl(imgUrl)}" alt="" loading="lazy">` : ''}<span class="catalog-suggestion-body"><span class="catalog-suggestion-title">${title}</span><span class="catalog-suggestion-meta">${escapeHtml(meta)}</span></span>`;
             section.appendChild(a);
@@ -4714,10 +4818,17 @@ function inicializarBusquedaCatalogo() {
 
         if (!section.children.length) { if (prev) prev.remove(); return; }
         if (!prev) suggestionBox.appendChild(section);
+        // Llegaron resultados de la API: quitar el "Buscando…" / "Sin resultados".
+        setSuggestionStatus('none');
         if (suggestionBox.classList.contains('is-open') || section.children.length) {
             suggestionBox.classList.add('is-open');
             setSuggestionsOpen(true);
         }
+    }
+
+    // Cuenta cuántas sugerencias locales hay actualmente en el desplegable.
+    function hasLocalSuggestions() {
+        return !!suggestionBox && !!suggestionBox.querySelector('.catalog-suggestion:not(.catalog-suggestion--api)');
     }
 
     async function fetchApiSuggestions(rawQuery) {
@@ -4726,6 +4837,8 @@ function inicializarBusquedaCatalogo() {
 
         const prev = suggestionBox.querySelector('.catalog-suggestion-api-section');
         if (prev) prev.remove();
+        // Feedback inmediato mientras la API responde.
+        setSuggestionStatus('loading', 'Buscando…');
 
         try {
             let resultados = [];
@@ -4745,9 +4858,19 @@ function inicializarBusquedaCatalogo() {
             if (normalizeText(input.value) !== q) return;
             if (Array.isArray(resultados) && resultados.length) {
                 renderApiSuggestions(rawQuery, resultados);
+            } else if (!hasLocalSuggestions()) {
+                // Ni local ni API: estado vacío explícito en vez de un desplegable colgado.
+                setSuggestionStatus('empty', 'No encontramos coincidencias.');
+            } else {
+                setSuggestionStatus('none');
             }
         } catch (e) {
-            // ignore
+            // Ante un error de red no dejamos el "Buscando…" para siempre.
+            if (normalizeText(input.value) === q && !hasLocalSuggestions()) {
+                setSuggestionStatus('empty', 'No pudimos buscar. Reintentá.');
+            } else {
+                setSuggestionStatus('none');
+            }
         }
     }
 
@@ -4849,16 +4972,52 @@ function inicializarBusquedaCatalogo() {
 
     // ── Input: local filter + API suggestions ──
     input.addEventListener('input', () => {
+        syncClearBtn();
         applyFilter();
         debouncedApiSearch();
     });
     input.addEventListener('keydown', (e) => {
+        const open = !!suggestionBox && suggestionBox.classList.contains('is-open');
+        const items = open ? getSuggestionItems() : [];
+
+        if (e.key === 'ArrowDown') {
+            if (items.length) {
+                e.preventDefault();
+                setActiveSuggestion(activeIndex + 1);
+            }
+            return;
+        }
+        if (e.key === 'ArrowUp') {
+            if (items.length) {
+                e.preventDefault();
+                setActiveSuggestion(activeIndex - 1);
+            }
+            return;
+        }
+        if (e.key === 'Escape') {
+            if (open) {
+                e.preventDefault();
+                suggestionBox.classList.remove('is-open');
+                setSuggestionsOpen(false);
+            }
+            return;
+        }
         if (e.key === 'Enter') {
             e.preventDefault();
+            // Con una sugerencia resaltada, Enter la abre; si no, recarga el catálogo.
+            const current = activeIndex >= 0 ? items[activeIndex] : null;
+            if (current && current.href) {
+                window.location.href = current.href;
+                return;
+            }
+            if (suggestionBox) {
+                suggestionBox.classList.remove('is-open');
+                setSuggestionsOpen(false);
+            }
             reloadCatalog();
         }
     });
-    input.addEventListener('focus', () => renderSuggestions(input.value));
+    input.addEventListener('focus', () => { syncClearBtn(); renderSuggestions(input.value); });
     input.addEventListener('blur', () => {
         window.setTimeout(() => {
             if (suggestionBox) {
@@ -4867,6 +5026,42 @@ function inicializarBusquedaCatalogo() {
             }
         }, 180);
     });
+
+    // ── Puntero: resaltar la sugerencia bajo el mouse para navegación coherente ──
+    if (suggestionBox) {
+        suggestionBox.addEventListener('mousemove', (e) => {
+            const item = e.target.closest('.catalog-suggestion');
+            if (!item) return;
+            const idx = getSuggestionItems().indexOf(item);
+            if (idx >= 0 && idx !== activeIndex) setActiveSuggestion(idx);
+        });
+        // mousedown (no click) para ganarle al blur que cierra el desplegable.
+        suggestionBox.addEventListener('mousedown', (e) => {
+            const item = e.target.closest('.catalog-suggestion');
+            if (item && item.href) {
+                e.preventDefault();
+                window.location.href = item.href;
+            }
+        });
+    }
+
+    // ── Botón limpiar (×) ──
+    if (clearSearchBtn) {
+        // mousedown para actuar antes del blur del input.
+        clearSearchBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            input.value = '';
+            syncClearBtn();
+            if (suggestionBox) {
+                suggestionBox.innerHTML = '';
+                suggestionBox.classList.remove('is-open');
+            }
+            setSuggestionsOpen(false);
+            input.focus();
+            reloadCatalog();
+        });
+    }
+    syncClearBtn();
 
     var searchIcon = inputWrap?.querySelector('.catalog-search-icon');
     if (searchIcon) {

@@ -328,6 +328,93 @@ main { padding-bottom: 24px; }
     padding: 4px 4px 2px;
 }
 
+/* Sugerencia resaltada por teclado (↑/↓) o al pasar el mouse */
+.catalog-suggestion.is-active {
+    transform: translateY(-1px);
+    background: rgba(0, 242, 255, 0.12);
+    border-color: rgba(0, 242, 255, 0.35);
+    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.15);
+}
+
+/* Coincidencia de la búsqueda dentro del título */
+.catalog-suggestion-mark {
+    background: transparent;
+    color: var(--nav-accent, #00f2ff);
+    font-weight: 700;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+/* Estado del desplegable: "Buscando…" / "Sin resultados" */
+.catalog-suggestion-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.86rem;
+    opacity: 0.7;
+}
+
+.catalog-suggestion-status[data-status="empty"] {
+    justify-content: center;
+    text-align: center;
+}
+
+.catalog-suggestion-spinner {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 242, 255, 0.25);
+    border-top-color: var(--nav-accent, #00f2ff);
+    animation: catalog-suggestion-spin 0.7s linear infinite;
+}
+
+@keyframes catalog-suggestion-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .catalog-suggestion-spinner { animation-duration: 1.6s; }
+    .catalog-suggestion.is-active { transform: none; }
+}
+
+/* Botón limpiar (×) dentro del input de búsqueda */
+.catalog-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(var(--ink-rgb), 0.06);
+    color: rgba(var(--ink-rgb), 0.6);
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.18s ease, color 0.18s ease;
+}
+
+.catalog-search-clear:hover {
+    background: rgba(188, 19, 254, 0.18);
+    color: var(--text-main);
+}
+
+.catalog-search-clear[hidden] {
+    display: none;
+}
+
+/* Reservar espacio a la derecha del texto cuando el botón × está visible */
+.catalog-search-inner:has(.catalog-search-clear:not([hidden])) .catalog-search-input {
+    padding-right: 30px;
+}
+
 .nav-user {
     position: static;
     transform: none;
