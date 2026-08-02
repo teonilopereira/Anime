@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-3825dede';
+const CACHE_NAME = 'anime-destiny-196fb323';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -43,6 +43,16 @@ const ASSETS = [
   '/offline.html',
   '/css/bundle.css',
   '/css/bundle.min.css',
+  '/css/fonts.css',
+  '/fonts/orbitron-latin.woff2',
+  '/fonts/rajdhani-300-latin.woff2',
+  '/fonts/rajdhani-300-latin-ext.woff2',
+  '/fonts/rajdhani-500-latin.woff2',
+  '/fonts/rajdhani-500-latin-ext.woff2',
+  '/fonts/rajdhani-600-latin.woff2',
+  '/fonts/rajdhani-600-latin-ext.woff2',
+  '/fonts/rajdhani-700-latin.woff2',
+  '/fonts/rajdhani-700-latin-ext.woff2',
   '/js/core-bundle.min.js',
   '/js/core/i18n.js',
   '/js/core/theme.js',
