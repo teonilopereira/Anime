@@ -278,8 +278,16 @@ for (const { to } of VENDOR_BUNDLES) assetPaths.add(to);
 // autocrlf en Windows vs LF en Linux), y si entraran al hash la version
 // cambiaria de plataforma en plataforma. Eso rompia el chequeo de CI, que
 // reconstruye y compara contra lo commiteado.
+// Archivos referenciados por los HTML pero que NO deben entrar al hash de
+// version: son generados y gitignoreados, asi que existen en la maquina del
+// dev pero no en el checkout limpio del CI. Si entraran, la version cambiaria
+// segun quien construya (con o sin config.js), y el chequeo de drift del CI
+// fallaria aunque los fuentes y bundles sean identicos.
+const HASH_EXCLUDE = new Set(['js/core/config.js']);
+
 const hash = crypto.createHash('sha256');
 for (const rel of [...assetPaths].sort()) {
+    if (HASH_EXCLUDE.has(rel)) continue;
     if (fs.existsSync(abs(rel))) hash.update(rel).update(readSource(rel));
 }
 
