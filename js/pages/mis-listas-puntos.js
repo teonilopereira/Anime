@@ -12,14 +12,17 @@ function renderPoints() {
         return;
     }
 
-    const pts = (typeof getUserPoints === 'function')
-        ? getUserPoints(userId)
-        : Number(UserStore.getItem(`u:${userId}|points`) || '0');
-    const lv = (typeof levelFromPoints === 'function')
-        ? levelFromPoints(pts)
-        : { level: 1, current: 0, next: 100 };
-    // El nivel, la barra y el "faltan" se derivan todos de lv (puntos) para que
-    // el número y la barra siempre coincidan.
+    // resolveUserLevel respeta el nivel guardado del servidor (u:<id>|level): el
+    // exp sincronizado es solo el sobrante del nivel actual, así que derivar el
+    // nivel de esos puntos daría nivel 1 para un usuario avanzado.
+    const lv = (typeof resolveUserLevel === 'function')
+        ? resolveUserLevel(userId)
+        : (typeof levelFromPoints === 'function'
+            ? levelFromPoints(getUserPoints(userId))
+            : { level: 1, current: 0, next: 100, points: 0 });
+    const pts = lv.points != null ? lv.points : Number(UserStore.getItem(`u:${userId}|points`) || '0');
+    // El nivel, la barra y el "faltan" se derivan todos de lv para que el número
+    // y la barra siempre coincidan.
     const level = lv.level;
     const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
     const remain = Math.max(0, lv.next - lv.current);

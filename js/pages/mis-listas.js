@@ -503,9 +503,16 @@ function renderProfileSummary() {
         || (user?.email ? user.email.split('@')[0] : userId);
     const initials = String(displayName || 'US').trim().slice(0, 2).toUpperCase();
 
-    const pts = (typeof getUserPoints === 'function') ? getUserPoints(userId) : Number(UserStore.getItem(`u:${userId}|points`) || '0');
-    const lv = (typeof levelFromPoints === 'function') ? levelFromPoints(pts) : { level: 1, current: 0, next: 100 };
-    // Nivel y barra derivados de lv (puntos) para que coincidan siempre.
+    // resolveUserLevel respeta el nivel guardado del servidor (u:<id>|level), que
+    // es la autoridad: el exp sincronizado es solo el sobrante del nivel actual,
+    // así que derivar el nivel de esos puntos daría nivel 1 para un usuario avanzado.
+    const lv = (typeof resolveUserLevel === 'function')
+        ? resolveUserLevel(userId)
+        : (typeof levelFromPoints === 'function'
+            ? levelFromPoints(getUserPoints(userId))
+            : { level: 1, current: 0, next: 100, points: 0 });
+    const pts = lv.points != null ? lv.points : Number(UserStore.getItem(`u:${userId}|points`) || '0');
+    // Nivel y barra derivados de lv para que el número y la barra coincidan siempre.
     const level = lv.level;
     const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
 
