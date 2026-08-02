@@ -231,6 +231,37 @@
         return { level, current: remaining, next: need, atMax };
     }
 
+    // Cuánta EXP hace falta para pasar del nivel `level` al siguiente.
+    // Sigue la misma progresión que levelFromPoints (base ×1.2 por nivel).
+    function needForLevel(level) {
+        const base = AnimeDestiny.Constants.XP_BASE || 100;
+        const mult = AnimeDestiny.Constants.XP_MULTIPLIER || 1.2;
+        let need = base;
+        for (let l = 1; l < level; l++) need = Math.floor(need * mult);
+        return need;
+    }
+
+    // Nivel "de verdad" del usuario para la UI.
+    // El servidor (add_user_exp) es la fuente de autoridad: guarda level y exp por
+    // SEPARADO, donde exp es solo el sobrante dentro del nivel actual (ya se le
+    // restó lo consumido al subir). Al sincronizar, ese sobrante queda en `points`,
+    // así que levelFromPoints(points) daría ≈ nivel 1 para un usuario avanzado.
+    // Por eso, si hay un nivel guardado (u:<id>|level) mayor al derivado del
+    // sobrante, mandan el nivel guardado y el sobrante como progreso del nivel.
+    function resolveUserLevel(userId) {
+        const maxLevel = AnimeDestiny.Constants.XP_MAX_LEVEL || 50;
+        const points = getUserPoints(userId);
+        const lv = levelFromPoints(points);
+        const storedLevel = Number(UserStore.getItem(`u:${userId}|level`) || '0');
+        if (Number.isFinite(storedLevel) && storedLevel > lv.level) {
+            const level = Math.min(storedLevel, maxLevel);
+            const next = needForLevel(level);
+            const current = Math.max(0, Math.min(points, next));
+            return { level, current, next, atMax: level >= maxLevel, points };
+        }
+        return { level: lv.level, current: lv.current, next: lv.next, atMax: lv.atMax, points };
+    }
+
     function countKeysWithPrefix(prefix) {
         try {
             let count = 0;
@@ -666,6 +697,8 @@
     window.syncItemStateToSupabase = syncItemStateToSupabase;
     window.getUserPoints = getUserPoints;
     window.levelFromPoints = levelFromPoints;
+    window.needForLevel = needForLevel;
+    window.resolveUserLevel = resolveUserLevel;
     window.pointsKey = pointsKey;
     window.setWatchStatus = setWatchStatus;
     window.getWatchStatus = getWatchStatus;
