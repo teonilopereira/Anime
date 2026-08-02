@@ -420,8 +420,15 @@
     var _memCache = new Map();
     var CACHE_PREFIX = 'adApiCache_';
 
+    // Ventana de gracia tras la expiración: la entrada sigue guardada (aunque ya
+    // no se sirve como "fresca") para poder devolverla como respaldo si la API
+    // falla. Sin esto, una caída de AniList dejaba la app en "API no disponible"
+    // aunque el catálogo ya se hubiera cargado antes.
+    var STALE_GRACE_MS = 3 * 24 * 60 * 60 * 1000; // 3 días
+
     function _pruneOldCache() {
-        // Remove expired localStorage entries to avoid quota overflow
+        // Solo se descartan las entradas más viejas que expiry + gracia, para no
+        // perder el respaldo utilizable ante fallos de la API.
         var toRemove = [];
         try {
             for (var i = 0; i < localStorage.length; i++) {
@@ -429,7 +436,7 @@
                 if (k && k.startsWith(CACHE_PREFIX)) {
                     try {
                         var p = JSON.parse(localStorage.getItem(k));
-                        if (Date.now() > p.expiry) toRemove.push(k);
+                        if (Date.now() > p.expiry + STALE_GRACE_MS) toRemove.push(k);
                     } catch (_) { toRemove.push(k); }
                 }
             }
@@ -450,13 +457,25 @@
             var raw = localStorage.getItem(CACHE_PREFIX + key);
             if (!raw) return null;
             var parsed = JSON.parse(raw);
-            if (Date.now() > parsed.expiry) {
-                localStorage.removeItem(CACHE_PREFIX + key);
-                return null;
-            }
+            // Expirada: NO se borra (queda como respaldo durante la gracia), pero
+            // no se sirve como fresca.
+            if (Date.now() > parsed.expiry) return null;
             // Promote to L1
             _memCache.set(key, parsed);
             return parsed.data;
+        } catch (e) { return null; }
+    }
+
+    // Devuelve datos cacheados ignorando la expiración (respaldo ante fallos de
+    // la API). No promueve a L1 ni altera el estado del cache.
+    function getStaleApiCache(key) {
+        var mem = _memCache.get(key);
+        if (mem && mem.data != null) return mem.data;
+        try {
+            var raw = localStorage.getItem(CACHE_PREFIX + key);
+            if (!raw) return null;
+            var parsed = JSON.parse(raw);
+            return parsed && parsed.data != null ? parsed.data : null;
         } catch (e) { return null; }
     }
 
@@ -478,9 +497,10 @@
 
     /**
      * Devuelve del cache si hay; si no, ejecuta `producer` una sola vez aunque
-     * lo llamen varias veces en paralelo. Si `producer` falla, el error se
-     * propaga (no se cachea) para que el llamador pueda distinguir "sin
-     * resultados" de "la API se cayo".
+     * lo llamen varias veces en paralelo. Si `producer` falla, se intenta
+     * devolver la última copia cacheada (aunque esté expirada) como respaldo
+     * ante caídas de la API; solo si no hay respaldo se propaga el error, para
+     * que el llamador pueda distinguir "sin resultados" de "la API se cayó".
      */
     function fetchCached(cacheKey, ttlMs, producer) {
         var cached = getApiCache(cacheKey);
@@ -494,6 +514,16 @@
             .then(function (data) {
                 if (Array.isArray(data) ? data.length : data) setApiCache(cacheKey, data, ttlMs);
                 return data;
+            })
+            .catch(function (err) {
+                // Respaldo: servir la copia expirada si existe. Mejor contenido
+                // viejo que un cartel de "API no disponible".
+                var stale = getStaleApiCache(cacheKey);
+                if (stale != null && (Array.isArray(stale) ? stale.length : true)) {
+                    console.warn('AniList falló; usando caché de respaldo para', cacheKey);
+                    return stale;
+                }
+                throw err;
             })
             .finally(function () { _inflight.delete(cacheKey); });
 
