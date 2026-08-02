@@ -487,8 +487,15 @@
     var _memCache = new Map();
     var CACHE_PREFIX = 'adApiCache_';
 
+    // Ventana de gracia tras la expiración: la entrada sigue guardada (aunque ya
+    // no se sirve como "fresca") para poder devolverla como respaldo si la API
+    // falla. Sin esto, una caída de AniList dejaba la app en "API no disponible"
+    // aunque el catálogo ya se hubiera cargado antes.
+    var STALE_GRACE_MS = 3 * 24 * 60 * 60 * 1000; // 3 días
+
     function _pruneOldCache() {
-        // Remove expired localStorage entries to avoid quota overflow
+        // Solo se descartan las entradas más viejas que expiry + gracia, para no
+        // perder el respaldo utilizable ante fallos de la API.
         var toRemove = [];
         try {
             for (var i = 0; i < localStorage.length; i++) {
@@ -496,7 +503,7 @@
                 if (k && k.startsWith(CACHE_PREFIX)) {
                     try {
                         var p = JSON.parse(localStorage.getItem(k));
-                        if (Date.now() > p.expiry) toRemove.push(k);
+                        if (Date.now() > p.expiry + STALE_GRACE_MS) toRemove.push(k);
                     } catch (_) { toRemove.push(k); }
                 }
             }
@@ -517,13 +524,25 @@
             var raw = localStorage.getItem(CACHE_PREFIX + key);
             if (!raw) return null;
             var parsed = JSON.parse(raw);
-            if (Date.now() > parsed.expiry) {
-                localStorage.removeItem(CACHE_PREFIX + key);
-                return null;
-            }
+            // Expirada: NO se borra (queda como respaldo durante la gracia), pero
+            // no se sirve como fresca.
+            if (Date.now() > parsed.expiry) return null;
             // Promote to L1
             _memCache.set(key, parsed);
             return parsed.data;
+        } catch (e) { return null; }
+    }
+
+    // Devuelve datos cacheados ignorando la expiración (respaldo ante fallos de
+    // la API). No promueve a L1 ni altera el estado del cache.
+    function getStaleApiCache(key) {
+        var mem = _memCache.get(key);
+        if (mem && mem.data != null) return mem.data;
+        try {
+            var raw = localStorage.getItem(CACHE_PREFIX + key);
+            if (!raw) return null;
+            var parsed = JSON.parse(raw);
+            return parsed && parsed.data != null ? parsed.data : null;
         } catch (e) { return null; }
     }
 
@@ -545,9 +564,10 @@
 
     /**
      * Devuelve del cache si hay; si no, ejecuta `producer` una sola vez aunque
-     * lo llamen varias veces en paralelo. Si `producer` falla, el error se
-     * propaga (no se cachea) para que el llamador pueda distinguir "sin
-     * resultados" de "la API se cayo".
+     * lo llamen varias veces en paralelo. Si `producer` falla, se intenta
+     * devolver la última copia cacheada (aunque esté expirada) como respaldo
+     * ante caídas de la API; solo si no hay respaldo se propaga el error, para
+     * que el llamador pueda distinguir "sin resultados" de "la API se cayó".
      */
     function fetchCached(cacheKey, ttlMs, producer) {
         var cached = getApiCache(cacheKey);
@@ -561,6 +581,16 @@
             .then(function (data) {
                 if (Array.isArray(data) ? data.length : data) setApiCache(cacheKey, data, ttlMs);
                 return data;
+            })
+            .catch(function (err) {
+                // Respaldo: servir la copia expirada si existe. Mejor contenido
+                // viejo que un cartel de "API no disponible".
+                var stale = getStaleApiCache(cacheKey);
+                if (stale != null && (Array.isArray(stale) ? stale.length : true)) {
+                    console.warn('AniList falló; usando caché de respaldo para', cacheKey);
+                    return stale;
+                }
+                throw err;
             })
             .finally(function () { _inflight.delete(cacheKey); });
 
@@ -4381,6 +4411,104 @@ function describirErrorDeApi(error) {
     };
 }
 
+// Construye la entrada del índice de búsqueda local (filtrado en cliente y
+// sugerencias) a partir de un item de la API.
+function _catalogSearchEntry(categoria, item) {
+    return {
+        item: {
+            id: item.id ?? item.mal_id,
+            titulo: item.title,
+            imagen: getApiPoster(item),
+            info: getApiCatalogInfo(categoria, item)
+        },
+        searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+    };
+}
+
+// Pinta un conjunto de items como tarjetas del catálogo. Separado de
+// cargarCatalogoDesdeApi para reutilizarlo desde el respaldo de búsqueda
+// (cuando la carga principal falla o vuelve vacía).
+function renderCatalogItems(categoria, mainContainer, items, append) {
+    if (!append) {
+        window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems =
+            items.map((item) => _catalogSearchEntry(categoria, item));
+    } else {
+        const existing = window.__catalogSearchItems || [];
+        const existingIds = new Set(existing.map(function (e) { return String(e.item.id); }));
+        items.filter(function (item) { return !existingIds.has(String(item.id ?? item.mal_id)); })
+            .forEach(function (item) { existing.push(_catalogSearchEntry(categoria, item)); });
+    }
+
+    var cardsHtml = items.map((item) => {
+        const id = item.id ?? item.mal_id;
+        const title = item.title || 'Sin título';
+        const image = getApiPoster(item);
+        const info = getApiCatalogInfo(categoria, item);
+        const genres = getApiGenresList(item);
+        const genresNorm = genres.map((genre) => normalizeCatalogGenre(genre)).join('|');
+        const detailCat = categoria === 'novelas' ? 'novelas' : categoria;
+        const detailUrl = 'detalle.html?cat=' + encodeURIComponent(detailCat) + '&id=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(title);
+        const searchIndex = [title, item.title_english, info, item.synopsis, item.type].concat(genres).filter(Boolean).join(' ').toLowerCase();
+
+        const volCount = categoria !== 'anime' ? (item.volumes || 0) : 0;
+        const chCount = categoria !== 'anime' ? (item.chapters || 0) : 0;
+        return buildCatalogCardHtml({
+            id: id,
+            title: title,
+            image: image,
+            detailUrl: detailUrl,
+            status: item.status || 'En emisión',
+            searchIndex: searchIndex,
+            genres: genres.join('|'),
+            genresNorm: genresNorm,
+            categoria: detailCat,
+            info: info,
+            progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
+            volCount: volCount,
+            chCount: chCount,
+            imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
+        });
+    }).join('');
+
+    mainContainer.querySelector('.empty-state')?.remove();
+    if (append) {
+        mainContainer.insertAdjacentHTML('beforeend', cardsHtml);
+    } else {
+        mainContainer.innerHTML = cardsHtml;
+    }
+
+    try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
+    if (!append) {
+        try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
+        try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
+    } else if (typeof window.__renderDropdownGenres === 'function') {
+        try { window.__renderDropdownGenres(); } catch (e) { console.warn('Error en generos dropdown:', e); }
+    }
+    return items.length > 0;
+}
+
+// Respaldo de búsqueda: usa la búsqueda liviana (menos peticiones y con caché
+// propia) cuando la carga del catálogo falla o no trae resultados, para que una
+// búsqueda válida no quede en "no se pudo cargar" por un rate limit puntual.
+async function buscarCatalogoLiviano(categoria, search) {
+    const q = String(search || '').trim();
+    if (!q) return [];
+    try {
+        let alt = [];
+        if (categoria === 'novelas' && typeof window.buscarNovelasEnApi === 'function') {
+            alt = await window.buscarNovelasEnApi(q);
+        } else if (typeof window.buscarEnApi === 'function') {
+            alt = await window.buscarEnApi(q, categoria);
+        }
+        return Array.isArray(alt) ? alt : [];
+    } catch (_) {
+        return [];
+    }
+}
+
 async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append = false) {
     const loaderLabel = categoria === 'anime'
         ? 'animes'
@@ -4397,49 +4525,25 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
 
     // Read global filter state
     const filters = window.__catalogFilters || {};
+    const perPage = AnimeDestiny.Constants.PER_PAGE || 40;
 
     try {
         const timeoutPromise = new Promise(function (_, reject) {
             setTimeout(function () { reject(new Error('Timeout')); }, AnimeDestiny.Constants.API_TIMEOUT_MS || 15000);
         });
         const listaItems = await Promise.race([getTopItems(page, filters), timeoutPromise]);
-        const items = Array.isArray(listaItems) ? listaItems.slice(0, AnimeDestiny.Constants.PER_PAGE || 40) : [];
+        const items = Array.isArray(listaItems) ? listaItems.slice(0, perPage) : [];
 
-        if (!append) {
-            window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = items.map((item) => ({
-                item: {
-                    id: item.id ?? item.mal_id,
-                    titulo: item.title,
-                    imagen: getApiPoster(item),
-                    info: getApiCatalogInfo(categoria, item)
-                },
-                searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
-                    .filter(Boolean)
-                    .join(' ')
-                    .toLowerCase()
-            }));
-        } else {
-            const existing = window.__catalogSearchItems || [];
-            const existingIds = new Set(existing.map(function (e) { return String(e.item.id); }));
-            const newItems = items.filter(function (item) { return !existingIds.has(String(item.id ?? item.mal_id)); });
-            newItems.forEach(function (item) {
-                existing.push({
-                    item: {
-                        id: item.id ?? item.mal_id,
-                        titulo: item.title,
-                        imagen: getApiPoster(item),
-                        info: getApiCatalogInfo(categoria, item)
-                    },
-                    searchIndex: [item.title, item.title_english, item.type, item.status, item.synopsis]
-                        .filter(Boolean)
-                        .join(' ')
-                        .toLowerCase()
-                });
-            });
+        // Búsqueda sin resultados en la carga principal: reintentar con la
+        // búsqueda liviana antes de declarar "sin resultados".
+        if (!append && !items.length && filters.search) {
+            const alt = await buscarCatalogoLiviano(categoria, filters.search);
+            if (alt.length) return renderCatalogItems(categoria, mainContainer, alt.slice(0, perPage), false);
         }
 
         if (!items.length) {
             if (!append) {
+                window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = [];
                 mainContainer.innerHTML = `
                     <section class="empty-state">
                         <span class="empty-state-kicker">Sin resultados</span>
@@ -4447,61 +4551,21 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                         <p>Posible límite de velocidad (rate limit). Esperá unos segundos y recargá.</p>
                     </section>
                 `;
+                try { inicializarBusquedaCatalogo(); } catch (e) {}
+                try { inicializarGeneroWidgets(); } catch (e) {}
             }
-            if (!append) { try { inicializarBusquedaCatalogo(); } catch (e) {} try { inicializarGeneroWidgets(); } catch (e) {} }
             return false;
         }
 
-        var cardsHtml = items.map((item) => {
-            const id = item.id ?? item.mal_id;
-            const title = item.title || 'Sin t\u00EDtulo';
-            const image = getApiPoster(item);
-            const info = getApiCatalogInfo(categoria, item);
-            const genres = getApiGenresList(item);
-            const genresNorm = genres.map((genre) => normalizeCatalogGenre(genre)).join('|');
-            const detailCat = categoria === 'novelas' ? 'novelas' : categoria;
-            // El titulo viaja en la URL para que la ficha pueda buscar por nombre
-            // como fallback si el id no resuelve (ver cargarDetalleDesdeApi).
-            const detailUrl = 'detalle.html?cat=' + encodeURIComponent(detailCat) + '&id=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(title);
-            const searchIndex = [title, item.title_english, info, item.synopsis, item.type].concat(genres).filter(Boolean).join(' ').toLowerCase();
-
-            const volCount = categoria !== 'anime' ? (item.volumes || 0) : 0;
-            const chCount = categoria !== 'anime' ? (item.chapters || 0) : 0;
-            return buildCatalogCardHtml({
-                id: id,
-                title: title,
-                image: image,
-                detailUrl: detailUrl,
-                status: item.status || 'En emisi\u00F3n',
-                searchIndex: searchIndex,
-                genres: genres.join('|'),
-                genresNorm: genresNorm,
-                categoria: detailCat,
-                info: info,
-                progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
-                volCount: volCount,
-                chCount: chCount,
-                imageExtraAttrs: ' data-title="' + escapeHtml(title) + '" data-fallback-catalog="1"'
-            });
-        }).join('');
-
-        mainContainer.querySelector('.empty-state')?.remove();
-        if (append) {
-            mainContainer.insertAdjacentHTML('beforeend', cardsHtml);
-        } else {
-            mainContainer.innerHTML = cardsHtml;
-        }
-
-        try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
-        if (!append) {
-            try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }
-            try { inicializarGeneroWidgets(); } catch (e) { console.warn('Error en generos:', e); }
-        } else if (typeof window.__renderDropdownGenres === 'function') {
-            try { window.__renderDropdownGenres(); } catch (e) { console.warn('Error en generos dropdown:', e); }
-        }
-        return items.length > 0;
-        } catch (error) {
+        return renderCatalogItems(categoria, mainContainer, items, append);
+    } catch (error) {
         console.warn('Error cargando API:', error);
+        // Respaldo: si la carga fall\u00F3 durante una b\u00FAsqueda, intentar la b\u00FAsqueda
+        // liviana (puede resolver desde cach\u00E9 aunque la API est\u00E9 limitando).
+        if (!append && filters.search) {
+            const alt = await buscarCatalogoLiviano(categoria, filters.search);
+            if (alt.length) return renderCatalogItems(categoria, mainContainer, alt.slice(0, perPage), false);
+        }
         if (!append) {
             const causa = describirErrorDeApi(error);
             mainContainer.innerHTML = `
