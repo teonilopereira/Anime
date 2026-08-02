@@ -161,79 +161,11 @@ function aplicarCpr(valor) {
     aplicarCprEnPagina(valor);
 }
 
-/* ── Avatar (foto de perfil o iniciales) ── */
-function fotoActual() {
-    try {
-        var u = window.AppSupabase?.getCurrentUserSync?.();
-        return u?.user_metadata?.avatar_url || u?.user_metadata?.picture || '';
-    } catch (_) { return ''; }
-}
-
-function pintarAvatar(user) {
-    var el = $('cfgAvatar');
-    if (!el) return;
-    var foto = fotoActual();
-    if (foto) {
-        el.textContent = '';
-        el.style.backgroundImage = 'url("' + foto.replace(/"/g, '%22') + '")';
-        el.style.backgroundSize = 'cover';
-        el.style.backgroundPosition = 'center';
-        el.style.imageRendering = 'pixelated'; // se ve nítido el pixel art
-    } else {
-        el.style.backgroundImage = '';
-        el.textContent = String(user || '?').slice(0, 2).toUpperCase();
-    }
-}
-
-/* ── Generador de avatar con PixelLab ── */
-let _avatarGenListo = false;
-function montarGeneradorAvatar() {
-    var wrap = $('avatarGen');
-    if (!wrap) return;
-    var signedIn = !!(window.AppSupabase && window.AppSupabase.isSignedIn());
-    wrap.style.display = signedIn ? '' : 'none';
-    if (!signedIn || _avatarGenListo) return;
-    _avatarGenListo = true;
-
-    var btn = $('avatarGenBtn');
-    var input = $('avatarPrompt');
-    var hint = $('avatarGenHint');
-    if (!btn || !input) return;
-
-    async function generar() {
-        var desc = (input.value || '').trim();
-        if (desc.length < 3) { toast('Escribí una descripción más larga.', true); return; }
-        btn.disabled = true;
-        var textoPrevio = btn.textContent;
-        btn.textContent = '⏳...';
-        if (hint) hint.textContent = 'Generando tu avatar, puede tardar unos segundos…';
-        try {
-            var res = await window.AppSupabase.generateAvatar(desc);
-            pintarAvatar(getCurrentUserName());
-            if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
-            toast(res.cached ? '✅ Avatar recuperado' : '✅ ¡Avatar generado!');
-            if (hint) hint.textContent = 'Listo. Ya es tu foto de perfil.';
-        } catch (e) {
-            toast(e.message || 'No se pudo generar el avatar.', true);
-            if (hint) hint.textContent = 'Se crea con IA y queda como tu foto de perfil.';
-        } finally {
-            btn.disabled = false;
-            btn.textContent = textoPrevio;
-        }
-    }
-
-    btn.addEventListener('click', generar);
-    input.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Enter') { ev.preventDefault(); generar(); }
-    });
-}
-
 /* ── Pintar la UI con lo guardado ── */
 function syncUI() {
     var user = getCurrentUserName();
     $('cfgUserName').textContent = user;
-    pintarAvatar(user);
-    montarGeneradorAvatar();
+    $('cfgAvatar').textContent = user.slice(0, 2).toUpperCase();
 
     // El idioma vive en pref:lang, que es lo que lee i18n.js. Antes esta pagina
     // escribia pref:idioma, una clave que no leia nadie.
@@ -479,10 +411,3 @@ window.addEventListener('supabase-ready', () => {
     if (nameEl) nameEl.textContent = getCurrentUserName();
     if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
 }, { once: true });
-
-// La sesión llega de forma asíncrona: al conocerla, pintamos el avatar real y
-// revelamos el generador (que solo tiene sentido con usuario logueado).
-window.addEventListener('supabase-auth-changed', () => {
-    pintarAvatar(getCurrentUserName());
-    montarGeneradorAvatar();
-});

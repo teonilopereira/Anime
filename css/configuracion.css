@@ -59,36 +59,6 @@
     color: var(--text-main);
     flex-shrink: 0;
 }
-/* Generador de avatar (PixelLab) */
-.cfg-avatar-gen {
-    margin: 14px 0 4px;
-    padding: 14px 16px;
-    border: 1px solid rgba(var(--ink-rgb), 0.12);
-    border-radius: 12px;
-    background: rgba(var(--ink-rgb), 0.03);
-}
-.cfg-avatar-gen-row {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-}
-.cfg-avatar-gen-row input {
-    flex: 1 1 200px;
-    min-width: 0;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(var(--ink-rgb), 0.18);
-    background: rgba(var(--ink-rgb), 0.04);
-    color: var(--text-main);
-    font-size: 0.9rem;
-}
-.cfg-avatar-gen-row .cfg-btn { flex-shrink: 0; }
-.cfg-avatar-gen-hint {
-    margin-top: 8px;
-    font-size: 0.72rem;
-    color: rgba(var(--ink-rgb), 0.45);
-}
 .cfg-user-label {
     font-size: 0.68rem;
     text-transform: uppercase;

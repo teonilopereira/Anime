@@ -443,52 +443,6 @@ async function loadAllProgress() {
     return data || [];
 }
 
-// ─── Avatar en pixel art (PixelLab vía Edge Function) ─────────────
-// Llama a la función `generate-avatar`, que genera el pixel art en el
-// servidor (donde vive la API key), lo guarda en Storage y actualiza
-// profiles.photo_url. Devuelve la URL pública lista para usar en <img>.
-async function generateAvatar(description, opts = {}) {
-    const user = await getCurrentUserAsync();
-    if (!user) throw new Error("Tenés que iniciar sesión.");
-
-    const desc = String(description || "").trim();
-    if (desc.length < 3) throw new Error("Describí el avatar (mínimo 3 caracteres).");
-
-    const { data, error } = await supabase.functions.invoke("generate-avatar", {
-        body: {
-            description: desc,
-            width:  opts.width,
-            height: opts.height,
-            noBackground: opts.noBackground,
-            force:  !!opts.force
-        }
-    });
-
-    if (error) {
-        // functions.invoke envuelve los errores; intentamos rescatar el detalle.
-        let msg = error.message || "No se pudo generar el avatar.";
-        try {
-            const body = await error.context?.json?.();
-            if (body?.error) msg = body.error;
-        } catch (_) { /* sin cuerpo legible */ }
-        throw new Error(msg);
-    }
-    if (!data?.url) throw new Error("La función no devolvió una imagen.");
-
-    // Sincronizar cache y metadata locales para que el resto de la app vea el
-    // nuevo avatar sin recargar.
-    if (_profileCache && _profileCache._userId === user.id) {
-        _profileCache.photo_url = data.url;
-    }
-    try {
-        await supabase.auth.updateUser({ data: { avatar_url: data.url, picture: data.url } });
-    } catch (e) {
-        console.warn("No se pudo actualizar metadata del avatar:", e);
-    }
-
-    return data; // { url, cached, usd }
-}
-
 // ─── Comentarios ────────────────────────────────────────────────
 async function loadComments(category, itemId, refFilter) {
     let query = supabase
@@ -612,7 +566,6 @@ const AppSupabase = Object.freeze({
     saveUserProfile,
     setProgress,
     addExperience,
-    generateAvatar,
 
     loadComments,
     addComment,
