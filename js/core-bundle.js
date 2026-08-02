@@ -6188,9 +6188,6 @@ window.addEventListener("supabase-auth-changed", function () {
 
     // ── Custom colors (leer desde localStorage y aplicar en :root) ──
     (() => {
-        const r = (key, def) => {
-            try { return localStorage.getItem(key) || def; } catch { return def; }
-        };
         const colorKeys = {
             '--neon-purple':  'pref:color:neonPurple',
             '--nav-accent':   'pref:color:navAccent',
@@ -6199,23 +6196,26 @@ window.addEventListener("supabase-auth-changed", function () {
             '--text-main':    'pref:color:textMain',
             '--text-muted':   'pref:color:textMuted'
         };
-        const defaults = {
-            '--neon-purple':  '#bc13fe',
-            '--nav-accent':   '#a855f7',
-            '--accent-cyan':  '#00f2ff',
-            '--dark-bg':      '#050505',
-            '--text-main':    '#ffffff',
-            '--text-muted':   '#b0b0b0'
-        };
         const root = document.documentElement;
+        let navAccentPref = null;
         for (const name in colorKeys) {
-            if (colorKeys.hasOwnProperty(name)) {
-                const val = r(colorKeys[name], defaults[name]);
+            if (!colorKeys.hasOwnProperty(name)) continue;
+            let val = null;
+            try { val = localStorage.getItem(colorKeys[name]); } catch { val = null; }
+            // Sólo forzamos el color inline si el usuario lo personalizó. Aplicar
+            // los defaults inline pisaba las variables del tema claro (los estilos
+            // inline ganan a la hoja de estilos), dejando p. ej. --text-main en
+            // blanco sobre fondos claros: texto invisible en todo el sitio,
+            // incluido el desplegable de sugerencias del buscador. Sin preferencia
+            // dejamos decidir al tema (claro/oscuro) del CSS.
+            if (val) {
                 root.style.setProperty(name, val);
+                if (name === '--nav-accent') navAccentPref = val;
             }
         }
-        const navAccent = root.style.getPropertyValue('--nav-accent') || defaults['--nav-accent'];
-        root.style.setProperty('--nav-accent-soft', `${navAccent}3d`);
+        if (navAccentPref) {
+            root.style.setProperty('--nav-accent-soft', `${navAccentPref}3d`);
+        }
     })();
 
     // ── Cards per row (localStorage → body class) ──

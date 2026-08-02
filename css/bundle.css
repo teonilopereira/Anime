@@ -633,6 +633,13 @@ main { padding-bottom: 24px; }
     padding-right: 30px;
 }
 
+/* Ocultar la × nativa de <input type="search"> para no duplicar el botón limpiar */
+.catalog-search-input::-webkit-search-cancel-button,
+.catalog-search-input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
 .nav-user {
     position: static;
     transform: none;
