@@ -118,26 +118,39 @@ function buildCharactersHtml(item) {
     return '<div class="detail-section detail-section-chars"><h2 class="detail-h2">Personajes</h2><div class="char-grid">' +
         characters.map(function (c) {
             var roleLabel = characterRoleLabels[c.role] || '';
+            // Cada mitad enlaza a su ficha en personaje.html cuando hay id: el
+            // personaje (tipo=character) a la izquierda y el seiyū (tipo=staff) a
+            // la derecha. Sin id se cae a un <div> no clicable (obras de MangaDex,
+            // personajes sin actor cargado). El tag y el href se calculan aparte
+            // para no repetir el markup interno de cada card.
+            var charTag = c.id
+                ? '<a class="char-side" href="personaje.html?tipo=character&id=' + escapeHtml(String(c.id)) + '">'
+                : '<div class="char-side">';
+            var charTagEnd = c.id ? '</a>' : '</div>';
             // La ficha del actor de voz ocupa la mitad derecha de la card y
             // se omite entera cuando el personaje no tiene uno cargado
             // (pasa en manga y en personajes de fondo).
+            var vaTag = c.vaId
+                ? '<a class="char-side char-side-va" href="personaje.html?tipo=staff&id=' + escapeHtml(String(c.vaId)) + '">'
+                : '<div class="char-side char-side-va">';
+            var vaTagEnd = c.vaId ? '</a>' : '</div>';
             var vaHtml = c.vaName
-                ? '<div class="char-side char-side-va">' +
+                ? vaTag +
                     '<div class="char-text char-text-right">' +
                         '<span class="char-name">' + escapeHtml(c.vaName) + '</span>' +
                         '<span class="char-role">Seiyū</span>' +
                     '</div>' +
                     (c.vaImage ? '<img class="char-face" src="' + safeUrl(c.vaImage) + '" alt="" loading="lazy">' : '') +
-                  '</div>'
+                  vaTagEnd
                 : '';
             return '<div class="char-card">' +
-                '<div class="char-side">' +
+                charTag +
                     (c.image ? '<img class="char-face" src="' + safeUrl(c.image) + '" alt="" loading="lazy">' : '') +
                     '<div class="char-text">' +
                         '<span class="char-name">' + escapeHtml(c.name) + '</span>' +
                         (roleLabel ? '<span class="char-role">' + escapeHtml(roleLabel) + '</span>' : '') +
                     '</div>' +
-                '</div>' +
+                charTagEnd +
                 vaHtml +
                 '</div>';
         }).join('') +

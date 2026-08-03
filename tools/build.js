@@ -328,9 +328,9 @@ for (const file of htmlFiles) {
 
     // Canonical: sin esto, la misma pagina servida como /x.html, /x.html?utm=...
     // o con / final se indexa como varias URLs distintas y se reparte el ranking.
-    // detalle.html se excluye a proposito: su canonical lo pone render.js con el
-    // id de la obra, porque el contenido depende del query string.
-    if (file !== 'detalle.html') {
+    // detalle.html y personaje.html se excluyen a proposito: su canonical lo pone
+    // el JS de la pagina con el id, porque el contenido depende del query string.
+    if (file !== 'detalle.html' && file !== 'personaje.html') {
         const canonical = `${SITE_URL}/${file}`;
         if (/<link rel="canonical"/.test(src)) {
             src = src.replace(/<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${canonical}">`);
@@ -397,7 +397,7 @@ for (const file of htmlFiles) {
 const prioridades = { 'index.html': '1.0', 'anime.html': '0.9', 'manga.html': '0.9', 'novelas.html': '0.9' };
 
 const urlsSitemap = htmlFiles
-    .filter((f) => !NO_INDEXABLES.has(f) && f !== 'detalle.html')
+    .filter((f) => !NO_INDEXABLES.has(f) && f !== 'detalle.html' && f !== 'personaje.html')
     .sort()
     .map((f) => {
         const prio = prioridades[f] || '0.6';

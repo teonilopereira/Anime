@@ -293,6 +293,7 @@
                     name: e.node?.name?.full || '',
                     image: e.node?.image?.large || '',
                     role: e.role || '',
+                    vaId: va?.id || null,
                     vaName: va?.name?.full || '',
                     vaImage: va?.image?.large || ''
                 };
@@ -449,7 +450,7 @@
                     edges {
                         role
                         node { id name { full } image { large } }
-                        voiceActors(language: JAPANESE, sort: [RELEVANCE]) { name { full } image { large } }
+                        voiceActors(language: JAPANESE, sort: [RELEVANCE]) { id name { full } image { large } }
                     }
                 }
                 relations {
@@ -937,6 +938,190 @@
             console.warn('AniList novel search error:', err);
             if (cached) return cached;
             return [];
+        }
+    };
+
+    // ─── Personajes y actores de voz (staff) por ID ──────────────────────────
+    // Alimentan personaje.html. Son otra entidad de AniList (Character / Staff),
+    // no Media, así que van en su propia query y no salen de la ficha de la obra.
+
+    // La categoría de detalle.html se deriva del tipo/formato AniList del media,
+    // igual que en relatedCategory (render-sections del detalle): así el enlace a
+    // una aparición cae en el catálogo correcto (anime / manga / novelas).
+    function mediaCatFromTypeFormat(type, format) {
+        if (format === 'NOVEL') return 'novelas';
+        if (type === 'MANGA') return 'manga';
+        return 'anime';
+    }
+
+    function pickTitle(t) {
+        if (!t) return '';
+        return t.english || t.romaji || t.native || '';
+    }
+
+    // AniList da la fecha como { year, month, day } con nulls sueltos. Se arma
+    // solo con lo que haya; si no hay año no vale la pena mostrarla.
+    function formatFuzzyDate(d) {
+        if (!d || !d.year) return '';
+        var meses = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        var partes = [];
+        if (d.day) partes.push(String(d.day));
+        if (d.month && meses[d.month]) partes.push(meses[d.month]);
+        partes.push(String(d.year));
+        return partes.join(' ');
+    }
+
+    var CHARACTER_BY_ID_QUERY = `
+        query ($id: Int) {
+            Character(id: $id) {
+                id
+                name { full native alternative }
+                image { large }
+                description(asHtml: false)
+                gender
+                age
+                bloodType
+                dateOfBirth { year month day }
+                favourites
+                media(sort: [POPULARITY_DESC], perPage: 24) {
+                    edges {
+                        characterRole
+                        voiceActors(language: JAPANESE, sort: [RELEVANCE]) { id name { full } image { large } }
+                        node {
+                            id
+                            type
+                            format
+                            title { romaji english native }
+                            coverImage { large }
+                        }
+                    }
+                }
+            }
+        }`;
+
+    var STAFF_BY_ID_QUERY = `
+        query ($id: Int) {
+            Staff(id: $id) {
+                id
+                name { full native alternative }
+                image { large }
+                description(asHtml: false)
+                languageV2
+                primaryOccupations
+                gender
+                age
+                homeTown
+                dateOfBirth { year month day }
+                favourites
+                characters(sort: [FAVOURITES_DESC], perPage: 24) {
+                    edges {
+                        role
+                        node { id name { full } image { large } }
+                        media { id type format title { romaji english native } coverImage { large } }
+                    }
+                }
+            }
+        }`;
+
+    function normalizeCharacter(c) {
+        if (!c) return null;
+        return {
+            kind: 'character',
+            id: c.id,
+            name: c.name?.full || c.name?.native || '',
+            native: c.name?.native || '',
+            alternative: Array.isArray(c.name?.alternative) ? c.name.alternative.filter(Boolean) : [],
+            image: c.image?.large || '',
+            description: c.description || '',
+            gender: c.gender || '',
+            age: c.age || '',
+            bloodType: c.bloodType || '',
+            dateOfBirth: formatFuzzyDate(c.dateOfBirth),
+            favourites: c.favourites || 0,
+            // Apariciones: cada obra donde sale el personaje, con su seiyū en esa obra.
+            appearances: (c.media?.edges || []).map(function (e) {
+                var va = (e.voiceActors || [])[0] || null;
+                var node = e.node || {};
+                return {
+                    id: node.id || null,
+                    title: pickTitle(node.title),
+                    cover: node.coverImage?.large || '',
+                    cat: mediaCatFromTypeFormat(node.type, node.format),
+                    role: e.characterRole || '',
+                    vaId: va?.id || null,
+                    vaName: va?.name?.full || '',
+                    vaImage: va?.image?.large || ''
+                };
+            }).filter(function (a) { return a.title; })
+        };
+    }
+
+    function normalizeStaff(s) {
+        if (!s) return null;
+        return {
+            kind: 'staff',
+            id: s.id,
+            name: s.name?.full || s.name?.native || '',
+            native: s.name?.native || '',
+            alternative: Array.isArray(s.name?.alternative) ? s.name.alternative.filter(Boolean) : [],
+            image: s.image?.large || '',
+            description: s.description || '',
+            language: s.languageV2 || '',
+            occupations: Array.isArray(s.primaryOccupations) ? s.primaryOccupations.filter(Boolean) : [],
+            gender: s.gender || '',
+            age: s.age || '',
+            homeTown: s.homeTown || '',
+            dateOfBirth: formatFuzzyDate(s.dateOfBirth),
+            favourites: s.favourites || 0,
+            // Personajes interpretados: cada rol con la obra en la que aparece.
+            roles: (s.characters?.edges || []).map(function (e) {
+                var node = e.node || {};
+                var media = (e.media || [])[0] || null;
+                return {
+                    charId: node.id || null,
+                    charName: node.name?.full || '',
+                    charImage: node.image?.large || '',
+                    role: e.role || '',
+                    mediaId: media?.id || null,
+                    mediaTitle: pickTitle(media?.title),
+                    mediaCover: media?.coverImage?.large || '',
+                    mediaCat: media ? mediaCatFromTypeFormat(media.type, media.format) : 'anime'
+                };
+            }).filter(function (r) { return r.charName; })
+        };
+    }
+
+    window.getCharacterById = async function (id) {
+        var numId = Number(id);
+        if (!Number.isFinite(numId) || numId <= 0) return null;
+        var cacheKey = 'characterDetail_' + numId;
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+        try {
+            var json = await anilistFetch(CHARACTER_BY_ID_QUERY, { id: numId });
+            var mapped = normalizeCharacter(json?.data?.Character || null);
+            if (mapped) setApiCache(cacheKey, mapped);
+            return mapped;
+        } catch (err) {
+            console.warn('AniList getCharacterById error:', err);
+            return null;
+        }
+    };
+
+    window.getStaffById = async function (id) {
+        var numId = Number(id);
+        if (!Number.isFinite(numId) || numId <= 0) return null;
+        var cacheKey = 'staffDetail_' + numId;
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+        try {
+            var json = await anilistFetch(STAFF_BY_ID_QUERY, { id: numId });
+            var mapped = normalizeStaff(json?.data?.Staff || null);
+            if (mapped) setApiCache(cacheKey, mapped);
+            return mapped;
+        } catch (err) {
+            console.warn('AniList getStaffById error:', err);
+            return null;
         }
     };
 
