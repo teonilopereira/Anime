@@ -23,15 +23,15 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=ab14e44d">
+        <link rel="stylesheet" href="css/bundle.min.css?v=47ff46ea">
 
-    <link rel="stylesheet" href="css/advanced-filter.css?v=ab14e44d">
+    <link rel="stylesheet" href="css/advanced-filter.css?v=47ff46ea">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=ab14e44d">
+    <link rel="stylesheet" href="css/fonts.css?v=47ff46ea">
 
-    <script src="js/vendor/lucide.min.js?v=ab14e44d" defer></script>
-    <script src="js/core/theme.js?v=ab14e44d"></script>
+    <script src="js/vendor/lucide.min.js?v=47ff46ea" defer></script>
+    <script src="js/core/theme.js?v=47ff46ea"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="novelas">
@@ -93,6 +93,56 @@
                     <div class="filter-section-divider">
                         <span class="fsd-line"></span>
                         <span class="fsd-dot"></span>
+                        <span class="fsd-text" data-i18n="catalog.refinar">REFINAR</span>
+                        <span class="fsd-dot"></span>
+                        <span class="fsd-line"></span>
+                    </div>
+
+                    <div class="filter-advanced-grid">
+                        <label class="filter-adv-field">
+                            <span class="filter-adv-label" data-i18n="catalog.orden">Orden</span>
+                            <select id="filterSort" class="filter-adv-select">
+                                <option value="" data-i18n="catalog.orden.popularidad">Popularidad</option>
+                                <option value="TRENDING_DESC" data-i18n="catalog.orden.tendencia">Tendencia</option>
+                                <option value="SCORE_DESC" data-i18n="catalog.orden.puntuados">Mejor puntuados</option>
+                                <option value="START_DATE_DESC" data-i18n="catalog.orden.recientes">Más recientes</option>
+                                <option value="TITLE_ROMAJI" data-i18n="catalog.orden.az">A – Z</option>
+                            </select>
+                        </label>
+                        <label class="filter-adv-field">
+                            <span class="filter-adv-label" data-i18n="catalog.anio">Año</span>
+                            <select id="filterYear" class="filter-adv-select">
+                                <option value="" data-i18n="catalog.todos">Todos</option>
+                            </select>
+                        </label>
+                        <label class="filter-adv-field filter-anime-only">
+                            <span class="filter-adv-label" data-i18n="catalog.temporada">Temporada</span>
+                            <select id="filterSeason" class="filter-adv-select">
+                                <option value="" data-i18n="catalog.todas">Todas</option>
+                                <option value="WINTER" data-i18n="catalog.temporada.invierno">Invierno</option>
+                                <option value="SPRING" data-i18n="catalog.temporada.primavera">Primavera</option>
+                                <option value="SUMMER" data-i18n="catalog.temporada.verano">Verano</option>
+                                <option value="FALL" data-i18n="catalog.temporada.otono">Otoño</option>
+                            </select>
+                        </label>
+                        <label class="filter-adv-field filter-anime-only">
+                            <span class="filter-adv-label" data-i18n="catalog.formato">Formato</span>
+                            <select id="filterFormat" class="filter-adv-select">
+                                <option value="" data-i18n="catalog.todos">Todos</option>
+                                <option value="TV">Serie TV</option>
+                                <option value="MOVIE" data-i18n="catalog.formato.pelicula">Película</option>
+                                <option value="OVA">OVA</option>
+                                <option value="ONA">ONA</option>
+                                <option value="SPECIAL" data-i18n="catalog.formato.especial">Especial</option>
+                                <option value="TV_SHORT" data-i18n="catalog.formato.tvcorta">TV corta</option>
+                                <option value="MUSIC" data-i18n="catalog.formato.musical">Musical</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="filter-section-divider">
+                        <span class="fsd-line"></span>
+                        <span class="fsd-dot"></span>
                         <span class="fsd-text" data-i18n="catalog.genero">GÉNERO</span>
                         <span class="fsd-dot"></span>
                         <span class="fsd-line"></span>
@@ -120,13 +170,13 @@
     </div>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=ab14e44d"></script>
-    <script src="js/core/i18n.js?v=ab14e44d"></script>
-    <script src="js/core/namespace.js?v=ab14e44d"></script>
-    <script type="module" src="api/supabase-config.js?v=ab14e44d" async></script>
-    <script src="js/core-bundle.min.js?v=ab14e44d" defer></script>
-    <script src="js/core/mangadex-api.js?v=ab14e44d" defer></script>
-    <script src="js/pages/script.js?v=ab14e44d" defer></script>
+    <script src="js/core/config.js?v=47ff46ea"></script>
+    <script src="js/core/i18n.js?v=47ff46ea"></script>
+    <script src="js/core/namespace.js?v=47ff46ea"></script>
+    <script type="module" src="api/supabase-config.js?v=47ff46ea" async></script>
+    <script src="js/core-bundle.min.js?v=47ff46ea" defer></script>
+    <script src="js/core/mangadex-api.js?v=47ff46ea" defer></script>
+    <script src="js/pages/script.js?v=47ff46ea" defer></script>
 </body>
 </html>
 

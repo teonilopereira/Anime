@@ -1,0 +1,79 @@
+/* estudio.css — Ficha de estudio de animación.
+   Reutiliza las clases de personaje.css (persona-hero, persona-grid,
+   persona-card...) y solo agrega lo propio del estudio. */
+
+/* El hero no tiene retrato: en su lugar, un "sello" con las iniciales. */
+.estudio-hero {
+    align-items: center;
+}
+.estudio-hero-mark {
+    flex: 0 0 96px;
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent-purple, #bc13fe), var(--accent-cyan, #00f2ff));
+    border: 1px solid rgba(188,19,254,0.35);
+    box-shadow: 0 6px 22px rgba(188,19,254,0.25);
+    user-select: none;
+}
+
+/* Cada obra es un enlace-tarjeta autónomo (cover + cuerpo). */
+.estudio-card {
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+}
+a.estudio-card:hover .persona-card-title {
+    color: var(--accent-cyan);
+}
+.estudio-card .persona-card-body {
+    flex: 1;
+    padding: 8px 10px 8px 4px;
+}
+
+.estudio-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+.estudio-score {
+    font-family: var(--font-display);
+    font-size: 0.66rem;
+    color: #f59e0b;
+    letter-spacing: 0.04em;
+}
+.estudio-main-badge {
+    font-family: var(--font-display);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    color: var(--accent-cyan);
+    border: 1px solid rgba(0,242,255,0.35);
+    background: rgba(0,242,255,0.08);
+}
+
+.estudio-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+@media (max-width: 640px) {
+    .estudio-hero-mark {
+        flex-basis: 72px;
+        width: 72px;
+        height: 72px;
+        font-size: 1.5rem;
+    }
+    .estudio-grid { grid-template-columns: 1fr; }
+}

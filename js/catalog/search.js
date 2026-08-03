@@ -514,11 +514,21 @@ function inicializarBusquedaCatalogo() {
 
         // Update global filter state
         const nsfwCheck = document.getElementById('nsfwToggle');
+        const advSort = document.getElementById('filterSort');
+        const advYear = document.getElementById('filterYear');
+        const advSeason = document.getElementById('filterSeason');
+        const advFormat = document.getElementById('filterFormat');
+        const isAnimeCat = cat === 'anime';
         window.__catalogFilters = {
             search: input.value.trim() || '',
             genres: Array.isArray(window.__selectedGenres) ? [...window.__selectedGenres] : [],
             isAdult: nsfwCheck ? nsfwCheck.checked : false,
-            browse: getBrowsePref(cat)
+            browse: getBrowsePref(cat),
+            sort: advSort && advSort.value ? advSort.value : '',
+            year: advYear && advYear.value ? Number(advYear.value) : '',
+            // Temporada y formato son solo de anime.
+            season: (isAnimeCat && advSeason && advSeason.value) ? advSeason.value : '',
+            format: (isAnimeCat && advFormat && advFormat.value) ? advFormat.value : ''
         };
 
         // Reset pagination and reload
@@ -585,6 +595,29 @@ function inicializarBusquedaCatalogo() {
             reloadCatalog();
         });
     }
+
+    // ── Filtros avanzados: Orden / Año / Temporada / Formato ──
+    (function initAdvancedFilters() {
+        var yearSel = document.getElementById('filterYear');
+        if (yearSel && yearSel.options.length <= 1) {
+            var current = new Date().getFullYear() + 1; // incluye la temporada que viene
+            var frag = document.createDocumentFragment();
+            for (var y = current; y >= 1960; y--) {
+                var opt = document.createElement('option');
+                opt.value = String(y);
+                opt.textContent = String(y);
+                frag.appendChild(opt);
+            }
+            yearSel.appendChild(frag);
+        }
+        ['filterSort', 'filterYear', 'filterSeason', 'filterFormat'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('change', function () {
+                if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+            });
+        });
+    })();
 
     // ── Input: local filter + API suggestions ──
     input.addEventListener('input', () => {
@@ -1044,6 +1077,11 @@ function inicializarGeneroWidgets() {
         clearBtn.addEventListener('click', () => {
             window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = [];
             UserStore.setItem(selectedKey, JSON.stringify([]));
+            // Reset de los filtros avanzados (Orden / Año / Temporada / Formato).
+            ['filterSort', 'filterYear', 'filterSeason', 'filterFormat'].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.value = '';
+            });
             if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
             if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
         });

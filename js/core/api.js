@@ -280,9 +280,18 @@
         var sort = /^[A-Z_]+$/.test(String(opts.sort || '')) ? opts.sort : 'POPULARITY_DESC';
         var mediaArgs = ['type: ' + type, 'sort: ' + sort];
 
-        if (isAnime && /^(WINTER|SPRING|SUMMER|FALL)$/.test(String(opts.season || '')) && Number(opts.seasonYear) > 1950) {
-            mediaArgs.push('season: ' + opts.season);
-            mediaArgs.push('seasonYear: ' + Number(opts.seasonYear));
+        // Temporada + año. La temporada es solo de anime; el año se aplica en
+        // ambos: en anime como seasonYear y en manga/novelas como rango de
+        // startDate (FuzzyDateInt YYYYMMDD, de YYYY0000 a YYYY9999).
+        var seasonValid = isAnime && /^(WINTER|SPRING|SUMMER|FALL)$/.test(String(opts.season || ''));
+        var yearNum = Number(opts.seasonYear || opts.year);
+        var yearValid = Number.isFinite(yearNum) && yearNum > 1940 && yearNum < 2100;
+        if (isAnime) {
+            if (seasonValid) mediaArgs.push('season: ' + opts.season);
+            if (yearValid) mediaArgs.push('seasonYear: ' + yearNum);
+        } else if (yearValid) {
+            mediaArgs.push('startDate_greater: ' + (yearNum * 10000));
+            mediaArgs.push('startDate_lesser: ' + (yearNum * 10000 + 9999));
         }
 
         if (opts.search) {
@@ -550,7 +559,7 @@
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
         var browse = filters.browse || '';
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse || filters.year || filters.season || filters.format || filters.sort);
         var cacheKey = 'topAnimes_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
         return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
@@ -559,14 +568,21 @@
             // que dejaban fuera títulos válidos (p. ej. buscar "Dxd" con
             // "Temporada actual" activo devolvía cero resultados).
             var animeSortOpts = filters.search ? { sort: 'SEARCH_MATCH' } : browseToQueryOpts(browse, true);
-            var query = buildDynamicQuery(Object.assign({
+            var animeOpts = Object.assign({
                 type: 'ANIME',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
-                formatIn: ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC']
-            }, animeSortOpts));
+                formatIn: filters.format ? [filters.format] : ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC']
+            }, animeSortOpts);
+            // Los filtros avanzados (orden/año/temporada) pisan al modo de
+            // descubrimiento, salvo cuando hay búsqueda por texto (ahí manda
+            // SEARCH_MATCH para no perder relevancia).
+            if (filters.sort && !filters.search) animeOpts.sort = filters.sort;
+            if (filters.year) animeOpts.seasonYear = filters.year;
+            if (filters.season) animeOpts.season = filters.season;
+            var query = buildDynamicQuery(animeOpts);
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
@@ -586,7 +602,7 @@
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
         var browse = filters.browse || '';
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse || filters.year || filters.sort);
         var cacheKey = 'topMangas_mix_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
         return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
@@ -601,6 +617,8 @@
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false
             }, mangaSortOpts);
+            if (filters.sort && !filters.search) baseOpts.sort = filters.sort;
+            if (filters.year) baseOpts.year = filters.year;
             var baseVars = {};
             if (filters.search) baseVars.search = filters.search;
             if (split.genres.length) baseVars.genre_in = split.genres;
@@ -641,9 +659,11 @@
             
             var mapped = media.map(function (m) { return anilistItemToLocal(m, 'manga'); });
 
-            // Supplement with MangaDex
+            // Supplement with MangaDex. Con filtro de año activo lo omitimos:
+            // MangaDex no filtra por año en esta ruta y colaría títulos de otros
+            // años, rompiendo el filtro.
             var mdTagUuids = window.mdTagUuidsFromKeys(filters.genres);
-            if (mdTagUuids.length || filters.search) {
+            if ((mdTagUuids.length || filters.search) && !filters.year) {
                 var mdPage = await window.fetchMangaDexPage(pg, PER_PAGE, mdTagUuids, filters.search);
                 if (mdPage.length) mapped = window.mergeAnilistAndMd(mapped, mdPage);
             }
@@ -656,21 +676,24 @@
         filters = filters || {};
         var split = splitGenresAndTags(filters.genres);
         var browse = filters.browse || '';
-        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse);
+        var hasFilters = !!(filters.search || (filters.genres && filters.genres.length) || filters.isAdult || browse || filters.year || filters.sort);
         var cacheKey = 'novonly_p' + (page || 1) + (hasFilters ? '_f' + stableStringify(filters) : '');
 
         return fetchCached(cacheKey, hasFilters ? 300000 : 3600000, async function () {
             // Ver getTopAnimes: al buscar por texto priorizamos relevancia y no
             // restringimos por modo de descubrimiento.
             var novelaSortOpts = filters.search ? { sort: 'SEARCH_MATCH' } : browseToQueryOpts(browse, false);
-            var query = buildDynamicQuery(Object.assign({
+            var novelaOpts = Object.assign({
                 type: 'MANGA',
                 search: filters.search || null,
                 genreIn: split.genres.length ? split.genres : null,
                 tagIn: split.tags.length ? split.tags : null,
                 isAdult: filters.isAdult || false,
                 formatIn: ['NOVEL']
-            }, novelaSortOpts));
+            }, novelaSortOpts);
+            if (filters.sort && !filters.search) novelaOpts.sort = filters.sort;
+            if (filters.year) novelaOpts.year = filters.year;
+            var query = buildDynamicQuery(novelaOpts);
             var vars = { page: page || 1, perPage: PER_PAGE };
             if (filters.search) vars.search = filters.search;
             if (split.genres.length) vars.genre_in = split.genres;
@@ -680,9 +703,9 @@
             var media = json?.data?.Page?.media || [];
             var mapped = media.map(function (m) { return anilistItemToLocal(m, 'novelas'); });
 
-            // Supplement with MangaDex
+            // Supplement with MangaDex (omitido con filtro de año: ver getTopMangas).
             var mdTagUuids = window.mdTagUuidsFromKeys(filters.genres);
-            if (mdTagUuids.length || filters.search) {
+            if ((mdTagUuids.length || filters.search) && !filters.year) {
                 var pg = page || 1;
                 var mdPage = await window.fetchMangaDexPage(pg, PER_PAGE, mdTagUuids, filters.search);
                 if (mdPage.length) mapped = window.mergeAnilistAndMd(mapped, mdPage);
@@ -1054,6 +1077,117 @@
             return mapped;
         } catch (err) {
             console.warn('AniList getStaffById error:', err);
+            return null;
+        }
+    };
+
+    // ─── Estudios de animación por ID ─────────────────────────────────────────
+    // Alimentan estudio.html. Studio es otra entidad de AniList (no Media): trae
+    // el nombre, si es un estudio de animación y todas las obras que produjo,
+    // marcando en cuáles fue el estudio principal.
+    var STUDIO_BY_ID_QUERY = `
+        query ($id: Int) {
+            Studio(id: $id) {
+                id
+                name
+                isAnimationStudio
+                favourites
+                media(sort: [POPULARITY_DESC], perPage: 48) {
+                    edges {
+                        isMainStudio
+                        node {
+                            id
+                            type
+                            format
+                            seasonYear
+                            averageScore
+                            popularity
+                            title { romaji english native }
+                            coverImage { large }
+                        }
+                    }
+                }
+            }
+        }`;
+
+    function normalizeStudio(s) {
+        if (!s) return null;
+        var works = (s.media?.edges || []).map(function (e) {
+            var node = e.node || {};
+            return {
+                id: node.id || null,
+                title: pickTitle(node.title),
+                cover: node.coverImage?.large || '',
+                cat: mediaCatFromTypeFormat(node.type, node.format),
+                format: node.format || '',
+                year: node.seasonYear || null,
+                score: node.averageScore || 0,
+                popularity: node.popularity || 0,
+                isMain: !!e.isMainStudio
+            };
+        }).filter(function (w) { return w.title && w.id; });
+
+        // De-duplicar por id (una obra puede venir repetida entre temporadas).
+        var seen = {};
+        works = works.filter(function (w) {
+            if (seen[w.id]) return false;
+            seen[w.id] = true;
+            return true;
+        });
+
+        return {
+            kind: 'studio',
+            id: s.id,
+            name: s.name || '',
+            isAnimationStudio: !!s.isAnimationStudio,
+            favourites: s.favourites || 0,
+            works: works
+        };
+    }
+
+    window.getStudioById = async function (id) {
+        var numId = Number(id);
+        if (!Number.isFinite(numId) || numId <= 0) return null;
+        var cacheKey = 'studioDetail_' + numId;
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+        try {
+            var json = await anilistFetch(STUDIO_BY_ID_QUERY, { id: numId });
+            var mapped = normalizeStudio(json?.data?.Studio || null);
+            if (mapped) setApiCache(cacheKey, mapped);
+            return mapped;
+        } catch (err) {
+            console.warn('AniList getStudioById error:', err);
+            return null;
+        }
+    };
+
+    // Busca un estudio por nombre y devuelve su id (para enlazar desde el
+    // detalle, que solo guarda los nombres de estudio, no sus ids). Cachea el
+    // resultado por nombre normalizado.
+    var STUDIO_SEARCH_QUERY = `
+        query ($search: String) {
+            Page(page: 1, perPage: 1) {
+                studios(search: $search) { id name }
+            }
+        }`;
+
+    window.getStudioIdByName = async function (name) {
+        var q = String(name || '').trim();
+        if (!q) return null;
+        var cacheKey = 'studioId_' + q.toLowerCase();
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached.id || null;
+        try {
+            var json = await anilistFetch(STUDIO_SEARCH_QUERY, { search: q });
+            var st = (json?.data?.Page?.studios || [])[0] || null;
+            if (st && st.id) {
+                setApiCache(cacheKey, { id: st.id }, 7 * 24 * 60 * 60 * 1000);
+                return st.id;
+            }
+            return null;
+        } catch (err) {
+            console.warn('AniList getStudioIdByName error:', err);
             return null;
         }
     };

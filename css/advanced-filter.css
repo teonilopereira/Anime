@@ -432,3 +432,59 @@
         font-size: 0.85rem;
     }
 }
+
+/* ── Filtros avanzados: Orden / Año / Temporada / Formato ── */
+.filter-advanced-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin: 4px 0 6px;
+}
+.filter-adv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+.filter-adv-label {
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-cyan);
+    opacity: 0.85;
+}
+.filter-adv-select {
+    width: 100%;
+    height: var(--control-height, 42px);
+    padding: 0 32px 0 12px;
+    border-radius: var(--radius-sm, 10px);
+    border: 1px solid rgba(188,19,254,0.25);
+    background-color: rgba(var(--surface-panel-rgb, 26,11,46), 0.5);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300f2ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.filter-adv-select:hover {
+    border-color: rgba(0,242,255,0.45);
+}
+.filter-adv-select:focus-visible {
+    outline: none;
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 2px rgba(0,242,255,0.2);
+}
+.filter-adv-select option {
+    background: #140a24;
+    color: var(--text-main);
+}
+/* Temporada y Formato solo aplican a anime. */
+body:not([data-page="anime"]) .filter-anime-only {
+    display: none;
+}
