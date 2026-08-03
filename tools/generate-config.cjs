@@ -51,6 +51,10 @@ const env = parseEnv(envContent);
 
 const SUPABASE_URL  = env["VITE_SUPABASE_URL"]      || env["SUPABASE_URL"]      || "";
 const SUPABASE_ANON = env["VITE_SUPABASE_ANON_KEY"] || env["SUPABASE_ANON_KEY"] || "";
+// Clave PÚBLICA VAPID para Web Push (la privada vive solo en la edge function
+// como secreto). Si falta, las notificaciones push quedan desactivadas y la app
+// funciona igual: el toggle de "Notificaciones" avisa que no están configuradas.
+const VAPID_PUBLIC  = env["VITE_VAPID_PUBLIC_KEY"]  || env["VAPID_PUBLIC_KEY"]  || "";
 
 if (!SUPABASE_URL || !SUPABASE_ANON) {
     console.error("❌  Faltan credenciales en el .env:");
@@ -76,7 +80,8 @@ const output = `// ⚠️  ARCHIVO GENERADO AUTOMÁTICAMENTE — NO EDITAR MANUA
         defaultPageSize: 40,
         maxCatalogItems: 40,
         debug:           false,
-        cachePrefix:     "animeDestiny"
+        cachePrefix:     "animeDestiny",
+        vapidPublicKey:  ${JSON.stringify(VAPID_PUBLIC)}
     };
 
     window.AppConfig = Object.freeze(config);

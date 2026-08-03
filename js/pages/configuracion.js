@@ -219,12 +219,48 @@ if ($('cfgTema')) {
 
 for (const id in TOGGLES) {
     if (!TOGGLES.hasOwnProperty(id)) continue;
+    // prefNotif se maneja aparte: además de guardar la preferencia, activa o
+    // desactiva la suscripción push real (ver más abajo).
+    if (id === 'prefNotif') continue;
     const cfg = TOGGLES[id];
     $(id).addEventListener('change', function () {
         escribirToggle(cfg, this.checked);
         avisarGuardado();
     });
 }
+
+// ── Notificaciones push de nuevos episodios ──
+// El toggle refleja el estado real de la suscripción y la enciende/apaga. Si no
+// se puede activar (permiso denegado, sin sesión, sin clave VAPID configurada),
+// PushNotifs muestra el motivo y acá revertimos el switch.
+(function wirePushToggle() {
+    const el = $('prefNotif');
+    if (!el) return;
+
+    if (window.PushNotifs) {
+        window.PushNotifs.getState().then(function (st) {
+            if (st === 'on') el.checked = true;
+            else if (st === 'off' || st === 'denied') el.checked = false;
+        }).catch(function () { /* sin cambios: queda lo guardado */ });
+    }
+
+    el.addEventListener('change', async function () {
+        const on = this.checked;
+        if (!window.PushNotifs) { escribirToggle(TOGGLES.prefNotif, on); avisarGuardado(); return; }
+        if (on) {
+            const res = await window.PushNotifs.enable();
+            if (res !== 'on') {
+                this.checked = false;
+                escribirToggle(TOGGLES.prefNotif, false);
+                return;
+            }
+            escribirToggle(TOGGLES.prefNotif, true);
+        } else {
+            await window.PushNotifs.disable();
+            escribirToggle(TOGGLES.prefNotif, false);
+        }
+    });
+})();
 
 // La mascota se enciende/apaga en vivo en esta misma página (además de guardar
 // la preferencia arriba), para que el cambio se vea al instante.

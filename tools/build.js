@@ -100,8 +100,20 @@ const JS_SOURCES = [
 ];
 
 // Nota: los CSS y JS especificos de cada pagina (usuario, detalle, login, etc.)
-// NO van al bundle — se cargan sueltos y el estampado de version los cubre
-// automaticamente, sin necesidad de listarlos aca.
+// NO van al bundle compartido — se cargan sueltos y el estampado de version los
+// cubre automaticamente, sin necesidad de listarlos aca.
+
+// Excepcion: paginas con VARIOS CSS propios. Cada archivo suelto es un request
+// que bloquea el render; unirlos en un bundle minificado por pagina baja los
+// requests y el peso (mejora LCP). detalle.html cargaba 4 CSS sin minificar.
+const PAGE_CSS_BUNDLES = {
+    'css/detalle.min.css': [
+        'css/detalle-premium.css',
+        'css/detalle-local.css',
+        'css/detalle-responsive.css',
+        'css/detalle-extras.css',
+    ],
+};
 
 // Dependencias de terceros que se auto-hospedan en vez de cargarse desde un CDN.
 // Se copian desde node_modules para que la version quede fijada por package.json
@@ -251,6 +263,17 @@ writeUtf8('css/bundle.css', cssBundle);
 writeUtf8('css/bundle.min.css', cssMin);
 writeUtf8('js/core-bundle.js', jsBundle);
 writeUtf8('js/core-bundle.min.js', jsMin);
+
+// ── Bundles CSS por pagina ───────────────────────────────────────────────
+const pageCssBundles = [];
+for (const [out, fuentes] of Object.entries(PAGE_CSS_BUNDLES)) {
+    const concat = fuentes
+        .map((rel) => `/* ===== ${path.basename(rel)} ===== */\n${readSource(rel)}`)
+        .join('\n');
+    const min = (await esbuild.transform(concat, { loader: 'css', minify: true })).code;
+    writeUtf8(out, min);
+    pageCssBundles.push([out, min]);
+}
 
 // ── Versión ──────────────────────────────────────────────────────────────
 
