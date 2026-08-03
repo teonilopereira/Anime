@@ -34,8 +34,15 @@ SHEETS = os.path.join(ROOT, "tools", "mascot-sheets")
 # Umbral de "fondo blanco": un pixel es fondo si sus 3 canales superan esto.
 BG = 236
 
-# Definicion de cada mascota: hoja fuente + que indices de fotograma (segun la
-# extraccion por bandas+columnas) forman cada animacion.
+# Definicion de cada mascota: hoja fuente + que fotogramas forman cada animacion.
+#
+# Cada fotograma se indica de una de dos formas:
+#   • int  -> índice en la extracción automática por bandas+columnas (sirve para
+#             poses compactas: idle, walk).
+#   • [x0,y0,x1,y1] -> región manual. El recorte se ajusta al contenido REAL
+#             dentro de esa región (sin cortar) y sin capturar sprites vecinos.
+#             Se usa en los ataques, cuya espada/estela se sale de la banda que
+#             detecta el modo automático y quedaba cortada.
 MASCOTS = [
     {
         "id": "ichigo", "name": "Ichigo Kurosaki", "anime": "Bleach",
@@ -43,7 +50,7 @@ MASCOTS = [
         "anims": {
             "idle":   [0, 2, 4],
             "walk":   [7, 8, 9],
-            "attack": [20, 21, 22],
+            "attack": [[98, 356, 172, 438], [329, 380, 428, 442], [183, 382, 286, 442]],
         },
         "fps": {"idle": 5, "walk": 10, "attack": 12},
     },
@@ -53,7 +60,7 @@ MASCOTS = [
         "anims": {
             "idle":   [0],
             "walk":   [6, 7, 8, 9, 10, 11, 12, 13],
-            "attack": [27, 28, 29],
+            "attack": [[78, 338, 152, 422], [160, 322, 256, 423], [258, 338, 338, 422]],
         },
         "fps": {"idle": 4, "walk": 11, "attack": 12},
     },
@@ -111,7 +118,7 @@ def clusters_in_band(fg, y0, y1, min_w=12, gap=6):
 
 
 def extract_frames(path):
-    """Devuelve (imagen, lista de cajas [x0,y0,x1,y1]) en orden fila->columna."""
+    """Devuelve (imagen, mask fg, cajas [x0,y0,x1,y1]) en orden fila->columna."""
     im = Image.open(path).convert("RGB")
     fg = foreground(np.asarray(im))
     boxes = []
@@ -122,7 +129,25 @@ def extract_frames(path):
             if len(ys) == 0:
                 continue
             boxes.append((x0, y0 + ys[0], x1, y0 + ys[-1] + 1))
-    return im, boxes
+    return im, fg, boxes
+
+
+def tight_box(fg, region):
+    """Ajusta una región manual [x0,y0,x1,y1] al contenido real que encierra."""
+    x0, y0, x1, y1 = region
+    sub = fg[y0:y1, x0:x1]
+    ys = np.where(sub.any(axis=1))[0]
+    xs = np.where(sub.any(axis=0))[0]
+    if not len(ys):
+        return tuple(region)
+    return (x0 + int(xs[0]), y0 + int(ys[0]), x0 + int(xs[-1]) + 1, y0 + int(ys[-1]) + 1)
+
+
+def resolve_box(item, fg, boxes):
+    """Un fotograma es un índice (auto) o una región [x0,y0,x1,y1] (manual)."""
+    if isinstance(item, int):
+        return boxes[item]
+    return tight_box(fg, item)
 
 
 def clean_alpha(arr, light_luma=196, speck=14, hole=8):
@@ -186,17 +211,24 @@ def normalize(sprite, side):
 
 
 def build(mascot):
-    im, boxes = extract_frames(os.path.join(SHEETS, mascot["sheet"]))
-    used = sorted({i for seq in mascot["anims"].values() for i in seq})
-    for i in used:
-        if i >= len(boxes):
-            raise SystemExit(
-                f"{mascot['id']}: indice {i} fuera de rango ({len(boxes)} fotogramas)")
-    # Lienzo cuadrado comun: el mayor lado entre todos los fotogramas usados.
+    im, fg, boxes = extract_frames(os.path.join(SHEETS, mascot["sheet"]))
+    # Resolver cada fotograma (índice auto o región manual) a una caja concreta.
+    resolved = {}
+    for anim, items in mascot["anims"].items():
+        seq = []
+        for it in items:
+            if isinstance(it, int) and it >= len(boxes):
+                raise SystemExit(
+                    f"{mascot['id']}: índice {it} fuera de rango ({len(boxes)} fotogramas)")
+            seq.append(resolve_box(it, fg, boxes))
+        resolved[anim] = seq
+
+    # Lienzo cuadrado común: el mayor lado entre TODOS los fotogramas usados, así
+    # nada queda recortado y todas las animaciones comparten escala.
     side = 0
-    for i in used:
-        x0, y0, x1, y1 = boxes[i]
-        side = max(side, x1 - x0, y1 - y0)
+    for seq in resolved.values():
+        for (x0, y0, x1, y1) in seq:
+            side = max(side, x1 - x0, y1 - y0)
     side += 4  # holgura para que no toque los bordes
 
     rel_dir = os.path.join("images", "mascots", mascot["id"])
@@ -208,10 +240,10 @@ def build(mascot):
             os.remove(os.path.join(out_dir, f))
 
     frames = {}
-    for anim, idxs in mascot["anims"].items():
+    for anim, seq in resolved.items():
         rels = []
-        for n, i in enumerate(idxs):
-            spr = normalize(keyed_crop(im, boxes[i]), side)
+        for n, box in enumerate(seq):
+            spr = normalize(keyed_crop(im, box), side)
             name = f"{anim}-{n}.png"
             spr.save(os.path.join(out_dir, name))
             rels.append(rel_dir.replace(os.sep, "/") + "/" + name)
