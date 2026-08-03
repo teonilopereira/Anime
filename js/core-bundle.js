@@ -2154,6 +2154,129 @@ window.getCurrentUser      = getCurrentUser;
 
 
 /* ========================================== */
+/* === FILE: js/ui/mascots.js === */
+/* ========================================== */
+
+/**
+ * mascots.js -- Registro de mascotas seleccionables (ademas de Rimuru).
+ *
+ * GENERADO por tools/slice-mascots.py a partir de las hojas de
+ * tools/mascot-sheets/. No editar a mano: se sobrescribe.
+ * mascot.js lee window.MascotRegistry y lo suma a la lista del selector.
+ *
+ * Cada entrada trae animaciones idle/walk/attack en modo 'frames' (una
+ * imagen por fotograma), ya normalizadas a un lienzo cuadrado con los
+ * pies anclados abajo-centro.
+ */
+window.MascotRegistry = [
+    {
+        "id": "ichigo",
+        "name": "Ichigo Kurosaki",
+        "anime": "Bleach",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/ichigo/idle-0.png",
+                "images/mascots/ichigo/idle-1.png",
+                "images/mascots/ichigo/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/ichigo/walk-0.png",
+                "images/mascots/ichigo/walk-1.png",
+                "images/mascots/ichigo/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/ichigo/attack-0.png",
+                "images/mascots/ichigo/attack-1.png",
+                "images/mascots/ichigo/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        }
+    },
+    {
+        "id": "kenpachi",
+        "name": "Kenpachi Zaraki",
+        "anime": "Bleach",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/kenpachi/idle-0.png"
+            ],
+            "walk": [
+                "images/mascots/kenpachi/walk-0.png",
+                "images/mascots/kenpachi/walk-1.png",
+                "images/mascots/kenpachi/walk-2.png",
+                "images/mascots/kenpachi/walk-3.png",
+                "images/mascots/kenpachi/walk-4.png",
+                "images/mascots/kenpachi/walk-5.png",
+                "images/mascots/kenpachi/walk-6.png",
+                "images/mascots/kenpachi/walk-7.png"
+            ],
+            "attack": [
+                "images/mascots/kenpachi/attack-0.png",
+                "images/mascots/kenpachi/attack-1.png",
+                "images/mascots/kenpachi/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0
+                ],
+                "fps": 4
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7
+                ],
+                "fps": 11
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        }
+    }
+];
+
+
+/* ========================================== */
 /* === FILE: js/ui/mascot.js === */
 /* ========================================== */
 
@@ -2311,10 +2434,15 @@ window.getCurrentUser      = getCurrentUser;
             if (MASCOT_MODE === "frames") {
                 sprite.style.backgroundSize = "100% 100%";
                 sprite.style.backgroundPosition = "center bottom";
+                // Sprites de anime (con antialiasing): se ven mejor suavizados al
+                // escalar que con nearest-neighbor. Rimuru (pixel-art) sí quiere
+                // pixelado, así que solo el modo 'frames' pisa el image-rendering.
+                sprite.style.imageRendering = "auto";
             } else {
                 sprite.style.backgroundImage = "url(" + SHEET_SRC + ")";
                 sprite.style.backgroundSize = "";      // vuelve al valor del CSS (800% 500%)
                 sprite.style.backgroundPosition = "0 0";
+                sprite.style.imageRendering = "";      // vuelve a 'pixelated' del CSS
             }
             animName = null; animFrame = -1; _lastFrameKey = "";
             setFrame(0, "idle");
@@ -2332,6 +2460,9 @@ window.getCurrentUser      = getCurrentUser;
 
     function activeAnim() {
         if (sleeping) return "sleep";
+        // El golpe manda sobre expresión y movimiento mientras dura (solo las
+        // mascotas que traen animación 'attack', p. ej. las de Bleach).
+        if (attacking && ANIMS.attack) return "attack";
         var e = EXPR_ANIM[currentExpr];
         if (e) return e;
         return motionAnim;
@@ -2427,6 +2558,17 @@ window.getCurrentUser      = getCurrentUser;
     var lastReact = 0;       // cooldown de reacciones al contenido
     var lastFlee = 0;        // cooldown del "susto" al acercar el cursor
     var mouseWired = false;  // para no duplicar el listener global de puntero
+
+    // ── Ataque a elementos de la página ────────────────────────────────────
+    // De vez en cuando, las mascotas con animación 'attack' (las de Bleach) se
+    // orientan hacia un elemento real cercano (card, título, navbar…), pegan el
+    // golpe y le aplican un "impacto": el elemento tiembla y aparece una marca
+    // de corte encima. Rimuru no tiene 'attack', así que nunca ataca.
+    var attacking = false;   // reproduciendo el golpe ahora mismo
+    var attackUntil = 0;     // fin del golpe actual (timestamp)
+    var attackTarget = null; // { el, rect, cx, cy } del blanco en curso
+    var attackHit = false;   // ya se aplicó el impacto de este golpe (una vez)
+    var lastAttack = 0;      // cooldown entre golpes
 
     // Fija la expresión: el animador de fotogramas reflejará el cambio en el
     // próximo frame (ya no se redibuja nada a mano).
@@ -2635,6 +2777,18 @@ window.getCurrentUser      = getCurrentUser;
         "h1.title", "h2.title", ".section-title"
     ].join(",");
 
+    // Elementos "atacables": lo visible y con entidad de la página. Se filtran
+    // luego por tamaño, visibilidad y cercanía a la mascota.
+    var ATTACK_SEL = [
+        ".catalog-neon-card", ".card-container", ".card", ".hero-section",
+        ".cfg-panel", "h1.title", "h2.title", ".section-title",
+        ".destiny-navbar", ".mobile-bottom-nav"
+    ].join(",");
+    var ATTACK_MS = 720;          // cuánto dura la animación del golpe
+    var ATTACK_COOLDOWN = 12000;  // tiempo mínimo entre golpes ("de vez en cuando")
+    var ATTACK_CHANCE = 0.5;      // probabilidad de atacar cuando ya pasó el cooldown
+    var ATTACK_RANGE = 200;       // alcance horizontal (px) para elegir blanco
+
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
     function rand(a, b) { return a + Math.random() * (b - a); }
 
@@ -2791,8 +2945,120 @@ window.getCurrentUser      = getCurrentUser;
         nextDecision = ts + 700;
     }
 
+    // ── Ataque a objetos de la página ──────────────────────────────────────
+    // Frases al atacar, según el personaje activo.
+    var ATTACK_LINES = {
+        ichigo:   ["¡Getsuga Tenshō! ⚔️", "¡Toma esto!", "¡Hyah!"],
+        kenpachi: ["¡A cortar! ⚔️", "¡Nada mal!", "¡Toma esto!"]
+    };
+    function attackLine() {
+        return pick(ATTACK_LINES[readChar()] || ["¡Hyah!"]);
+    }
+
+    // ¿El personaje activo sabe atacar? (tiene fotogramas de 'attack').
+    function hasAttack() {
+        return !!(ANIMS && ANIMS.attack && ANIMS.attack.f && ANIMS.attack.f.length);
+    }
+
+    // Elige el elemento atacable más cercano a la mascota (o null). Debe estar a
+    // la vista, con tamaño suficiente y cerca en horizontal y en altura.
+    function findAttackTarget() {
+        var els = document.querySelectorAll(ATTACK_SEL);
+        var cx = phys.x + phys.w / 2, feet = phys.y + phys.h;
+        var W = window.innerWidth, H = window.innerHeight;
+        var best = null, bestD = Infinity;
+        for (var i = 0; i < els.length; i++) {
+            var el = els[i];
+            if (el === root || root.contains(el) || el.contains(root)) continue;
+            var r = el.getBoundingClientRect();
+            if (r.width < 24 || r.height < 16) continue;          // muy chico
+            if (r.right < 0 || r.left > W || r.bottom < 0 || r.top > H) continue; // fuera de vista
+            var nx = Math.max(r.left, Math.min(cx, r.right));
+            var dx = Math.abs(nx - cx);
+            if (dx > ATTACK_RANGE) continue;                       // lejos en X
+            if (feet < r.top - 140 || feet > r.bottom + 90) continue; // muy arriba/abajo
+            var ny = Math.max(r.top, Math.min(feet, r.bottom));
+            var d = dx + Math.abs(ny - feet) * 0.5;
+            if (d < bestD) {
+                bestD = d;
+                best = { el: el, rect: r, cx: (r.left + r.right) / 2, cy: (r.top + r.bottom) / 2 };
+            }
+        }
+        return best;
+    }
+
+    // ¿Toca atacar ahora? (sabe atacar, no está ocupado y ya pasó el cooldown).
+    function canAttack(ts) {
+        return hasAttack() && !attacking && !sleeping &&
+            ts - lastAttack > ATTACK_COOLDOWN && Math.random() < ATTACK_CHANCE;
+    }
+
+    // Arranca el golpe: mira al blanco, pega un pequeño lunge y fija el estado
+    // 'attacking' (que el animador refleja con la animación 'attack').
+    function startAttack(t, ts) {
+        attacking = true;
+        attackHit = false;
+        attackTarget = t;
+        attackUntil = ts + ATTACK_MS;
+        lastAttack = ts;
+        var cx = phys.x + phys.w / 2;
+        var dir = t.cx < cx ? -1 : 1;
+        phys.face = dir;
+        phys.tvx = 0;
+        if (phys.ground) phys.vx = dir * WALK * 1.1;   // impulso hacia el blanco
+        nextDecision = attackUntil + 300;
+        attentionUntil = Math.max(attentionUntil, attackUntil); // no deambular durante el golpe
+        if (Math.random() < 0.5) speak(attackLine(), "happy");
+    }
+
+    // Impacto: sacude el elemento golpeado y dibuja una marca de corte encima.
+    function hitElement(t) {
+        if (!t || !t.el) return;
+        var el = t.el;
+        el.classList.remove("mascot-hit");
+        void el.offsetWidth;             // reinicia la animación de sacudida
+        el.classList.add("mascot-hit");
+        setTimeout(function () { el.classList.remove("mascot-hit"); }, 520);
+
+        if (reducedMotion()) return;     // sin efectos extra con movimiento reducido
+        var r = el.getBoundingClientRect();
+        var size = Math.min(Math.max(Math.min(r.width, r.height) * 0.9, 60), 190);
+        var slash = document.createElement("div");
+        slash.className = "mascot-slash";
+        // Rojo Getsuga para Ichigo; blanco para el corte de Kenpachi.
+        slash.style.setProperty("--slash-color", readChar() === "ichigo" ? "#ff2d55" : "#eafff8");
+        slash.style.left = (r.left + r.width / 2 - size / 2) + "px";
+        slash.style.top = (r.top + r.height / 2 - size / 2) + "px";
+        slash.style.width = size + "px";
+        slash.style.height = size + "px";
+        slash.setAttribute("aria-hidden", "true");
+        slash.addEventListener("animationend", function () { slash.remove(); });
+        document.body.appendChild(slash);
+    }
+
+    // Avanza el golpe en curso: aplica el impacto a mitad de la animación (una
+    // sola vez) y lo termina cuando vence su tiempo.
+    function stepAttack(ts) {
+        if (!attacking) return;
+        if (!attackHit && ts >= attackUntil - ATTACK_MS * 0.45) {
+            attackHit = true;
+            hitElement(attackTarget);
+        }
+        if (ts >= attackUntil) {
+            attacking = false;
+            attackTarget = null;
+            if (phys) phys.tvx = 0;
+        }
+    }
+
     // "Cerebro": decide la próxima acción cuando está parado y no está ocupado.
     function decide(ts) {
+        // Antes que nada: de vez en cuando, atacar un objeto cercano de la página.
+        if (canAttack(ts)) {
+            var target = findAttackTarget();
+            if (target) { startAttack(target, ts); return; }
+        }
+
         var cx = phys.x + phys.w / 2;
         var mouseFresh = mouse.x >= 0 && ts - mouse.t < 2500;
         var r = Math.random();
@@ -2843,9 +3109,12 @@ window.getCurrentUser      = getCurrentUser;
     function step(dt, ts) {
         var W = window.innerWidth;
 
+        // Golpe en curso: resuelve impacto y fin del ataque antes que nada.
+        stepAttack(ts);
+
         // Decisiones y reacciones solo cuando está parado y sin bocadillo activo.
         if (ts >= attentionUntil) {
-            maybeFlee(ts);
+            if (!attacking) maybeFlee(ts);
             if (phys.ground && ts >= nextDecision) decide(ts);
         } else {
             phys.tvx = 0; // "viene a hablarte": frena suave y se queda a decir algo
@@ -2947,6 +3216,7 @@ window.getCurrentUser      = getCurrentUser;
         if (root) root.classList.remove("mascot-roaming");
         if (sprite && sprite.style) sprite.style.transform = ""; // mira de frente
         motionAnim = "idle";
+        attacking = false; attackTarget = null; // corta cualquier golpe en curso
         phys = null;
     }
 

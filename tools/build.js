@@ -87,6 +87,10 @@ const JS_SOURCES = [
     'js/security/validator.js',
     'js/utils.js',
     'js/ui/toast.js',
+    // El registro de mascotas debe ir ANTES que mascot.js para que el personaje
+    // elegido esté disponible en todas las páginas (no solo en mascotas.html,
+    // que además lo carga suelto).
+    'js/ui/mascots.js',
     'js/ui/mascot.js',
     'js/catalog/states.js',
     'js/catalog/cards.js',

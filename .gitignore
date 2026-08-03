@@ -59,3 +59,7 @@ manga-info.html
 js/pages/manga-info.js
 scratch/
 
+
+# Python (tools/slice-mascots.py)
+__pycache__/
+*.pyc
