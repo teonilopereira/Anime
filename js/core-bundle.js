@@ -2434,10 +2434,15 @@ window.MascotRegistry = [
             if (MASCOT_MODE === "frames") {
                 sprite.style.backgroundSize = "100% 100%";
                 sprite.style.backgroundPosition = "center bottom";
+                // Sprites de anime (con antialiasing): se ven mejor suavizados al
+                // escalar que con nearest-neighbor. Rimuru (pixel-art) sí quiere
+                // pixelado, así que solo el modo 'frames' pisa el image-rendering.
+                sprite.style.imageRendering = "auto";
             } else {
                 sprite.style.backgroundImage = "url(" + SHEET_SRC + ")";
                 sprite.style.backgroundSize = "";      // vuelve al valor del CSS (800% 500%)
                 sprite.style.backgroundPosition = "0 0";
+                sprite.style.imageRendering = "";      // vuelve a 'pixelated' del CSS
             }
             animName = null; animFrame = -1; _lastFrameKey = "";
             setFrame(0, "idle");

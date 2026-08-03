@@ -125,15 +125,54 @@ def extract_frames(path):
     return im, boxes
 
 
+def clean_alpha(arr, light_luma=196, speck=14, hole=8):
+    """
+    Alfa limpio a partir del recorte RGB de un fotograma. Además de separar el
+    fondo casi blanco, mejora la prolijidad del sprite (las hojas son JPEG, con
+    ruido y halo de compresión):
+
+      1. Opening: borra pixeles sueltos de 1px.
+      2. De-fringe: pela SOLO el halo claro y fino del borde (el "ringing" del
+         JPEG), protegiendo las regiones claras SÓLIDAS —haori blanco de
+         Kenpachi, corte blanco— y el contorno oscuro del personaje.
+      3. Quita motas flotantes (componentes chicos de ruido).
+      4. Rellena huecos diminutos (pinholes del umbral en zonas claras).
+    """
+    r = arr[:, :, 0].astype(int)
+    g = arr[:, :, 1].astype(int)
+    b = arr[:, :, 2].astype(int)
+    luma = 0.299 * r + 0.587 * g + 0.114 * b
+
+    fg = ~((r > BG) & (g > BG) & (b > BG))
+    fg = ndimage.binary_opening(fg, iterations=1)
+
+    light = fg & (luma > light_luma)
+    solid_light = ndimage.binary_opening(light, iterations=1)          # blobs claros reales
+    thin_light = light & ~ndimage.binary_dilation(solid_light, iterations=1)
+    boundary = fg & ndimage.binary_dilation(~fg, iterations=1)
+    fg = fg & ~(boundary & thin_light)                                 # pela solo halo fino
+
+    lbl, n = ndimage.label(fg, structure=np.ones((3, 3)))
+    if n:
+        sizes = np.bincount(lbl.ravel())
+        sizes[0] = 0
+        fg = (sizes >= speck)[lbl]
+
+    holes = ndimage.binary_fill_holes(fg) & ~fg
+    lblh, nh = ndimage.label(holes, structure=np.ones((3, 3)))
+    if nh:
+        hs = np.bincount(lblh.ravel())
+        hs[0] = 0
+        fg = fg | ((hs > 0) & (hs <= hole))[lblh]
+
+    return fg
+
+
 def keyed_crop(im, box):
-    """Recorta la caja y vuelve transparente el fondo blanco, con limpieza de motas."""
+    """Recorta la caja y vuelve transparente el fondo, con limpieza de bordes y motas."""
     crop = im.crop(box).convert("RGBA")
     a = np.asarray(crop).copy()
-    bg = (a[:, :, 0] > BG) & (a[:, :, 1] > BG) & (a[:, :, 2] > BG)
-    alpha = ~bg
-    # Quitar pixeles sueltos de fondo/artefacto JPEG.
-    alpha = ndimage.binary_closing(alpha, iterations=1)
-    a[:, :, 3] = np.where(alpha, 255, 0)
+    a[:, :, 3] = np.where(clean_alpha(a[:, :, :3]), 255, 0)
     return Image.fromarray(a, "RGBA")
 
 
