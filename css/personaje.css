@@ -1,0 +1,306 @@
+/* css/personaje.css
+   Estilos de personaje.html (ficha de personaje / actor de voz). Reutiliza las
+   variables de tema del bundle (--accent-cyan, --text-main, --ink-rgb,
+   --surface-panel-rgb, --radius-md, --font-display). */
+
+.persona-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+}
+
+.persona-root {
+    min-height: 40vh;
+}
+
+/* ── Estados y controles reutilizados ──
+   .empty-state / .detail-back / .btn-ver-mas viven en detalle-premium.css, que
+   esta pagina no carga. Se replican aca para que personaje.css sea autosuficiente
+   y no dependa de un CSS especifico del detalle. */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    max-width: 640px;
+    margin-inline: auto;
+}
+.empty-state-kicker {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(188,19,254,0.15);
+    color: var(--neon-purple);
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.detail-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(188,19,254,0.3);
+    color: var(--text-main);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    transition: all 0.2s ease;
+}
+.detail-back:hover {
+    background: rgba(188,19,254,0.12);
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 16px rgba(188,19,254,0.2);
+}
+.btn-ver-mas {
+    display: block;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--accent-cyan);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: fit-content;
+}
+.btn-ver-mas:hover {
+    opacity: 0.8;
+}
+
+/* ── Hero ── */
+.persona-hero {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.persona-hero-portada {
+    flex: 0 0 200px;
+    max-width: 200px;
+}
+.persona-hero-img {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(188,19,254,0.25);
+    background: rgba(var(--ink-rgb),0.04);
+    display: block;
+}
+.persona-hero-img--empty {
+    display: block;
+}
+.persona-hero-info {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+.persona-kicker {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.7rem;
+    color: var(--accent-cyan);
+}
+.persona-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    line-height: 1.1;
+    margin: 4px 0 2px;
+    color: var(--text-main);
+}
+.persona-native {
+    color: rgba(var(--ink-rgb),0.6);
+    font-size: 0.95rem;
+    margin: 0 0 14px;
+}
+
+/* ── Grid de metadatos ── */
+.persona-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+.persona-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    background: rgba(var(--surface-panel-rgb),0.35);
+    border: 1px solid rgba(var(--ink-rgb),0.06);
+}
+.persona-meta-label {
+    font-size: 0.62rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-cyan);
+    opacity: 0.85;
+}
+.persona-meta-value {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* ── Biografía ── */
+.persona-bio,
+.persona-section {
+    margin-top: 32px;
+}
+.persona-h2 {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 1rem;
+    color: var(--text-main);
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(var(--ink-rgb),0.08);
+}
+.persona-bio-text {
+    color: rgba(var(--ink-rgb),0.82);
+    line-height: 1.65;
+    font-size: 0.95rem;
+}
+.persona-bio-text p { margin: 0 0 12px; }
+/* Sin margen en el ultimo parrafo: dentro del recorte -webkit-box ese margen
+   sobrante inflaba scrollHeight y hacia aparecer "Ver más" aun con bios cortas. */
+.persona-bio-text p:last-child { margin-bottom: 0; }
+/* Recorte por altura (no -webkit-line-clamp): con parrafos <p> como hijos el
+   line-clamp no mide bien y dejaba "Ver más" visible en bios cortas. ~6 lineas
+   a line-height 1.65. */
+.persona-bio-text.is-clamped {
+    max-height: 9.9em;
+    overflow: hidden;
+}
+.persona-bio .btn-ver-mas {
+    margin-top: 8px;
+}
+
+/* ── Grids de apariciones / roles ── */
+.persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+}
+.persona-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(188,19,254,0.15);
+    background: rgba(var(--surface-panel-rgb),0.3);
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+.persona-card:hover {
+    border-color: var(--accent-cyan);
+}
+.persona-card-main,
+.persona-va {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s ease;
+}
+.persona-card-main {
+    flex: 1;
+}
+a.persona-card-main:hover,
+a.persona-va:hover {
+    background: rgba(188,19,254,0.10);
+}
+a.persona-card-main:hover .persona-card-title,
+a.persona-va:hover .persona-va-name {
+    color: var(--accent-cyan);
+}
+.persona-card-cover {
+    width: 56px;
+    height: 78px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: rgba(var(--ink-rgb),0.04);
+}
+.persona-card-cover--empty {
+    display: block;
+}
+.persona-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 8px 4px;
+}
+.persona-card-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text-main);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.persona-card-role {
+    font-size: 0.65rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-cyan);
+    opacity: 0.8;
+}
+.persona-va {
+    justify-content: flex-end;
+    text-align: right;
+    padding-left: 6px;
+}
+.persona-va-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 8px 4px;
+}
+.persona-va-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text-main);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.persona-va-face {
+    width: 48px;
+    height: 66px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: rgba(var(--ink-rgb),0.04);
+}
+.persona-va-face--cover {
+    width: 46px;
+    height: 66px;
+}
+
+.persona-back {
+    margin-top: 36px;
+}
+
+@media (max-width: 520px) {
+    .persona-grid { grid-template-columns: 1fr; }
+    .persona-hero-portada { flex-basis: 140px; max-width: 140px; }
+}
