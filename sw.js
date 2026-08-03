@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-220440ba';
+const CACHE_NAME = 'anime-destiny-40713ab2';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -44,6 +44,7 @@ const ASSETS = [
   '/offline.html',
   '/css/bundle.css',
   '/css/bundle.min.css',
+  '/css/detalle.min.css',
   '/css/fonts.css',
   '/fonts/orbitron-latin.woff2',
   '/fonts/rajdhani-300-latin.woff2',
@@ -80,6 +81,38 @@ self.addEventListener('activate', (event) => {
         })
       );
     }).then(() => self.clients.claim())
+  );
+});
+
+// ── Web Push ──────────────────────────────────────────────────────────────
+// La edge function (server/functions/notify-new-episodes) manda un JSON con
+// { title, body, url, tag }. Sin payload igual mostramos algo genérico para no
+// quedarnos con una notificación vacía.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = {}; }
+  const title = data.title || 'Anime Destiny';
+  const options = {
+    body: data.body || 'Hay novedades en tus animes.',
+    icon: '/images/icon-192.png',
+    badge: '/images/icon-192.png',
+    tag: data.tag || undefined,
+    data: { url: data.url || '/index.html' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Al tocar la notificación: enfocar una pestaña ya abierta en esa URL o abrir una.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || '/index.html';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsList) => {
+      for (const client of clientsList) {
+        if (client.url.includes(target) && 'focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(target);
+    })
   );
 });
 

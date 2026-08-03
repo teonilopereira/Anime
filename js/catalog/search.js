@@ -705,6 +705,22 @@ function inicializarBusquedaCatalogo() {
     }
     syncClearBtn();
 
+    // ── Búsqueda por URL (?q=) ──
+    // Habilita el SearchAction del sitio (cajita de búsqueda de sitelinks en
+    // Google) y hace que las búsquedas sean compartibles por link. Se aplica una
+    // sola vez: inicializarBusquedaCatalogo se llama en cada re-render del catálogo.
+    if (!window.__catalogQueryApplied) {
+        try {
+            const q0 = new URLSearchParams(window.location.search).get('q');
+            if (q0 && q0.trim() && !input.value) {
+                window.__catalogQueryApplied = true;
+                input.value = q0.trim();
+                syncClearBtn();
+                reloadCatalog();
+            }
+        } catch (e) { /* no-op (?q= opcional) */ }
+    }
+
     var searchIcon = inputWrap?.querySelector('.catalog-search-icon');
     if (searchIcon) {
         searchIcon.addEventListener('click', (e) => {

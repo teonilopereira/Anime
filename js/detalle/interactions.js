@@ -300,7 +300,7 @@ async function cargarDetalleDesdeApi(id, categoria, nombre) {
     const esBiblioteca = categoria === 'manga' || categoria === 'novelas';
 
     // Fase 1: AniList por ID numérico
-    if (Number.isFinite(Number(id))) {
+    if (id && Number.isFinite(Number(id))) {
         const getById = categoria === 'anime' ? window.getAnimeById : window.getMangaById;
         if (typeof getById === 'function') {
             try {
@@ -346,7 +346,11 @@ function renderApiDetalle(item, apiCat) {
 
 (function initDetallePage() {
     var params = getParams();
-    if (!params.id || !params.cat) {
+    // Se admite entrar con id O con nombre: los enlaces del cat\u00E1logo traen id,
+    // pero las URLs del sitemap/SEO usan solo ?cat=&nombre= (no hay forma de
+    // saber el id de AniList en build). Sin id, la Fase 3 resuelve por t\u00EDtulo y
+    // applyDetailSeo fija el canonical al id real una vez cargada la obra.
+    if ((!params.id && !params.nombre) || !params.cat) {
         setDetailViewState('error', 'Faltan par\u00E1metros', 'Us\u00E1 el cat\u00E1logo para elegir un t\u00EDtulo.');
         return;
     }
@@ -355,7 +359,9 @@ function renderApiDetalle(item, apiCat) {
         if (!found) {
             setDetailViewState('error', 'No encontrado', 'No se pudo encontrar el t\u00EDtulo en las APIs.');
         }
-        if (window.AnimeDestiny?.Comments?.load) {
+        // Los comentarios se escopean por id: sin id (entrada por nombre) no se
+        // cargan para no mezclar hilos bajo una clave vac\u00EDa.
+        if (params.id && window.AnimeDestiny?.Comments?.load) {
             window.AnimeDestiny.Comments.load(params.cat, params.id);
         }
     });

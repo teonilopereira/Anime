@@ -141,9 +141,28 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     const summaryText = resumen || item.sinopsis || item.descripcion || item.info || 'Sin sinopsis disponible.';
 
-    // Meta tags (description/OG/Twitter), canonical y JSON-LD: ver
-    // applyDetailSeo en js/detalle/render-sections.js.
-    applyDetailSeo(item, { categoria, isAnime, generos, summaryText, pageTitle });
+    // Preguntas frecuentes: texto único long-tail + rich result de FAQ. Se arma
+    // con los datos que ya se muestran en la ficha (ver buildDetailFaq).
+    const faq = buildDetailFaq({
+        titulo: item.titulo, categoria, isAnime, isMangaOrNovela,
+        countLabel, countValue, status, anio, generos,
+        studios: item.studios, summaryText, score
+    });
+
+    // Meta tags (description/OG/Twitter), canonical, JSON-LD de la obra, migas de
+    // pan y FAQ: ver applyDetailSeo en js/detalle/render-sections.js.
+    applyDetailSeo(item, { categoria, isAnime, generos, summaryText, pageTitle, faqEntries: faq.entries });
+
+    // Migas de pan visibles: además del BreadcrumbList del JSON-LD, dan enlaces
+    // internos reales (Inicio y categoría) para que el crawler llegue a la ficha.
+    const breadcrumbHtml = `
+        <nav class="detail-breadcrumb" aria-label="Migas de pan">
+            <a href="index.html">Inicio</a>
+            <span aria-hidden="true">›</span>
+            <a href="${escapeHtml(isAnime ? 'anime.html' : (isNovela ? 'novelas.html' : 'manga.html'))}">${escapeHtml(isAnime ? 'Anime' : (isNovela ? 'Novelas' : 'Manga'))}</a>
+            <span aria-hidden="true">›</span>
+            <span class="detail-breadcrumb-current">${escapeHtml(item.titulo)}</span>
+        </nav>`;
 
     const demografiaHtml = item.demografia
         ? `<span class="card-demographic demographic-${escapeHtml(item.demografia)}">${escapeHtml(item.demografia)}</span>`
@@ -325,6 +344,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 <img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" width="460" height="690" decoding="async" fetchpriority="high" data-fallback-catalog="1" data-title="${escapeHtml(item.titulo)}">
             </div>
             <div class="detail-info">
+                ${breadcrumbHtml}
                 ${demografiaHtml}
                 <h1 class="detail-title">${escapeHtml(item.titulo)}</h1>
                 <div class="detail-status${isAiring ? ' is-airing' : ''}"><span><i data-lucide="${isAiring ? 'radio' : 'check-circle'}"></i></span> ${escapeHtml(status)}</div>
@@ -364,6 +384,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 </div>
             </div>
         </div>
+        ${faq.html}
         ${charactersHtml}
         ${temporadasHtml}
         ${themesHtml}

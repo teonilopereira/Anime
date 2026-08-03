@@ -12,7 +12,8 @@
         defaultPageSize: 40,
         maxCatalogItems: 40,
         debug:           false,
-        cachePrefix:     "animeDestiny"
+        cachePrefix:     "animeDestiny",
+        vapidPublicKey:  ""
     };
 
     window.AppConfig = Object.freeze(config);

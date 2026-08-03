@@ -193,6 +193,19 @@ function _detailRecortarDescripcion(texto, max = 155) {
     return (ultimoEspacio > max * 0.6 ? corte.slice(0, ultimoEspacio) : corte).trim() + '…';
 }
 
+// Nombre legible de la categoría para migas de pan y textos de las FAQ.
+function _detailCatLabel(categoria) {
+    if (categoria === 'anime') return 'Anime';
+    if (categoria === 'novelas') return 'Novelas';
+    return 'Manga';
+}
+
+function _detailCatHref(categoria) {
+    if (categoria === 'anime') return 'anime.html';
+    if (categoria === 'novelas') return 'novelas.html';
+    return 'manga.html';
+}
+
 function applyDetailSeo(item, ctx) {
     const { categoria, isAnime, generos, summaryText, pageTitle } = ctx;
     const metaDesc = _detailRecortarDescripcion(summaryText);
@@ -234,21 +247,131 @@ function applyDetailSeo(item, ctx) {
     if (isAnime && Number(item.capitulos || item.episodios || item.episodes)) {
         datos.numberOfEpisodes = Number(item.capitulos || item.episodios || item.episodes);
     }
-    if (Number.isFinite(numScore) && numScore > 0) {
+    // ratingCount debe ser un conteo REAL de valoraciones: Google ignora (o
+    // marca como spam) un AggregateRating con ratingCount inventado. Se usa la
+    // popularidad de AniList (usuarios que la tienen en su lista) como conteo, o
+    // los favoritos si falta; si no hay ninguno, no se emite aggregateRating.
+    const ratingCount = Number(item.popularity) || Number(item.favourites) || 0;
+    if (Number.isFinite(numScore) && numScore > 0 && ratingCount > 0) {
         datos.aggregateRating = {
             '@type': 'AggregateRating',
             ratingValue: numScore,
             bestRating: 10,
-            worstRating: 0,
-            ratingCount: 1
+            worstRating: 1,
+            ratingCount: ratingCount
         };
     }
 
+    _detailWriteLdJson('ld-json-item', datos);
+
+    // ── Migas de pan (BreadcrumbList) ──
+    // Le dan a Google la jerarquía Inicio › Categoría › Obra: en los resultados
+    // reemplaza la URL pelada por la ruta navegable y refuerza el enlazado interno.
+    _detailWriteLdJson('ld-json-breadcrumb', {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: window.location.origin + '/index.html' },
+            { '@type': 'ListItem', position: 2, name: _detailCatLabel(categoria), item: window.location.origin + '/' + _detailCatHref(categoria) },
+            { '@type': 'ListItem', position: 3, name: item.titulo, item: canonicalUrl }
+        ]
+    });
+
+    // ── FAQ (FAQPage) ──
+    // El texto único de las preguntas es justo el contenido "long-tail" que
+    // busca la gente ("cuántos capítulos tiene…", "de qué trata…"): habilita el
+    // rich result de FAQ y le da a la ficha texto indexable propio.
+    const faqEntries = Array.isArray(ctx.faqEntries) ? ctx.faqEntries : [];
+    if (faqEntries.length) {
+        _detailWriteLdJson('ld-json-faq', {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqEntries.map(e => ({
+                '@type': 'Question',
+                name: e.q,
+                acceptedAnswer: { '@type': 'Answer', text: e.a }
+            }))
+        });
+    } else {
+        const prevFaq = document.getElementById('ld-json-faq');
+        if (prevFaq) prevFaq.remove();
+    }
+}
+
+// Reemplaza (o crea) un <script type="application/ld+json"> por id. textContent
+// (no innerHTML): el JSON va como texto plano, sin riesgo de inyección con
+// títulos o sinopsis raros.
+function _detailWriteLdJson(id, data) {
+    const previo = document.getElementById(id);
+    if (previo) previo.remove();
     const script = document.createElement('script');
     script.type = 'application/ld+json';
-    script.id = 'ld-json-item';
-    // textContent (no innerHTML): el contenido va como texto plano, sin
-    // riesgo de inyeccion con titulos o sinopsis raros.
-    script.textContent = JSON.stringify(datos);
+    script.id = id;
+    script.textContent = JSON.stringify(data);
     document.head.appendChild(script);
+}
+
+// Arma las preguntas frecuentes de la obra a partir de los datos que ya se
+// mostraron en la ficha (sin pedir nada nuevo). Devuelve las entradas para el
+// JSON-LD y el HTML visible (un <details> por pregunta). Solo incluye una
+// pregunta si hay dato real que la responda.
+function buildDetailFaq(ctx) {
+    const {
+        titulo, categoria, isAnime, isMangaOrNovela,
+        countLabel, countValue, status, anio, generos, studios, summaryText, score
+    } = ctx;
+    const entries = [];
+    const t = titulo || 'esta obra';
+
+    const sinopsisReal = summaryText && summaryText !== 'Sin sinopsis disponible.';
+    if (sinopsisReal) {
+        entries.push({ q: `¿De qué trata ${t}?`, a: _detailRecortarDescripcion(summaryText, 300) });
+    }
+
+    const countNum = Number(countValue);
+    if (Number.isFinite(countNum) && countNum > 0) {
+        const unidad = String(countLabel || '').toLowerCase();
+        entries.push({
+            q: `¿Cuántos ${unidad} tiene ${t}?`,
+            a: `${t} tiene ${countNum} ${unidad}.`
+        });
+    }
+
+    if (anio) {
+        const verbo = isMangaOrNovela ? 'se publicó por primera vez' : 'se estrenó';
+        entries.push({ q: `¿En qué año ${isMangaOrNovela ? 'se publicó' : 'se estrenó'} ${t}?`, a: `${t} ${verbo} en ${anio}.` });
+    }
+
+    if (status && status !== 'No especificado') {
+        entries.push({ q: `¿${t} ya terminó?`, a: `Estado de ${t}: ${status}.` });
+    }
+
+    if (Array.isArray(generos) && generos.length) {
+        entries.push({ q: `¿De qué género es ${t}?`, a: `${t} pertenece a los géneros: ${generos.join(', ')}.` });
+    }
+
+    if (isAnime && Array.isArray(studios) && studios.length) {
+        entries.push({ q: `¿Qué estudio animó ${t}?`, a: `${t} fue producido por ${studios.join(', ')}.` });
+    }
+
+    const scoreNum = Number(score);
+    if (Number.isFinite(scoreNum) && scoreNum > 0) {
+        entries.push({ q: `¿Qué puntuación tiene ${t}?`, a: `${t} tiene una puntuación de ${scoreNum} sobre 10 según AniList.` });
+    }
+
+    if (entries.length < 2) return { html: '', entries: [] };
+
+    const detalles = entries.map(e => `
+                <details class="detail-faq-item">
+                    <summary>${escapeHtml(e.q)}</summary>
+                    <p>${escapeHtml(e.a)}</p>
+                </details>`).join('');
+
+    const html = `
+        <section class="detail-section detail-faq" aria-labelledby="faq-heading">
+            <h2 class="detail-h2" id="faq-heading">Preguntas frecuentes</h2>
+            ${detalles}
+        </section>`;
+
+    return { html, entries };
 }

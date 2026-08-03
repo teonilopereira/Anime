@@ -100,8 +100,20 @@ const JS_SOURCES = [
 ];
 
 // Nota: los CSS y JS especificos de cada pagina (usuario, detalle, login, etc.)
-// NO van al bundle — se cargan sueltos y el estampado de version los cubre
-// automaticamente, sin necesidad de listarlos aca.
+// NO van al bundle compartido — se cargan sueltos y el estampado de version los
+// cubre automaticamente, sin necesidad de listarlos aca.
+
+// Excepcion: paginas con VARIOS CSS propios. Cada archivo suelto es un request
+// que bloquea el render; unirlos en un bundle minificado por pagina baja los
+// requests y el peso (mejora LCP). detalle.html cargaba 4 CSS sin minificar.
+const PAGE_CSS_BUNDLES = {
+    'css/detalle.min.css': [
+        'css/detalle-premium.css',
+        'css/detalle-local.css',
+        'css/detalle-responsive.css',
+        'css/detalle-extras.css',
+    ],
+};
 
 // Dependencias de terceros que se auto-hospedan en vez de cargarse desde un CDN.
 // Se copian desde node_modules para que la version quede fijada por package.json
@@ -251,6 +263,17 @@ writeUtf8('css/bundle.css', cssBundle);
 writeUtf8('css/bundle.min.css', cssMin);
 writeUtf8('js/core-bundle.js', jsBundle);
 writeUtf8('js/core-bundle.min.js', jsMin);
+
+// ── Bundles CSS por pagina ───────────────────────────────────────────────
+const pageCssBundles = [];
+for (const [out, fuentes] of Object.entries(PAGE_CSS_BUNDLES)) {
+    const concat = fuentes
+        .map((rel) => `/* ===== ${path.basename(rel)} ===== */\n${readSource(rel)}`)
+        .join('\n');
+    const min = (await esbuild.transform(concat, { loader: 'css', minify: true })).code;
+    writeUtf8(out, min);
+    pageCssBundles.push([out, min]);
+}
 
 // ── Versión ──────────────────────────────────────────────────────────────
 
@@ -404,11 +427,45 @@ const urlsSitemap = htmlFiles
         return `  <url>\n    <loc>${SITE_URL}/${f}</loc>\n    <priority>${prio}</priority>\n  </url>`;
     });
 
+// ── Fichas de obras (URLs SEO por título) ──
+// Sin esto el sitemap solo lista las paginas estaticas y Google no tiene forma
+// fiable de descubrir las miles de fichas (viven detras de JS y de un query
+// string). La lista se lee de tools/seo-titles.json — determinista, asi el
+// chequeo de bundles al dia de CI sigue pasando. Se usa ?cat=&nombre= (no un id
+// de AniList) porque el id no se puede saber en build sin llamar a la API: la
+// ficha resuelve por titulo y fija el canonical al id real al cargar. Para
+// refrescar la lista: `node tools/generate-seo-titles.mjs` (necesita red).
+const CATS_SEO = new Set(['anime', 'manga', 'novelas']);
+let urlsFichas = [];
+const seoTitlesPath = abs('tools', 'seo-titles.json');
+if (fs.existsSync(seoTitlesPath)) {
+    let seed = { titles: [] };
+    try {
+        seed = JSON.parse(fs.readFileSync(seoTitlesPath, 'utf8').replace(/\r\n/g, '\n'));
+    } catch (e) {
+        throw new Error(`tools/seo-titles.json no es JSON valido: ${e.message}`);
+    }
+    const vistos = new Set();
+    urlsFichas = (Array.isArray(seed.titles) ? seed.titles : [])
+        .filter((t) => t && CATS_SEO.has(t.cat) && typeof t.nombre === 'string' && t.nombre.trim())
+        .filter((t) => {
+            const clave = `${t.cat}|${t.nombre.trim()}`;
+            if (vistos.has(clave)) return false;
+            vistos.add(clave);
+            return true;
+        })
+        .map((t) => {
+            // &amp; para que la URL con query string sea XML valido.
+            const loc = `${SITE_URL}/detalle.html?cat=${t.cat}&amp;nombre=${encodeURIComponent(t.nombre.trim())}`;
+            return `  <url>\n    <loc>${loc}</loc>\n    <priority>0.7</priority>\n  </url>`;
+        });
+}
+
 writeUtf8(
     'sitemap.xml',
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    urlsSitemap.join('\n') + '\n</urlset>\n',
+    urlsSitemap.concat(urlsFichas).join('\n') + '\n</urlset>\n',
 );
 
 // ── Estampar CACHE_NAME del service worker ───────────────────────────────
