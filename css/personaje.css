@@ -158,6 +158,9 @@
     margin-top: 32px;
 }
 .persona-h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-family: var(--font-display);
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -166,6 +169,22 @@
     margin: 0 0 14px;
     padding-bottom: 8px;
     border-bottom: 1px solid rgba(var(--ink-rgb),0.08);
+}
+/* Contador de cuántas cards trae la subsección (personajes principales,
+   secundarios, apariciones…). Es una píldora chica al lado del título. */
+.persona-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: var(--radius-pill);
+    background: rgba(188,19,254,0.15);
+    color: var(--neon-purple);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 .persona-bio-text {
     color: rgba(var(--ink-rgb),0.82);

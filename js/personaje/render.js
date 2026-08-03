@@ -16,6 +16,55 @@
     var ROLE_LABELS = { MAIN: 'Principal', SUPPORTING: 'Secundario', BACKGROUND: 'Fondo' };
     var GENDER_LABELS = { Male: 'Masculino', Female: 'Femenino', 'Non-binary': 'No binario' };
 
+    // Orden y títulos de las subsecciones agrupadas por rol. Se listan los
+    // principales primero, después los secundarios, el fondo y por último los
+    // que llegan sin rol reconocible ('OTHER').
+    var ROLE_ORDER = ['MAIN', 'SUPPORTING', 'BACKGROUND', 'OTHER'];
+    // Ficha del actor de voz: los personajes que interpreta.
+    var STAFF_GROUP_LABELS = {
+        MAIN: 'Personajes principales',
+        SUPPORTING: 'Personajes secundarios',
+        BACKGROUND: 'Personajes de fondo',
+        OTHER: 'Otros personajes'
+    };
+    // Ficha del personaje: las obras donde aparece, según su papel en cada una.
+    var CHAR_GROUP_LABELS = {
+        MAIN: 'Como protagonista',
+        SUPPORTING: 'Como secundario',
+        BACKGROUND: 'Apariciones de fondo',
+        OTHER: 'Otras apariciones'
+    };
+
+    // Agrupa una lista por su campo .role (normalizado a MAYÚSCULAS). Cualquier
+    // rol fuera de MAIN/SUPPORTING/BACKGROUND cae en 'OTHER' para no perderse.
+    function groupByRole(items) {
+        var groups = {};
+        (items || []).forEach(function (it) {
+            var key = String(it.role || '').toUpperCase();
+            if (ROLE_ORDER.indexOf(key) === -1 || key === 'OTHER') key = 'OTHER';
+            (groups[key] || (groups[key] = [])).push(it);
+        });
+        return groups;
+    }
+
+    // Arma una subsección por cada grupo de rol con contenido, en el orden de
+    // ROLE_ORDER. Cada subsección lleva su título, un contador y la grilla de
+    // cards. Si un solo grupo tiene datos igual se pinta con su encabezado, así
+    // la pantalla queda "acomodada" y consistente en todos los casos.
+    function buildRoleSections(items, labels, cardFn) {
+        var groups = groupByRole(items);
+        return ROLE_ORDER.map(function (key) {
+            var list = groups[key];
+            if (!list || !list.length) return '';
+            return '<section class="persona-section">' +
+                '<h2 class="persona-h2">' + esc(labels[key]) +
+                    '<span class="persona-count">' + list.length + '</span>' +
+                '</h2>' +
+                '<div class="persona-grid">' + list.map(cardFn).join('') + '</div>' +
+            '</section>';
+        }).join('');
+    }
+
     // ── Traducción de biografía ──
     // Reutiliza el mismo endpoint y prefijo de caché que las sinopsis del detalle
     // (js/detalle/data.js), así una traducción hecha en cualquiera de las dos
@@ -129,8 +178,10 @@
     }
 
     // Card de una obra donde aparece el personaje (enlaza al detalle) con su seiyū.
-    function appearanceCard(a) {
-        var roleLabel = ROLE_LABELS[a.role] || '';
+    // Cuando la card ya vive dentro de una subsección agrupada por rol, se pasa
+    // hideRole=true para no repetir el papel (ya lo dice el encabezado del grupo).
+    function appearanceCard(a, hideRole) {
+        var roleLabel = hideRole ? '' : (ROLE_LABELS[a.role] || '');
         var mediaHref = a.id ? 'detalle.html?cat=' + esc(a.cat) + '&id=' + esc(String(a.id)) : '';
         var cover = a.cover
             ? '<img class="persona-card-cover" src="' + url(a.cover) + '" alt="" loading="lazy">'
@@ -210,11 +261,12 @@
             metaChip('Tipo de sangre', data.bloodType) +
             metaChip('Favoritos', data.favourites ? '♥ ' + data.favourites.toLocaleString('es') : '');
 
+        // Apariciones agrupadas por el papel del personaje en cada obra:
+        // protagónicas primero, después secundarias, etc.
         var appearances = data.appearances.length
-            ? '<section class="persona-section">' +
-                '<h2 class="persona-h2">Aparece en</h2>' +
-                '<div class="persona-grid">' + data.appearances.map(appearanceCard).join('') + '</div>' +
-              '</section>'
+            ? buildRoleSections(data.appearances, CHAR_GROUP_LABELS, function (a) {
+                return appearanceCard(a, true);
+              })
             : '';
 
         return { kicker: kicker, meta: meta, sections: appearances };
@@ -232,11 +284,11 @@
             metaChip('Origen', data.homeTown) +
             metaChip('Favoritos', data.favourites ? '♥ ' + data.favourites.toLocaleString('es') : '');
 
+        // Personajes que interpreta el seiyū, agrupados por rol: los papeles
+        // principales (protagónicos) primero y los secundarios después, para que
+        // se distingan de un vistazo los personajes que comparten esta misma voz.
         var roles = data.roles.length
-            ? '<section class="persona-section">' +
-                '<h2 class="persona-h2">Personajes que interpreta</h2>' +
-                '<div class="persona-grid">' + data.roles.map(roleCard).join('') + '</div>' +
-              '</section>'
+            ? buildRoleSections(data.roles, STAFF_GROUP_LABELS, roleCard)
             : '';
 
         return { kicker: kicker, meta: meta, sections: roles };
