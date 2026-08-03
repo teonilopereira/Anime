@@ -172,6 +172,18 @@ function renderDetalle(item, nombreUrl, categoria) {
         ? generos.map(g => `<span class="detail-chip">${escapeHtml(g)}</span>`).join('')
         : `<span class="detail-chip detail-chip-muted">No especificado</span>`;
 
+    // Estudios (solo anime): chips que enlazan a la ficha del estudio. Se
+    // enlaza por nombre (no tenemos el id acá) y estudio.html lo resuelve.
+    const studiosArr = isAnime && Array.isArray(item.studios) ? item.studios.filter(Boolean) : [];
+    const studiosHtml = studiosArr.length
+        ? `<div class="detail-section">
+                <h2 class="detail-section-title">ESTUDIOS</h2>
+                <div class="detail-chips">${studiosArr.map(s =>
+                    `<a class="detail-chip detail-chip-link" href="estudio.html?name=${encodeURIComponent(s)}">${escapeHtml(s)}</a>`
+                ).join('')}</div>
+            </div>`
+        : '';
+
     // Seguidores: solo lo trae MangaDex (/statistics). En obras de AniList el
     // dato no existe y la celda directamente no se dibuja.
     const follows = Number(item.follows) || 0;
@@ -363,6 +375,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <h2 class="detail-section-title">GÉNEROS</h2>
                     <div class="detail-chips">${generosHtml}</div>
                 </div>
+                ${studiosHtml}
                 ${isMangaOrNovela ? progressPanelHtml : ''}
                 ${extraBlockHtml}
 

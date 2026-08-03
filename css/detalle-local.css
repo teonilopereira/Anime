@@ -357,6 +357,18 @@
     border-color: rgba(var(--ink-rgb),0.1);
     color: rgba(var(--ink-rgb),0.5);
 }
+.detail-chip-link {
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.detail-chip-link:hover,
+.detail-chip-link:focus-visible {
+    background: rgba(0,242,255,0.12);
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    outline: none;
+}
 .detail-h2 {
     margin: 0 0 8px;
     font-family: var(--font-display);

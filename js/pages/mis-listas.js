@@ -753,38 +753,68 @@ function updateActividadMini() {
     `).join('');
 }
 
+// Pinta una lista de barras horizontales (género/tipo/estado). Cada fila:
+// etiqueta, barra proporcional al máximo y valor. Puro CSS, sin librerías.
+function renderBarChart(title, rows, accent) {
+    if (!rows.length) return '';
+    const max = Math.max.apply(null, rows.map(r => r.value)) || 1;
+    const bars = rows.map(r => {
+        const pct = Math.max(4, Math.round((r.value / max) * 100));
+        const color = r.color || accent || '#bc13fe';
+        return `
+        <div class="stat-bar-row">
+            <span class="stat-bar-label">${escapeHtml(String(r.label))}</span>
+            <span class="stat-bar-track"><span class="stat-bar-fill" style="width:${pct}%;background:${color}"></span></span>
+            <span class="stat-bar-value">${r.value}</span>
+        </div>`;
+    }).join('');
+    return `
+    <section class="stat-chart-card">
+        <h3 class="stat-chart-title">${escapeHtml(title)}</h3>
+        <div class="stat-bars">${bars}</div>
+    </section>`;
+}
+
 function renderStats() {
     const host = document.getElementById('statsGrid');
+    const charts = document.getElementById('statsCharts');
     if (!host) return;
     const user = getCurrentUserIdSafe();
     if (user === 'Invitado') {
         host.innerHTML = '<div class="lists-empty" style="grid-column:1/-1"><h3>Sin datos</h3><p class="stat-label">Iniciá sesión para ver estadísticas.</p></div>';
+        if (charts) charts.innerHTML = '';
         return;
     }
+
     let totalFav = 0, totalViewed = 0, byCategory = {};
+    const genreCounts = {};
+    const statusCounts = { viendo: 0, pendiente: 0, pausado: 0, abandonado: 0 };
+    let totalEnListas = 0;
+
     getAllItems().forEach(item => {
         const cat = item.__category;
-        if (!byCategory[cat]) byCategory[cat] = { fav: 0, viewed: 0 };
-        if (UserStore.getItem(`u:${user}|item:${item.id}|fav`))    { byCategory[cat].fav++; totalFav++; }
-        if (UserStore.getItem(`u:${user}|item:${item.id}|viewed`)) { byCategory[cat].viewed++; totalViewed++; }
+        if (!byCategory[cat]) byCategory[cat] = { count: 0 };
+        const st = getUserItemState(user, item);
+        const enLista = st.fav || st.viewed || st.wstatus;
+        if (enLista) { byCategory[cat].count++; totalEnListas++; }
+        if (st.fav)    totalFav++;
+        if (st.viewed) totalViewed++;
+        if (st.wstatus && statusCounts[st.wstatus] != null) statusCounts[st.wstatus]++;
+        // Géneros: solo de lo que está en alguna lista, para reflejar gustos.
+        if (enLista) {
+            extractGenresFromInfo(item.info).forEach(g => {
+                genreCounts[g] = (genreCounts[g] || 0) + 1;
+            });
+        }
     });
-    
+
     const pts = Number(UserStore.getItem(`u:${user}|points`) || 0);
-    // 'sessions' requiere persistencia en Supabase (tabla profiles/user_stats).
-    // Por ahora se muestra 0 para no leer datos fantasma de memoria volátil.
-    const sessions = 0;
 
     const statItems = [
+        { label: 'En tus listas', value: totalEnListas, icon: '📚', color: '#a855f7' },
         { label: 'Total Me gusta', value: totalFav, icon: '❤', color: '#bc13fe' },
         { label: 'Total Vistos', value: totalViewed, icon: '👁', color: '#00f2ff' },
-        { label: 'Puntos acumulados', value: pts, icon: '⭐', color: '#f59e0b' },
-        { label: 'Sesiones', value: sessions, icon: '🔄', color: '#22c55e' },
-        ...Object.entries(byCategory).map(([cat, c]) => ({
-            label: `${cat.charAt(0).toUpperCase() + cat.slice(1)} guardados`,
-            value: c.fav + c.viewed,
-            icon: { anime: '📺', manga: '📖', novelas: '📝' }[cat] || '📋',
-            color: '#bc13fe'
-        }))
+        { label: 'Puntos acumulados', value: pts, icon: '⭐', color: '#f59e0b' }
     ];
 
     host.innerHTML = statItems.map(s => `
@@ -792,10 +822,50 @@ function renderStats() {
             <div class="stat-icon">${s.icon}</div>
             <div>
                 <div class="stat-value" style="color:${s.color}">${s.value}</div>
-                <div class="stat-label">${s.label}</div>
+                <div class="stat-label">${escapeHtml(s.label)}</div>
             </div>
         </div>
     `).join('');
+
+    if (!charts) return;
+
+    // ── Top géneros (barras) ──
+    const topGenres = Object.entries(genreCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([label, value]) => ({ label, value }));
+
+    // ── Distribución por tipo ──
+    const catColors = { anime: '#00f2ff', manga: '#bc13fe', novelas: '#f59e0b' };
+    const catRows = Object.entries(byCategory)
+        .filter(([, c]) => c.count > 0)
+        .sort((a, b) => b[1].count - a[1].count)
+        .map(([cat, c]) => ({
+            label: CATEGORY_LABELS[cat] || cat,
+            value: c.count,
+            color: catColors[cat] || '#a855f7'
+        }));
+
+    // ── Estados de seguimiento ──
+    const statusRows = [
+        { key: 'viendo', label: 'Viendo' },
+        { key: 'pendiente', label: 'Pendiente' },
+        { key: 'pausado', label: 'En pausa' },
+        { key: 'abandonado', label: 'Abandonado' }
+    ].filter(s => statusCounts[s.key] > 0)
+     .map(s => ({
+        label: s.label,
+        value: statusCounts[s.key],
+        color: (WSTATUS_BADGES[s.key] && WSTATUS_BADGES[s.key].color) || '#94a3b8'
+     }));
+
+    const chartsHtml =
+        renderBarChart('Tus géneros favoritos', topGenres, '#bc13fe') +
+        renderBarChart('Distribución por tipo', catRows, '#00f2ff') +
+        renderBarChart('Estados de seguimiento', statusRows, '#4d86ff');
+
+    charts.innerHTML = chartsHtml ||
+        '<p class="stat-label" style="text-align:center;padding:20px 0">Marcá contenido en tus listas para ver tu perfil de gustos.</p>';
 }
 
 // ─── Recomendaciones reales basadas en los géneros que mirás ───

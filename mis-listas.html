@@ -21,11 +21,11 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=ab14e44d">
+        <link rel="stylesheet" href="css/bundle.min.css?v=a59d54b6">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=ab14e44d">
+    <link rel="stylesheet" href="css/fonts.css?v=a59d54b6">
     <style>
         /* LAYOUT LISTAS */
         .lists-layout {
@@ -975,6 +975,60 @@
             font-family: 'Rajdhani', sans-serif;
         }
 
+        /* ◆ GRÁFICOS DE ESTADÍSTICAS ◆ */
+        .stats-charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+        .stat-chart-card {
+            background: rgba(var(--surface-card-rgb),0.8);
+            border: 1px solid rgba(var(--ink-rgb),0.08);
+            border-radius: 14px;
+            padding: 18px 20px;
+        }
+        .stat-chart-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            margin: 0 0 14px;
+            color: var(--text-main);
+        }
+        .stat-bars { display: flex; flex-direction: column; gap: 10px; }
+        .stat-bar-row {
+            display: grid;
+            grid-template-columns: 90px 1fr auto;
+            align-items: center;
+            gap: 10px;
+        }
+        .stat-bar-label {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.82rem;
+            color: rgba(var(--ink-rgb),0.75);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stat-bar-track {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(var(--ink-rgb),0.07);
+            overflow: hidden;
+        }
+        .stat-bar-fill {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.5s ease;
+        }
+        .stat-bar-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: rgba(var(--ink-rgb),0.85);
+            min-width: 24px;
+            text-align: right;
+        }
+
         /* ◆ CALENDARIO DE EMISIÓN ◆ */
         .calendar-grid { display: flex; flex-direction: column; gap: 22px; }
         .calendar-day-title {
@@ -1099,8 +1153,8 @@
 }
     </style>
 
-    <script src="js/vendor/lucide.min.js?v=ab14e44d" defer></script>
-    <script src="js/core/theme.js?v=ab14e44d"></script>
+    <script src="js/vendor/lucide.min.js?v=a59d54b6" defer></script>
+    <script src="js/core/theme.js?v=a59d54b6"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="listas" data-no-profile-strip="true">
@@ -1297,19 +1351,20 @@
                     <p class="lists-subtitle" data-i18n="lists.stats.subtitulo">Resumen de tu actividad en la app.</p>
                 </header>
                 <div id="statsGrid" class="stats-grid"></div>
+                <div id="statsCharts" class="stats-charts"></div>
             </div>
 
         </main>
     </div>
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=ab14e44d"></script>
-    <script src="js/core/i18n.js?v=ab14e44d"></script>
-    <script src="js/core/namespace.js?v=ab14e44d"></script>
-    <script type="module" src="api/supabase-config.js?v=ab14e44d" async></script>
-    <script src="js/core-bundle.min.js?v=ab14e44d" defer></script>
-    <script src="js/pages/mis-listas.js?v=ab14e44d" defer></script>
-    <script src="js/pages/mis-listas-logros.js?v=ab14e44d" defer></script>
-    <script src="js/pages/mis-listas-apodos.js?v=ab14e44d" defer></script>
-    <script src="js/pages/mis-listas-puntos.js?v=ab14e44d" defer></script>
+    <script src="js/core/config.js?v=a59d54b6"></script>
+    <script src="js/core/i18n.js?v=a59d54b6"></script>
+    <script src="js/core/namespace.js?v=a59d54b6"></script>
+    <script type="module" src="api/supabase-config.js?v=a59d54b6" async></script>
+    <script src="js/core-bundle.min.js?v=a59d54b6" defer></script>
+    <script src="js/pages/mis-listas.js?v=a59d54b6" defer></script>
+    <script src="js/pages/mis-listas-logros.js?v=a59d54b6" defer></script>
+    <script src="js/pages/mis-listas-apodos.js?v=a59d54b6" defer></script>
+    <script src="js/pages/mis-listas-puntos.js?v=a59d54b6" defer></script>
 </body>
 
