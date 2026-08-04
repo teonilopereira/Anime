@@ -235,9 +235,8 @@ No forman parte de la app de usuario; están excluidas del indexado en `robots.t
 | Archivo | Propósito |
 |---|---|
 | `index.html` | Hub de las visualizaciones. |
-| `segundo-cerebro.html` | Grafo de dominios/archivos (versión interactiva de `docs/segundo-cerebro.md`). |
-| `red-neuronal.html`, `red-neuronal-hud.html`, `red-neuronal-cerebro.html` | Variantes del grafo tipo red neuronal. |
-| `arbol-rpg.html`, `arbol-rpg-circular.html`, `arbol-habilidades.html`, `arbol-diagnostico.html` | Variantes de árbol de habilidades/diagnóstico. |
+| `segundo-cerebro.html` | Grafo de dominios/archivos con buscador (versión interactiva de `docs/segundo-cerebro.md`). |
+| `arbol-diagnostico.html` | Mapa de calor de riesgo: métricas reales (líneas, tests, fragilidad, churn) y buscador de funciones. |
 
 ---
 
