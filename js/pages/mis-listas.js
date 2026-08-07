@@ -200,10 +200,8 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
                 </a>
                 <div class="row-info">
                     <div class="row-title">${escapeHtml(item.titulo)}</div>
-                    <div class="row-desc">${icon} ${escapeHtml(category)}${item.info ? ' • ' : ''}${renderGenres(item.info)}</div>
-                </div>
-                <div class="row-status">
-                    ${badges}
+                    <div class="row-desc"><span class="row-cat">${icon} ${escapeHtml(category)}</span>${renderGenres(item.info)}</div>
+                    ${badges ? `<div class="row-status">${badges}</div>` : ''}
                 </div>
                 <div class="row-eps">
                     <div>${escapeHtml(String(item.total || item.episodes || item.chapters || item.volumes || '?'))}</div>
@@ -684,11 +682,9 @@ function renderActividad() {
                 </a>
                 <div class="row-info">
                     <div class="row-title">${title}</div>
-                    <div class="row-desc">${cat}${entry.info ? ' • ' : ''}${renderGenres(entry.info)}</div>
+                    <div class="row-desc"><span class="row-cat">${cat}</span>${renderGenres(entry.info)}</div>
+                    ${badges ? `<div class="row-status">${badges}</div>` : ''}
                     ${prog}
-                </div>
-                <div class="row-status">
-                    ${badges}
                 </div>
                 <div class="row-eps">
                     <div>${escapeHtml(String(entry.total || entry.episodes || entry.chapters || entry.volumes || '?'))}</div>
