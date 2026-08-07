@@ -1,7 +1,12 @@
 // ⚠️  ARCHIVO GENERADO AUTOMÁTICAMENTE — NO EDITAR MANUALMENTE
-// Generado por: tools/generate-config.js
-// Fuente:       .env  (excluido de Git)
-// Este archivo también está excluido de Git via .gitignore
+// Generado por: tools/generate-config.cjs  (fuente: .env, en local)
+//
+// Este archivo SÍ se versiona: el deploy publica los estáticos del repo sin
+// correr build, así que la app lo necesita en el árbol para arrancar.
+// Solo contiene la clave ANÓNIMA de Supabase (pública por diseño; el acceso a
+// los datos lo restringe RLS, ver server/schema.sql) y la clave VAPID pública.
+// No hay secretos reales acá. Para cambiar credenciales, editá .env y regenerá
+// con `node tools/generate-config.cjs`.
 
 (function (window) {
     "use strict";

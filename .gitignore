@@ -8,9 +8,14 @@
 .env.local
 .env.*.local
 
-# Archivo de config generado desde .env (contiene las credenciales reales).
-# Regeneralo con: node tools/generate-config.js
-js/core/config.js
+# NOTA sobre js/core/config.js:
+# Este archivo SÍ se versiona a propósito. El deploy (Netlify/Vercel) publica
+# los estáticos del repo sin correr build ni tener acceso al .env, así que la
+# app necesita config.js en el árbol para arrancar. Solo contiene la clave
+# ANÓNIMA de Supabase (pública por diseño: el acceso real lo restringe RLS,
+# ver server/schema.sql) y la clave VAPID pública. Ningún secreto real vive
+# acá. En local se puede regenerar desde .env con: node tools/generate-config.cjs
+# Por eso NO se ignora.
 
 # Schema SQL y drafts (estructura de DB no debe exponerse en repo público)
 server/sql.txt
