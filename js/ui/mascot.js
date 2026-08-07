@@ -804,7 +804,7 @@
     // Si el personaje trae proyectil, el efecto de corte se omite (ya voló el
     // sprite del proyectil desde startAttack) y solo se aplica la sacudida.
     function hitElement(t) {
-        if (!t || !t.el) return;
+        if (!t || !t.el || t.el.isConnected === false) return; // el rival ya se fue
         var el = t.el;
         el.classList.remove("mascot-hit");
         void el.offsetWidth;             // reinicia la animación de sacudida
@@ -843,11 +843,42 @@
         }
     }
 
+    // "Cerebro de duelo": mientras hay un rival, la mascota NO deambula por la
+    // página ni ataca cartas: encara al rival, lo esquiva, salta y —si sabe
+    // atacar— contraataca. Así los dos se mueven y pelean por la pantalla.
+    function duelBrain(ts) {
+        if (!rivalEl) { phys.tvx = 0; return; }
+        var rr = rivalEl.getBoundingClientRect();
+        var rcx = rr.left + rr.width / 2;
+        var cx = phys.x + phys.w / 2;
+        phys.face = rcx < cx ? -1 : 1;                 // siempre encara al rival
+        var dist = Math.abs(rcx - cx);
+        var r = Math.random();
+
+        // Contraataque: solo si esta mascota tiene animación de ataque y el rival
+        // está a tiro (si no sabe atacar, únicamente esquiva y aguanta).
+        if (hasAttack() && !attacking && dist < ATTACK_RANGE * 0.9 && ts - lastAttack > 2600 && r < 0.5) {
+            startAttack({ el: rivalEl, rect: rr, cx: rcx, cy: rr.top + rr.height / 2 }, ts);
+            return;
+        }
+        if (r < 0.32) {
+            walk(rcx < cx ? -1 : 1, rand(450, 950), ts);        // encara / se acerca
+        } else if (r < 0.60) {
+            walk(rcx < cx ? 1 : -1, rand(400, 850), ts);        // esquiva / retrocede
+            if (Math.random() < 0.45) jump(ts);
+        } else if (r < 0.80) {
+            jump(ts);                                           // salta para reposicionar
+            nextDecision = ts + 500;
+        } else {
+            phys.tvx = 0;                                       // aguanta un instante
+            nextDecision = ts + rand(500, 1000);
+        }
+    }
+
     // "Cerebro": decide la próxima acción cuando está parado y no está ocupado.
     function decide(ts) {
-        // Con un rival en pantalla, la mascota se planta a plantarle cara: no
-        // deambula ni ataca cartas mientras dura el duelo.
-        if (rivalActive) { phys.tvx = 0; return; }
+        // Con un rival en pantalla, se usa el cerebro de duelo (pelear y moverse).
+        if (rivalActive) { duelBrain(ts); return; }
 
         // Antes que nada: de vez en cuando, atacar un objeto cercano de la página.
         if (canAttack(ts)) {
@@ -1331,24 +1362,32 @@
     // ── Rival: un personaje sale de forma aleatoria y desafía a la mascota ──
     //
     // De vez en cuando, OTRO personaje del registro aparece por un borde de la
-    // pantalla, se acerca a la mascota fija y la ataca (golpe + marca de corte y
-    // proyectil si lo trae). La mascota se planta, lo mira y acusa el impacto.
+    // pantalla y se traba en un DUELO de unos minutos con la mascota fija: los
+    // dos se mueven por la pantalla (se persiguen, esquivan y saltan) mientras
+    // intercambian golpes (marca de corte y proyectil si lo traen). La mascota,
+    // si sabe atacar, también contraataca; si no, esquiva y acusa los golpes.
+    // Al terminar el duelo, el rival se va y la mascota vuelve a su paseo.
     //
     // REGLA PEDIDA: si el personaje elegido NO tiene habilidades de ataque (sin
     // animación 'attack'), no hay pelea — ni siquiera aparece. Así "si el
     // personaje no tiene habilidades de ataque, no se pelean".
-    var RIVAL_MIN_MS = 22000;   // espera mínima entre apariciones
-    var RIVAL_MAX_MS = 55000;   // espera máxima
-    var RIVAL_SPEED  = 132;     // px/s al acercarse / retirarse
-    var RIVAL_ATTACK_MS = 720;  // duración de cada golpe del rival
+    var RIVAL_MIN_MS = 45000;   // espera mínima entre apariciones (tras un duelo)
+    var RIVAL_MAX_MS = 90000;   // espera máxima
+    var RIVAL_DUEL_MIN = 120000; // duración mínima del duelo (~2 min)
+    var RIVAL_DUEL_MAX = 180000; // duración máxima del duelo (~3 min)
+    var RIVAL_SPEED  = 150;     // px/s al perseguir / retirarse
+    var RIVAL_ATTACK_MS = 640;  // duración de cada golpe del rival
     var RIVAL_GAP    = 26;      // holgura (px) entre rival y mascota al golpear
 
     var rivalEl = null, rivalSprite = null;
     var rivalChar = null, rivalAnims = null, rivalFrames = null, rivalMode = "frames";
     var rivalRAF = null, rivalLastT = 0;
     var rivalX = 0, rivalY = 0, rivalW = 72, rivalH = 66, rivalFace = 1;
-    var rivalState = "";        // "enter" | "attack" | "leave"
-    var rivalStateUntil = 0, rivalHitDone = false, rivalHitsLeft = 0;
+    var rivalState = "";        // "move" | "attack" | "leave"
+    var rivalStateUntil = 0, rivalHitDone = false;
+    var rivalGoalKind = "chase"; // "chase" (busca a la mascota) | "wander" (a un punto)
+    var rivalGoalX = 0;         // centro X objetivo cuando anda de wander
+    var rivalDuelUntil = 0;     // fin del duelo (timestamp): tras esto, se va
     var rivalAnimName = "", rivalAnimStart = 0, rivalLastKey = "";
     var rivalTimer = null;
 
@@ -1469,7 +1508,26 @@
         }
     }
 
-    // Bucle del rival: entra hacia la mascota, la golpea (1–2 veces) y se va.
+    // Elige la próxima maniobra del rival: perseguir a la mascota para golpearla
+    // o desplazarse a un punto al azar (para "moverse por la pantalla"). Cuando
+    // se acaba el tiempo del duelo, se retira.
+    function rivalChooseGoal(ts) {
+        if (ts >= rivalDuelUntil) { rivalState = "leave"; rivalLastKey = ""; return; }
+        if (Math.random() < 0.68) {
+            rivalGoalKind = "chase";
+        } else {
+            rivalGoalKind = "wander";
+            rivalGoalX = rand(MARGIN + rivalW / 2, window.innerWidth - MARGIN - rivalW / 2);
+        }
+        rivalState = "move";
+        rivalStateUntil = ts + rand(2200, 4800);   // tope por si nunca "llega"
+        rivalLastKey = "";
+    }
+
+    // Bucle del rival: dura unos minutos. Se mueve por la pantalla persiguiendo a
+    // la mascota y golpeándola una y otra vez; entre golpes deambula. Su altura
+    // sigue con suavidad a la de la mascota, así "se mueven" juntos (saltos,
+    // repisas). Al vencer el tiempo del duelo, se va por el borde más cercano.
     function rivalTick(ts) {
         if (!rivalEl) { rivalRAF = null; return; }
         rivalRAF = requestAnimationFrame(rivalTick);
@@ -1479,34 +1537,45 @@
 
         var mcx = mascotCenterX();
         var rcx = rivalX + rivalW / 2;
-        // La mascota se planta y mira al rival mientras dura el desafío.
-        if (phys) { phys.tvx = 0; phys.face = rcx < mcx ? 1 : -1; }
-        attentionUntil = ts + 400;
+        var reach = rivalW / 2 + RIVAL_GAP + (phys ? phys.w / 2 : 36);
 
-        if (rivalState === "enter") {
-            var dir = rcx < mcx ? 1 : -1;
+        // La altura del rival persigue con suavidad a la de la mascota (que puede
+        // saltar o treparse a cards): así el duelo recorre toda la pantalla.
+        if (rivalState !== "leave" && root) {
+            var mtop = root.getBoundingClientRect().top;
+            rivalY += (mtop - rivalY) * Math.min(1, dt * 6);
+        }
+
+        if (rivalState === "move") {
+            var goal = rivalGoalKind === "chase" ? mcx : rivalGoalX;
+            var dir = goal < rcx ? -1 : 1;
             rivalFace = dir;
             rivalX += dir * RIVAL_SPEED * dt;
             rivalDrawAnim("walk", ts);
-            var reach = rivalW / 2 + RIVAL_GAP + (phys ? phys.w / 2 : 36);
-            if (Math.abs((rivalX + rivalW / 2) - mcx) <= reach) rivalBeginAttack(ts);
+            if (rivalGoalKind === "chase") {
+                if (Math.abs(rcx - mcx) <= reach) rivalBeginAttack(ts);
+                else if (ts >= rivalStateUntil) rivalChooseGoal(ts); // no la alcanzó: replanifica
+            } else {
+                if (Math.abs(rcx - rivalGoalX) <= 10 || ts >= rivalStateUntil) rivalChooseGoal(ts);
+            }
         } else if (rivalState === "attack") {
             rivalDrawAnim("attack", ts);
             if (!rivalHitDone && ts >= rivalStateUntil - RIVAL_ATTACK_MS * 0.45) {
                 rivalHitDone = true;
                 mascotTakeHit();
             }
-            if (ts >= rivalStateUntil) {
-                rivalHitsLeft--;
-                if (rivalHitsLeft > 0) rivalBeginAttack(ts);
-                else { rivalState = "leave"; rivalLastKey = ""; }
-            }
+            if (ts >= rivalStateUntil) rivalChooseGoal(ts);
         } else if (rivalState === "leave") {
             var out = rcx < window.innerWidth / 2 ? -1 : 1; // sale por el borde más cercano
             rivalFace = out;
             rivalX += out * RIVAL_SPEED * dt;
             rivalDrawAnim("walk", ts);
             if (rivalX < -rivalW - 10 || rivalX > window.innerWidth + 10) { despawnRival(); return; }
+        }
+
+        // Recorta dentro de la ventana (salvo cuando ya se está yendo).
+        if (rivalState !== "leave") {
+            rivalX = Math.max(MARGIN - rivalW / 2, Math.min(rivalX, window.innerWidth - rivalW / 2 - MARGIN));
         }
         rivalPlace();
     }
@@ -1549,9 +1618,12 @@
         else rivalX = -rivalW - 8;                                        // mascota a la der → entra por la izq
         rivalFace = (rivalX + rivalW / 2) < mcx ? 1 : -1;
 
-        rivalHitsLeft = 1 + (Math.random() < 0.45 ? 1 : 0);
-        rivalState = "enter";
-        rivalStateUntil = 0; rivalHitDone = false;
+        // El duelo dura unos minutos; arranca persiguiendo a la mascota.
+        rivalDuelUntil = performance.now() + rand(RIVAL_DUEL_MIN, RIVAL_DUEL_MAX);
+        rivalGoalKind = "chase";
+        rivalState = "move";
+        rivalStateUntil = performance.now() + rand(2200, 4800);
+        rivalHitDone = false;
         rivalAnimName = ""; rivalLastKey = ""; rivalLastT = 0;
         rivalPlace();
         if (rivalRAF == null) rivalRAF = requestAnimationFrame(rivalTick);
