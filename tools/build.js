@@ -27,7 +27,7 @@ const SITE_URL = 'https://animedestiny.netlify.app';
 
 // Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
 // de busqueda). El resto se agrega solo, asi no hay que mantener una lista.
-const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'mascotas.html']);
+const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html']);
 
 /**
  * Verificacion de propiedad de Google Search Console (token del meta tag).
@@ -87,10 +87,11 @@ const JS_SOURCES = [
     'js/security/validator.js',
     'js/utils.js',
     'js/ui/toast.js',
-    // El registro de mascotas debe ir ANTES que mascot.js para que el personaje
-    // elegido esté disponible en todas las páginas (no solo en mascotas.html,
-    // que además lo carga suelto).
+    // Los registros de personajes deben ir ANTES que mascot.js para que el
+    // elegido esté disponible en todas las páginas (no solo en el selector, que
+    // además los carga sueltos).
     'js/ui/mascots.js',
+    'js/ui/characters.js',
     'js/ui/mascot.js',
     'js/catalog/states.js',
     'js/catalog/cards.js',

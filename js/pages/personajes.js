@@ -1,9 +1,9 @@
 /*
- * mascotas.js — Selector de mascota.
+ * personajes.js — Selector de personaje.
  *
- * Lee la lista de personajes de window.Mascot.listCharacters() (Rimuru + las
- * generadas con PixelLab que estén en window.MascotRegistry), pinta una tarjeta
- * por cada uno y, al tocar, cambia la mascota activa al instante con
+ * Lee la lista de personajes de window.Mascot.listCharacters() (Rimuru + los de
+ * window.MascotRegistry y window.CharacterRegistry), pinta una tarjeta por cada
+ * uno y, al tocar, cambia el personaje activo al instante con
  * Mascot.setCharacter(). La preferencia vive en localStorage 'pref:mascotChar'
  * (lo persiste el propio mascot.js).
  */
