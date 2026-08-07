@@ -295,6 +295,19 @@
     100%    { opacity: 0; }
 }
 
+/* Proyectil: el sprite del efecto de ataque del personaje (agua, fuego, rayo,
+   media luna...) que vuela desde la mascota hacia el objeto golpeado. La
+   posición y la transición hacia el blanco las fija mascot.js. */
+.mascot-projectile {
+    position: fixed;
+    z-index: var(--z-toast, 2000);
+    pointer-events: none;
+    height: auto;
+    will-change: transform, opacity;
+    image-rendering: auto;
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.35));
+}
+
 /* ── Accesibilidad / rendimiento: sin movimiento ── */
 .mascot-reduced .mascot-pet,
 .mascot-reduced .mascot-pet.mascot-talking {

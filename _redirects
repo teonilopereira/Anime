@@ -5,4 +5,9 @@
 # Antes decia "/* /index.html 200", que devolvia la portada con codigo 200 para
 # cualquier ruta rota. Eso dejaba 404.html sin usar y hacia que los buscadores
 # vieran infinitas URLs distintas con contenido identico (soft 404).
+
+# El selector de mascota paso a llamarse "personajes"; se conserva la URL vieja
+# con una redireccion permanente para no romper enlaces guardados.
+/mascotas.html /personajes.html 301
+
 /* /404.html 404

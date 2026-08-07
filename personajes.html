@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Elegí el personaje que te acompaña en Anime Destiny.">
+    <meta name="robots" content="noindex,follow">
+    <link rel="canonical" href="https://animedestiny.netlify.app/personajes.html">
+    <title>Anime Destiny | Elegí tu personaje</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+    <link rel="stylesheet" href="css/bundle.min.css?v=e932a718">
+    <link rel="stylesheet" href="css/personajes.css?v=e932a718">
+    <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/fonts.css?v=e932a718">
+    <script src="js/vendor/lucide.min.js?v=e932a718" defer></script>
+    <script src="js/core/theme.js?v=e932a718"></script>
+    <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
+</head>
+<body data-page="personajes">
+    <nav class="destiny-navbar">
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
+        <div class="nav-actions">
+            <div id="nav-login-container"></div>
+        </div>
+    </nav>
+
+    <main class="msc-page" id="main-content">
+        <header class="msc-page-header">
+            <h1 data-i18n="personajes.titulo">ELEGÍ TU PERSONAJE</h1>
+            <p data-i18n="personajes.subtitulo">Tocá un personaje para que te acompañe por la app.</p>
+        </header>
+        <p class="msc-note" data-i18n="personajes.nota">El cambio se aplica al instante y se guarda en este dispositivo.</p>
+
+        <div class="msc-grid" id="mscGrid" aria-live="polite"></div>
+
+        <p class="msc-note" style="margin-top:26px">
+            <a href="configuracion.html" data-i18n="personajes.volver">← Volver a configuración</a>
+        </p>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <div class="msc-toast" id="mscToast" role="status" aria-live="polite"></div>
+
+    <script src="js/core/config.js?v=e932a718"></script>
+    <script src="js/core/i18n.js?v=e932a718"></script>
+    <script src="js/core/constants.js?v=e932a718"></script>
+    <script src="js/core/namespace.js?v=e932a718"></script>
+    <script type="module" src="api/supabase-config.js?v=e932a718" async></script>
+    <script src="js/core/user-store.js?v=e932a718" defer></script>
+    <script src="js/core/auth.js?v=e932a718" defer></script>
+
+    <!-- Los registros de personajes deben cargarse ANTES que mascot.js -->
+    <script src="js/ui/mascots.js?v=e932a718" defer></script>
+    <script src="js/ui/characters.js?v=e932a718" defer></script>
+    <script src="js/ui/mascot.js?v=e932a718" defer></script>
+    <script src="js/pages/personajes.js?v=e932a718" defer></script>
+    <script src="js/core/common-ui.js?v=e932a718" defer></script>
+</body>
+</html>

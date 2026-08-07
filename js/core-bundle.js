@@ -2596,6 +2596,625 @@ window.MascotRegistry = [
 
 
 /* ========================================== */
+/* === FILE: js/ui/characters.js === */
+/* ========================================== */
+
+/**
+ * characters.js -- Registro de personajes seleccionables.
+ *
+ * GENERADO por tools/slice-characters.py a partir de las hojas de
+ * tools/character-sheets/. No editar a mano: se sobrescribe.
+ * mascot.js lee window.CharacterRegistry (ademas de MascotRegistry) y lo
+ * suma a la lista del selector.
+ *
+ * Cada entrada trae animaciones idle/walk/attack en modo 'frames' (una
+ * imagen por fotograma), normalizadas a un lienzo cuadrado con los pies
+ * anclados abajo-centro, y —si aplica— un 'projectile' con el efecto del
+ * ataque.
+ */
+window.CharacterRegistry = [
+    {
+        "id": "aurora",
+        "name": "Aurora",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/aurora/idle-0.png",
+                "images/mascots/aurora/idle-1.png",
+                "images/mascots/aurora/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/aurora/walk-0.png",
+                "images/mascots/aurora/walk-1.png",
+                "images/mascots/aurora/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/aurora/attack-0.png",
+                "images/mascots/aurora/attack-1.png",
+                "images/mascots/aurora/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 9
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/aurora/projectile.png"
+    },
+    {
+        "id": "escarlata",
+        "name": "Escarlata",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/escarlata/idle-0.png",
+                "images/mascots/escarlata/idle-1.png",
+                "images/mascots/escarlata/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/escarlata/walk-0.png",
+                "images/mascots/escarlata/walk-1.png",
+                "images/mascots/escarlata/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/escarlata/attack-0.png",
+                "images/mascots/escarlata/attack-1.png",
+                "images/mascots/escarlata/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 11
+            }
+        }
+    },
+    {
+        "id": "nix",
+        "name": "Nix",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/nix/idle-0.png",
+                "images/mascots/nix/idle-1.png",
+                "images/mascots/nix/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/nix/walk-0.png",
+                "images/mascots/nix/walk-1.png",
+                "images/mascots/nix/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/nix/attack-0.png",
+                "images/mascots/nix/attack-1.png",
+                "images/mascots/nix/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        }
+    },
+    {
+        "id": "corvina",
+        "name": "Corvina",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/corvina/idle-0.png",
+                "images/mascots/corvina/idle-1.png",
+                "images/mascots/corvina/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/corvina/walk-0.png",
+                "images/mascots/corvina/walk-1.png",
+                "images/mascots/corvina/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/corvina/attack-0.png",
+                "images/mascots/corvina/attack-1.png",
+                "images/mascots/corvina/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/corvina/projectile.png"
+    },
+    {
+        "id": "kitsune",
+        "name": "Kitsune",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/kitsune/idle-0.png",
+                "images/mascots/kitsune/idle-1.png",
+                "images/mascots/kitsune/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/kitsune/walk-0.png",
+                "images/mascots/kitsune/walk-1.png",
+                "images/mascots/kitsune/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/kitsune/attack-0.png",
+                "images/mascots/kitsune/attack-1.png",
+                "images/mascots/kitsune/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 9
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/kitsune/projectile.png"
+    },
+    {
+        "id": "vampi",
+        "name": "Vampi",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/vampi/idle-0.png",
+                "images/mascots/vampi/idle-1.png",
+                "images/mascots/vampi/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/vampi/walk-0.png",
+                "images/mascots/vampi/walk-1.png",
+                "images/mascots/vampi/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/vampi/attack-0.png",
+                "images/mascots/vampi/attack-1.png",
+                "images/mascots/vampi/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/vampi/projectile.png"
+    },
+    {
+        "id": "marea",
+        "name": "Marea",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/marea/idle-0.png",
+                "images/mascots/marea/idle-1.png",
+                "images/mascots/marea/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/marea/walk-0.png",
+                "images/mascots/marea/walk-1.png",
+                "images/mascots/marea/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/marea/attack-0.png",
+                "images/mascots/marea/attack-1.png",
+                "images/mascots/marea/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 9
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/marea/projectile.png"
+    },
+    {
+        "id": "infernal",
+        "name": "Infernal",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/infernal/idle-0.png",
+                "images/mascots/infernal/idle-1.png",
+                "images/mascots/infernal/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/infernal/walk-0.png",
+                "images/mascots/infernal/walk-1.png",
+                "images/mascots/infernal/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/infernal/attack-0.png",
+                "images/mascots/infernal/attack-1.png",
+                "images/mascots/infernal/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/infernal/projectile.png"
+    },
+    {
+        "id": "kurenai",
+        "name": "Kurenai",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/kurenai/idle-0.png",
+                "images/mascots/kurenai/idle-1.png",
+                "images/mascots/kurenai/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/kurenai/walk-0.png",
+                "images/mascots/kurenai/walk-1.png",
+                "images/mascots/kurenai/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/kurenai/attack-0.png",
+                "images/mascots/kurenai/attack-1.png",
+                "images/mascots/kurenai/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 6
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 11
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/kurenai/projectile.png"
+    },
+    {
+        "id": "kazuha",
+        "name": "Kazuha",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/kazuha/idle-0.png",
+                "images/mascots/kazuha/idle-1.png",
+                "images/mascots/kazuha/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/kazuha/walk-0.png",
+                "images/mascots/kazuha/walk-1.png",
+                "images/mascots/kazuha/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/kazuha/attack-0.png",
+                "images/mascots/kazuha/attack-1.png",
+                "images/mascots/kazuha/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 6
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 11
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/kazuha/projectile.png"
+    },
+    {
+        "id": "diablilla",
+        "name": "Diablilla",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/diablilla/idle-0.png",
+                "images/mascots/diablilla/idle-1.png",
+                "images/mascots/diablilla/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/diablilla/walk-0.png",
+                "images/mascots/diablilla/walk-1.png",
+                "images/mascots/diablilla/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/diablilla/attack-0.png",
+                "images/mascots/diablilla/attack-1.png",
+                "images/mascots/diablilla/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/diablilla/projectile.png"
+    },
+    {
+        "id": "valkiria",
+        "name": "Valkiria",
+        "anime": "Personaje",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/valkiria/idle-0.png",
+                "images/mascots/valkiria/idle-1.png",
+                "images/mascots/valkiria/idle-2.png"
+            ],
+            "walk": [
+                "images/mascots/valkiria/walk-0.png",
+                "images/mascots/valkiria/walk-1.png",
+                "images/mascots/valkiria/walk-2.png"
+            ],
+            "attack": [
+                "images/mascots/valkiria/attack-0.png",
+                "images/mascots/valkiria/attack-1.png",
+                "images/mascots/valkiria/attack-2.png"
+            ]
+        },
+        "anims": {
+            "idle": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 5
+            },
+            "walk": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 10
+            },
+            "attack": {
+                "f": [
+                    0,
+                    1,
+                    2
+                ],
+                "fps": 12
+            }
+        },
+        "projectile": "images/mascots/valkiria/projectile.png"
+    }
+];
+
+
+/* ========================================== */
 /* === FILE: js/ui/mascot.js === */
 /* ========================================== */
 
@@ -2707,7 +3326,14 @@ window.MascotRegistry = [
         id: "rimuru", name: "Rimuru", anime: "Tensei Slime",
         mode: "sheet", src: SHEET_SRC, cols: SHEET_COLS, rows: SHEET_ROWS, anims: ANIMS
     };
-    function registry() { return Array.isArray(window.MascotRegistry) ? window.MascotRegistry : []; }
+    // Personajes seleccionables: los históricos de window.MascotRegistry
+    // (js/ui/mascots.js) más los de window.CharacterRegistry (js/ui/characters.js,
+    // generado por tools/slice-characters.py). Se concatenan en un único listado.
+    function registry() {
+        var m = Array.isArray(window.MascotRegistry) ? window.MascotRegistry : [];
+        var c = Array.isArray(window.CharacterRegistry) ? window.CharacterRegistry : [];
+        return m.concat(c);
+    }
     function allChars() { return [RIMURU].concat(registry()); }
     function readChar() { try { return localStorage.getItem(CHAR_KEY) || "rimuru"; } catch (_) { return "rimuru"; } }
     function findChar(id) {
@@ -2719,6 +3345,9 @@ window.MascotRegistry = [
     // Modo de render y, en modo 'frames', las listas de imágenes por animación.
     var MASCOT_MODE = "sheet";
     var FRAME_IMGS = null;
+    // Ruta del sprite de proyectil del personaje activo (si trae 'attack' con
+    // efecto propio); "" cuando no tiene y el golpe usa la marca de corte CSS.
+    var MASCOT_PROJECTILE = "";
 
     // Deriva un mapa ANIMS (índice+fps por estado) desde las listas de frames.
     function framesToAnims(f) {
@@ -2739,6 +3368,7 @@ window.MascotRegistry = [
     // en el DOM, repinta al vuelo (permite cambiar de mascota sin recargar).
     function applyChar(id) {
         var c = findChar(id);
+        MASCOT_PROJECTILE = c.projectile || "";
         MASCOT_MODE = c.mode === "frames" ? "frames" : "sheet";
         if (MASCOT_MODE === "frames") {
             FRAME_IMGS = c.frames || {};
@@ -3267,8 +3897,20 @@ window.MascotRegistry = [
     // ── Ataque a objetos de la página ──────────────────────────────────────
     // Frases al atacar, según el personaje activo.
     var ATTACK_LINES = {
-        ichigo:   ["¡Getsuga Tenshō! ⚔️", "¡Toma esto!", "¡Hyah!"],
-        kenpachi: ["¡A cortar! ⚔️", "¡Nada mal!", "¡Toma esto!"]
+        ichigo:    ["¡Getsuga Tenshō! ⚔️", "¡Toma esto!", "¡Hyah!"],
+        kenpachi:  ["¡A cortar! ⚔️", "¡Nada mal!", "¡Toma esto!"],
+        aurora:    ["¡Destello floral! 🌸", "¡Brilla!", "¡Hyah!"],
+        escarlata: ["¡Tormenta escarlata! 🌪️", "¡No escaparás!", "¡Toma!"],
+        nix:       ["¡Fuego cruzado! 🔫", "¡A cubierto!", "¡Bang!"],
+        corvina:   ["¡Descarga! ⚡", "¡Se acabó!", "¡Toma esto!"],
+        kitsune:   ["¡Fuego zorruno! 🦊", "¡Kon!", "¡Ardé!"],
+        vampi:     ["¡Zarpazo nocturno! 🦇", "¡Sangre!", "¡Hyah!"],
+        marea:     ["¡Marea alta! 🌊", "¡Ola va!", "¡Splash!"],
+        infernal:  ["¡Llama infernal! 🔥", "¡Ardé!", "¡Toma esto!"],
+        kurenai:   ["¡Corte carmesí! ⚔️", "¡Silencio!", "¡Hyah!"],
+        kazuha:    ["¡Filo del viento! 🍃", "¡Rápido como el viento!", "¡Toma!"],
+        diablilla: ["¡Travesura! 😈", "¡Jiji!", "¡Toma esto!"],
+        valkiria:  ["¡Alas de guerra! 🪽", "¡Cae!", "¡Hyah!"]
     };
     function attackLine() {
         return pick(ATTACK_LINES[readChar()] || ["¡Hyah!"]);
@@ -3327,10 +3969,52 @@ window.MascotRegistry = [
         if (phys.ground) phys.vx = dir * WALK * 1.1;   // impulso hacia el blanco
         nextDecision = attackUntil + 300;
         attentionUntil = Math.max(attentionUntil, attackUntil); // no deambular durante el golpe
+        // El proyectil sale un instante después (deja ver la pose de ataque) y
+        // aterriza justo cuando se aplica el impacto (a ~55% de la animación).
+        if (MASCOT_PROJECTILE) {
+            var travel = ATTACK_MS * 0.45;
+            setTimeout(function () { launchProjectile(t, travel); }, ATTACK_MS * 0.1);
+        }
         if (Math.random() < 0.5) speak(attackLine(), "happy");
     }
 
+    // Lanza el sprite de proyectil del personaje activo desde donde está la
+    // mascota hacia el blanco. Vuela durante 'travelMs' y se autodestruye. Solo
+    // se usa cuando el personaje trae 'projectile'; si no, el golpe se resuelve
+    // con la marca de corte CSS en hitElement.
+    function launchProjectile(t, travelMs) {
+        if (!MASCOT_PROJECTILE || !t || reducedMotion() || !root) return;
+        var from = root.getBoundingClientRect();
+        var sx = from.left + from.width / 2;
+        var sy = from.top + from.height * 0.45;   // a la altura de las manos
+        var tx = t.cx, ty = t.cy;
+        var ang = Math.atan2(ty - sy, tx - sx) * 180 / Math.PI;
+        var size = Math.min(Math.max(from.width * 0.9, 46), 120);
+
+        var img = document.createElement("img");
+        img.className = "mascot-projectile";
+        img.src = MASCOT_PROJECTILE;
+        img.setAttribute("aria-hidden", "true");
+        img.style.width = size + "px";
+        img.style.left = (sx - size / 2) + "px";
+        img.style.top = (sy - size / 2) + "px";
+        // El sprite mira a la derecha; se voltea si el blanco está a la izquierda
+        // y se orienta hacia él.
+        var flip = tx < sx ? -1 : 1;
+        img.style.transform = "translate3d(0,0,0) rotate(" + ang + "deg) scaleX(" + flip + ")";
+        document.body.appendChild(img);
+
+        // Fuerza reflow y arranca la transición hacia el blanco.
+        void img.offsetWidth;
+        img.style.transition = "transform " + travelMs + "ms cubic-bezier(0.35,0.15,0.6,1), opacity " + travelMs + "ms ease-in";
+        img.style.transform = "translate3d(" + (tx - sx) + "px," + (ty - sy) + "px,0) rotate(" + ang + "deg) scaleX(" + flip + ")";
+        setTimeout(function () { img.style.opacity = "0"; }, Math.max(0, travelMs - 90));
+        setTimeout(function () { img.remove(); }, travelMs + 140);
+    }
+
     // Impacto: sacude el elemento golpeado y dibuja una marca de corte encima.
+    // Si el personaje trae proyectil, el efecto de corte se omite (ya voló el
+    // sprite del proyectil desde startAttack) y solo se aplica la sacudida.
     function hitElement(t) {
         if (!t || !t.el) return;
         var el = t.el;
@@ -3340,6 +4024,7 @@ window.MascotRegistry = [
         setTimeout(function () { el.classList.remove("mascot-hit"); }, 520);
 
         if (reducedMotion()) return;     // sin efectos extra con movimiento reducido
+        if (MASCOT_PROJECTILE) return;   // el golpe ya lo marca el proyectil
         var r = el.getBoundingClientRect();
         var size = Math.min(Math.max(Math.min(r.width, r.height) * 0.9, 60), 190);
         var slash = document.createElement("div");
@@ -6509,7 +7194,7 @@ async function inicializarPagina() {
     if (!mainContainer) return;
     const categoria = document.body.getAttribute("data-page");
     // Páginas que NO son catálogo: no deben ser sobreescritas por el catálogo.
-    if (["listas", "top", "ranking", "comparar", "detalle", "index", "usuario", "configuracion", "login", "personaje", "mascotas"].indexOf(categoria) !== -1) return;
+    if (["listas", "top", "ranking", "comparar", "detalle", "index", "usuario", "configuracion", "login", "personaje", "personajes"].indexOf(categoria) !== -1) return;
     currentPage = 1;
     const usaCatalogoApi = categoria === "anime" || categoria === "manga" || categoria === "novelas";
 
