@@ -1,11 +1,16 @@
 /**
- * generate-config.js
+ * generate-config.cjs
  * ─────────────────────────────────────────────────────────────────
- * Lee las credenciales del .env y genera js/core/config.js
- * con los valores reales (este archivo generado NO se sube a Git).
+ * Lee las credenciales del .env y genera js/core/config.js.
+ *
+ * IMPORTANTE: config.js SÍ se versiona (ver .gitignore). El deploy publica los
+ * estáticos del repo sin correr build ni tener el .env, así que la app necesita
+ * config.js commiteado. Este script es solo para (re)generarlo en local cuando
+ * cambian las credenciales. La única clave que contiene es la ANÓNIMA de
+ * Supabase, pública por diseño (RLS restringe el acceso real).
  *
  * Uso:
- *   node tools/generate-config.js
+ *   node tools/generate-config.cjs
  *
  * El archivo .env debe tener:
  *   VITE_SUPABASE_URL="https://xxxx.supabase.co"
@@ -67,9 +72,14 @@ if (!SUPABASE_URL || !SUPABASE_ANON) {
 const outputPath = path.join(ROOT, "js", "core", "config.js");
 
 const output = `// ⚠️  ARCHIVO GENERADO AUTOMÁTICAMENTE — NO EDITAR MANUALMENTE
-// Generado por: tools/generate-config.js
-// Fuente:       .env  (excluido de Git)
-// Este archivo también está excluido de Git via .gitignore
+// Generado por: tools/generate-config.cjs  (fuente: .env, en local)
+//
+// Este archivo SÍ se versiona: el deploy publica los estáticos del repo sin
+// correr build, así que la app lo necesita en el árbol para arrancar.
+// Solo contiene la clave ANÓNIMA de Supabase (pública por diseño; el acceso a
+// los datos lo restringe RLS, ver server/schema.sql) y la clave VAPID pública.
+// No hay secretos reales acá. Para cambiar credenciales, editá .env y regenerá
+// con \`node tools/generate-config.cjs\`.
 
 (function (window) {
     "use strict";
