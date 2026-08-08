@@ -7917,32 +7917,27 @@ window.addEventListener("supabase-auth-changed", function () {
     };
 
     /**
-     * Retraer la navbar al bajar y devolverla al subir.
+     * Cerrar el desplegable "Más" al hacer scroll.
      *
-     * La barra mide 76px y esta sticky: en una ficha larga o en el catalogo se
-     * come esa franja de pantalla todo el tiempo. Ahora se esconde cuando el
-     * lector va hacia abajo y vuelve apenas hace el gesto de subir, que es
-     * cuando la va a necesitar.
+     * La navbar superior NO se contrae ni se esconde: queda siempre visible a su
+     * alto normal. Lo único que "se contrae" con el scroll es el botón "Más": si
+     * su desplegable quedó abierto y el lector empieza a moverse por la página,
+     * se cierra para no seguir tapando lo que se está leyendo.
      *
-     * `is-scrolled` (compactar el padding) ya estaba escrita en el CSS pero
-     * nadie la encendia: la barra se veia siempre igual de alta.
-     *
-     * Solo en desktop: por debajo de 700px la navbar de arriba ya vive fuera de
-     * pantalla y la maneja el boton "Mas" del bottom nav, asi que meterle un
-     * translate por scroll la dejaria peleando consigo misma.
+     * Solo aplica en desktop: por debajo de 700px la navbar de arriba vive fuera
+     * de pantalla y el "Más" lo maneja el bottom nav.
      */
-    const wireNavAutoHide = () => {
+    const wireNavMoreAutoClose = () => {
         const nav = document.querySelector('.destiny-navbar');
         if (!nav) return;
 
         const esMobile = () => window.matchMedia('(max-width: 700px)').matches;
 
-        // Umbral de arranque: por debajo de esto la barra no se esconde nunca.
-        // Sin el, el rebote elastico del final de la pagina o un scroll de dos
-        // pixeles ya la hacian parpadear.
-        const INICIO = 120;
-        const MINIMO_GESTO = 8;
+        // La barra nunca queda contraída/escondida: limpiamos cualquier resto de
+        // esos estados por si una versión previa los dejó puestos.
+        nav.classList.remove('is-hidden', 'is-scrolled');
 
+        const MINIMO_GESTO = 8;
         let ultimo = window.scrollY;
         let pendiente = false;
 
@@ -7950,28 +7945,15 @@ window.addEventListener("supabase-auth-changed", function () {
             pendiente = false;
             const y = Math.max(0, window.scrollY);
             const delta = y - ultimo;
+            ultimo = y;
 
-            if (esMobile()) {
-                nav.classList.remove('is-hidden', 'is-scrolled');
-                ultimo = y;
-                return;
-            }
-
-            nav.classList.toggle('is-scrolled', y > 10);
-
+            if (esMobile()) return;
             if (Math.abs(delta) < MINIMO_GESTO) return;
 
-            // El desplegable "Más" abierto tapa el contenido de abajo. Al hacer
-            // scroll se cierra: asi deja de cubrir lo que se esta leyendo y la
-            // barra puede retraerse sin arrastrarlo puesto.
+            // Único efecto del scroll sobre la barra: cerrar el desplegable "Más".
             if (nav.querySelector('.nav-more.is-open') && typeof window.__navMoreClose === 'function') {
                 window.__navMoreClose();
             }
-
-            const bajando = delta > 0 && y > INICIO;
-            nav.classList.toggle('is-hidden', bajando);
-
-            ultimo = y;
         };
 
         // El handler corre en cada frame como mucho: el evento de scroll se
@@ -7981,20 +7963,6 @@ window.addEventListener("supabase-auth-changed", function () {
             pendiente = true;
             requestAnimationFrame(evaluar);
         }, { passive: true });
-
-        // Con el teclado el foco puede caer en un item tapado por la barra
-        // retraida; si el foco entra a la navbar, se muestra.
-        nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
-
-        // Arranca retraida desde el principio (solo en desktop): la barra queda
-        // escondida hacia arriba al cargar y vuelve apenas el lector hace el
-        // gesto de subir. En mobile la barra superior ya vive fuera de pantalla,
-        // asi que ahi no se toca.
-        if (!esMobile()) {
-            nav.classList.add('is-hidden');
-        }
-
-        evaluar();
     };
 
     // ── MOBILE BOTTOM NAV ──
@@ -8369,7 +8337,7 @@ window.addEventListener("supabase-auth-changed", function () {
     ensureMainTarget();
     injectNavBrand();
     injectNavLinks();
-    wireNavAutoHide();
+    wireNavMoreAutoClose();
     injectMobileBottomNav();
     injectLoginButton();
     injectFooter();
