@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-40a434ea';
+const CACHE_NAME = 'anime-destiny-33e733f0';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
