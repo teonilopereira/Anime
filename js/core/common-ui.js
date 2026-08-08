@@ -250,6 +250,14 @@
         // retraida; si el foco entra a la navbar, se muestra.
         nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
 
+        // Arranca retraida desde el principio (solo en desktop): la barra queda
+        // escondida hacia arriba al cargar y vuelve apenas el lector hace el
+        // gesto de subir. En mobile la barra superior ya vive fuera de pantalla,
+        // asi que ahi no se toca.
+        if (!esMobile()) {
+            nav.classList.add('is-hidden');
+        }
+
         evaluar();
     };
 
