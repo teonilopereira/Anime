@@ -3364,10 +3364,29 @@ window.CharacterRegistry = [
         return out;
     }
 
+    // Precarga en caché todas las imágenes de un personaje (idle/walk/attack) y
+    // su proyectil. En modo 'frames' cada fotograma es una imagen distinta que se
+    // asigna a background-image; si no está cacheada, al cambiar de fotograma se
+    // ve un parpadeo (el sprite "desaparece" un instante hasta que carga). Al
+    // precargarlas, el cambio de fotograma es inmediato y el sprite no desaparece.
+    var _preloaded = {};
+    function preloadFrames(c) {
+        if (!c || c.mode !== "frames" || !c.frames || _preloaded[c.id]) return;
+        _preloaded[c.id] = true;
+        var f = c.frames, urls = [];
+        for (var k in f) {
+            if (!f.hasOwnProperty(k) || !f[k] || !f[k].length) continue;
+            for (var i = 0; i < f[k].length; i++) urls.push(f[k][i]);
+        }
+        if (c.projectile) urls.push(c.projectile);
+        for (var j = 0; j < urls.length; j++) { var im = new Image(); im.src = urls[j]; }
+    }
+
     // Aplica un personaje: fija modo, hoja/frames y ANIMS. Si el sprite ya existe
     // en el DOM, repinta al vuelo (permite cambiar de mascota sin recargar).
     function applyChar(id) {
         var c = findChar(id);
+        preloadFrames(c);           // evita el parpadeo al cambiar de fotograma
         MASCOT_PROJECTILE = c.projectile || "";
         MASCOT_MODE = c.mode === "frames" ? "frames" : "sheet";
         if (MASCOT_MODE === "frames") {
@@ -4051,6 +4070,9 @@ window.CharacterRegistry = [
     // Avanza el golpe en curso: aplica el impacto a mitad de la animación (una
     // sola vez) y lo termina cuando vence su tiempo.
     function stepAttack(ts) {
+        // Durante un duelo con rival, el ataque de la mascota lo gobierna el
+        // subsistema Rival (por turnos); acá no tocamos nada para no cortarlo.
+        if (rivalActive) return;
         if (!attacking) return;
         if (!attackHit && ts >= attackUntil - ATTACK_MS * 0.45) {
             attackHit = true;
@@ -4548,30 +4570,77 @@ window.CharacterRegistry = [
         });
     }
 
-    // ── Rival: un personaje sale de forma aleatoria y desafía a la mascota ──
+    // ── Estadísticas de combate por personaje ──────────────────────────────
+    // Cada personaje pega distinto: 'atk' es el daño que INFLIGE (y, por tanto,
+    // el que su oponente RECIBE cuando este personaje golpea) y 'hp' su vida. Así
+    // "el daño que recibe es diferente según cada personaje". Los ids sin entrada
+    // caen a un valor derivado del nombre (estable y variado) para que no queden
+    // todos iguales.
+    var CHAR_STATS = {
+        rimuru:    { atk: 15, hp: 120 },
+        ichigo:    { atk: 22, hp: 100 },
+        kenpachi:  { atk: 27, hp: 110 },
+        aurora:    { atk: 12, hp:  92 },
+        escarlata: { atk: 18, hp:  96 },
+        nix:       { atk: 21, hp:  80 },
+        corvina:   { atk: 19, hp:  86 },
+        kitsune:   { atk: 16, hp:  90 },
+        vampi:     { atk: 17, hp:  94 },
+        marea:     { atk: 15, hp: 102 },
+        infernal:  { atk: 24, hp:  90 },
+        kurenai:   { atk: 21, hp:  86 },
+        kazuha:    { atk: 18, hp:  88 },
+        diablilla: { atk: 13, hp:  82 },
+        valkiria:  { atk: 23, hp: 106 }
+    };
+    function hashId(s) {
+        var h = 0; s = String(s || "");
+        for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+        return Math.abs(h);
+    }
+    function statFor(id) {
+        var s = CHAR_STATS[id];
+        if (s) return s;
+        var h = hashId(id);
+        return { atk: 12 + (h % 12), hp: 80 + (h % 5) * 10 };
+    }
+    // Daño de un golpe de `id` con una pizca de variación (nunca menos de 1).
+    function dmgFrom(id) {
+        return Math.max(1, Math.round(statFor(id).atk * rand(0.82, 1.18)));
+    }
+
+    // ── Rival: un personaje sale de forma aleatoria y DUELA con la mascota ──
     //
     // De vez en cuando, OTRO personaje del registro aparece por un borde de la
-    // pantalla, se acerca a la mascota fija y la ataca (golpe + marca de corte y
-    // proyectil si lo trae). La mascota se planta, lo mira y acusa el impacto.
+    // pantalla, se acerca a la mascota fija y pelean POR TURNOS "de dos lados":
+    // uno golpea, el otro contraataca, y así hasta que a alguno se le acaba la
+    // vida (KO) o se agotan las rondas (gana quien tenga más vida). Cada golpe
+    // resta vida según el ataque del que pega, y ambos muestran su barra de vida.
     //
-    // REGLA PEDIDA: si el personaje elegido NO tiene habilidades de ataque (sin
-    // animación 'attack'), no hay pelea — ni siquiera aparece. Así "si el
-    // personaje no tiene habilidades de ataque, no se pelean".
+    // REGLA: si el personaje elegido NO tiene habilidades de ataque (sin
+    // animación 'attack'), no hay pelea — ni siquiera aparece.
     var RIVAL_MIN_MS = 22000;   // espera mínima entre apariciones
     var RIVAL_MAX_MS = 55000;   // espera máxima
-    var RIVAL_SPEED  = 132;     // px/s al acercarse / retirarse
-    var RIVAL_ATTACK_MS = 900;  // duración de cada golpe del rival
-    var RIVAL_HIT_GAP_MS = 260; // pausa entre golpe y golpe (respira la pelea)
-    var RIVAL_GAP    = 26;      // holgura (px) entre rival y mascota al golpear
+    var RIVAL_SPEED  = 150;     // px/s al acercarse / retirarse
+    var RIVAL_ATTACK_MS = 620;  // duración de cada golpe (más ágil = más fluido)
+    var RIVAL_HIT_GAP_MS = 300; // pausa entre turnos (respira la pelea)
+    var RIVAL_GAP    = 30;      // holgura (px) entre rival y mascota al golpear
+    var RIVAL_MAX_ROUNDS = 24;  // tope de medios-turnos (evita duelos eternos)
 
     var rivalEl = null, rivalSprite = null;
     var rivalChar = null, rivalAnims = null, rivalFrames = null, rivalMode = "frames";
     var rivalRAF = null, rivalLastT = 0;
     var rivalX = 0, rivalY = 0, rivalW = 72, rivalH = 66, rivalFace = 1;
-    var rivalState = "";        // "enter" | "attack" | "leave"
-    var rivalStateUntil = 0, rivalHitDone = false, rivalHitsLeft = 0;
+    var rivalState = "";        // "enter" | "attack" | "recover" | "ko" | "leave"
+    var rivalStateUntil = 0, rivalHitDone = false;
     var rivalAnimName = "", rivalAnimStart = 0, rivalLastKey = "";
     var rivalTimer = null;
+    // Estado del duelo por turnos.
+    var duelTurn = "rival";     // quién pega en el turno actual: "rival" | "mascot"
+    var duelRounds = 0;         // medios-turnos restantes antes del tope
+    var rivalHP = 0, rivalHPMax = 1, mascotHP = 0, mascotHPMax = 1;
+    // Barras de vida (una por combatiente), creadas al iniciar el duelo.
+    var hpWrapM = null, hpFillM = null, hpWrapR = null, hpFillR = null;
 
     // ¿Este personaje sabe atacar? Devuelve su mapa ANIMS si trae 'attack', o
     // null si no. Es la comprobación que decide si hay pelea o no.
@@ -4600,7 +4669,7 @@ window.CharacterRegistry = [
             (rows > 1 ? (row / (rows - 1)) * 100 : 0) + "%";
     }
 
-    // Anima el rival según su estado (walk/attack) recorriendo su animación.
+    // Anima el rival según su estado (walk/attack/idle) recorriendo su animación.
     function rivalDrawAnim(name, ts) {
         var a = (rivalAnims && rivalAnims[name]) || (rivalAnims && rivalAnims.idle) || { f: [0], fps: 1 };
         if (name !== rivalAnimName) { rivalAnimName = name; rivalAnimStart = ts; }
@@ -4622,6 +4691,57 @@ window.CharacterRegistry = [
         if (phys) return phys.x + phys.w / 2;
         if (root) { var r = root.getBoundingClientRect(); return r.left + r.width / 2; }
         return window.innerWidth / 2;
+    }
+
+    // ── Barras de vida y números de daño ───────────────────────────────────
+    function makeHpBar() {
+        var wrap = document.createElement("div");
+        wrap.className = "mascot-hpbar";
+        wrap.setAttribute("aria-hidden", "true");
+        var fill = document.createElement("div");
+        fill.className = "mascot-hpbar-fill";
+        wrap.appendChild(fill);
+        document.body.appendChild(wrap);
+        return { wrap: wrap, fill: fill };
+    }
+    function hpColor(r) { return r > 0.5 ? "#39d98a" : (r > 0.25 ? "#ffb020" : "#ff4d4d"); }
+    function updateHpBars() {
+        if (hpFillM) {
+            var rm = mascotHPMax ? mascotHP / mascotHPMax : 0;
+            hpFillM.style.width = (rm * 100) + "%";
+            hpFillM.style.background = hpColor(rm);
+        }
+        if (hpFillR) {
+            var rr = rivalHPMax ? rivalHP / rivalHPMax : 0;
+            hpFillR.style.width = (rr * 100) + "%";
+            hpFillR.style.background = hpColor(rr);
+        }
+    }
+    // Coloca las barras justo encima de cada combatiente (siguen su posición).
+    function layoutBars() {
+        if (hpWrapR && rivalEl) {
+            hpWrapR.style.left = (rivalX + rivalW * 0.12) + "px";
+            hpWrapR.style.top = (rivalY - 12) + "px";
+            hpWrapR.style.width = (rivalW * 0.76) + "px";
+        }
+        if (hpWrapM && root) {
+            var mr = root.getBoundingClientRect();
+            hpWrapM.style.left = (mr.left + mr.width * 0.12) + "px";
+            hpWrapM.style.top = (mr.top - 12) + "px";
+            hpWrapM.style.width = (mr.width * 0.76) + "px";
+        }
+    }
+    // Número de daño flotante ("-N") sobre el combatiente golpeado.
+    function floatDamage(x, y, dmg) {
+        if (reducedMotion()) return;
+        var d = document.createElement("div");
+        d.className = "mascot-dmg";
+        d.setAttribute("aria-hidden", "true");
+        d.textContent = "-" + dmg;
+        d.style.left = x + "px";
+        d.style.top = y + "px";
+        d.addEventListener("animationend", function () { d.remove(); });
+        document.body.appendChild(d);
     }
 
     // Lanza el proyectil del rival (si lo trae) desde el rival hacia la mascota.
@@ -4649,14 +4769,20 @@ window.CharacterRegistry = [
         setTimeout(function () { img.remove(); }, travelMs + 140);
     }
 
-    // Marca de corte sobre la mascota fija al recibir el golpe.
-    function slashOverMascot() {
-        if (!root || reducedMotion()) return;
-        var r = root.getBoundingClientRect();
+    // El proyectil de la MASCOTA hacia el rival (reusa launchProjectile con un
+    // blanco falso en el centro del rival).
+    function mascotDuelProjectile() {
+        if (!MASCOT_PROJECTILE || !rivalEl || reducedMotion()) return;
+        launchProjectile({ cx: rivalX + rivalW / 2, cy: rivalY + rivalH * 0.45, el: null }, RIVAL_ATTACK_MS * 0.45);
+    }
+
+    // Marca de corte genérica centrada en un rect (mascota o rival).
+    function slashOver(r, color) {
+        if (reducedMotion() || !r) return;
         var size = Math.min(Math.max(Math.min(r.width, r.height) * 1.1, 60), 190);
         var slash = document.createElement("div");
         slash.className = "mascot-slash";
-        slash.style.setProperty("--slash-color", (rivalChar && rivalChar.id === "ichigo") ? "#ff2d55" : "#eafff8");
+        slash.style.setProperty("--slash-color", color);
         slash.style.left = (r.left + r.width / 2 - size / 2) + "px";
         slash.style.top = (r.top + r.height / 2 - size / 2) + "px";
         slash.style.width = size + "px"; slash.style.height = size + "px";
@@ -4664,33 +4790,110 @@ window.CharacterRegistry = [
         slash.addEventListener("animationend", function () { slash.remove(); });
         document.body.appendChild(slash);
     }
+    function slashColorFor(id) { return id === "ichigo" ? "#ff2d55" : "#eafff8"; }
+    function slashOverMascot() {
+        if (!root) return;
+        slashOver(root.getBoundingClientRect(), slashColorFor(rivalChar && rivalChar.id));
+    }
+    function slashOverRival() {
+        if (!rivalEl) return;
+        slashOver(rivalEl.getBoundingClientRect(), slashColorFor(readChar()));
+    }
 
-    // La mascota fija acusa el golpe: se sacude, pone cara triste y se queja.
+    // La mascota acusa el golpe: retrocede, cara triste, número de daño y queja.
     var RIVAL_HURT_LINES = ["¡Auch! 😖", "¡Ey! 😵", "¡Blop! 💥", "¡No vale! 😤"];
-    function mascotTakeHit() {
+    function mascotTakeHit(dmg) {
         if (pet) {
             pet.classList.remove("mascot-flinch"); void pet.offsetWidth;
             pet.classList.add("mascot-flinch");
             setTimeout(function () { if (pet) pet.classList.remove("mascot-flinch"); }, 480);
         }
         slashOverMascot();
+        if (root) {
+            var r = root.getBoundingClientRect();
+            floatDamage(r.left + r.width / 2, r.top + r.height * 0.2, dmg);
+        }
         setExpr("sad");
-        setTimeout(function () { if (currentExpr === "sad" && !sleeping) setExpr("normal"); }, 1100);
-        if (Math.random() < 0.6) speak(pick(RIVAL_HURT_LINES), "sad");
+        setTimeout(function () { if (currentExpr === "sad" && !sleeping && rivalActive) setExpr("normal"); }, 900);
+        if (Math.random() < 0.45) speak(pick(RIVAL_HURT_LINES), "sad");
     }
 
-    function rivalBeginAttack(ts) {
+    // El rival acusa el golpe de la mascota: se sacude, corte y número de daño.
+    function rivalTakeHit(dmg) {
+        if (rivalEl) {
+            rivalEl.classList.remove("mascot-rival-hurt"); void rivalEl.offsetWidth;
+            rivalEl.classList.add("mascot-rival-hurt");
+            setTimeout(function () { if (rivalEl) rivalEl.classList.remove("mascot-rival-hurt"); }, 460);
+        }
+        slashOverRival();
+        floatDamage(rivalX + rivalW / 2, rivalY + rivalH * 0.2, dmg);
+    }
+
+    // Aplica un golpe: el atacante del turno pega al otro y le resta vida.
+    function duelHit() {
+        if (duelTurn === "rival") {
+            var d1 = dmgFrom(rivalChar && rivalChar.id);
+            mascotHP = Math.max(0, mascotHP - d1);
+            mascotTakeHit(d1);
+        } else {
+            var d2 = dmgFrom(readChar());
+            rivalHP = Math.max(0, rivalHP - d2);
+            rivalTakeHit(d2);
+        }
+        updateHpBars();
+    }
+
+    // Arranca un turno de ataque para `who` ("rival" | "mascot").
+    function startTurn(who, ts) {
+        duelTurn = who;
         rivalState = "attack";
         rivalHitDone = false;
         rivalStateUntil = ts + RIVAL_ATTACK_MS;
-        rivalFace = (rivalX + rivalW / 2) < mascotCenterX() ? 1 : -1; // apunta a la mascota
         rivalLastKey = "";
-        if (rivalChar && rivalChar.projectile) {
+        var rcx = rivalX + rivalW / 2, mcx = mascotCenterX();
+        rivalFace = rcx < mcx ? 1 : -1;                 // el rival mira a la mascota
+        if (phys) phys.face = rcx < mcx ? -1 : 1;       // la mascota mira al rival
+        if (who === "mascot") {
+            // La mascota embiste hacia el rival; si tiene fotogramas de ataque,
+            // los reproduce (attacking) y, si trae proyectil, lo lanza.
+            if (pet) {
+                pet.style.setProperty("--lx", rcx < mcx ? "-1" : "1");
+                pet.classList.remove("mascot-lunge"); void pet.offsetWidth;
+                pet.classList.add("mascot-lunge");
+            }
+            if (ANIMS && ANIMS.attack) attacking = true;
+            if (MASCOT_PROJECTILE) setTimeout(mascotDuelProjectile, RIVAL_ATTACK_MS * 0.1);
+            if (Math.random() < 0.4) speak(attackLine(), "happy");
+        } else if (rivalChar && rivalChar.projectile) {
             setTimeout(function () { rivalProjectile(RIVAL_ATTACK_MS * 0.45); }, RIVAL_ATTACK_MS * 0.1);
         }
     }
 
-    // Bucle del rival: entra hacia la mascota, la golpea (1–2 veces) y se va.
+    // Cierra el duelo con un KO (o por rondas): festejo/queja y salida del rival.
+    var WIN_LINES  = ["¡Gané! 🎉", "¡Blop victorioso! 💪", "¡Nadie me vence! ✨"];
+    var LOSE_LINES = ["¡Me venciste! 😵", "Uf… la próxima gano 😤", "¡Ay, mi vida! 💔"];
+    function endMascotAttack() {
+        attacking = false;
+        if (pet) pet.classList.remove("mascot-lunge");
+    }
+    function beginKO(ts) {
+        rivalState = "ko";
+        rivalStateUntil = ts + 1500;
+        endMascotAttack();
+        var mascotWins;
+        if (rivalHP <= 0 && mascotHP > 0) mascotWins = true;
+        else if (mascotHP <= 0 && rivalHP > 0) mascotWins = false;
+        else mascotWins = mascotHP >= rivalHP;          // por rondas: más vida gana
+        if (mascotWins) {
+            setExpr("happy");
+            if (Math.random() < 0.9) speak(pick(WIN_LINES), "happy");
+        } else {
+            setExpr("sad");
+            if (Math.random() < 0.9) speak(pick(LOSE_LINES), "sad");
+        }
+    }
+
+    // Bucle del duelo: el rival entra, pelean por turnos y el rival se va.
     function rivalTick(ts) {
         if (!rivalEl) { rivalRAF = null; return; }
         rivalRAF = requestAnimationFrame(rivalTick);
@@ -4701,7 +4904,7 @@ window.CharacterRegistry = [
         var mcx = mascotCenterX();
         var rcx = rivalX + rivalW / 2;
         // La mascota se planta y mira al rival mientras dura el desafío.
-        if (phys) { phys.tvx = 0; phys.face = rcx < mcx ? 1 : -1; }
+        if (phys) { phys.tvx = 0; phys.face = rcx < mcx ? -1 : 1; }
         attentionUntil = ts + 400;
 
         if (rivalState === "enter") {
@@ -4710,25 +4913,29 @@ window.CharacterRegistry = [
             rivalX += dir * RIVAL_SPEED * dt;
             rivalDrawAnim("walk", ts);
             var reach = rivalW / 2 + RIVAL_GAP + (phys ? phys.w / 2 : 36);
-            if (Math.abs((rivalX + rivalW / 2) - mcx) <= reach) rivalBeginAttack(ts);
+            if (Math.abs((rivalX + rivalW / 2) - mcx) <= reach) startTurn("rival", ts);
         } else if (rivalState === "attack") {
-            rivalDrawAnim("attack", ts);
+            // El que pega reproduce 'attack'; el que recibe espera en 'idle'.
+            if (duelTurn === "rival") rivalDrawAnim("attack", ts);
+            else rivalDrawAnim("idle", ts);
             if (!rivalHitDone && ts >= rivalStateUntil - RIVAL_ATTACK_MS * 0.45) {
                 rivalHitDone = true;
-                mascotTakeHit();
+                duelHit();
             }
             if (ts >= rivalStateUntil) {
-                rivalHitsLeft--;
-                if (rivalHitsLeft > 0) {
-                    // Respiro antes del siguiente golpe: alarga y da ritmo a la pelea.
-                    rivalState = "pause";
-                    rivalStateUntil = ts + RIVAL_HIT_GAP_MS;
-                    rivalLastKey = "";
-                } else { rivalState = "leave"; rivalLastKey = ""; }
+                if (duelTurn === "mascot") endMascotAttack();
+                if (rivalHP <= 0 || mascotHP <= 0) { beginKO(ts); }
+                else { rivalState = "recover"; rivalStateUntil = ts + RIVAL_HIT_GAP_MS; rivalLastKey = ""; }
             }
-        } else if (rivalState === "pause") {
+        } else if (rivalState === "recover") {
             rivalDrawAnim("idle", ts);
-            if (ts >= rivalStateUntil) rivalBeginAttack(ts);
+            if (ts >= rivalStateUntil) {
+                if (--duelRounds <= 0) beginKO(ts);
+                else startTurn(duelTurn === "rival" ? "mascot" : "rival", ts);
+            }
+        } else if (rivalState === "ko") {
+            rivalDrawAnim("idle", ts);
+            if (ts >= rivalStateUntil) { rivalState = "leave"; rivalLastKey = ""; }
         } else if (rivalState === "leave") {
             var out = rcx < window.innerWidth / 2 ? -1 : 1; // sale por el borde más cercano
             rivalFace = out;
@@ -4737,6 +4944,7 @@ window.CharacterRegistry = [
             if (rivalX < -rivalW - 10 || rivalX > window.innerWidth + 10) { despawnRival(); return; }
         }
         rivalPlace();
+        layoutBars();
     }
 
     // Crea el rival y arranca su bucle. Asume que `c` ya pasó el filtro de ataque.
@@ -4748,6 +4956,10 @@ window.CharacterRegistry = [
         rivalMode = c.mode === "frames" ? "frames" : "sheet";
         rivalFrames = c.frames || null;
         rivalActive = true;
+        preloadFrames(c);                 // evita el parpadeo del rival al animar
+
+        // Corta cualquier ataque a la página en curso: ahora manda el duelo.
+        attacking = false; attackTarget = null;
 
         rivalEl = document.createElement("div");
         rivalEl.className = "mascot-rival";
@@ -4777,23 +4989,38 @@ window.CharacterRegistry = [
         else rivalX = -rivalW - 8;                                        // mascota a la der → entra por la izq
         rivalFace = (rivalX + rivalW / 2) < mcx ? 1 : -1;
 
-        // Más golpes = pelea más larga. Antes eran 1–2; ahora 4–6 rondas.
-        rivalHitsLeft = 4 + (Math.random() < 0.5 ? 1 : 0) + (Math.random() < 0.5 ? 1 : 0);
+        // Vida y ataque según cada personaje: el daño que se hacen difiere.
+        var ms = statFor(readChar()), rs = statFor(c.id);
+        mascotHPMax = mascotHP = ms.hp;
+        rivalHPMax = rivalHP = rs.hp;
+        duelRounds = RIVAL_MAX_ROUNDS;
+
+        // Barras de vida sobre cada combatiente.
+        var mb = makeHpBar(); hpWrapM = mb.wrap; hpFillM = mb.fill;
+        var rb = makeHpBar(); hpWrapR = rb.wrap; hpFillR = rb.fill;
+        updateHpBars();
+
         rivalState = "enter";
         rivalStateUntil = 0; rivalHitDone = false;
         rivalAnimName = ""; rivalLastKey = ""; rivalLastT = 0;
         rivalPlace();
+        layoutBars();
         if (rivalRAF == null) rivalRAF = requestAnimationFrame(rivalTick);
     }
 
-    // Quita el rival y devuelve la mascota a su vida normal.
+    // Quita el rival, sus barras y devuelve la mascota a su vida normal.
     function despawnRival() {
         if (rivalRAF != null) { cancelAnimationFrame(rivalRAF); rivalRAF = null; }
         if (rivalEl) rivalEl.remove();
+        if (hpWrapM) hpWrapM.remove();
+        if (hpWrapR) hpWrapR.remove();
+        hpWrapM = hpFillM = hpWrapR = hpFillR = null;
         rivalEl = rivalSprite = null;
         rivalChar = rivalAnims = rivalFrames = null;
         rivalState = ""; rivalActive = false;
+        endMascotAttack();
         attentionUntil = 0;
+        if (currentExpr === "sad" || currentExpr === "happy") setExpr("normal");
         if (phys) nextDecision = performance.now() + 500;
     }
 

@@ -330,6 +330,21 @@
     background-position: center bottom;
     transform-origin: 50% 100%;
     pointer-events: none;
+    /* Flip de dirección suave (mirar a un lado u otro sin salto brusco). */
+    transition: transform 0.08s linear;
+}
+
+/* El rival acusa el golpe de la mascota: sacudida breve (retroceso). */
+.mascot-rival.mascot-rival-hurt {
+    animation: mascot-rival-hurt 0.44s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes mascot-rival-hurt {
+    0%   { transform: translateX(0) rotate(0); }
+    18%  { transform: translateX(-6px) rotate(-4deg); }
+    40%  { transform: translateX(5px) rotate(3deg); }
+    62%  { transform: translateX(-4px) rotate(-2deg); }
+    82%  { transform: translateX(2px) rotate(1deg); }
+    100% { transform: translateX(0) rotate(0); }
 }
 
 /* La mascota fija "acusa" el golpe del rival: retroceso + sacudida breve. */
@@ -343,6 +358,62 @@
     55%  { transform: translateX(4px) rotate(2deg); }
     75%  { transform: translateX(-3px) rotate(-1deg); }
     100% { transform: translateX(0) rotate(0); }
+}
+
+/* La mascota contraataca: embiste hacia el rival (translate en la dirección
+   --lx: -1 izquierda, +1 derecha) y vuelve. Va sobre .mascot-pet (el flip vive
+   en .mascot-sprite, así no pelean). Se reactiva con más especificidad en modo
+   paseo, igual que hablar/aterrizar. */
+.mascot-pet.mascot-lunge,
+.mascot-root.mascot-roaming .mascot-pet.mascot-lunge {
+    animation: mascot-lunge 0.5s cubic-bezier(0.3, 0.1, 0.3, 1);
+}
+@keyframes mascot-lunge {
+    0%   { transform: translateX(0) scaleY(1); }
+    38%  { transform: translateX(calc(var(--lx, 1) * 18px)) scaleY(0.96) scaleX(1.04); }
+    60%  { transform: translateX(calc(var(--lx, 1) * 10px)) scaleY(1.02); }
+    100% { transform: translateX(0) scaleY(1); }
+}
+
+/* ── Barras de vida del duelo ──
+   Una por combatiente; mascot.js las posiciona (fixed) sobre cada uno y ajusta
+   el ancho del relleno y su color (verde → naranja → rojo) según la vida. */
+.mascot-hpbar {
+    position: fixed;
+    z-index: var(--z-toast, 2000);
+    height: 6px;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+.mascot-hpbar-fill {
+    height: 100%;
+    width: 100%;
+    border-radius: 3px;
+    background: #39d98a;
+    transition: width 0.25s ease, background 0.25s ease;
+}
+
+/* Número de daño flotante ("-N") que sube y se desvanece sobre el golpeado. */
+.mascot-dmg {
+    position: fixed;
+    z-index: var(--z-toast, 2000);
+    pointer-events: none;
+    font-family: var(--font-body, system-ui, sans-serif);
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #ff5a5a;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 0 8px rgba(255, 60, 60, 0.5);
+    animation: mascot-dmg-float 0.85s ease-out forwards;
+    will-change: transform, opacity;
+}
+@keyframes mascot-dmg-float {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+    20%  { opacity: 1; transform: translate(-50%, -80%) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
 }
 
 /* ── Accesibilidad / rendimiento: sin movimiento ── */
