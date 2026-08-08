@@ -1340,7 +1340,8 @@
     var RIVAL_MIN_MS = 22000;   // espera mínima entre apariciones
     var RIVAL_MAX_MS = 55000;   // espera máxima
     var RIVAL_SPEED  = 132;     // px/s al acercarse / retirarse
-    var RIVAL_ATTACK_MS = 720;  // duración de cada golpe del rival
+    var RIVAL_ATTACK_MS = 900;  // duración de cada golpe del rival
+    var RIVAL_HIT_GAP_MS = 260; // pausa entre golpe y golpe (respira la pelea)
     var RIVAL_GAP    = 26;      // holgura (px) entre rival y mascota al golpear
 
     var rivalEl = null, rivalSprite = null;
@@ -1498,9 +1499,16 @@
             }
             if (ts >= rivalStateUntil) {
                 rivalHitsLeft--;
-                if (rivalHitsLeft > 0) rivalBeginAttack(ts);
-                else { rivalState = "leave"; rivalLastKey = ""; }
+                if (rivalHitsLeft > 0) {
+                    // Respiro antes del siguiente golpe: alarga y da ritmo a la pelea.
+                    rivalState = "pause";
+                    rivalStateUntil = ts + RIVAL_HIT_GAP_MS;
+                    rivalLastKey = "";
+                } else { rivalState = "leave"; rivalLastKey = ""; }
             }
+        } else if (rivalState === "pause") {
+            rivalDrawAnim("idle", ts);
+            if (ts >= rivalStateUntil) rivalBeginAttack(ts);
         } else if (rivalState === "leave") {
             var out = rcx < window.innerWidth / 2 ? -1 : 1; // sale por el borde más cercano
             rivalFace = out;
@@ -1549,7 +1557,8 @@
         else rivalX = -rivalW - 8;                                        // mascota a la der → entra por la izq
         rivalFace = (rivalX + rivalW / 2) < mcx ? 1 : -1;
 
-        rivalHitsLeft = 1 + (Math.random() < 0.45 ? 1 : 0);
+        // Más golpes = pelea más larga. Antes eran 1–2; ahora 4–6 rondas.
+        rivalHitsLeft = 4 + (Math.random() < 0.5 ? 1 : 0) + (Math.random() < 0.5 ? 1 : 0);
         rivalState = "enter";
         rivalStateUntil = 0; rivalHitDone = false;
         rivalAnimName = ""; rivalLastKey = ""; rivalLastT = 0;
