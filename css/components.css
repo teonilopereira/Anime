@@ -878,6 +878,11 @@ main { padding-bottom: 24px; }
     background: rgba(var(--surface-card-rgb), 0.60);
     border: 1px solid var(--neon-purple-15);
     backdrop-filter: blur(8px);
+    /* El backdrop-filter crea un stacking context propio; sin elevar el bloque,
+       el desplegable de sugerencias que sobresale queda tapado por las cards de
+       abajo (que tambien crean contexto con su backdrop-filter). */
+    position: relative;
+    z-index: var(--z-dropdown);
 }
 .compare-picker {
     display: flex;
