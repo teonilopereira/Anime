@@ -7116,47 +7116,6 @@ body.reduce-motion .destiny-navbar .nav-user-avatar {
     100% { transform: translateX(0) scaleY(1); }
 }
 
-/* ── Barras de vida del duelo ──
-   Una por combatiente; mascot.js las posiciona (fixed) sobre cada uno y ajusta
-   el ancho del relleno y su color (verde → naranja → rojo) según la vida. */
-.mascot-hpbar {
-    position: fixed;
-    z-index: var(--z-toast, 2000);
-    height: 6px;
-    pointer-events: none;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
-}
-.mascot-hpbar-fill {
-    height: 100%;
-    width: 100%;
-    border-radius: 3px;
-    background: #39d98a;
-    transition: width 0.25s ease, background 0.25s ease;
-}
-
-/* Número de daño flotante ("-N") que sube y se desvanece sobre el golpeado. */
-.mascot-dmg {
-    position: fixed;
-    z-index: var(--z-toast, 2000);
-    pointer-events: none;
-    font-family: var(--font-body, system-ui, sans-serif);
-    font-weight: 800;
-    font-size: 1.05rem;
-    color: #ff5a5a;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 0 8px rgba(255, 60, 60, 0.5);
-    animation: mascot-dmg-float 0.85s ease-out forwards;
-    will-change: transform, opacity;
-}
-@keyframes mascot-dmg-float {
-    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
-    20%  { opacity: 1; transform: translate(-50%, -80%) scale(1.15); }
-    100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
-}
-
 /* ── Accesibilidad / rendimiento: sin movimiento ── */
 .mascot-reduced .mascot-pet,
 .mascot-reduced .mascot-pet.mascot-talking {
