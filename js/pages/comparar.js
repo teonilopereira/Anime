@@ -114,20 +114,23 @@ function formatCount(value) {
  * alineadas fila a fila, que es lo unico que hace comparable una comparacion.
  */
 function compareStatsFor(cat, item) {
-    const puntaje = { icon: 'star', value: formatScore(item?.score), label: 'Puntaje' };
-    const usuarios = { icon: 'trending-up', value: formatCompactNumber(item?.popularity), label: 'Usuarios' };
+    // `raw` es el numero puro detras del texto: lo usa la comparacion para
+    // resaltar cual de las dos cards gana en cada metrica.
+    const puntaje = { icon: 'star', value: formatScore(item?.score), label: 'Puntaje', raw: Number(item?.score) };
+    const usuarios = { icon: 'trending-up', value: formatCompactNumber(item?.popularity), label: 'Usuarios', raw: Number(item?.popularity) };
 
     if (cat === 'anime') {
         const episodios = Number(item?.episodes) || 0;
         return [
             puntaje,
-            { icon: 'play', value: formatCount(episodios), label: 'Episodios' },
+            { icon: 'play', value: formatCount(episodios), label: 'Episodios', raw: episodios },
             {
                 icon: 'clock',
                 value: formatMinutes(item?.duration),
                 // Con un solo episodio (peliculas, especiales) el numero ya es la
                 // duracion total; con varios es lo que dura cada uno.
-                label: episodios > 1 ? 'Por episodio' : 'Duración'
+                label: episodios > 1 ? 'Por episodio' : 'Duración',
+                raw: Number(item?.duration)
             },
             usuarios
         ];
@@ -135,8 +138,8 @@ function compareStatsFor(cat, item) {
 
     return [
         puntaje,
-        { icon: 'book', value: formatCount(item?.volumes), label: 'Volúmenes' },
-        { icon: 'book-open', value: formatCount(item?.chapters), label: 'Capítulos' },
+        { icon: 'book', value: formatCount(item?.volumes), label: 'Volúmenes', raw: Number(item?.volumes) },
+        { icon: 'book-open', value: formatCount(item?.chapters), label: 'Capítulos', raw: Number(item?.chapters) },
         usuarios
     ];
 }
@@ -306,7 +309,7 @@ async function renderCompareCard(host, cat, item) {
                 </div>
                 <div class="cmp-stats">
                     ${stats.map((s) => `
-                        <div class="cmp-stat">
+                        <div class="cmp-stat" data-label="${escapeHtml(s.label)}" data-raw="${Number.isFinite(s.raw) ? s.raw : ''}">
                             <i data-lucide="${escapeHtml(s.icon)}"></i>
                             <span class="cmp-stat-value">${escapeHtml(s.value)}</span>
                             <span class="cmp-stat-label">${escapeHtml(s.label)}</span>
@@ -329,6 +332,32 @@ async function renderCompareCard(host, cat, item) {
     }
 }
 
+// El sentido de una comparacion es ver quien gana en cada fila. Se corre despues
+// de que las dos cards estan en el DOM: empareja las metricas por etiqueta (asi
+// funciona aunque los catalogos sean distintos y compartan solo Puntaje/Usuarios)
+// y marca el mayor. Si falta un dato de un lado, esa fila no se resalta.
+function resaltarGanadores(hostA, hostB) {
+    const statsA = Array.from(hostA?.querySelectorAll?.('.cmp-stat') || []);
+    const statsB = Array.from(hostB?.querySelectorAll?.('.cmp-stat') || []);
+    [...statsA, ...statsB].forEach((s) => s.classList.remove('is-winner', 'is-tie'));
+    if (!statsA.length || !statsB.length) return;
+
+    const rawDe = (el) => {
+        const v = el.getAttribute('data-raw');
+        return v === '' ? NaN : Number(v);
+    };
+    statsA.forEach((a) => {
+        const b = statsB.find((x) => x.getAttribute('data-label') === a.getAttribute('data-label'));
+        if (!b) return;
+        const ra = rawDe(a);
+        const rb = rawDe(b);
+        if (!Number.isFinite(ra) || !Number.isFinite(rb)) return;
+        if (ra > rb) a.classList.add('is-winner');
+        else if (rb > ra) b.classList.add('is-winner');
+        else { a.classList.add('is-tie'); b.classList.add('is-tie'); }
+    });
+}
+
 function syncUrl(cat1, id1, cat2, id2) {
     const p = new URLSearchParams();
     p.set('cat1', cat1);
@@ -348,11 +377,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const params = parseParams();
     const doCompare = document.getElementById('doCompare');
     const lados = [
-        { cat: document.getElementById('cat1'), input: document.getElementById('search1'), sug: document.getElementById('sug1'), host: document.getElementById('compareA'), catInicial: params.cat1, idInicial: params.id1, elegido: null, resultados: [], timer: null },
-        { cat: document.getElementById('cat2'), input: document.getElementById('search2'), sug: document.getElementById('sug2'), host: document.getElementById('compareB'), catInicial: params.cat2, idInicial: params.id2, elegido: null, resultados: [], timer: null }
+        { cat: document.getElementById('cat1'), input: document.getElementById('search1'), sug: document.getElementById('sug1'), host: document.getElementById('compareA'), catInicial: params.cat1, idInicial: params.id1, elegido: null, resultados: [], timer: null, activo: -1 },
+        { cat: document.getElementById('cat2'), input: document.getElementById('search2'), sug: document.getElementById('sug2'), host: document.getElementById('compareB'), catInicial: params.cat2, idInicial: params.id2, elegido: null, resultados: [], timer: null, activo: -1 }
     ];
 
     if (!doCompare || lados.some((l) => !l.cat || !l.input || !l.sug || !l.host)) return;
+
+    // Tras cualquier render, reevaluar quien gana cada metrica. Un solo punto:
+    // renderCompareCard pinta un lado, pero el resaltado necesita los dos.
+    function refrescarComparacion() {
+        resaltarGanadores(lados[0].host, lados[1].host);
+    }
 
     function actualizarUrl() {
         syncUrl(
@@ -364,6 +399,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function cerrarSugerencias(lado) {
         lado.sug.classList.remove('is-open');
         lado.sug.innerHTML = '';
+        lado.activo = -1;
+        lado.input.setAttribute('aria-expanded', 'false');
+        lado.input.removeAttribute('aria-activedescendant');
     }
 
     async function elegir(lado, item) {
@@ -371,15 +409,31 @@ document.addEventListener('DOMContentLoaded', () => {
         lado.input.value = compareItemTitle(item);
         cerrarSugerencias(lado);
         await renderCompareCard(lado.host, lado.cat.value, item);
+        refrescarComparacion();
         actualizarUrl();
     }
 
+    // Loading / sin resultados / error: sin esto el desplegable se cerraba en
+    // silencio y en una red lenta parecia que el buscador no funcionaba.
+    function mostrarEstado(lado, tipo) {
+        const textos = {
+            loading: cmpTr('compare.buscando', 'Buscando…'),
+            empty: cmpTr('compare.sin_resultados', 'Sin resultados'),
+            error: cmpTr('compare.error_busqueda', 'No se pudo buscar. Probá de nuevo.')
+        };
+        lado.sug.innerHTML = `<div class="cmp-suggestion-msg cmp-suggestion-msg--${tipo}" role="status">${escapeHtml(textos[tipo] || '')}</div>`;
+        lado.sug.classList.add('is-open');
+        lado.activo = -1;
+        lado.input.setAttribute('aria-expanded', 'true');
+        lado.input.removeAttribute('aria-activedescendant');
+    }
+
     function pintarSugerencias(lado) {
-        if (!lado.resultados.length) { cerrarSugerencias(lado); return; }
+        if (!lado.resultados.length) { mostrarEstado(lado, 'empty'); return; }
         lado.sug.innerHTML = lado.resultados.map((it, i) => {
             const img = compareItemImage(it);
             const meta = compareItemInfo(lado.cat.value, it);
-            return `<button type="button" class="cmp-suggestion" data-idx="${i}">
+            return `<button type="button" class="cmp-suggestion" role="option" aria-selected="false" id="${lado.sug.id}-opt-${i}" data-idx="${i}">
                 ${img ? `<img src="${safeUrl(img)}" alt="" width="34" height="48" loading="lazy" decoding="async">` : ''}
                 <span class="cmp-suggestion-body">
                     <span class="cmp-suggestion-title">${escapeHtml(compareItemTitle(it))}</span>
@@ -388,6 +442,35 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>`;
         }).join('');
         lado.sug.classList.add('is-open');
+        lado.activo = -1;
+        lado.input.setAttribute('aria-expanded', 'true');
+        lado.input.removeAttribute('aria-activedescendant');
+    }
+
+    // Navegacion con teclado: mueve el resaltado por las sugerencias y sincroniza
+    // aria-activedescendant para que un lector de pantalla anuncie la opcion.
+    function marcarActivo(lado) {
+        const ops = Array.from(lado.sug.querySelectorAll('.cmp-suggestion'));
+        ops.forEach((o, i) => {
+            const on = i === lado.activo;
+            o.classList.toggle('is-active', on);
+            o.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const actual = ops[lado.activo];
+        if (actual) {
+            lado.input.setAttribute('aria-activedescendant', actual.id);
+            if (typeof actual.scrollIntoView === 'function') actual.scrollIntoView({ block: 'nearest' });
+        } else {
+            lado.input.removeAttribute('aria-activedescendant');
+        }
+    }
+
+    function moverActivo(lado, delta) {
+        const n = lado.resultados.length;
+        if (!n) return;
+        if (lado.activo < 0) lado.activo = delta > 0 ? 0 : n - 1;
+        else lado.activo = (lado.activo + delta + n) % n;
+        marcarActivo(lado);
     }
 
     async function buscar(lado) {
@@ -395,8 +478,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Con una sola letra la busqueda quema cuota de AniList para devolver
         // cualquier cosa; desde dos ya es una consulta con intencion.
         if (query.length < 2) { cerrarSugerencias(lado); return; }
+        mostrarEstado(lado, 'loading');
         const cat = lado.cat.value;
         let resultados = [];
+        let huboError = false;
         try {
             if (cat === 'novelas' && typeof window.buscarNovelasEnApi === 'function') {
                 resultados = await window.buscarNovelasEnApi(query);
@@ -409,10 +494,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (md.length) resultados = window.mergeAnilistAndMd(Array.isArray(resultados) ? resultados : [], md);
                 } catch (_) { /* MangaDex caido: con AniList alcanza */ }
             }
-        } catch (_) { resultados = []; }
+        } catch (_) { huboError = true; }
 
         // Si mientras respondia la API el usuario siguio tipeando, esto quedo viejo.
         if (lado.input.value.trim() !== query) return;
+        if (huboError) { lado.resultados = []; mostrarEstado(lado, 'error'); return; }
         lado.resultados = (Array.isArray(resultados) ? resultados : []).slice(0, AnimeDestiny.Constants.API_SUGGESTION_LIMIT || 8);
         pintarSugerencias(lado);
     }
@@ -427,10 +513,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         lado.input.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-            if (lado.resultados.length) elegir(lado, lado.resultados[0]);
-            else buscar(lado);
+            const abierto = lado.sug.classList.contains('is-open') && lado.resultados.length > 0;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (abierto) moverActivo(lado, 1);
+                else buscar(lado);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (abierto) moverActivo(lado, -1);
+            } else if (e.key === 'Escape') {
+                cerrarSugerencias(lado);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (lado.activo >= 0 && lado.resultados[lado.activo]) elegir(lado, lado.resultados[lado.activo]);
+                else if (lado.resultados.length) elegir(lado, lado.resultados[0]);
+                else buscar(lado);
+            }
         });
 
         lado.input.addEventListener('blur', () => {
@@ -453,6 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lado.resultados = [];
             cerrarSugerencias(lado);
             renderCompareCard(lado.host, lado.cat.value, null);
+            refrescarComparacion();
             actualizarUrl();
         });
     });
@@ -468,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             await renderCompareCard(lado.host, lado.cat.value, lado.elegido);
         }
+        refrescarComparacion();
         actualizarUrl();
     });
 
