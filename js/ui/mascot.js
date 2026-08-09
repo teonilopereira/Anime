@@ -528,9 +528,20 @@
     // rect no cumple los filtros (ancho, altura, estar a la vista) se descarta,
     // así funciona en cualquier página sin mantener una lista por vista.
     var PLATFORM_SEL = [
-        ".mobile-bottom-nav", ".card-container", ".catalog-neon-card",
-        ".card", ".hero-section", ".cfg-panel", "footer",
-        "h1.title", "h2.title", ".section-title"
+        // Barras de navegación (arriba y abajo) y pie de página.
+        ".destiny-navbar", ".mobile-bottom-nav", "nav", "footer", ".app-footer",
+        // Cabeceras, secciones y paneles: la estructura REAL de cada vista, no
+        // solo las cards. Así el slime también se sube al contenido de la página.
+        "header", ".page-header", "section", ".detail-section", ".persona-section",
+        ".hero-section", ".cfg-panel", ".perfil-panel", ".catalog-content",
+        ".tab-content",
+        // Cards y sus contenedores.
+        ".card-container", ".catalog-neon-card", ".card", ".persona-grid",
+        // Títulos, botones e imágenes con entidad: cosas sueltas de la página
+        // sobre las que también puede posarse (el filtro de tamaño descarta las
+        // demasiado chicas, así no se cuelga de íconos diminutos).
+        "h1.title", "h2.title", ".section-title", ".detail-section-title",
+        ".btn", "button", "img"
     ].join(",");
 
     // Elementos "atacables": lo visible y con entidad de la página. Se filtran
@@ -573,6 +584,9 @@
         for (var i = 0; i < els.length && out.length < 60; i++) {
             var el = els[i];
             if (el === root || root.contains(el)) continue;
+            // Nunca posarse sobre los propios efectos de la mascota (proyectil,
+            // corte…) que viven sueltos en el body y podrían matchear "img".
+            if (el.className && String(el.className).indexOf("mascot-") === 0) continue;
             var r = el.getBoundingClientRect();
             if (r.width < phys.w * 1.1 || r.height < 10) continue; // muy chico
             if (r.right < 0 || r.left > W) continue;                // fuera de X
@@ -854,6 +868,13 @@
         // subsistema Rival (por turnos); acá no tocamos nada para no cortarlo.
         if (rivalActive) return;
         if (!attacking) return;
+        // Mientras dura el golpe, la mascota sigue ENCARANDO al blanco. Sin esto,
+        // si el lunge se frenaba y el cursor quedaba de por medio, el "mirar al
+        // cursor" de step() la volteaba y terminaba pegándole de espaldas al
+        // objetivo. Se recalcula por frame por si el blanco se movió (scroll).
+        if (attackTarget && phys) {
+            phys.face = attackTarget.cx < (phys.x + phys.w / 2) ? -1 : 1;
+        }
         if (!attackHit && ts >= attackUntil - ATTACK_MS * 0.45) {
             attackHit = true;
             hitElement(attackTarget);
@@ -952,7 +973,7 @@
 
         // Mirar hacia el cursor cuando está (casi) quieto (salvo si hay un rival:
         // en ese caso la mascota mira al rival, no al cursor — lo fija rivalTick).
-        if (!rivalActive && Math.abs(phys.vx) < 6 && mouse.x >= 0 && ts - mouse.t < 3000) {
+        if (!rivalActive && !attacking && Math.abs(phys.vx) < 6 && mouse.x >= 0 && ts - mouse.t < 3000) {
             phys.face = mouse.x < (phys.x + phys.w / 2) ? -1 : 1;
         }
 
