@@ -23,7 +23,7 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=65bd9720">
+        <link rel="stylesheet" href="css/bundle.min.css?v=bb7c27ae">
 
     <!-- Preconexion a los CDN de datos e imagenes: adelanta el handshake
          DNS/TLS para que la primera portada y la primera llamada a la API no
@@ -32,10 +32,10 @@
     <link rel="preconnect" href="https://s4.anilist.co">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=65bd9720">
+    <link rel="stylesheet" href="css/fonts.css?v=bb7c27ae">
 
-    <script src="js/vendor/lucide.min.js?v=65bd9720" defer></script>
-    <script src="js/core/theme.js?v=65bd9720"></script>
+    <script src="js/vendor/lucide.min.js?v=bb7c27ae" defer></script>
+    <script src="js/core/theme.js?v=bb7c27ae"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="comparar">
@@ -67,8 +67,8 @@
                     <label class="compare-label" for="search1" data-i18n="compare.label.primero">Primer título</label>
                     <div class="cmp-search-wrap">
                         <span class="cmp-search-icon"><i data-lucide="search"></i></span>
-                        <input id="search1" class="cmp-search-input" type="search" data-i18n="compare.buscar_ph" data-i18n-attr="placeholder" placeholder="Buscá un título..." autocomplete="off">
-                        <div class="cmp-suggestions" id="sug1"></div>
+                        <input id="search1" class="cmp-search-input" type="search" data-i18n="compare.buscar_ph" data-i18n-attr="placeholder" placeholder="Buscá un título..." autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sug1">
+                        <div class="cmp-suggestions" id="sug1" role="listbox"></div>
                     </div>
                 </div>
             </div>
@@ -88,8 +88,8 @@
                     <label class="compare-label" for="search2" data-i18n="compare.label.segundo">Segundo título</label>
                     <div class="cmp-search-wrap">
                         <span class="cmp-search-icon"><i data-lucide="search"></i></span>
-                        <input id="search2" class="cmp-search-input" type="search" data-i18n="compare.buscar_ph" data-i18n-attr="placeholder" placeholder="Buscá un título..." autocomplete="off">
-                        <div class="cmp-suggestions" id="sug2"></div>
+                        <input id="search2" class="cmp-search-input" type="search" data-i18n="compare.buscar_ph" data-i18n-attr="placeholder" placeholder="Buscá un título..." autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sug2">
+                        <div class="cmp-suggestions" id="sug2" role="listbox"></div>
                     </div>
                 </div>
             </div>
@@ -97,20 +97,29 @@
             <button class="compare-btn" id="doCompare" type="button" data-i18n="compare.boton">Comparar</button>
         </div>
 
-        <section class="compare-grid" data-i18n="compare.aria.resultado" data-i18n-attr="aria-label" aria-label="Resultado comparación">
+        <div class="compare-actions">
+            <button class="compare-action" id="swapSides" type="button" data-i18n="compare.aria.intercambiar" data-i18n-attr="aria-label" aria-label="Intercambiar los dos lados">
+                <i data-lucide="arrow-left-right"></i><span data-i18n="compare.intercambiar">Intercambiar</span>
+            </button>
+            <button class="compare-action" id="copyLink" type="button" data-i18n="compare.aria.copiar" data-i18n-attr="aria-label" aria-label="Copiar enlace de la comparación">
+                <i data-lucide="link"></i><span data-i18n="compare.copiar">Copiar enlace</span>
+            </button>
+        </div>
+
+        <section class="compare-grid" aria-live="polite" data-i18n="compare.aria.resultado" data-i18n-attr="aria-label" aria-label="Resultado comparación">
             <div class="compare-card" id="compareA"></div>
             <div class="compare-card" id="compareB"></div>
         </section>
     </main>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=65bd9720"></script>
-    <script src="js/core/i18n.js?v=65bd9720"></script>
-    <script src="js/core/namespace.js?v=65bd9720"></script>
-    <script type="module" src="api/supabase-config.js?v=65bd9720" async></script>
-    <script src="js/core-bundle.min.js?v=65bd9720" defer></script>
-    <script src="js/core/mangadex-api.js?v=65bd9720" defer></script>
-    <script src="js/pages/script.js?v=65bd9720" defer></script>
-    <script src="js/pages/comparar.js?v=65bd9720" defer></script>
+    <script src="js/core/config.js?v=bb7c27ae"></script>
+    <script src="js/core/i18n.js?v=bb7c27ae"></script>
+    <script src="js/core/namespace.js?v=bb7c27ae"></script>
+    <script type="module" src="api/supabase-config.js?v=bb7c27ae" async></script>
+    <script src="js/core-bundle.min.js?v=bb7c27ae" defer></script>
+    <script src="js/core/mangadex-api.js?v=bb7c27ae" defer></script>
+    <script src="js/pages/script.js?v=bb7c27ae" defer></script>
+    <script src="js/pages/comparar.js?v=bb7c27ae" defer></script>
 </body>
 </html>
