@@ -835,6 +835,12 @@
             if (!translations[lang]) return;
             localStorage.setItem("pref:lang", lang);
             window.applyTranslations(lang);
+            // Aviso para el contenido que las paginas pintan por JS (no via
+            // data-i18n): esos no los alcanza applyTranslations y necesitan
+            // repintarse. Ej: las cards de comparar.
+            try {
+                window.dispatchEvent(new CustomEvent("i18n:changed", { detail: { lang: getCurrentLang() } }));
+            } catch (e) { /* CustomEvent no disponible: sin repintado en vivo */ }
         },
         getLang: getCurrentLang,
         t: function (key, args) {

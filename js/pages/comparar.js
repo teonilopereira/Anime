@@ -144,41 +144,90 @@ function compareStatsFor(cat, item) {
     ];
 }
 
+// Los valores de formato/fuente/pais/estado son datos crudos de la API (enums),
+// no texto de UI: se traducen con mapas bilingues que viven al lado del dato, en
+// vez de meter ~50 claves en el diccionario i18n. cmpLang elige la columna.
+function cmpLang() {
+    return (window.AppI18n && typeof window.AppI18n.getLang === 'function' && window.AppI18n.getLang() === 'en') ? 'en' : 'es';
+}
+function cmpEnum(map, key) {
+    const e = map[String(key || '').toUpperCase()];
+    return e ? (e[cmpLang()] || e.es) : null;
+}
+
 // Los formatos de anime llegan como el enum crudo de AniList (MOVIE, TV_SHORT).
-// Los de manga y novela ya vienen legibles desde anilistItemToLocal.
+// Los de manga y novela ya vienen legibles (en español) desde anilistItemToLocal,
+// asi que tambien se contemplan Manhwa/Manhua/Novela/etc.
 const FORMATOS = {
-    TV: 'Serie',
-    TV_SHORT: 'Serie corta',
-    MOVIE: 'Película',
-    SPECIAL: 'Especial',
-    OVA: 'OVA',
-    ONA: 'ONA',
-    MUSIC: 'Musical',
-    MANGA: 'Manga',
-    NOVEL: 'Novela',
-    ONE_SHOT: 'One-shot'
+    TV: { es: 'Serie', en: 'Series' },
+    TV_SHORT: { es: 'Serie corta', en: 'Short series' },
+    MOVIE: { es: 'Película', en: 'Movie' },
+    SPECIAL: { es: 'Especial', en: 'Special' },
+    OVA: { es: 'OVA', en: 'OVA' },
+    ONA: { es: 'ONA', en: 'ONA' },
+    MUSIC: { es: 'Musical', en: 'Music' },
+    MANGA: { es: 'Manga', en: 'Manga' },
+    NOVEL: { es: 'Novela', en: 'Novel' },
+    NOVELA: { es: 'Novela', en: 'Novel' },
+    ONE_SHOT: { es: 'One-shot', en: 'One-shot' },
+    MANHWA: { es: 'Manhwa', en: 'Manhwa' },
+    MANHUA: { es: 'Manhua', en: 'Manhua' },
+    DOUJINSHI: { es: 'Doujinshi', en: 'Doujinshi' }
 };
 
 function formatMediaFormat(tipo) {
     const clave = String(tipo || '').toUpperCase().replace(/[\s-]/g, '_');
-    return FORMATOS[clave] || tipo;
+    return cmpEnum(FORMATOS, clave) || tipo;
 }
 
 // De que material salio la obra (enum `source` de AniList).
 const FUENTES = {
-    ORIGINAL: 'Original', MANGA: 'Manga', LIGHT_NOVEL: 'Novela ligera',
-    VISUAL_NOVEL: 'Novela visual', VIDEO_GAME: 'Videojuego', NOVEL: 'Novela',
-    WEB_NOVEL: 'Novela web', DOUJINSHI: 'Doujinshi', ANIME: 'Anime',
-    GAME: 'Juego', COMIC: 'Cómic', MULTIMEDIA_PROJECT: 'Proyecto multimedia',
-    PICTURE_BOOK: 'Libro ilustrado', LIVE_ACTION: 'Live action', OTHER: 'Otro'
+    ORIGINAL: { es: 'Original', en: 'Original' },
+    MANGA: { es: 'Manga', en: 'Manga' },
+    LIGHT_NOVEL: { es: 'Novela ligera', en: 'Light novel' },
+    VISUAL_NOVEL: { es: 'Novela visual', en: 'Visual novel' },
+    VIDEO_GAME: { es: 'Videojuego', en: 'Video game' },
+    NOVEL: { es: 'Novela', en: 'Novel' },
+    WEB_NOVEL: { es: 'Novela web', en: 'Web novel' },
+    DOUJINSHI: { es: 'Doujinshi', en: 'Doujinshi' },
+    ANIME: { es: 'Anime', en: 'Anime' },
+    GAME: { es: 'Juego', en: 'Game' },
+    COMIC: { es: 'Cómic', en: 'Comic' },
+    MULTIMEDIA_PROJECT: { es: 'Proyecto multimedia', en: 'Multimedia project' },
+    PICTURE_BOOK: { es: 'Libro ilustrado', en: 'Picture book' },
+    LIVE_ACTION: { es: 'Live action', en: 'Live action' },
+    OTHER: { es: 'Otro', en: 'Other' }
 };
 
 // countryOfOrigin llega como codigo de pais en AniList y como codigo de idioma
 // en MangaDex; se contemplan ambos.
 const PAISES = {
-    JP: 'Japón', JA: 'Japón', KR: 'Corea del Sur', KO: 'Corea del Sur',
-    CN: 'China', ZH: 'China', 'ZH-HK': 'China', TW: 'Taiwán'
+    JP: { es: 'Japón', en: 'Japan' }, JA: { es: 'Japón', en: 'Japan' },
+    KR: { es: 'Corea del Sur', en: 'South Korea' }, KO: { es: 'Corea del Sur', en: 'South Korea' },
+    CN: { es: 'China', en: 'China' }, ZH: { es: 'China', en: 'China' }, 'ZH-HK': { es: 'China', en: 'China' },
+    TW: { es: 'Taiwán', en: 'Taiwan' }
 };
+
+// El estado tambien es un enum. No se reusa el formatMediaStatus del core porque
+// ese es solo en español y lo comparten otras paginas: se traduce local acá.
+const ESTADOS = {
+    FINISHED: { es: 'Finalizado', en: 'Finished' },
+    NOT_YET_RELEASED: { es: 'Próximamente', en: 'Upcoming' },
+    HIATUS: { es: 'En pausa', en: 'On hiatus' },
+    CANCELLED: { es: 'Cancelado', en: 'Cancelled' }
+};
+const ESTADO_RELEASING = {
+    emision: { es: 'En emisión', en: 'Airing' },
+    publicacion: { es: 'En publicación', en: 'Publishing' }
+};
+function estadoDe(status, cat) {
+    const clave = String(status || '').toUpperCase();
+    if (clave === 'RELEASING') {
+        const e = ESTADO_RELEASING[(cat === 'manga' || cat === 'novelas') ? 'publicacion' : 'emision'];
+        return e[cmpLang()] || e.es;
+    }
+    return cmpEnum(ESTADOS, clave) || (status || '');
+}
 
 function autorDe(item) {
     const staff = Array.isArray(item?.staff) ? item.staff : [];
@@ -194,7 +243,8 @@ function periodoDe(item) {
     if (!desde) return SIN_DATO;
     const hasta = item?.endYear || null;
     if (hasta) return hasta === desde ? String(desde) : `${desde} – ${hasta}`;
-    return String(item?.status || '').toUpperCase() === 'RELEASING' ? `${desde} – hoy` : String(desde);
+    const hoy = cmpLang() === 'en' ? 'today' : 'hoy';
+    return String(item?.status || '').toUpperCase() === 'RELEASING' ? `${desde} – ${hoy}` : String(desde);
 }
 
 // Cuanto falta para el proximo episodio, en el mayor par de unidades util.
@@ -217,14 +267,14 @@ function detallesPara(cat, item) {
     if (cat === 'anime') {
         return [
             { label: cmpTr('compare.det.estudio', 'Estudio'), value: (Array.isArray(item?.studios) && item.studios.filter(Boolean)[0]) || SIN_DATO },
-            { label: cmpTr('compare.det.basado', 'Basado en'), value: FUENTES[String(item?.source || '').toUpperCase()] || SIN_DATO },
+            { label: cmpTr('compare.det.basado', 'Basado en'), value: cmpEnum(FUENTES, item?.source) || SIN_DATO },
             { label: cmpTr('compare.det.emision', 'Emisión'), value: periodoDe(item) },
             favoritos
         ];
     }
     return [
         { label: cmpTr('compare.det.autor', 'Autor'), value: autorDe(item) },
-        { label: cmpTr('compare.det.origen', 'Origen'), value: PAISES[String(item?.countryOfOrigin || '').toUpperCase()] || SIN_DATO },
+        { label: cmpTr('compare.det.origen', 'Origen'), value: cmpEnum(PAISES, item?.countryOfOrigin) || SIN_DATO },
         { label: cmpTr('compare.det.publicacion', 'Publicación'), value: periodoDe(item) },
         favoritos
     ];
@@ -262,9 +312,7 @@ async function renderCompareCard(host, cat, item) {
         .slice(0, 3);
     const anio = full.startYear || full.seasonYear || full.anio || null;
     const tipo = formatMediaFormat(full.type) || categoryLabel(cat);
-    const estado = (typeof formatMediaStatus === 'function')
-        ? formatMediaStatus(full.status, cat)
-        : (full.status || '');
+    const estado = estadoDe(full.status, cat);
     const sinopsis = String(full.synopsis || full.sinopsis || '').trim();
 
     const metaParts = [tipo, anio, generos.join(', ')].filter(Boolean);
@@ -606,6 +654,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (_) { /* clipboard bloqueado (permiso / contexto no seguro) */ }
         });
     }
+
+    // Al cambiar el idioma, las cards (que se pintan por JS, no via data-i18n)
+    // no se re-traducen solas: se repintan con la seleccion actual en el nuevo
+    // idioma. Si un lado esta vacio, renderCompareCard repinta el estado vacio.
+    window.addEventListener('i18n:changed', async () => {
+        await Promise.all(lados.map((lado) => renderCompareCard(lado.host, lado.cat.value, lado.elegido)));
+        refrescarComparacion();
+    });
 
     // Estado inicial: ids de la URL (links compartidos) o cards vacias.
     lados.forEach(async (lado) => {
