@@ -13,6 +13,7 @@
 import {
     createIcons,
     Activity,
+    ArrowLeftRight,
     ArrowRight,
     BadgeCheck,
     Book,
@@ -29,6 +30,7 @@ import {
     Eye,
     Heart,
     Lightbulb,
+    Link,
     Medal,
     Menu,
     Pause,
@@ -49,6 +51,7 @@ import {
 // machear con el atributo data-lucide.
 const icons = {
     Activity,
+    ArrowLeftRight,
     ArrowRight,
     BadgeCheck,
     Book,
@@ -65,6 +68,7 @@ const icons = {
     Eye,
     Heart,
     Lightbulb,
+    Link,
     Medal,
     Menu,
     Pause,

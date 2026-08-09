@@ -116,20 +116,20 @@ function formatCount(value) {
 function compareStatsFor(cat, item) {
     // `raw` es el numero puro detras del texto: lo usa la comparacion para
     // resaltar cual de las dos cards gana en cada metrica.
-    const puntaje = { icon: 'star', value: formatScore(item?.score), label: 'Puntaje', raw: Number(item?.score) };
-    const usuarios = { icon: 'trending-up', value: formatCompactNumber(item?.popularity), label: 'Usuarios', raw: Number(item?.popularity) };
+    const puntaje = { icon: 'star', value: formatScore(item?.score), label: cmpTr('compare.stat.puntaje', 'Puntaje'), raw: Number(item?.score) };
+    const usuarios = { icon: 'trending-up', value: formatCompactNumber(item?.popularity), label: cmpTr('compare.stat.usuarios', 'Usuarios'), raw: Number(item?.popularity) };
 
     if (cat === 'anime') {
         const episodios = Number(item?.episodes) || 0;
         return [
             puntaje,
-            { icon: 'play', value: formatCount(episodios), label: 'Episodios', raw: episodios },
+            { icon: 'play', value: formatCount(episodios), label: cmpTr('compare.stat.episodios', 'Episodios'), raw: episodios },
             {
                 icon: 'clock',
                 value: formatMinutes(item?.duration),
                 // Con un solo episodio (peliculas, especiales) el numero ya es la
                 // duracion total; con varios es lo que dura cada uno.
-                label: episodios > 1 ? 'Por episodio' : 'Duración',
+                label: episodios > 1 ? cmpTr('compare.stat.por_ep', 'Por episodio') : cmpTr('compare.stat.duracion', 'Duración'),
                 raw: Number(item?.duration)
             },
             usuarios
@@ -138,8 +138,8 @@ function compareStatsFor(cat, item) {
 
     return [
         puntaje,
-        { icon: 'book', value: formatCount(item?.volumes), label: 'Volúmenes', raw: Number(item?.volumes) },
-        { icon: 'book-open', value: formatCount(item?.chapters), label: 'Capítulos', raw: Number(item?.chapters) },
+        { icon: 'book', value: formatCount(item?.volumes), label: cmpTr('compare.stat.volumenes', 'Volúmenes'), raw: Number(item?.volumes) },
+        { icon: 'book-open', value: formatCount(item?.chapters), label: cmpTr('compare.stat.capitulos', 'Capítulos'), raw: Number(item?.chapters) },
         usuarios
     ];
 }
@@ -213,19 +213,19 @@ function formatoRestante(ms) {
  * cuatro, con "—" si falta el dato, para que las dos cards queden alineadas.
  */
 function detallesPara(cat, item) {
-    const favoritos = { label: 'Favoritos', value: formatCompactNumber(item?.favourites) };
+    const favoritos = { label: cmpTr('compare.det.favoritos', 'Favoritos'), value: formatCompactNumber(item?.favourites) };
     if (cat === 'anime') {
         return [
-            { label: 'Estudio', value: (Array.isArray(item?.studios) && item.studios.filter(Boolean)[0]) || SIN_DATO },
-            { label: 'Basado en', value: FUENTES[String(item?.source || '').toUpperCase()] || SIN_DATO },
-            { label: 'Emisión', value: periodoDe(item) },
+            { label: cmpTr('compare.det.estudio', 'Estudio'), value: (Array.isArray(item?.studios) && item.studios.filter(Boolean)[0]) || SIN_DATO },
+            { label: cmpTr('compare.det.basado', 'Basado en'), value: FUENTES[String(item?.source || '').toUpperCase()] || SIN_DATO },
+            { label: cmpTr('compare.det.emision', 'Emisión'), value: periodoDe(item) },
             favoritos
         ];
     }
     return [
-        { label: 'Autor', value: autorDe(item) },
-        { label: 'Origen', value: PAISES[String(item?.countryOfOrigin || '').toUpperCase()] || SIN_DATO },
-        { label: 'Publicación', value: periodoDe(item) },
+        { label: cmpTr('compare.det.autor', 'Autor'), value: autorDe(item) },
+        { label: cmpTr('compare.det.origen', 'Origen'), value: PAISES[String(item?.countryOfOrigin || '').toUpperCase()] || SIN_DATO },
+        { label: cmpTr('compare.det.publicacion', 'Publicación'), value: periodoDe(item) },
         favoritos
     ];
 }
@@ -237,15 +237,15 @@ function categoryIcon(cat) {
 }
 
 function categoryLabel(cat) {
-    if (cat === 'anime') return 'Anime';
-    if (cat === 'novelas') return 'Novela';
-    return 'Manga';
+    if (cat === 'anime') return cmpTr('compare.kind.anime', 'Anime');
+    if (cat === 'novelas') return cmpTr('compare.kind.novela', 'Novela');
+    return cmpTr('compare.kind.manga', 'Manga');
 }
 
 async function renderCompareCard(host, cat, item) {
     if (!host) return;
     if (!item) {
-        host.innerHTML = `<div class="cmp-empty">Seleccioná un ítem para comparar</div>`;
+        host.innerHTML = `<div class="cmp-empty">${escapeHtml(cmpTr('compare.vacio', 'Seleccioná un ítem para comparar'))}</div>`;
         return;
     }
 
@@ -319,7 +319,7 @@ async function renderCompareCard(host, cat, item) {
                 <div class="cmp-footer">
                     <span class="cmp-status" data-estado="${escapeHtml(String(full.status || '').toUpperCase())}">${escapeHtml(estado || SIN_DATO)}</span>
                     ${proximoEp ? `<span class="cmp-next-ep">${escapeHtml(proximoEp)}</span>` : ''}
-                    <a class="cmp-open" href="${escapeHtml(detailLink(cat, full))}">Abrir detalle</a>
+                    <a class="cmp-open" href="${escapeHtml(detailLink(cat, full))}">${escapeHtml(cmpTr('compare.abrir', 'Abrir detalle'))}</a>
                 </div>
             </div>
         </article>
@@ -570,6 +570,42 @@ document.addEventListener('DOMContentLoaded', () => {
         refrescarComparacion();
         actualizarUrl();
     });
+
+    // Intercambiar los dos lados sin volver a buscar: cambia catalogo, texto y
+    // seleccion de uno por el otro y repinta. Util para invertir el "quien gana".
+    const swapBtn = document.getElementById('swapSides');
+    if (swapBtn) {
+        swapBtn.addEventListener('click', async () => {
+            const a = lados[0];
+            const b = lados[1];
+            [a.cat.value, b.cat.value] = [b.cat.value, a.cat.value];
+            [a.input.value, b.input.value] = [b.input.value, a.input.value];
+            [a.elegido, b.elegido] = [b.elegido, a.elegido];
+            a.resultados = [];
+            b.resultados = [];
+            cerrarSugerencias(a);
+            cerrarSugerencias(b);
+            await Promise.all([
+                renderCompareCard(a.host, a.cat.value, a.elegido),
+                renderCompareCard(b.host, b.cat.value, b.elegido)
+            ]);
+            refrescarComparacion();
+            actualizarUrl();
+        });
+    }
+
+    // Copiar el enlace de la comparacion (la URL ya lleva los ids sincronizados).
+    const copyBtn = document.getElementById('copyLink');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                if (window.Toast && typeof window.Toast.success === 'function') {
+                    window.Toast.success(cmpTr('compare.link_copiado', 'Enlace copiado'));
+                }
+            } catch (_) { /* clipboard bloqueado (permiso / contexto no seguro) */ }
+        });
+    }
 
     // Estado inicial: ids de la URL (links compartidos) o cards vacias.
     lados.forEach(async (lado) => {

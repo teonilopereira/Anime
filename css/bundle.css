@@ -1301,6 +1301,49 @@ main { padding-bottom: 24px; }
     box-shadow: 0 0 18px var(--neon-purple-glow);
 }
 
+/* Fila de acciones bajo los controles: intercambiar lados y copiar enlace.
+   Botones discretos, centrados, que no compiten con el boton Comparar. */
+.compare-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    max-width: 1280px;
+    margin: 0 auto 6px;
+    flex-wrap: wrap;
+}
+.compare-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    background: rgba(var(--ink-rgb), 0.05);
+    border: 1px solid var(--neon-purple-15);
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.compare-action:hover,
+.compare-action:focus-visible {
+    color: var(--accent-cyan);
+    border-color: var(--accent-cyan-18);
+    background: var(--accent-cyan-10);
+}
+.compare-action i,
+.compare-action svg {
+    width: 15px;
+    height: 15px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .compare-action {
+        transition: none;
+    }
+}
+
 /* En angosto la barra se apila: un lado arriba del otro, boton a lo ancho.
    El VS se oculta porque entre bloques apilados ya no separa nada. */
 @media (max-width: 900px) {
