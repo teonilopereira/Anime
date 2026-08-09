@@ -200,6 +200,9 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | `fix_encoding.js` | Corrige caracteres corruptos (mojibake). |
 | `auto-html.js` | Consistencia entre HTML (footer, `common-ui.js`, iconos). |
 | `add_missing_manga_entries.js` | Agrega entradas de manga faltantes a los datos. |
+| `generate-mascots.js` | Genera mascotas (idle/walk) con PixelLab.ai → `js/ui/mascots.js` (`window.MascotRegistry`). Requiere `PIXELLAB_API_KEY` y salida a `api.pixellab.ai`. |
+| `generate-characters.js` | Genera personajes (idle/walk/attack + proyectil opcional) con PixelLab.ai → `js/ui/characters.js` (`window.CharacterRegistry`). Fusiona con lo existente. Requiere `PIXELLAB_API_KEY`. |
+| `slice-characters.py` / `slice-mascots.py` | Recortan spritesheets locales (`tools/character-sheets/`, `tools/mascot-sheets/`) en fotogramas idle/walk/attack y (re)generan los registros. |
 
 ---
 
