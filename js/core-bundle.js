@@ -2477,15 +2477,10 @@ window.getCurrentUser      = getCurrentUser;
 /* ========================================== */
 
 /**
- * mascots.js -- Registro de mascotas seleccionables (ademas de Rimuru).
+ * mascots.js — Registro de mascotas seleccionables (además de Rimuru).
  *
- * GENERADO por tools/slice-mascots.py a partir de las hojas de
- * tools/mascot-sheets/. No editar a mano: se sobrescribe.
+ * GENERADO por tools/generate-mascots.js. No editar a mano: se sobrescribe.
  * mascot.js lee window.MascotRegistry y lo suma a la lista del selector.
- *
- * Cada entrada trae animaciones idle/walk/attack en modo 'frames' (una
- * imagen por fotograma), ya normalizadas a un lienzo cuadrado con los
- * pies anclados abajo-centro.
  */
 window.MascotRegistry = [
     {
@@ -2590,6 +2585,40 @@ window.MascotRegistry = [
                 ],
                 "fps": 12
             }
+        }
+    },
+    {
+        "id": "hikari",
+        "name": "Hikari",
+        "anime": "Original",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/hikari/idle-0.png"
+            ],
+            "walk": [
+                "images/mascots/hikari/walk-0.png",
+                "images/mascots/hikari/walk-1.png",
+                "images/mascots/hikari/walk-2.png",
+                "images/mascots/hikari/walk-3.png"
+            ]
+        }
+    },
+    {
+        "id": "luna",
+        "name": "Luna",
+        "anime": "Original",
+        "mode": "frames",
+        "frames": {
+            "idle": [
+                "images/mascots/luna/idle-0.png"
+            ],
+            "walk": [
+                "images/mascots/luna/walk-0.png",
+                "images/mascots/luna/walk-1.png",
+                "images/mascots/luna/walk-2.png",
+                "images/mascots/luna/walk-3.png"
+            ]
         }
     }
 ];

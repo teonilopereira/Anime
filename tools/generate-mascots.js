@@ -43,7 +43,10 @@ const MASCOTS = [
     { id: "kitsune",     name: "Kitsune",      anime: "Original", prompt: "cute chibi nine-tailed fox spirit, anime pixel art, full body, side view" },
     { id: "robot-neko",  name: "Robot Neko",   anime: "Original", prompt: "cute chibi robot cat, neon accents, anime pixel art, full body, side view" },
     { id: "maga",        name: "Pequeña Maga", anime: "Original", prompt: "cute chibi anime witch girl with a pointy hat and cape, pixel art, full body, side view" },
-    { id: "panda",       name: "Panda Rojo",   anime: "Original", prompt: "cute chibi red panda, anime pixel art, full body, side view" }
+    { id: "panda",       name: "Panda Rojo",   anime: "Original", prompt: "cute chibi red panda, anime pixel art, full body, side view" },
+    // ── Personajes mujeres ──────────────────────────────────────────────────
+    { id: "hikari", name: "Hikari", anime: "Original", prompt: "cute chibi anime warrior girl, long crimson ponytail, silver armor, red scarf, holding a katana, pixel art, full body, side view" },
+    { id: "luna",   name: "Luna",   anime: "Original", prompt: "cute chibi anime sorceress girl, long lavender hair, purple star witch hat, flowing violet robe, holding a glowing magic staff, pixel art, full body, side view" }
 ];
 
 if (!KEY) {
