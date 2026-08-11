@@ -445,18 +445,27 @@ async function loadAllProgress() {
 
 // ─── Comentarios ────────────────────────────────────────────────
 async function loadComments(category, itemId, refFilter) {
-    let query = supabase
-        .from("comments")
-        .select("id, user_id, body, parent_id, ref_type, ref_number, spoiler, created_at, updated_at")
-        .eq("category", category)
-        .eq("item_id", String(itemId))
-        .order("created_at", { ascending: false });
+    // likes_count solo existe si se aplicó la migración 009; si la columna no
+    // está, se reintenta sin ella (mismo patrón resiliente que loadItemStates).
+    const buildQuery = (withLikes) => {
+        const cols = "id, user_id, body, parent_id, ref_type, ref_number, spoiler, created_at, updated_at"
+            + (withLikes ? ", likes_count" : "");
+        let q = supabase
+            .from("comments")
+            .select(cols)
+            .eq("category", category)
+            .eq("item_id", String(itemId))
+            .order("created_at", { ascending: false });
+        if (refFilter && refFilter.type && refFilter.number) {
+            q = q.eq("ref_type", refFilter.type).eq("ref_number", refFilter.number);
+        }
+        return q;
+    };
 
-    if (refFilter && refFilter.type && refFilter.number) {
-        query = query.eq("ref_type", refFilter.type).eq("ref_number", refFilter.number);
+    let { data, error } = await buildQuery(true);
+    if (error && /likes_count/.test(String(error.message || ''))) {
+        ({ data, error } = await buildQuery(false));
     }
-
-    const { data, error } = await query;
 
     if (error) { console.warn("loadComments:", error.message); return []; }
     if (!data || !data.length) return [];
@@ -474,8 +483,80 @@ async function loadComments(category, itemId, refFilter) {
 
     return data.map(c => ({
         ...c,
+        likes_count: Number(c.likes_count) || 0,
         author: profilesMap[c.user_id] || { username: "Usuario", display_name: "", photo_url: "" }
     }));
+}
+
+// ─── Likes de comentarios ────────────────────────────────────────
+// like/unlike con RLS (insert/delete own). El contador comments.likes_count
+// lo mantiene el trigger update_comment_likes_count en la base.
+async function likeComment(commentId) {
+    const user = await getCurrentUserAsync();
+    if (!user) throw new Error("Debés iniciar sesión para reaccionar");
+
+    // Idempotente: la PK (comment_id, user_id) evita likes duplicados.
+    const { error } = await supabase
+        .from("comment_likes")
+        .upsert(
+            { comment_id: commentId, user_id: user.id },
+            { onConflict: "comment_id,user_id", ignoreDuplicates: true }
+        );
+
+    if (error) {
+        console.error("likeComment:", error);
+        throw new Error("No se pudo registrar el like");
+    }
+}
+
+async function unlikeComment(commentId) {
+    const user = await getCurrentUserAsync();
+    if (!user) throw new Error("Debés iniciar sesión");
+
+    const { error } = await supabase
+        .from("comment_likes")
+        .delete()
+        .eq("comment_id", commentId)
+        .eq("user_id", user.id);
+
+    if (error) {
+        console.error("unlikeComment:", error);
+        throw new Error("No se pudo quitar el like");
+    }
+}
+
+// Devuelve el conjunto de IDs (entre los pasados) que el usuario actual likeó,
+// para pintar el corazón lleno al cargar. Sin sesión → set vacío.
+async function loadMyCommentLikes(commentIds) {
+    const user = await getCurrentUserAsync();
+    if (!user || !commentIds || !commentIds.length) return new Set();
+
+    const { data, error } = await supabase
+        .from("comment_likes")
+        .select("comment_id")
+        .eq("user_id", user.id)
+        .in("comment_id", commentIds);
+
+    if (error) { console.warn("loadMyCommentLikes:", error.message); return new Set(); }
+    return new Set((data || []).map(r => r.comment_id));
+}
+
+// ─── Muro de actividad ───────────────────────────────────────────
+async function loadActivityFeed(limit = 30, offset = 0) {
+    const { data, error } = await supabase
+        .rpc("get_activity_feed", { p_limit: Number(limit) || 30, p_offset: Number(offset) || 0 });
+    if (error) { console.warn("loadActivityFeed:", error.message); return []; }
+    return data || [];
+}
+
+// ─── Perfil público de otro usuario ──────────────────────────────
+async function getPublicProfile(username) {
+    const uname = String(username || "").trim();
+    if (!uname) return null;
+    const { data, error } = await supabase
+        .rpc("get_public_profile", { p_username: uname });
+    if (error) { console.warn("getPublicProfile:", error.message); return null; }
+    return (data && data[0]) || null;
 }
 
 async function addComment(category, itemId, body, parentId, refType, refNumber, spoiler) {
@@ -509,6 +590,7 @@ async function addComment(category, itemId, body, parentId, refType, refNumber, 
 
     return {
         ...data,
+        likes_count: 0,
         author: profile || { username: "Usuario", display_name: "", photo_url: "" }
     };
 }
@@ -571,6 +653,11 @@ const AppSupabase = Object.freeze({
     addComment,
     editComment,
     deleteComment,
+    likeComment,
+    unlikeComment,
+    loadMyCommentLikes,
+    loadActivityFeed,
+    getPublicProfile,
 
     signInWithGoogle,
     signOutGoogle,
