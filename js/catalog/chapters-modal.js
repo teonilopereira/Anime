@@ -96,6 +96,48 @@
         return 'Volumen';
     }
 
+    // ¿El id es un UUID de MangaDex? Solo esos títulos tienen portada por
+    // volumen consultable; los de AniList son numéricos y no la exponen.
+    function isMangaDexId(id) {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id));
+    }
+
+    var _coverCache = {};
+
+    // Trae las portadas reales por volumen desde MangaDex y las inserta en su
+    // ítem correspondiente. Silencioso ante error: queda la portada principal.
+    function loadVolumeCovers(id, grid) {
+        if (!isMangaDexId(id) || typeof window.mdFetch !== 'function') return;
+        var apply = function (map) {
+            if (!map) return;
+            var imgs = grid.querySelectorAll('.cmodal-cap-cover[data-vol]');
+            for (var i = 0; i < imgs.length; i++) {
+                var v = imgs[i].getAttribute('data-vol');
+                if (map[v]) imgs[i].src = map[v];
+            }
+        };
+        if (_coverCache[id]) { apply(_coverCache[id]); return; }
+        try {
+            window.mdFetch('/cover?manga[]=' + encodeURIComponent(id) + '&limit=100&order[volume]=asc')
+                .then(function (json) {
+                    var arr = (json && json.data) || [];
+                    var map = {};
+                    for (var i = 0; i < arr.length; i++) {
+                        var at = arr[i] && arr[i].attributes;
+                        if (!at || at.volume == null || !at.fileName) continue;
+                        var key = String(parseInt(at.volume, 10));
+                        if (key === 'NaN') continue;
+                        if (!map[key]) {
+                            map[key] = 'https://uploads.mangadex.org/covers/' + id + '/' + at.fileName + '.256.jpg';
+                        }
+                    }
+                    _coverCache[id] = map;
+                    apply(map);
+                })
+                .catch(function () {});
+        } catch (e) {}
+    }
+
     function open(btn) {
         var card = btn.closest('.card-container');
         if (!card) return;
@@ -147,18 +189,28 @@
         // Lista
         var grid = q('[data-caps-grid]');
         var empty = q('[data-caps-empty]');
+        var isManga = !isAnime;
         if (total > 0) {
             empty.hidden = true;
             var rows = '';
             for (var n = 1; n <= total; n++) {
                 var done = viewedAll || (watched && watched.has(n));
-                rows += '<div class="cmodal-cap' + (done ? ' vista' : '') + '">'
-                    + '<span class="cmodal-cap-num">' + (n < 10 ? '0' + n : n) + '</span>'
-                    + '<span class="cmodal-cap-b"><span class="cmodal-cap-name">' + esc(word + ' ' + n) + '</span></span>'
+                var nn = (n < 10 ? '0' + n : String(n));
+                // En manga cada ítem muestra una foto del volumen: arranca con la
+                // portada principal y, si es un título de MangaDex, se reemplaza
+                // por la portada real de ese número (loadVolumeCovers).
+                var head = isManga
+                    ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy">'
+                    : '<span class="cmodal-cap-num">' + nn + '</span>';
+                var sub = isManga ? '<span class="cmodal-cap-sub">#' + nn + '</span>' : '';
+                rows += '<div class="cmodal-cap' + (isManga ? ' cmodal-cap--cover' : '') + (done ? ' vista' : '') + '">'
+                    + head
+                    + '<span class="cmodal-cap-b"><span class="cmodal-cap-name">' + esc(word + ' ' + n) + '</span>' + sub + '</span>'
                     + '<span class="cmodal-cap-chk"></span>'
                     + '</div>';
             }
             grid.innerHTML = rows;
+            if (isManga) loadVolumeCovers(id, grid);
         } else {
             grid.innerHTML = '';
             empty.hidden = false;
