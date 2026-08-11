@@ -69,7 +69,7 @@ const ANALYTICS = {
 // ── Definición de fuentes ────────────────────────────────────────────────
 
 // CSS compartido → bundle. Orden fijo (base primero por reset/variables).
-const CSS_SOURCES = ['base', 'theme', 'components', 'cards', 'responsive', 'destiny-navbar', 'mascot']
+const CSS_SOURCES = ['base', 'theme', 'components', 'cards', 'chapters-modal', 'responsive', 'destiny-navbar', 'mascot']
     .map((n) => `css/${n}.css`);
 
 // JS core → bundle. Orden por dependencias de inicialización (igual que el viejo
@@ -95,6 +95,7 @@ const JS_SOURCES = [
     'js/ui/mascot.js',
     'js/catalog/states.js',
     'js/catalog/cards.js',
+    'js/catalog/chapters-modal.js',
     'js/catalog/search.js',
     'js/catalog/pagination.js',
     'js/core/common-ui.js',
