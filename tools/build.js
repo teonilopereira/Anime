@@ -82,6 +82,7 @@ const JS_SOURCES = [
     'js/datos.js',
     'js/core/user-store.js',
     'js/core/storage.js',
+    'js/core/streak.js',
     'js/core/auth.js',
     'js/security/sanitizer.js',
     'js/security/validator.js',
@@ -99,6 +100,7 @@ const JS_SOURCES = [
     'js/catalog/search.js',
     'js/catalog/pagination.js',
     'js/core/common-ui.js',
+    'js/core/reminders.js',
 ];
 
 // Nota: los CSS y JS especificos de cada pagina (usuario, detalle, login, etc.)

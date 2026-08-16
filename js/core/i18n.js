@@ -12,6 +12,7 @@
             "nav.top":            "Top",
             "nav.top_jugadores":  "Top de jugadores",
             "nav.ranking":        "Ranking",
+            "nav.calendario":     "Calendario",
             "nav.mis_listas":     "Mis Listas",
             "nav.listas":         "Listas",
             "nav.mas":            "Más",
@@ -36,6 +37,7 @@
             "index.destacados":    "Destacados",
             "index.populares":     "Más populares",
             "index.continuar":     "Continuar viendo",
+            "index.recomendado":   "Recomendado para vos",
 
             // ── Catálogo (anime / manga / novelas) ───────────────────────────
             "catalog.title.anime":    "CATÁLOGO DE ANIME",
@@ -252,6 +254,10 @@
             "user.favoritos":  "Favoritos",
 
             // ── Comparar ─────────────────────────────────────────────────────
+            "calendar.titulo":         "CALENDARIO DE ESTRENOS",
+            "calendar.desc":           "Los episodios que salen esta semana. Seguí un anime para verlo destacado.",
+            "calendar.solo_seguidos":  "Solo lo que sigo",
+
             "compare.titulo":  "COMPARAR",
             "compare.desc":    "Compará dos títulos lado a lado.",
 
@@ -388,6 +394,7 @@
             "nav.top":            "Top",
             "nav.top_jugadores":  "Player ranking",
             "nav.ranking":        "Ranking",
+            "nav.calendario":     "Calendar",
             "nav.mis_listas":     "My Lists",
             "nav.listas":         "Lists",
             "nav.mas":            "More",
@@ -412,6 +419,7 @@
             "index.destacados":    "Featured",
             "index.populares":     "Most popular",
             "index.continuar":     "Continue watching",
+            "index.recomendado":   "Recommended for you",
 
             // ── Catalog ──────────────────────────────────────────────────────
             "catalog.title.anime":    "ANIME CATALOG",
@@ -628,6 +636,10 @@
             "user.favoritos": "Favorites",
 
             // ── Compare ──────────────────────────────────────────────────────
+            "calendar.titulo":         "RELEASE CALENDAR",
+            "calendar.desc":           "Episodes airing this week. Follow an anime to see it highlighted.",
+            "calendar.solo_seguidos":  "Only what I follow",
+
             "compare.titulo": "COMPARE",
             "compare.desc":   "Compare two titles side by side.",
 

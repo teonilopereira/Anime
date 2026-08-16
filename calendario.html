@@ -4,29 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
-    <meta name="description" content="Ficha de un estudio de animación: todas las obras que produjo, ordenadas por popularidad.">
-    <meta name="keywords" content="estudio, animación, anime, MAPPA, Ufotable, producción">
+    <meta name="description" content="Calendario semanal de estrenos de anime: qué episodios salen cada día.">
+    <meta name="keywords" content="calendario, estrenos, anime, episodios, airing, temporada">
     <meta name="robots" content="index,follow">
-    <meta property="og:title" content="Anime Destiny | Estudio">
-    <meta property="og:description" content="Ficha de un estudio de animación: todas las obras que produjo, ordenadas por popularidad.">
-    <meta name="twitter:title" content="Anime Destiny | Estudio">
-    <meta name="twitter:description" content="Ficha de un estudio de animación: todas las obras que produjo.">
-    <link rel="canonical" href="https://animedestiny.netlify.app/estudio.html">
-    <title>Anime Destiny | Estudio</title>
+    <meta property="og:title" content="Anime Destiny | Calendario de estrenos">
+    <meta property="og:description" content="Calendario semanal de estrenos de anime: qué episodios salen cada día.">
+    <meta name="twitter:title" content="Anime Destiny | Calendario de estrenos">
+    <meta name="twitter:description" content="Calendario semanal de estrenos de anime: qué episodios salen cada día.">
+    <link rel="canonical" href="https://animedestiny.netlify.app/calendario.html">
+    <title>Anime Destiny | Calendario</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="images/icon-192.png">
     <link rel="apple-touch-icon" href="images/icon-192.png">
     <meta name="theme-color" content="#bc13fe">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://animedestiny.netlify.app/estudio.html">
+    <meta property="og:url" content="https://animedestiny.netlify.app/calendario.html">
     <meta property="og:site_name" content="Anime Destiny">
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
     <link rel="stylesheet" href="css/bundle.min.css?v=8aa50c2e">
+    <link rel="stylesheet" href="css/calendario.css?v=8aa50c2e">
 
-    <link rel="stylesheet" href="css/personaje.css?v=8aa50c2e">
-    <link rel="stylesheet" href="css/estudio.css?v=8aa50c2e">
+    <link rel="preconnect" href="https://graphql.anilist.co" crossorigin>
+    <link rel="preconnect" href="https://s4.anilist.co">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="css/fonts.css?v=8aa50c2e">
@@ -35,7 +36,7 @@
     <script src="js/core/theme.js?v=8aa50c2e"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
-<body data-page="estudio">
+<body data-page="calendario">
     <nav class="destiny-navbar">
         <div id="nav-brand-container"></div>
         <div id="nav-links-container"></div>
@@ -44,34 +45,28 @@
         </div>
     </nav>
 
-    <main class="persona-page" id="main-content">
-        <div id="estudio-root" class="persona-root" aria-live="polite">
-            <!-- Estado: cargando -->
-            <section id="estudio-loading" class="empty-state empty-state-inline">
-                <span class="empty-state-kicker">Cargando</span>
-                <h2>Buscando el estudio en la API...</h2>
-            </section>
+    <header class="page-header">
+        <h1 class="page-title" data-i18n="calendar.titulo">CALENDARIO DE ESTRENOS</h1>
+        <p class="page-subtitle" data-i18n="calendar.desc">Los episodios que salen esta semana. Seguí un anime para verlo destacado.</p>
+    </header>
 
-            <!-- Estado: error / no encontrado -->
-            <section id="estudio-error" class="empty-state empty-state-inline" hidden>
-                <span class="empty-state-kicker" id="estudio-error-kicker">No encontrado</span>
-                <h2 id="estudio-error-title">No se encontró este estudio.</h2>
-                <p id="estudio-error-msg"></p>
-                <a class="detail-back" href="index.html">Volver al inicio</a>
-            </section>
-
-            <!-- Contenido (se pinta desde la API) -->
-            <div id="estudio-content" hidden></div>
+    <main class="calendar-page" id="main-content">
+        <div class="calendar-toolbar">
+            <label class="calendar-filter">
+                <input type="checkbox" id="calOnlyMine">
+                <span data-i18n="calendar.solo_seguidos">Solo lo que sigo</span>
+            </label>
         </div>
+        <div id="calendarBody" class="calendar-body" aria-live="polite"></div>
     </main>
 
     <div id="footer-container"></div>
-
     <script src="js/core/config.js?v=8aa50c2e"></script>
     <script src="js/core/i18n.js?v=8aa50c2e"></script>
     <script src="js/core/namespace.js?v=8aa50c2e"></script>
     <script type="module" src="api/supabase-config.js?v=8aa50c2e" async></script>
     <script src="js/core-bundle.min.js?v=8aa50c2e" defer></script>
-    <script src="js/estudio/render.js?v=8aa50c2e" defer></script>
+    <script src="js/pages/script.js?v=8aa50c2e" defer></script>
+    <script src="js/pages/calendario.js?v=8aa50c2e" defer></script>
 </body>
 </html>
