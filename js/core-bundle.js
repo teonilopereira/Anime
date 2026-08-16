@@ -856,6 +856,73 @@
         }
     };
 
+    // Calendario semanal de estrenos: todos los episodios que salen al aire en
+    // una ventana de días desde ahora. Alimenta calendario.html. Distinto de
+    // getAiringSchedule (ese consulta el "próximo episodio" de una lista de ids
+    // concreta, para las notificaciones del usuario).
+    var WEEKLY_AIRING_QUERY = `
+        query ($start: Int, $end: Int, $page: Int) {
+            Page(page: $page, perPage: 50) {
+                pageInfo { hasNextPage }
+                airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME) {
+                    episode
+                    airingAt
+                    media {
+                        id
+                        title { romaji english }
+                        coverImage { large }
+                        format
+                        genres
+                        isAdult
+                        countryOfOrigin
+                    }
+                }
+            }
+        }`;
+
+    window.getWeeklyAiringSchedule = async function (days) {
+        var span = Number(days) > 0 ? Math.min(Number(days), 14) : 7;
+        var now = Math.floor(Date.now() / 1000);
+        var end = now + span * 86400;
+
+        var cacheKey = 'weeklyAiring_' + span + '_' + Math.floor(now / 3600); // bucket horario
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+
+        try {
+            var all = [];
+            var page = 1;
+            var hasNext = true;
+            // Tope de páginas: una semana de estrenos entra de sobra en 5×50.
+            while (hasNext && page <= 5) {
+                var json = await anilistFetch(WEEKLY_AIRING_QUERY, { start: now, end: end, page: page });
+                var pageData = json && json.data && json.data.Page;
+                if (!pageData) break;
+                (pageData.airingSchedules || []).forEach(function (row) {
+                    var m = row && row.media;
+                    if (!m || m.isAdult) return;
+                    all.push({
+                        id: m.id,
+                        title: extractTitle(m.title),
+                        img: (m.coverImage && m.coverImage.large) || '',
+                        format: m.format || '',
+                        genres: Array.isArray(m.genres) ? m.genres : [],
+                        episode: Number(row.episode) || 0,
+                        airingAt: Number(row.airingAt) || 0
+                    });
+                });
+                hasNext = !!(pageData.pageInfo && pageData.pageInfo.hasNextPage);
+                page += 1;
+            }
+            all.sort(function (a, b) { return a.airingAt - b.airingAt; });
+            setApiCache(cacheKey, all, 30 * 60 * 1000);
+            return all;
+        } catch (err) {
+            console.warn('getWeeklyAiringSchedule error:', err);
+            return [];
+        }
+    };
+
     window.getMangaById = async function (id) {
         var numId = Number(id);
         if (!Number.isFinite(numId)) return null;
@@ -1651,6 +1718,143 @@ function obtenerDetalleItem(categoria, id) {
 
 
 /* ========================================== */
+/* === FILE: js/core/streak.js === */
+/* ========================================== */
+
+/**
+ * streak.js — Racha diaria de días activos (window.AppStreak).
+ *
+ * Retención: premia volver cada día. La racha sube si el usuario estuvo
+ * activo AYER, se mantiene si ya contó HOY, y se reinicia a 1 si faltó uno o
+ * más días. Todo vive en localStorage por usuario (los datos de racha son
+ * un contador local; no necesitan viajar al servidor para funcionar).
+ *
+ * No otorga EXP por sí solo: devuelve cuánto subió para que quien lo llama
+ * (auth.grantDailyLoginBonus) sume el bonus con addUserPoints y evite premiar
+ * dos veces. Así el motor de EXP sigue centralizado.
+ *
+ * Claves:
+ *   ad:streak:count:<uid>  → días seguidos actuales
+ *   ad:streak:best:<uid>   → récord histórico
+ *   ad:streak:day:<uid>    → último día contado (YYYY-MM-DD)
+ */
+(function (window) {
+    "use strict";
+
+    var K_COUNT = 'ad:streak:count:';
+    var K_BEST  = 'ad:streak:best:';
+    var K_DAY   = 'ad:streak:day:';
+
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* lleno/bloqueado */ } }
+
+    // Fecha local en YYYY-MM-DD. Local a propósito: la racha se siente por el
+    // "día del usuario", no por UTC; con UTC alguien en América perdería la
+    // racha a media tarde.
+    function dayStr(date) {
+        var d = date || new Date();
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
+    }
+
+    function daysBetween(fromStr, toStr) {
+        // Diferencia en días naturales entre dos YYYY-MM-DD, ignorando la hora.
+        var a = new Date(fromStr + 'T00:00:00');
+        var b = new Date(toStr + 'T00:00:00');
+        if (isNaN(a) || isNaN(b)) return null;
+        return Math.round((b - a) / 86400000);
+    }
+
+    function readNum(key, uid) {
+        var n = Number(lsGet(key + uid));
+        return Number.isFinite(n) && n > 0 ? n : 0;
+    }
+
+    // Estado actual sin modificar nada. Devuelve además si la racha ya se contó
+    // hoy y si está "en riesgo" (activa pero todavía sin contar hoy) para que la
+    // UI muestre el recordatorio.
+    function getStreak(uid) {
+        var id = String(uid || '');
+        if (!id || id === 'Invitado') {
+            return { count: 0, best: 0, lastDay: null, countedToday: false, atRisk: false };
+        }
+        var count = readNum(K_COUNT, id);
+        var best  = readNum(K_BEST, id);
+        var lastDay = lsGet(K_DAY + id);
+        var today = dayStr();
+        var gap = lastDay ? daysBetween(lastDay, today) : null;
+
+        // Si pasó más de un día desde la última cuenta, la racha ya está rota:
+        // se refleja como 0 aunque el contador guardado siga en su último valor
+        // (se normaliza al llamar a recordActivity).
+        var alive = gap === 0 || gap === 1;
+        return {
+            count: alive ? count : 0,
+            best: best,
+            lastDay: lastDay,
+            countedToday: gap === 0,
+            atRisk: gap === 1 && count > 0
+        };
+    }
+
+    // Registra actividad de hoy y actualiza la racha. Idempotente dentro del
+    // mismo día. Devuelve { count, best, incremented, isNewRecord }.
+    function recordActivity(uid) {
+        var id = String(uid || '');
+        if (!id || id === 'Invitado') {
+            return { count: 0, best: 0, incremented: false, isNewRecord: false };
+        }
+        var today = dayStr();
+        var lastDay = lsGet(K_DAY + id);
+        var count = readNum(K_COUNT, id);
+        var best  = readNum(K_BEST, id);
+
+        var incremented = false;
+        if (lastDay === today) {
+            // Ya contó hoy: no tocar el contador.
+            if (count < 1) count = 1;
+        } else {
+            var gap = lastDay ? daysBetween(lastDay, today) : null;
+            if (gap === 1) {
+                count = count + 1;   // día consecutivo
+            } else {
+                count = 1;           // primera vez o racha rota
+            }
+            incremented = true;
+            lsSet(K_DAY + id, today);
+            lsSet(K_COUNT + id, String(count));
+        }
+
+        var isNewRecord = false;
+        if (count > best) {
+            best = count;
+            lsSet(K_BEST + id, String(best));
+            isNewRecord = true;
+        }
+
+        return { count: count, best: best, incremented: incremented, isNewRecord: isNewRecord };
+    }
+
+    // Bonus de EXP por mantener la racha: crece con los días y se topa para que
+    // no se dispare. Lo consume auth.grantDailyLoginBonus.
+    function bonusForStreak(count) {
+        var n = Number(count) || 0;
+        if (n <= 1) return 0;
+        return Math.min((n - 1) * 5, 50);
+    }
+
+    window.AppStreak = Object.freeze({
+        getStreak: getStreak,
+        recordActivity: recordActivity,
+        bonusForStreak: bonusForStreak,
+        _dayStr: dayStr // expuesto para tests
+    });
+})(window);
+
+
+/* ========================================== */
 /* === FILE: js/core/auth.js === */
 /* ========================================== */
 
@@ -1974,7 +2178,18 @@ async function waitForSupabase() {
         var key = 'lastDailyLogin:' + user.id;
         if (localStorage.getItem(key) === today) return;
         localStorage.setItem(key, today);
-        var delta = AnimeDestiny.Constants.XP_LOGIN || 10;
+
+        // Racha diaria: sube el contador de días seguidos y agrega un bonus de
+        // EXP que crece con la racha (además del login base). Se registra antes
+        // de sumar puntos para poder incluir el bonus en una sola operación.
+        var streak = null;
+        var streakBonus = 0;
+        if (window.AppStreak && typeof window.AppStreak.recordActivity === 'function') {
+            streak = window.AppStreak.recordActivity(user.id);
+            streakBonus = window.AppStreak.bonusForStreak(streak.count);
+        }
+
+        var delta = (AnimeDestiny.Constants.XP_LOGIN || 10) + streakBonus;
         if (typeof addUserPoints === 'function') {
             addUserPoints(user.id, delta);
         } else if (client && typeof client.addExperience === 'function') {
@@ -1984,9 +2199,18 @@ async function waitForSupabase() {
         }
         if (window.Toast) {
             setTimeout(function () {
-                window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+                if (streak && streak.count > 1) {
+                    window.Toast.success("¡Racha de " + streak.count + " días! (+" + delta + " EXP)");
+                } else {
+                    window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+                }
             }, 800);
         }
+        // Aviso para que la UI (widget de racha en inicio / mis-listas) se
+        // repinte sin recargar.
+        try {
+            window.dispatchEvent(new CustomEvent('streak-updated', { detail: streak || {} }));
+        } catch (_) { /* navegador viejo sin CustomEvent */ }
     }
 
     // Escuchar cambios de sesión de Supabase
@@ -8175,6 +8399,7 @@ window.addEventListener("supabase-auth-changed", function () {
     ];
 
     const NAV_SECUNDARIOS = [
+        { id: "calendario", href: "calendario.html", icon: "calendar-days", i18n: "nav.calendario", def: "Calendario" },
         { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking" },
         { id: "comparar", href: "comparar.html", icon: "columns-2", i18n: "nav.comparar", def: "Comparar" },
         { id: "top", href: "top.html", icon: "crown", i18n: "nav.top_jugadores", def: "Top de jugadores" },
@@ -8780,3 +9005,160 @@ window.addEventListener("supabase-auth-changed", function () {
     installSecurityHandlers();
 
 })();
+
+/* ========================================== */
+/* === FILE: js/core/reminders.js === */
+/* ========================================== */
+
+/**
+ * reminders.js — Recordatorios en la app (window.AppReminders).
+ *
+ * Complementa al push del servidor (server/functions/notify-new-episodes), que
+ * necesita clave VAPID y despliegue. Esto, en cambio, funciona 100% en el
+ * cliente mientras la app está abierta: al cargar, revisa el calendario de los
+ * animes que el usuario sigue y le avisa de dos cosas —
+ *
+ *   1. Un episodio de su lista que sale HOY (o salió en las últimas horas).
+ *   2. Que su racha diaria sigue viva / en riesgo.
+ *
+ * El aviso es siempre un Toast (no pide permisos). Si además concedió permiso
+ * de notificaciones, se emite una notificación del sistema vía el service
+ * worker. Todo se deduplica por día en localStorage para no repetir.
+ *
+ * Best-effort: sin sesión, sin API o sin datos, no hace nada.
+ */
+(function (window) {
+    'use strict';
+
+    var DAY_MS = 86400000;
+
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* lleno */ } }
+
+    function today() { return new Date().toISOString().split('T')[0]; }
+
+    function signedInUserId() {
+        var c = window.AppSupabase;
+        var u = c && typeof c.getCurrentUserSync === 'function' ? c.getCurrentUserSync() : null;
+        return u ? u.id : null;
+    }
+
+    // Notificación del sistema, solo si ya hay permiso concedido (nunca lo pide
+    // acá: pedir permiso sin que el usuario lo accione es mala práctica).
+    function systemNotify(title, body, url) {
+        try {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            if (!('serviceWorker' in navigator)) return;
+            navigator.serviceWorker.ready.then(function (reg) {
+                reg.showNotification(title, {
+                    body: body,
+                    icon: '/images/icon-192.png',
+                    badge: '/images/icon-192.png',
+                    tag: url || 'anime-destiny-reminder',
+                    data: { url: url || '/index.html' }
+                });
+            }).catch(function () { /* SW no listo */ });
+        } catch (_) { /* navegador sin soporte */ }
+    }
+
+    function toast(kind, msg) {
+        if (window.Toast && typeof window.Toast[kind] === 'function') window.Toast[kind](msg);
+    }
+
+    // Ids de anime que el usuario sigue (fav / visto / viendo).
+    async function followedAnimeIds() {
+        var c = window.AppSupabase;
+        if (!c || !c.isSignedIn || !c.isSignedIn() || !c.loadItemStates) return [];
+        try {
+            var states = await c.loadItemStates('anime');
+            return (Array.isArray(states) ? states : [])
+                .filter(function (st) { return st.fav || st.viewed || st.watch_status === 'viendo'; })
+                .map(function (st) { return st.item_id; });
+        } catch (e) {
+            console.warn('[reminders] followed:', e);
+            return [];
+        }
+    }
+
+    // Episodios de la lista del usuario que salen hoy (o salieron en las últimas
+    // horas). Deduplica por (id, episodio) y día.
+    async function checkEpisodes(userId) {
+        if (typeof window.getAiringSchedule !== 'function') return;
+        var ids = await followedAnimeIds();
+        if (!ids.length) return;
+
+        var schedule = [];
+        try {
+            schedule = await window.getAiringSchedule(ids) || [];
+        } catch (e) {
+            console.warn('[reminders] airing:', e);
+            return;
+        }
+
+        var now = Date.now();
+        schedule.forEach(function (item) {
+            if (!item || !item.airingAt) return;
+            var at = item.airingAt * 1000;
+            // Ventana: desde 12 h atrás hasta 24 h adelante (lo de "hoy/inminente").
+            if (at < now - 12 * 3600000 || at > now + DAY_MS) return;
+
+            var dkey = 'ad:remind:ep:' + userId + ':' + item.id + ':' + item.episode + ':' + today();
+            if (lsGet(dkey)) return;
+            lsSet(dkey, '1');
+
+            var salido = at <= now;
+            var msg = salido
+                ? '🔔 Nuevo episodio: ' + item.title + ' (ep. ' + item.episode + ')'
+                : '📅 Hoy sale ' + item.title + ' (ep. ' + item.episode + ')';
+            toast('info', msg);
+            systemNotify('Anime Destiny', msg, '/detalle.html?cat=anime&id=' + item.id);
+        });
+    }
+
+    // Recordatorio de racha: una sola vez por día, y solo si la racha está viva.
+    function checkStreak(userId) {
+        if (!window.AppStreak) return;
+        var s = window.AppStreak.getStreak(userId);
+        if (!s || s.count <= 0) return;
+
+        var dkey = 'ad:remind:streak:' + userId + ':' + today();
+        if (lsGet(dkey)) return;
+        lsSet(dkey, '1');
+
+        if (s.countedToday && s.count >= 3) {
+            toast('success', '🔥 ¡Racha de ' + s.count + ' días! Seguí así.');
+        } else if (s.atRisk) {
+            var msg = '🔥 Tu racha de ' + s.count + ' días termina hoy. ¡Entrá para no perderla!';
+            toast('info', msg);
+            systemNotify('Anime Destiny', msg, '/index.html');
+        }
+    }
+
+    var _ran = false;
+    async function run() {
+        if (_ran) return;
+        var userId = signedInUserId();
+        if (!userId) return;
+        _ran = true;
+        checkStreak(userId);
+        // Los episodios pegan a la API: se difieren un momento para no competir
+        // con la carga inicial de la página.
+        setTimeout(function () { checkEpisodes(userId); }, 2500);
+    }
+
+    function init() {
+        if (window.AppSupabaseReady && typeof window.AppSupabaseReady.then === 'function') {
+            window.AppSupabaseReady.then(run).catch(function () {});
+        }
+        window.addEventListener('supabase-auth-changed', run);
+    }
+
+    window.AppReminders = Object.freeze({ run: run, _checkStreak: checkStreak });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})(window);
+
