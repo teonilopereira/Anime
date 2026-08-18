@@ -103,9 +103,17 @@
             var s = stats[id] || {};
             var raw = s.rating?.bayesian ?? s.rating?.average;
             var score = Number(raw);
+            // Distribución de votos (score 1..10 → cantidad). Mismo formato que
+            // el scoreDistribution de AniList para que la ficha lo pinte igual.
+            var distObj = s.rating?.distribution || {};
+            var distribution = Object.keys(distObj).map(function (k) {
+                return { score: Number(k) || 0, amount: Number(distObj[k]) || 0 };
+            }).filter(function (d) { return d.score > 0 && d.amount > 0; })
+              .sort(function (a, b) { return a.score - b.score; });
             out[id] = {
                 score: Number.isFinite(score) && score > 0 ? Math.round(score * 10) / 10 : null,
-                follows: Number(s.follows) || 0
+                follows: Number(s.follows) || 0,
+                distribution: distribution
             };
         });
         return out;
@@ -141,7 +149,10 @@
             status: status, type: friendlyType, episodes: 0, chapters: chCnt, volumes: volCnt, score: null,
             images: { webp: { large_image_url: coverUrl, image_url: coverUrl }, jpg: { large_image_url: coverUrl, image_url: coverUrl } },
             genres: genres, themes: [], studios: [], relations: [],
-            season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null
+            season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null,
+            // Idiomas a los que hay traducción disponible (MangaDex). Relevante
+            // para el público hispanohablante: saber si hay scanlation en 'es'.
+            availableTranslatedLanguages: (a.availableTranslatedLanguages || []).filter(Boolean)
         };
     }
 
@@ -191,6 +202,84 @@
         });
         return anilistItems;
     }
+
+    // ── Calendario de lanzamientos de manga (item 14) ──
+    // Últimos capítulos publicados en un idioma, para un calendario de
+    // lanzamientos análogo al de estrenos de anime. Une el /chapter (feed
+    // global) con un batch de /manga para traer título y portada de cada obra.
+    async function getMangaDexRecentReleases(lang, limit) {
+        var idioma = String(lang || 'es').slice(0, 5);
+        var tope = Number(limit) > 0 ? Math.min(Number(limit), 96) : 48;
+        try {
+            var path = '/chapter?translatedLanguage[]=' + encodeURIComponent(idioma) +
+                '&order[readableAt]=desc&includes[]=manga&includes[]=scanlation_group' +
+                '&limit=' + tope +
+                '&contentRating[]=safe&contentRating[]=suggestive';
+            var json = await mdFetch(path);
+            var chapters = (json && json.data) || [];
+            var out = [];
+            var mangaIds = [];
+            chapters.forEach(function (ch) {
+                var a = ch.attributes || {};
+                if (a.externalUrl) return; // se lee en otro sitio: no lo listamos
+                var mangaRel = (ch.relationships || []).find(function (r) { return r.type === 'manga'; });
+                if (!mangaRel) return;
+                var mAttrs = mangaRel.attributes || {};
+                var title = mAttrs.title
+                    ? (mAttrs.title.en || mAttrs.title['ja-ro'] || Object.values(mAttrs.title)[0] || '')
+                    : '';
+                var grupo = '';
+                (ch.relationships || []).forEach(function (r) {
+                    if (r.type === 'scanlation_group' && r.attributes && r.attributes.name) grupo = r.attributes.name;
+                });
+                out.push({
+                    mangaId: mangaRel.id,
+                    title: title,
+                    cover: '',
+                    chapter: a.chapter || '',
+                    volume: a.volume || '',
+                    chapterTitle: a.title || '',
+                    lang: a.translatedLanguage || idioma,
+                    group: grupo,
+                    readableAt: a.readableAt || a.publishAt || ''
+                });
+                if (mangaRel.id && mangaIds.indexOf(mangaRel.id) === -1) mangaIds.push(mangaRel.id);
+            });
+
+            // Portadas (y títulos que faltaran) en un solo batch.
+            if (mangaIds.length) {
+                try {
+                    var mparams = '/manga?includes[]=cover_art&limit=' + Math.min(mangaIds.length, 100) +
+                        '&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic';
+                    mangaIds.slice(0, 100).forEach(function (id) { mparams += '&ids[]=' + encodeURIComponent(id); });
+                    var mjson = await mdFetch(mparams);
+                    var byId = {};
+                    (mjson && mjson.data ? mjson.data : []).forEach(function (m) {
+                        var a = m.attributes || {};
+                        var coverArt = (m.relationships || []).find(function (r) { return r.type === 'cover_art'; });
+                        var cover = coverArt && coverArt.attributes && coverArt.attributes.fileName
+                            ? 'https://uploads.mangadex.org/covers/' + m.id + '/' + coverArt.attributes.fileName + '.256.jpg'
+                            : '';
+                        var title = a.title ? (a.title.en || a.title['ja-ro'] || Object.values(a.title)[0] || '') : '';
+                        byId[m.id] = { cover: cover, title: title };
+                    });
+                    out.forEach(function (r) {
+                        var info = byId[r.mangaId];
+                        if (info) {
+                            if (info.cover) r.cover = info.cover;
+                            if (!r.title && info.title) r.title = info.title;
+                        }
+                    });
+                } catch (e) { console.warn('getMangaDexRecentReleases covers failed:', e); }
+            }
+
+            return out.filter(function (r) { return r.title; });
+        } catch (e) {
+            console.warn('getMangaDexRecentReleases failed:', e);
+            return [];
+        }
+    }
+    window.getMangaDexRecentReleases = getMangaDexRecentReleases;
 
     // ── Exposición en window ──
     // Cliente HTTP de MangaDex compartido: js/core/mangadex-api.js tenia una

@@ -30,6 +30,10 @@
     const config = {
         supabaseUrl:     "",   // ← Completar via .env + tools/generate-config.js
         supabaseAnonKey: "",   // ← Completar via .env + tools/generate-config.js
+        // Opcional: id de una app de AniList para importar listas PRIVADAS por
+        // OAuth. Vacío = solo se importan listas públicas por nombre de usuario
+        // (que es lo que usa import-anilist.js por defecto y no necesita esto).
+        anilistClientId: "",
         defaultPageSize: 40,
         maxCatalogItems: 40,
         debug:           false

@@ -221,6 +221,11 @@
             mal_id: item.idMal,
             title: title,
             title_english: altTitle,
+            // Titulo nativo (japones/coreano/chino) y sinonimos: solo vienen en
+            // MEDIA_BY_ID_QUERY. El nativo se muestra bajo el titulo en la ficha;
+            // los sinonimos mejoran el matching de busqueda y el merge con MangaDex.
+            title_native: item.title?.native || '',
+            synonyms: Array.isArray(item.synonyms) ? item.synonyms.filter(Boolean) : [],
             synopsis: cleanDesc || 'Sin sinopsis disponible.',
             status: item.status || 'UNKNOWN',
             type: friendlyType,
@@ -248,7 +253,76 @@
             },
             genres: genres,
             themes: [],
+            // Tags de AniList (Isekai, Time Loop, etc.) con su % de relevancia.
+            // Solo vienen en MEDIA_BY_ID_QUERY. Se filtran los spoilers y, salvo
+            // en modo adulto, los tags +18. Se ordenan por rank (relevancia).
+            tags: (item.tags || [])
+                .filter(function (t) {
+                    if (!t || !t.name) return false;
+                    if (t.isMediaSpoiler || t.isGeneralSpoiler) return false;
+                    return true;
+                })
+                .map(function (t) {
+                    return { name: t.name, rank: Number(t.rank) || 0, isAdult: !!t.isAdult };
+                })
+                .sort(function (a, b) { return b.rank - a.rank; }),
+            // Rankings de AniList ("#1 más popular de 2021", "#3 mejor puntuado
+            // all-time", ...). Se quedan solo los que tienen contexto legible.
+            rankings: (item.rankings || [])
+                .filter(function (r) { return r && r.rank && r.context; })
+                .map(function (r) {
+                    return {
+                        rank: Number(r.rank) || 0,
+                        type: r.type || '',
+                        context: r.context || '',
+                        year: r.year || null,
+                        season: r.season || null,
+                        allTime: !!r.allTime
+                    };
+                }),
+            // Distribución de notas y de estados de la comunidad (para los
+            // gráficos de barras de la ficha). Solo en MEDIA_BY_ID_QUERY.
+            scoreDistribution: (item.stats?.scoreDistribution || [])
+                .map(function (s) { return { score: Number(s.score) || 0, amount: Number(s.amount) || 0 }; })
+                .filter(function (s) { return s.amount > 0; })
+                .sort(function (a, b) { return a.score - b.score; }),
+            statusDistribution: (item.stats?.statusDistribution || [])
+                .map(function (s) { return { status: s.status || '', amount: Number(s.amount) || 0 }; })
+                .filter(function (s) { return s.amount > 0; }),
+            // Recomendaciones votadas por la comunidad ("si te gustó esto…").
+            // rating = votos netos; se descartan las de rating <= 0.
+            recommendations: (item.recommendations?.nodes || [])
+                .map(function (n) {
+                    var mr = n && n.mediaRecommendation;
+                    if (!mr || !mr.id) return null;
+                    return {
+                        id: mr.id,
+                        rating: Number(n.rating) || 0,
+                        title: extractTitle(mr.title),
+                        img: mr.coverImage?.large || '',
+                        format: mr.format || null,
+                        type: mr.type || null,
+                        score: mr.averageScore != null ? (mr.averageScore / 10) : null
+                    };
+                })
+                .filter(function (r) { return r && r.title; }),
+            // Próximos episodios (lista completa, no solo el siguiente): alimenta
+            // la sección de calendario de emisión de la ficha de anime.
+            airingScheduleList: (item.airingSchedule?.nodes || [])
+                .map(function (n) { return { episode: Number(n.episode) || 0, airingAt: Number(n.airingAt) || 0 }; })
+                .filter(function (n) { return n.airingAt > 0; })
+                .sort(function (a, b) { return a.airingAt - b.airingAt; }),
+            // Fechas completas (año/mes/día). startYear/endYear se mantienen para
+            // el resto del código; estos objetos habilitan mostrar la fecha exacta.
+            startDate: item.startDate || null,
+            endDate: item.endDate || null,
             studios: (item.studios?.nodes || []).map(function (s) { return s.name; }),
+            // Estudios con id: permite enlazar a estudio.html sin un request extra
+            // de búsqueda por nombre (getStudioIdByName). En items sin id (listas
+            // viejas del cache) queda vacío y la ficha cae al enlace por nombre.
+            studiosDetailed: (item.studios?.nodes || [])
+                .filter(function (s) { return s && s.name; })
+                .map(function (s) { return { id: s.id || null, name: s.name }; }),
             relations: (item.relations?.edges || []).map(function (edge) {
                 var node = edge.node || {};
                 return {
@@ -339,7 +413,7 @@
         var type = opts.type || 'ANIME';
         var isAnime = type === 'ANIME';
         var fields = isAnime
-            ? 'id idMal title { romaji english } coverImage { extraLarge large } episodes status genres averageScore description type format season seasonYear source duration countryOfOrigin studios { nodes { name } }'
+            ? 'id idMal title { romaji english } coverImage { extraLarge large } episodes status genres averageScore description type format season seasonYear source duration countryOfOrigin studios { nodes { id name } }'
             : 'id idMal title { romaji english } coverImage { extraLarge large } chapters volumes status genres averageScore description type format countryOfOrigin source';
 
         // Build variable declarations
@@ -445,16 +519,36 @@
     var MEDIA_BY_ID_QUERY = `
         query ($id: Int) {
             Media(id: $id) {
-                id idMal title { romaji english } coverImage { extraLarge large }
+                id idMal title { romaji english native } synonyms coverImage { extraLarge large }
                 episodes chapters volumes status genres averageScore description type format
                 season seasonYear source duration countryOfOrigin popularity favourites
-                startDate { year } endDate { year }
+                startDate { year month day } endDate { year month day }
                 staff(perPage: 6) { edges { role node { name { full } } } }
                 nextAiringEpisode { airingAt timeUntilAiring episode }
+                airingSchedule(notYetAired: true, perPage: 8) { nodes { episode airingAt } }
                 streamingEpisodes { title thumbnail url site }
-                studios { nodes { name } }
+                studios { nodes { id name } }
                 bannerImage
                 trailer { id site }
+                tags { name rank isMediaSpoiler isGeneralSpoiler isAdult }
+                rankings { rank type allTime year season context format }
+                stats {
+                    scoreDistribution { score amount }
+                    statusDistribution { status amount }
+                }
+                recommendations(sort: RATING_DESC, perPage: 12) {
+                    nodes {
+                        rating
+                        mediaRecommendation {
+                            id
+                            type
+                            format
+                            averageScore
+                            title { romaji english }
+                            coverImage { large }
+                        }
+                    }
+                }
                 characters(sort: [ROLE, RELEVANCE], perPage: 12) {
                     edges {
                         role
@@ -1326,6 +1420,57 @@
         }
     };
 
+    // ─── Colecciones de géneros y tags de AniList (para poblar filtros) ───────
+    // GenreCollection son los ~18 géneros oficiales; MediaTagCollection, los
+    // cientos de tags (Isekai, Time Loop, …). Los filtros del catálogo tenían
+    // una lista fija mantenida a mano; esto la completa con la lista real y
+    // vigente de AniList. Se cachea 30 días en localStorage: no cambia casi
+    // nunca y no vale la pena pedirla en cada carga.
+    var FILTER_TERMS_QUERY = `
+        query {
+            GenreCollection
+            MediaTagCollection { name isAdult isGeneralSpoiler }
+        }`;
+    var FILTER_TERMS_CACHE_KEY = 'ad:anilistFilterTerms:v1';
+    var FILTER_TERMS_TTL = 30 * 24 * 60 * 60 * 1000; // 30 días
+
+    // Devuelve de forma síncrona lo cacheado (o null): lo usa el widget de
+    // géneros para sembrar sin esperar la red.
+    window.getAniListFilterTermsCached = function () {
+        try {
+            var raw = localStorage.getItem(FILTER_TERMS_CACHE_KEY);
+            if (!raw) return null;
+            var parsed = JSON.parse(raw);
+            if (!parsed || Date.now() > parsed.expiry) return null;
+            return parsed.data || null;
+        } catch (e) { return null; }
+    };
+
+    window.getAniListFilterTerms = async function () {
+        var cached = window.getAniListFilterTermsCached();
+        if (cached) return cached;
+        try {
+            var json = await anilistFetch(FILTER_TERMS_QUERY, {});
+            var data = json && json.data ? json.data : {};
+            var genres = Array.isArray(data.GenreCollection) ? data.GenreCollection.filter(Boolean) : [];
+            // Se excluyen tags spoiler de la lista de filtros; el flag isAdult se
+            // conserva para que el consumidor pueda esconderlos sin modo NSFW.
+            var tags = (Array.isArray(data.MediaTagCollection) ? data.MediaTagCollection : [])
+                .filter(function (t) { return t && t.name && !t.isGeneralSpoiler; })
+                .map(function (t) { return { name: t.name, isAdult: !!t.isAdult }; });
+            var out = { genres: genres, tags: tags };
+            if (genres.length || tags.length) {
+                try {
+                    localStorage.setItem(FILTER_TERMS_CACHE_KEY, JSON.stringify({ data: out, expiry: Date.now() + FILTER_TERMS_TTL }));
+                } catch (_) {}
+            }
+            return out;
+        } catch (err) {
+            console.warn('AniList getAniListFilterTerms error:', err);
+            return cached || { genres: [], tags: [] };
+        }
+    };
+
 })();
 
 
@@ -1438,9 +1583,17 @@
             var s = stats[id] || {};
             var raw = s.rating?.bayesian ?? s.rating?.average;
             var score = Number(raw);
+            // Distribución de votos (score 1..10 → cantidad). Mismo formato que
+            // el scoreDistribution de AniList para que la ficha lo pinte igual.
+            var distObj = s.rating?.distribution || {};
+            var distribution = Object.keys(distObj).map(function (k) {
+                return { score: Number(k) || 0, amount: Number(distObj[k]) || 0 };
+            }).filter(function (d) { return d.score > 0 && d.amount > 0; })
+              .sort(function (a, b) { return a.score - b.score; });
             out[id] = {
                 score: Number.isFinite(score) && score > 0 ? Math.round(score * 10) / 10 : null,
-                follows: Number(s.follows) || 0
+                follows: Number(s.follows) || 0,
+                distribution: distribution
             };
         });
         return out;
@@ -1476,7 +1629,10 @@
             status: status, type: friendlyType, episodes: 0, chapters: chCnt, volumes: volCnt, score: null,
             images: { webp: { large_image_url: coverUrl, image_url: coverUrl }, jpg: { large_image_url: coverUrl, image_url: coverUrl } },
             genres: genres, themes: [], studios: [], relations: [],
-            season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null
+            season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null,
+            // Idiomas a los que hay traducción disponible (MangaDex). Relevante
+            // para el público hispanohablante: saber si hay scanlation en 'es'.
+            availableTranslatedLanguages: (a.availableTranslatedLanguages || []).filter(Boolean)
         };
     }
 
@@ -1526,6 +1682,84 @@
         });
         return anilistItems;
     }
+
+    // ── Calendario de lanzamientos de manga (item 14) ──
+    // Últimos capítulos publicados en un idioma, para un calendario de
+    // lanzamientos análogo al de estrenos de anime. Une el /chapter (feed
+    // global) con un batch de /manga para traer título y portada de cada obra.
+    async function getMangaDexRecentReleases(lang, limit) {
+        var idioma = String(lang || 'es').slice(0, 5);
+        var tope = Number(limit) > 0 ? Math.min(Number(limit), 96) : 48;
+        try {
+            var path = '/chapter?translatedLanguage[]=' + encodeURIComponent(idioma) +
+                '&order[readableAt]=desc&includes[]=manga&includes[]=scanlation_group' +
+                '&limit=' + tope +
+                '&contentRating[]=safe&contentRating[]=suggestive';
+            var json = await mdFetch(path);
+            var chapters = (json && json.data) || [];
+            var out = [];
+            var mangaIds = [];
+            chapters.forEach(function (ch) {
+                var a = ch.attributes || {};
+                if (a.externalUrl) return; // se lee en otro sitio: no lo listamos
+                var mangaRel = (ch.relationships || []).find(function (r) { return r.type === 'manga'; });
+                if (!mangaRel) return;
+                var mAttrs = mangaRel.attributes || {};
+                var title = mAttrs.title
+                    ? (mAttrs.title.en || mAttrs.title['ja-ro'] || Object.values(mAttrs.title)[0] || '')
+                    : '';
+                var grupo = '';
+                (ch.relationships || []).forEach(function (r) {
+                    if (r.type === 'scanlation_group' && r.attributes && r.attributes.name) grupo = r.attributes.name;
+                });
+                out.push({
+                    mangaId: mangaRel.id,
+                    title: title,
+                    cover: '',
+                    chapter: a.chapter || '',
+                    volume: a.volume || '',
+                    chapterTitle: a.title || '',
+                    lang: a.translatedLanguage || idioma,
+                    group: grupo,
+                    readableAt: a.readableAt || a.publishAt || ''
+                });
+                if (mangaRel.id && mangaIds.indexOf(mangaRel.id) === -1) mangaIds.push(mangaRel.id);
+            });
+
+            // Portadas (y títulos que faltaran) en un solo batch.
+            if (mangaIds.length) {
+                try {
+                    var mparams = '/manga?includes[]=cover_art&limit=' + Math.min(mangaIds.length, 100) +
+                        '&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic';
+                    mangaIds.slice(0, 100).forEach(function (id) { mparams += '&ids[]=' + encodeURIComponent(id); });
+                    var mjson = await mdFetch(mparams);
+                    var byId = {};
+                    (mjson && mjson.data ? mjson.data : []).forEach(function (m) {
+                        var a = m.attributes || {};
+                        var coverArt = (m.relationships || []).find(function (r) { return r.type === 'cover_art'; });
+                        var cover = coverArt && coverArt.attributes && coverArt.attributes.fileName
+                            ? 'https://uploads.mangadex.org/covers/' + m.id + '/' + coverArt.attributes.fileName + '.256.jpg'
+                            : '';
+                        var title = a.title ? (a.title.en || a.title['ja-ro'] || Object.values(a.title)[0] || '') : '';
+                        byId[m.id] = { cover: cover, title: title };
+                    });
+                    out.forEach(function (r) {
+                        var info = byId[r.mangaId];
+                        if (info) {
+                            if (info.cover) r.cover = info.cover;
+                            if (!r.title && info.title) r.title = info.title;
+                        }
+                    });
+                } catch (e) { console.warn('getMangaDexRecentReleases covers failed:', e); }
+            }
+
+            return out.filter(function (r) { return r.title; });
+        } catch (e) {
+            console.warn('getMangaDexRecentReleases failed:', e);
+            return [];
+        }
+    }
+    window.getMangaDexRecentReleases = getMangaDexRecentReleases;
 
     // ── Exposición en window ──
     // Cliente HTTP de MangaDex compartido: js/core/mangadex-api.js tenia una
@@ -7980,6 +8214,44 @@ function inicializarGeneroWidgets() {
         .sort((a, b) => b.count - a.count);
 
     const filterGenres = sorted;
+
+    // ── Términos dinámicos de AniList (GenreCollection + MediaTagCollection) ──
+    // La lista fija de arriba se completa con los géneros y tags reales y
+    // vigentes de AniList. Se siembra sincrónicamente desde el cache (sin
+    // esperar red) y, si hay que refrescar, se agregan los que falten y se
+    // re-renderiza. Los tags +18 solo entran con el modo NSFW activo.
+    (function mergeAniListFilterTerms() {
+        var nsfwOn = false;
+        try { nsfwOn = localStorage.getItem('pref:nsfw') === 'true'; } catch (_) { nsfwOn = false; }
+
+        function agregar(terms) {
+            if (!terms) return false;
+            var nuevos = 0;
+            var nombres = (terms.genres || []).slice();
+            (terms.tags || []).forEach(function (t) {
+                if (t && t.name && (nsfwOn || !t.isAdult)) nombres.push(t.name);
+            });
+            nombres.forEach(function (name) {
+                var key = normalizeText(name);
+                if (!key || counts.has(key)) return;
+                counts.set(key, { label: name, count: 0 });
+                filterGenres.push({ key: key, label: name, count: 0 });
+                nuevos++;
+            });
+            return nuevos > 0;
+        }
+
+        if (typeof window.getAniListFilterTermsCached === 'function') {
+            agregar(window.getAniListFilterTermsCached());
+        }
+        if (typeof window.getAniListFilterTerms === 'function') {
+            window.getAniListFilterTerms().then(function (terms) {
+                if (agregar(terms) && typeof window.__renderDropdownGenres === 'function') {
+                    window.__renderDropdownGenres();
+                }
+            }).catch(function () { /* best-effort */ });
+        }
+    })();
 
     const selectedKey = `ui:selectedGenres:${categoria}`;
     const selectedGenres = (() => {

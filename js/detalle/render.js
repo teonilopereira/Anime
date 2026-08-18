@@ -172,15 +172,22 @@ function renderDetalle(item, nombreUrl, categoria) {
         ? generos.map(g => `<span class="detail-chip">${escapeHtml(g)}</span>`).join('')
         : `<span class="detail-chip detail-chip-muted">No especificado</span>`;
 
-    // Estudios (solo anime): chips que enlazan a la ficha del estudio. Se
-    // enlaza por nombre (no tenemos el id acá) y estudio.html lo resuelve.
+    // Estudios (solo anime): chips que enlazan a la ficha del estudio. Cuando
+    // AniList trae el id (studiosDetailed), se enlaza directo por id y así
+    // estudio.html no gasta un request extra resolviéndolo por nombre. Si falta
+    // (items viejos del cache), se cae al enlace por nombre como antes.
+    const studiosDetailed = isAnime && Array.isArray(item.studiosDetailed) ? item.studiosDetailed.filter(s => s && s.name) : [];
     const studiosArr = isAnime && Array.isArray(item.studios) ? item.studios.filter(Boolean) : [];
-    const studiosHtml = studiosArr.length
+    const studioChips = studiosDetailed.length
+        ? studiosDetailed.map(s => s.id
+            ? `<a class="detail-chip detail-chip-link" href="estudio.html?id=${encodeURIComponent(s.id)}">${escapeHtml(s.name)}</a>`
+            : `<a class="detail-chip detail-chip-link" href="estudio.html?name=${encodeURIComponent(s.name)}">${escapeHtml(s.name)}</a>`)
+        : studiosArr.map(s =>
+            `<a class="detail-chip detail-chip-link" href="estudio.html?name=${encodeURIComponent(s)}">${escapeHtml(s)}</a>`);
+    const studiosHtml = studioChips.length
         ? `<div class="detail-section">
                 <h2 class="detail-section-title">ESTUDIOS</h2>
-                <div class="detail-chips">${studiosArr.map(s =>
-                    `<a class="detail-chip detail-chip-link" href="estudio.html?name=${encodeURIComponent(s)}">${escapeHtml(s)}</a>`
-                ).join('')}</div>
+                <div class="detail-chips">${studioChips.join('')}</div>
             </div>`
         : '';
 
@@ -340,6 +347,39 @@ function renderDetalle(item, nombreUrl, categoria) {
     // ── Personajes y seiyuus ── (ver buildCharactersHtml en js/detalle/render-sections.js)
     var charactersHtml = buildCharactersHtml(item);
 
+    // ── Secciones nuevas (ver builders en render-sections.js) ──
+    // Modo NSFW: para no mostrar tags +18 sin el toggle activo.
+    var nsfwOn = false;
+    try { nsfwOn = localStorage.getItem('pref:nsfw') === 'true'; } catch (_) { nsfwOn = false; }
+    var rankingsHtml = buildRankingsHtml(item);
+    var tagsHtml = buildTagsHtml(item, nsfwOn);
+    var statsDistHtml = buildStatsDistributionHtml(item);
+    var recommendationsHtml = buildRecommendationsHtml(item);
+    var airingScheduleHtml = isAnime ? buildAiringScheduleHtml(item) : '';
+    var translatedLangsHtml = isMangaOrNovela ? buildTranslatedLangsHtml(item) : '';
+
+    // Botón "Leer" (solo manga/novelas): abre el lector de MangaDex. Pasa id +
+    // título para que lector.js resuelva la obra aunque el id sea de AniList.
+    var readBtnHtml = isMangaOrNovela
+        ? '<a class="detail-read-btn" href="lector.html?id=' + encodeURIComponent(item.id) +
+            '&nombre=' + encodeURIComponent(item.titulo || '') +
+            '&cat=' + encodeURIComponent(categoria || 'manga') + '">' +
+            '<i data-lucide="book-open"></i> Leer ahora</a>'
+        : '';
+
+    // Título nativo (japonés/coreano/…) y títulos alternativos (sinónimos).
+    var nativo = item.title_native || '';
+    var sinonimos = (Array.isArray(item.synonyms) ? item.synonyms : [])
+        .filter(function (s) { return s && s !== item.titulo && s !== nativo; })
+        .slice(0, 4);
+    var altTitlesHtml = '';
+    if (nativo) {
+        altTitlesHtml += '<p class="detail-native-title">' + escapeHtml(nativo) + '</p>';
+    }
+    if (sinonimos.length) {
+        altTitlesHtml += '<p class="detail-synonyms">También conocido como: ' + escapeHtml(sinonimos.join(' · ')) + '</p>';
+    }
+
     // ── Banner ── (ver buildBannerHtml en js/detalle/render-sections.js)
     var bannerHtml = buildBannerHtml(item);
 
@@ -359,9 +399,12 @@ function renderDetalle(item, nombreUrl, categoria) {
                 ${breadcrumbHtml}
                 ${demografiaHtml}
                 <h1 class="detail-title">${escapeHtml(item.titulo)}</h1>
+                ${altTitlesHtml}
                 <div class="detail-status${isAiring ? ' is-airing' : ''}"><span><i data-lucide="${isAiring ? 'radio' : 'check-circle'}"></i></span> ${escapeHtml(status)}</div>
+                ${rankingsHtml}
                 ${nextEpHtml}
                 ${detailStatsHtml}
+                ${readBtnHtml}
 
                 <div class="detail-section detail-section-synopsis">
                     <h2 class="detail-section-title">SINOPSIS</h2>
@@ -375,7 +418,10 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <h2 class="detail-section-title">GÉNEROS</h2>
                     <div class="detail-chips">${generosHtml}</div>
                 </div>
+                ${tagsHtml}
+                ${translatedLangsHtml}
                 ${studiosHtml}
+                ${airingScheduleHtml}
                 ${isMangaOrNovela ? progressPanelHtml : ''}
                 ${extraBlockHtml}
 
@@ -398,9 +444,11 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
         </div>
         ${faq.html}
+        ${statsDistHtml}
         ${charactersHtml}
         ${temporadasHtml}
         ${themesHtml}
+        ${recommendationsHtml}
         ${relatedHtml}
         <div id="comments-section"></div>
     `;

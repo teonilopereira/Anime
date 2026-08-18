@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Lector de manga: leé capítulos directamente desde MangaDex.">
+    <meta name="robots" content="noindex,follow">
+    <link rel="canonical" href="https://animedestiny.netlify.app/lector.html">
+    <title>Anime Destiny | Lector</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+
+    <link rel="stylesheet" href="css/bundle.min.css?v=a65eec95">
+    <link rel="stylesheet" href="css/lector.css?v=a65eec95">
+    <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/fonts.css?v=a65eec95">
+
+    <script src="js/core/theme.js?v=a65eec95"></script>
+    <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
+</head>
+<body data-page="lector">
+    <nav class="destiny-navbar">
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
+        <div class="nav-actions">
+            <div id="nav-login-container"></div>
+        </div>
+    </nav>
+
+    <main class="lector-page" id="main-content">
+        <header class="lector-header">
+            <a class="lector-back" id="lectorBack" href="manga.html">‹ Volver</a>
+            <h1 class="lector-title" id="lectorTitle">Lector</h1>
+            <div class="lector-controls">
+                <label class="lector-lang-label" for="lectorLang">Idioma
+                    <select id="lectorLang" class="lector-select"></select>
+                </label>
+            </div>
+        </header>
+
+        <!-- Estado: cargando -->
+        <section id="lectorLoading" class="lector-state">
+            <p>Buscando capítulos…</p>
+        </section>
+
+        <!-- Estado: error / sin capítulos -->
+        <section id="lectorError" class="lector-state" hidden>
+            <h2 id="lectorErrorTitle">No hay capítulos disponibles.</h2>
+            <p id="lectorErrorMsg">Esta obra no tiene capítulos leíbles en MangaDex para el idioma elegido.</p>
+        </section>
+
+        <!-- Lista de capítulos -->
+        <section id="lectorChapters" class="lector-chapters" hidden></section>
+
+        <!-- Vista de lectura -->
+        <section id="lectorReader" class="lector-reader" hidden>
+            <div class="lector-reader-bar">
+                <button type="button" class="lector-nav-btn" id="lectorPrev">‹ Anterior</button>
+                <span class="lector-reader-label" id="lectorReaderLabel"></span>
+                <button type="button" class="lector-nav-btn" id="lectorNext">Siguiente ›</button>
+            </div>
+            <div class="lector-pages" id="lectorPages" aria-live="polite"></div>
+            <div class="lector-reader-bar">
+                <button type="button" class="lector-nav-btn" id="lectorPrev2">‹ Anterior</button>
+                <button type="button" class="lector-nav-btn lector-list-btn" id="lectorToList">Lista de capítulos</button>
+                <button type="button" class="lector-nav-btn" id="lectorNext2">Siguiente ›</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-container"></div>
+
+    <script src="js/core/config.js?v=a65eec95"></script>
+    <script src="js/core/i18n.js?v=a65eec95"></script>
+    <script src="js/core/namespace.js?v=a65eec95"></script>
+    <script type="module" src="api/supabase-config.js?v=a65eec95" async></script>
+    <script src="js/core-bundle.min.js?v=a65eec95" defer></script>
+    <script src="js/core/mangadex-api.js?v=a65eec95" defer></script>
+    <script src="js/pages/lector.js?v=a65eec95" defer></script>
+</body>
+</html>

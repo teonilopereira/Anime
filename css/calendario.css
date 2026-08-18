@@ -7,6 +7,32 @@
     padding: 0 16px 64px;
 }
 
+/* Tabs Anime / Manga */
+.calendar-tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 12px 0 4px;
+}
+.calendar-tab {
+    appearance: none;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-muted, rgba(255, 255, 255, 0.8));
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--accent-cyan-18, rgba(0, 242, 255, 0.18));
+    background: rgba(var(--surface-card-rgb, 10, 5, 25), 0.6);
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.calendar-tab.is-active {
+    color: #fff;
+    border-color: var(--neon-purple, #bc13fe);
+    background: linear-gradient(135deg, rgba(188, 19, 254, 0.35), rgba(0, 242, 255, 0.18));
+}
+
 .calendar-toolbar {
     display: flex;
     justify-content: flex-end;

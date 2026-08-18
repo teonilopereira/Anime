@@ -254,3 +254,189 @@ a.char-side:hover .char-name {
     color: var(--text-muted, rgba(var(--ink-rgb),0.75));
     line-height: 1.5;
 }
+
+/* ── Títulos alternativos (nativo + sinónimos) ── */
+.detail-native-title {
+    margin: 0.15rem 0 0;
+    font-size: 1rem;
+    color: var(--text-muted, rgba(var(--ink-rgb),0.7));
+    font-weight: 500;
+}
+.detail-synonyms {
+    margin: 0.25rem 0 0;
+    font-size: 0.82rem;
+    color: var(--text-muted, rgba(var(--ink-rgb),0.6));
+}
+
+/* ── Rankings (badges de AniList) ── */
+.detail-rankings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.85rem 0 0.25rem;
+}
+.detail-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: var(--radius-md, 10px);
+    background: rgba(var(--ink-rgb),0.05);
+    border: 1px solid rgba(var(--ink-rgb),0.1);
+    font-size: 0.78rem;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+.detail-rank-badge.is-top {
+    background: linear-gradient(135deg, rgba(255,193,7,0.18), rgba(255,152,0,0.12));
+    border-color: rgba(255,193,7,0.4);
+}
+.detail-rank-badge i {
+    width: 15px;
+    height: 15px;
+    color: var(--accent-cyan, #f5a623);
+}
+.detail-rank-badge.is-top i {
+    color: #ffb300;
+}
+.detail-rank-badge strong {
+    color: var(--accent-cyan, #f5a623);
+    font-weight: 700;
+}
+
+/* ── Tags (más específicos que los géneros) ── */
+.detail-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.detail-tag-rank {
+    font-size: 0.7rem;
+    opacity: 0.65;
+    font-weight: 600;
+}
+
+/* ── Distribución de notas / estados ── */
+.dist-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+@media (min-width: 640px) {
+    .dist-grid { grid-template-columns: 1fr 1fr; }
+}
+.dist-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted, rgba(var(--ink-rgb),0.7));
+    margin: 0 0 0.75rem;
+}
+.dist-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 120px;
+}
+.dist-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    gap: 4px;
+}
+.dist-bar {
+    width: 100%;
+    min-height: 4px;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, var(--accent-cyan, #4dd0e1), rgba(var(--ink-rgb),0.15));
+}
+.dist-bar-label {
+    font-size: 0.68rem;
+    color: var(--text-muted, rgba(var(--ink-rgb),0.6));
+}
+.dist-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.dist-status-row {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr 2.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+.dist-status-name { color: var(--text-main); }
+.dist-status-track {
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(var(--ink-rgb),0.08);
+    overflow: hidden;
+}
+.dist-status-fill {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    background: var(--accent-cyan, #4dd0e1);
+}
+.dist-status-fill.dist-status-current { background: #4dd0e1; }
+.dist-status-fill.dist-status-completed { background: #66bb6a; }
+.dist-status-fill.dist-status-planning { background: #ab47bc; }
+.dist-status-fill.dist-status-paused { background: #ffa726; }
+.dist-status-fill.dist-status-dropped { background: #ef5350; }
+.dist-status-pct {
+    text-align: right;
+    color: var(--text-muted, rgba(var(--ink-rgb),0.7));
+}
+
+/* ── Calendario de emisión de la obra ── */
+.airing-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.airing-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md, 10px);
+    background: rgba(var(--ink-rgb),0.04);
+    border: 1px solid rgba(var(--ink-rgb),0.08);
+    font-size: 0.85rem;
+}
+.airing-ep {
+    font-weight: 700;
+    color: var(--accent-cyan, #4dd0e1);
+}
+.airing-when {
+    color: var(--text-muted, rgba(var(--ink-rgb),0.75));
+}
+
+/* ── Botón "Leer ahora" (lector de MangaDex) ── */
+.detail-read-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem 0 0.25rem;
+    padding: 0.6rem 1.3rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    color: #fff;
+    background: linear-gradient(135deg, var(--neon-purple, #bc13fe), var(--accent-cyan, #00f2ff));
+    box-shadow: 0 6px 18px rgba(188,19,254,0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.detail-read-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(188,19,254,0.4);
+}
+.detail-read-btn i { width: 18px; height: 18px; }

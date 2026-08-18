@@ -985,6 +985,44 @@ function inicializarGeneroWidgets() {
 
     const filterGenres = sorted;
 
+    // ── Términos dinámicos de AniList (GenreCollection + MediaTagCollection) ──
+    // La lista fija de arriba se completa con los géneros y tags reales y
+    // vigentes de AniList. Se siembra sincrónicamente desde el cache (sin
+    // esperar red) y, si hay que refrescar, se agregan los que falten y se
+    // re-renderiza. Los tags +18 solo entran con el modo NSFW activo.
+    (function mergeAniListFilterTerms() {
+        var nsfwOn = false;
+        try { nsfwOn = localStorage.getItem('pref:nsfw') === 'true'; } catch (_) { nsfwOn = false; }
+
+        function agregar(terms) {
+            if (!terms) return false;
+            var nuevos = 0;
+            var nombres = (terms.genres || []).slice();
+            (terms.tags || []).forEach(function (t) {
+                if (t && t.name && (nsfwOn || !t.isAdult)) nombres.push(t.name);
+            });
+            nombres.forEach(function (name) {
+                var key = normalizeText(name);
+                if (!key || counts.has(key)) return;
+                counts.set(key, { label: name, count: 0 });
+                filterGenres.push({ key: key, label: name, count: 0 });
+                nuevos++;
+            });
+            return nuevos > 0;
+        }
+
+        if (typeof window.getAniListFilterTermsCached === 'function') {
+            agregar(window.getAniListFilterTermsCached());
+        }
+        if (typeof window.getAniListFilterTerms === 'function') {
+            window.getAniListFilterTerms().then(function (terms) {
+                if (agregar(terms) && typeof window.__renderDropdownGenres === 'function') {
+                    window.__renderDropdownGenres();
+                }
+            }).catch(function () { /* best-effort */ });
+        }
+    })();
+
     const selectedKey = `ui:selectedGenres:${categoria}`;
     const selectedGenres = (() => {
         try {

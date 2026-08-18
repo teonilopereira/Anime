@@ -157,6 +157,195 @@ function buildCharactersHtml(item) {
         '</div></div>';
 }
 
+// ── Categoría de destino a partir del formato/tipo (para enlazar fichas) ──
+// Compartido por Recomendaciones y Relacionados de otras fuentes.
+function _detailCatFromFormat(fmt, type) {
+    if (fmt === 'NOVEL') return 'novelas';
+    if (['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC'].indexOf(fmt) !== -1) return 'anime';
+    if (type === 'ANIME') return 'anime';
+    return 'manga';
+}
+
+// ── Rankings (badges de AniList) ──
+// "#1 más popular de 2021", "#3 mejor puntuado all-time", etc. Se traduce el
+// contexto de AniList (viene en inglés) a algo legible. Se muestran los más
+// relevantes primero (rank bajo = mejor) y como máximo cuatro.
+function buildRankingsHtml(item) {
+    var rankings = Array.isArray(item.rankings) ? item.rankings : [];
+    if (!rankings.length) return '';
+
+    function contextoES(r) {
+        var esRated = r.type === 'RATED' || /rated/i.test(r.context);
+        var base = esRated ? 'mejor puntuado' : 'más popular';
+        if (r.allTime || /all\s*time/i.test(r.context)) return base + ' de la historia';
+        if (r.year && r.season) {
+            var estaciones = { WINTER: 'invierno', SPRING: 'primavera', SUMMER: 'verano', FALL: 'otoño' };
+            return base + ' de ' + (estaciones[r.season] || '') + ' ' + r.year;
+        }
+        if (r.year) return base + ' de ' + r.year;
+        return base;
+    }
+
+    var badges = rankings
+        .slice()
+        .sort(function (a, b) { return a.rank - b.rank; })
+        .slice(0, 4)
+        .map(function (r) {
+            var esRated = r.type === 'RATED' || /rated/i.test(r.context);
+            var icono = esRated ? 'star' : 'flame';
+            return '<span class="detail-rank-badge' + (r.rank === 1 ? ' is-top' : '') + '">' +
+                '<i data-lucide="' + icono + '"></i>' +
+                '<strong>#' + escapeHtml(String(r.rank)) + '</strong>' +
+                '<span>' + escapeHtml(contextoES(r)) + '</span>' +
+                '</span>';
+        }).join('');
+
+    return '<div class="detail-rankings">' + badges + '</div>';
+}
+
+// ── Tags de AniList ──
+// Más específicos que los géneros (Isekai, Time Loop, …), con su % de relevancia.
+// Se ocultan los +18 salvo en modo NSFW. Solo los trae AniList.
+function buildTagsHtml(item, showAdult) {
+    var tags = (Array.isArray(item.tags) ? item.tags : [])
+        .filter(function (t) { return showAdult || !t.isAdult; })
+        .slice(0, 16);
+    if (!tags.length) return '';
+    return '<div class="detail-section detail-section-tags">' +
+        '<h2 class="detail-section-title">TAGS</h2>' +
+        '<div class="detail-chips detail-tag-chips">' +
+        tags.map(function (t) {
+            var pct = t.rank ? '<span class="detail-tag-rank">' + escapeHtml(String(t.rank)) + '%</span>' : '';
+            return '<span class="detail-chip detail-tag-chip">' + escapeHtml(t.name) + pct + '</span>';
+        }).join('') +
+        '</div></div>';
+}
+
+// ── Distribución de notas y estados de la comunidad ──
+// scoreDistribution: barras verticales (histograma de votos). Sirve tanto para
+// AniList (buckets 10..100) como para MangaDex (1..10). statusDistribution: solo
+// AniList — cuánta gente lo tiene viendo/completado/etc.
+function buildStatsDistributionHtml(item) {
+    var score = Array.isArray(item.scoreDistribution) ? item.scoreDistribution : [];
+    var estados = Array.isArray(item.statusDistribution) ? item.statusDistribution : [];
+    if (!score.length && !estados.length) return '';
+
+    var scoreHtml = '';
+    if (score.length) {
+        var maxAmount = score.reduce(function (m, s) { return Math.max(m, s.amount); }, 0) || 1;
+        // AniList da la nota como 10..100; MangaDex como 1..10. Se muestra /10.
+        var esCien = score.some(function (s) { return s.score > 10; });
+        var barras = score.map(function (s) {
+            var alto = Math.max(4, Math.round((s.amount / maxAmount) * 100));
+            var etiqueta = esCien ? Math.round(s.score / 10) : s.score;
+            return '<div class="dist-bar-col" title="' + escapeHtml(String(etiqueta)) + '/10: ' + escapeHtml(s.amount.toLocaleString('es-AR')) + '">' +
+                '<div class="dist-bar" style="height:' + alto + '%"></div>' +
+                '<span class="dist-bar-label">' + escapeHtml(String(etiqueta)) + '</span>' +
+                '</div>';
+        }).join('');
+        scoreHtml = '<div class="dist-block"><h3 class="dist-title">Distribución de notas</h3>' +
+            '<div class="dist-bars">' + barras + '</div></div>';
+    }
+
+    var estadoHtml = '';
+    if (estados.length) {
+        var statusLabels = {
+            CURRENT: 'Viendo', PLANNING: 'Pendiente', COMPLETED: 'Completado',
+            DROPPED: 'Abandonado', PAUSED: 'En pausa', REPEATING: 'Repitiendo'
+        };
+        var totalEstados = estados.reduce(function (a, s) { return a + s.amount; }, 0) || 1;
+        var filas = estados
+            .slice()
+            .sort(function (a, b) { return b.amount - a.amount; })
+            .map(function (s) {
+                var pct = Math.round((s.amount / totalEstados) * 100);
+                var label = statusLabels[s.status] || s.status;
+                return '<div class="dist-status-row">' +
+                    '<span class="dist-status-name">' + escapeHtml(label) + '</span>' +
+                    '<span class="dist-status-track"><span class="dist-status-fill dist-status-' + escapeHtml(String(s.status).toLowerCase()) + '" style="width:' + pct + '%"></span></span>' +
+                    '<span class="dist-status-pct">' + pct + '%</span>' +
+                    '</div>';
+            }).join('');
+        estadoHtml = '<div class="dist-block"><h3 class="dist-title">Estado en la comunidad</h3>' +
+            '<div class="dist-status-list">' + filas + '</div></div>';
+    }
+
+    return '<div class="detail-section detail-section-dist">' +
+        '<h2 class="detail-h2">Estadísticas</h2>' +
+        '<div class="dist-grid">' + scoreHtml + estadoHtml + '</div></div>';
+}
+
+// ── Recomendaciones de la comunidad ──
+// "Si te gustó esto, mirá…". Votadas por usuarios de AniList. Se pintan como
+// una grilla de portadas que enlazan a la ficha correspondiente.
+function buildRecommendationsHtml(item) {
+    var recos = (Array.isArray(item.recommendations) ? item.recommendations : []).slice(0, 12);
+    if (!recos.length) return '';
+    return '<div class="detail-section detail-section-recos"><h2 class="detail-h2">Recomendados</h2><div class="related-grid">' +
+        recos.map(function (r) {
+            var cat = _detailCatFromFormat(r.format, r.type);
+            var portada = r.img
+                ? '<img src="' + safeUrl(r.img) + '" alt="" loading="lazy" decoding="async" data-fallback-catalog="1" data-title="' + escapeHtml(r.title) + '">'
+                : '<span class="related-cover-empty" aria-hidden="true">' + escapeHtml(String(r.title).charAt(0)) + '</span>';
+            var meta = r.score ? '<span class="related-meta">★ ' + escapeHtml(String(r.score)) + '</span>' : '';
+            return '<a class="related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
+                '<span class="related-cover">' + portada + '</span>' +
+                '<span class="related-body">' +
+                    '<span class="related-title">' + escapeHtml(r.title) + '</span>' +
+                    meta +
+                '</span>' +
+                '</a>';
+        }).join('') +
+        '</div></div>';
+}
+
+// ── Calendario de emisión de la obra (próximos episodios) ──
+// Lista completa de próximos episodios (no solo el siguiente). Solo anime en
+// emisión. airingAt es epoch absoluto, así que el cálculo aguanta el cache.
+function buildAiringScheduleHtml(item) {
+    var lista = (Array.isArray(item.airingScheduleList) ? item.airingScheduleList : [])
+        .filter(function (n) { return n.airingAt * 1000 > Date.now(); })
+        .slice(0, 8);
+    if (lista.length < 2) return '';
+    var filas = lista.map(function (n) {
+        var fecha = new Date(n.airingAt * 1000).toLocaleString('es-AR', {
+            weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false
+        });
+        return '<li class="airing-row">' +
+            '<span class="airing-ep">EP ' + escapeHtml(String(n.episode || '?')) + '</span>' +
+            '<span class="airing-when">' + escapeHtml(fecha) + ' hs</span>' +
+            '</li>';
+    }).join('');
+    return '<div class="detail-section detail-section-airing">' +
+        '<h2 class="detail-h2">Próximos episodios</h2>' +
+        '<ul class="airing-list">' + filas + '</ul></div>';
+}
+
+// ── Idiomas de traducción (MangaDex) ──
+// Chips con los idiomas donde hay scanlation. Destaca español e inglés.
+function buildTranslatedLangsHtml(item) {
+    var langs = (Array.isArray(item.availableTranslatedLanguages) ? item.availableTranslatedLanguages : [])
+        .filter(Boolean);
+    if (!langs.length) return '';
+    var nombres = {
+        es: 'Español', 'es-la': 'Español (LatAm)', en: 'Inglés', ja: 'Japonés',
+        ko: 'Coreano', zh: 'Chino', 'zh-hk': 'Chino (HK)', 'pt-br': 'Portugués (BR)',
+        fr: 'Francés', it: 'Italiano', de: 'Alemán', ru: 'Ruso'
+    };
+    var destacados = { es: 1, 'es-la': 1, en: 1 };
+    var ordenados = langs.slice().sort(function (a, b) {
+        return (destacados[b] || 0) - (destacados[a] || 0);
+    }).slice(0, 16);
+    return '<div class="detail-section detail-section-langs">' +
+        '<h2 class="detail-section-title">TRADUCCIONES</h2>' +
+        '<div class="detail-chips">' +
+        ordenados.map(function (l) {
+            var dest = destacados[l] ? ' detail-chip-link' : '';
+            return '<span class="detail-chip' + dest + '">' + escapeHtml(nombres[l] || l) + '</span>';
+        }).join('') +
+        '</div></div>';
+}
+
 // ── SEO / meta tags / datos estructurados ──
 // Escribe en <head> las meta de description/Open Graph/Twitter, el canonical y
 // el JSON-LD de la obra. El canonical se arma solo con cat + id (los únicos

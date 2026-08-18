@@ -14,9 +14,11 @@
     var DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     var MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-    var _all = [];        // estrenos crudos
+    var _all = [];        // estrenos de anime crudos
     var _followed = null; // Set de ids seguidos (lazy)
     var _onlyMine = false;
+    var _tab = 'anime';   // 'anime' | 'manga'
+    var _manga = null;    // lanzamientos de manga (lazy)
 
     function esc(s) {
         return window.escapeHtml ? window.escapeHtml(String(s == null ? '' : s)) : String(s == null ? '' : s);
@@ -80,7 +82,79 @@
                 '</a>';
     }
 
+    // ── Manga: tarjeta de un lanzamiento de capítulo ──
+    function mangaCardHtml(r) {
+        var poster = r.cover
+            ? '<img class="cal-poster-img" loading="lazy" src="' + esc(r.cover) + '" alt="' + esc(r.title) +
+              '" data-title="' + esc(r.title) + '" data-fallback-catalog="1">'
+            : '<span class="cal-poster-noimg" aria-hidden="true">📖</span>';
+        var capLabel = r.chapter ? ('Cap. ' + r.chapter) : (r.volume ? ('Vol. ' + r.volume) : 'Nuevo');
+        var grupo = r.group ? '<span class="cal-ep">' + esc(r.group) + '</span>' : '';
+        return '<a class="cal-card" href="detalle.html?cat=manga&id=' + encodeURIComponent(r.mangaId) + '">' +
+                    '<span class="cal-poster">' + poster + '</span>' +
+                    '<span class="cal-info">' +
+                        '<span class="cal-time">' + esc(capLabel) + '</span>' +
+                        '<span class="cal-title">' + esc(r.title) + '</span>' +
+                        grupo +
+                    '</span>' +
+                '</a>';
+    }
+
+    function renderManga() {
+        var host = document.getElementById('calendarBody');
+        if (!host) return;
+        if (_manga === null) {
+            host.innerHTML = '<p class="cal-loading">Cargando lanzamientos…</p>';
+            return;
+        }
+        if (!_manga.length) {
+            host.innerHTML = '<p class="cal-empty">No hay lanzamientos de manga para mostrar ahora mismo.</p>';
+            return;
+        }
+        var today = new Date();
+        var groups = [];
+        var byKey = {};
+        _manga.forEach(function (r) {
+            var d = r.readableAt ? new Date(r.readableAt) : today;
+            if (isNaN(d.getTime())) d = today;
+            var k = dayKey(d);
+            if (!byKey[k]) {
+                byKey[k] = { label: dayLabel(d, today), items: [] };
+                groups.push({ key: k, at: d.getTime(), group: byKey[k] });
+            }
+            byKey[k].group.items.push(r);
+        });
+        groups.sort(function (a, b) { return b.at - a.at; }); // más recientes primero
+        host.innerHTML = groups.map(function (g) {
+            return '<section class="cal-day">' +
+                        '<h2 class="cal-day-title">' + esc(g.group.label) + '</h2>' +
+                        '<div class="cal-grid">' + g.group.items.map(mangaCardHtml).join('') + '</div>' +
+                    '</section>';
+        }).join('');
+    }
+
+    async function loadManga() {
+        if (_manga !== null) { renderManga(); return; }
+        renderManga(); // muestra "Cargando…"
+        if (typeof window.getMangaDexRecentReleases !== 'function') {
+            _manga = [];
+            renderManga();
+            return;
+        }
+        var lang = 'es';
+        try { lang = (localStorage.getItem('pref:lang') || 'es').slice(0, 2); } catch (_) {}
+        try {
+            _manga = await window.getMangaDexRecentReleases(lang, 60);
+            if (!_manga.length && lang !== 'en') _manga = await window.getMangaDexRecentReleases('en', 60);
+        } catch (e) {
+            console.warn('[calendario] manga:', e);
+            _manga = [];
+        }
+        renderManga();
+    }
+
     function render() {
+        if (_tab === 'manga') { renderManga(); return; }
         var host = document.getElementById('calendarBody');
         if (!host) return;
 
@@ -147,6 +221,26 @@
                 render();
             });
         }
+
+        // Tabs Anime / Manga: el toolbar "Solo lo que sigo" solo aplica al de anime.
+        var tabs = document.querySelectorAll('.calendar-tab');
+        var animeToolbar = document.getElementById('calAnimeToolbar');
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                var nuevo = tab.getAttribute('data-caltab') || 'anime';
+                if (nuevo === _tab) return;
+                _tab = nuevo;
+                tabs.forEach(function (t) {
+                    var activo = t === tab;
+                    t.classList.toggle('is-active', activo);
+                    t.setAttribute('aria-selected', activo ? 'true' : 'false');
+                });
+                if (animeToolbar) animeToolbar.style.display = (_tab === 'anime') ? '' : 'none';
+                if (_tab === 'manga') loadManga();
+                else render();
+            });
+        });
+
         load();
         // Si la sesión resuelve después, recargamos los seguidos para el resaltado.
         window.addEventListener('supabase-auth-changed', function () {
