@@ -2192,26 +2192,14 @@ main { padding-bottom: 24px; }
 }
 
 @media (max-width: 640px) {
-    .catalog-search-filter-container {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px 12px;
-    }
+    /* La barra de búsqueda + el panel de filtros se mantienen pegados
+       (edge-to-edge) igual que en desktop: sin padding ni gap que los
+       separe del borde de la tarjeta. */
     .catalog-search-wrap {
-        width: 100%;
+        min-height: 48px;
     }
-    .catalog-filter-wrap {
-        width: 100%;
-    }
-    .catalog-filter-btn {
-        width: 100%;
-        justify-content: center;
-    }
-    .catalog-filter-wrap .filter-dropdown {
-        width: min(280px, calc(100vw - 48px));
-        right: auto;
-        left: 50%;
-        transform: translateX(-50%);
+    .catalog-search-input {
+        font-size: 1rem;
     }
 }
 
@@ -2224,19 +2212,8 @@ main { padding-bottom: 24px; }
     flex: 1;
 }
 
-.filter-header-row-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.filter-chevron {
-    margin-left: auto;
-    color: var(--text-faint, rgba(var(--ink-rgb),0.4));
-    display: flex;
-    align-items: center;
-}
+/* .filter-header-row-inner vive en advanced-filter.css (layout del panel de
+   filtros). El antiguo .filter-chevron del toggle NSFW se quitó por engañoso. */
 
 /* category-card.actividad — targets the actividad modifier class used in mis-listas.html */
 .category-card--actividad,
