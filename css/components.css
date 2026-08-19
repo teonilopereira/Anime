@@ -1866,6 +1866,21 @@ main { padding-bottom: 24px; }
     overflow: hidden;
 }
 
+/* El bloque de búsqueda + filtros es una superficie SIEMPRE oscura (fondos
+   fijos: rgba(5,5,12) el contenedor, rgba(10,8,20) el panel). Sus tokens de
+   texto y de superficie se fijan a los valores del tema OSCURO para que todo
+   el contenido (buscador, título, NSFW, selects, chips, "Limpiar Filtros")
+   siga siendo legible aunque el resto de la página esté en tema claro.
+   Sin esto, en tema claro --text-main es oscuro y queda texto oscuro sobre
+   fondo oscuro. --nav-accent no se toca: lo define body[data-page] y da el
+   color por sección (cian anime / verde manga). */
+.catalog-search-filter-container {
+    --ink-rgb: 255, 255, 255;
+    --text-main: #ffffff;
+    --surface-panel-rgb: 26, 11, 46;
+    --accent-cyan: #00f2ff;
+}
+
 /* Con sugerencias abiertas el JS agrega .has-suggestions: sin esto el
    overflow:hidden del contenedor recorta el dropdown y nunca se ve */
 .catalog-search-filter-container.has-suggestions {

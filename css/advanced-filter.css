@@ -27,6 +27,10 @@
     box-sizing: border-box;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4) inset;
     transition: opacity 0.3s ease;
+    /* El panel vive dentro de .page-header, que centra su texto. Reseteamos a
+       la izquierda para que el NSFW y las etiquetas no salgan centrados; los
+       divisores REFINAR/GÉNERO se centran por flex, no por text-align. */
+    text-align: left;
 }
 .filter-header-row {
     display: flex;
@@ -298,10 +302,6 @@
     .filter-header-row-inner {
         gap: 8px 12px;
     }
-    /* La grilla de refinado pasa a 2 columnas parejas en vez de encogerse */
-    .filter-advanced-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
 }
 
 @media (max-width: 480px) {
@@ -358,11 +358,6 @@
 
     .filter-header-row-inner h2 {
         font-size: 0.85rem;
-    }
-
-    /* En pantallas muy chicas la grilla vuelve a una sola columna */
-    .filter-advanced-grid {
-        grid-template-columns: 1fr;
     }
 
     .ff-genre-chip {
@@ -528,4 +523,16 @@
 /* Temporada y Formato solo aplican a anime. */
 body:not([data-page="anime"]) .filter-anime-only {
     display: none;
+}
+
+/* Responsive de la grilla de refinado. Va al FINAL, DESPUÉS de la definición
+   base de .filter-advanced-grid, para ganar en la cascada (misma especificidad,
+   gana el que aparece último en el archivo). En móvil se fija en 2 columnas
+   parejas (Orden/Año · Temporada/Formato) en vez de encogerse con auto-fit;
+   minmax(0,1fr) deja que las columnas se angosten en pantallas muy chicas sin
+   forzar una sola columna (que dejaría el panel demasiado alto). */
+@media (max-width: 560px) {
+    .filter-advanced-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }

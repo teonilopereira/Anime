@@ -2084,6 +2084,21 @@ main { padding-bottom: 24px; }
     overflow: hidden;
 }
 
+/* El bloque de búsqueda + filtros es una superficie SIEMPRE oscura (fondos
+   fijos: rgba(5,5,12) el contenedor, rgba(10,8,20) el panel). Sus tokens de
+   texto y de superficie se fijan a los valores del tema OSCURO para que todo
+   el contenido (buscador, título, NSFW, selects, chips, "Limpiar Filtros")
+   siga siendo legible aunque el resto de la página esté en tema claro.
+   Sin esto, en tema claro --text-main es oscuro y queda texto oscuro sobre
+   fondo oscuro. --nav-accent no se toca: lo define body[data-page] y da el
+   color por sección (cian anime / verde manga). */
+.catalog-search-filter-container {
+    --ink-rgb: 255, 255, 255;
+    --text-main: #ffffff;
+    --surface-panel-rgb: 26, 11, 46;
+    --accent-cyan: #00f2ff;
+}
+
 /* Con sugerencias abiertas el JS agrega .has-suggestions: sin esto el
    overflow:hidden del contenedor recorta el dropdown y nunca se ve */
 .catalog-search-filter-container.has-suggestions {
@@ -5621,21 +5636,9 @@ body[data-page="listas"] .lists-empty {
     }
 }
 
-/* ── Advanced filter ── */
-@media (max-width: 640px) {
-    .advanced-filter-dropdown {
-        padding: 14px;
-    }
-    .filter-header-row {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
-    }
-    .filter-header-icon-wrap {
-        width: 48px;
-        height: 48px;
-    }
-}
+/* El responsive del panel de filtros avanzados vive en advanced-filter.css
+   (breakpoints 560/480/400). El header se mantiene como fila horizontal
+   —ícono + título + Limpiar— también en móvil, en vez de apilar el ícono. */
 
 /* ── Comparison page ── */
 
