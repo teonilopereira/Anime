@@ -138,6 +138,57 @@
         } catch (e) {}
     }
 
+    var _epTitleCache = {};
+
+    // Limpia el título que trae AniList en streamingEpisodes, que suele venir
+    // como "Episode 12 - El título real" o solo "Episode 12" (sin título). Se
+    // queda con el texto después del guion; si no hay más que "Episode N",
+    // devuelve '' para caer al genérico "Episodio N".
+    function cleanEpisodeTitle(raw) {
+        var t = String(raw == null ? '' : raw).trim();
+        if (!t) return '';
+        var m = t.match(/^\s*Episode\s+\d+\s*[-–—:.\)]+\s*(.+)$/i);
+        if (m) return m[1].trim();
+        if (/^\s*Episode\s+\d+\s*$/i.test(t)) return '';
+        return t;
+    }
+
+    // Trae los títulos reales de cada episodio desde AniList (streamingEpisodes,
+    // ya permitido por la CSP del catálogo y cacheado por getAnimeById) y los
+    // inserta en su fila. Silencioso ante error: queda "Episodio N".
+    function loadEpisodeTitles(id, grid) {
+        if (typeof window.getAnimeById !== 'function') return;
+        var apply = function (map) {
+            if (!map) return;
+            var names = grid.querySelectorAll('.cmodal-cap-name[data-ep]');
+            for (var i = 0; i < names.length; i++) {
+                var ep = names[i].getAttribute('data-ep');
+                if (!map[ep]) continue;
+                names[i].textContent = map[ep];
+                names[i].setAttribute('title', map[ep]);
+                var sub = grid.querySelector('.cmodal-cap-sub[data-ep-sub="' + ep + '"]');
+                if (sub) sub.textContent = 'Episodio ' + ep;
+            }
+        };
+        if (_epTitleCache[id]) { apply(_epTitleCache[id]); return; }
+        try {
+            Promise.resolve(window.getAnimeById(id)).then(function (item) {
+                var eps = (item && item.streamingEpisodes) || [];
+                var map = {};
+                for (var i = 0; i < eps.length; i++) {
+                    var raw = eps[i] && eps[i].title;
+                    if (!raw) continue;
+                    var mm = String(raw).match(/Episode\s+(\d+)/i);
+                    var num = mm ? String(parseInt(mm[1], 10)) : String(i + 1);
+                    var clean = cleanEpisodeTitle(raw);
+                    if (clean && !map[num]) map[num] = clean;
+                }
+                _epTitleCache[id] = map;
+                apply(map);
+            }).catch(function () {});
+        } catch (e) {}
+    }
+
     function open(btn) {
         var card = btn.closest('.card-container');
         if (!card) return;
@@ -202,15 +253,23 @@
                 var head = isManga
                     ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy">'
                     : '<span class="cmodal-cap-num">' + nn + '</span>';
-                var sub = isManga ? '<span class="cmodal-cap-sub">#' + nn + '</span>' : '';
+                // El nombre arranca genérico ("Episodio N" / "Volumen N"). En
+                // anime, loadEpisodeTitles lo reemplaza luego por el título real
+                // del episodio (data-ep) y baja "Episodio N" al subtítulo
+                // (data-ep-sub). En manga el subtítulo muestra "#NN".
+                var nameAttr = isAnime ? ' data-ep="' + n + '"' : '';
+                var sub = isManga
+                    ? '<span class="cmodal-cap-sub">#' + nn + '</span>'
+                    : '<span class="cmodal-cap-sub" data-ep-sub="' + n + '"></span>';
                 rows += '<div class="cmodal-cap' + (isManga ? ' cmodal-cap--cover' : '') + (done ? ' vista' : '') + '">'
                     + head
-                    + '<span class="cmodal-cap-b"><span class="cmodal-cap-name">' + esc(word + ' ' + n) + '</span>' + sub + '</span>'
+                    + '<span class="cmodal-cap-b"><span class="cmodal-cap-name"' + nameAttr + '>' + esc(word + ' ' + n) + '</span>' + sub + '</span>'
                     + '<span class="cmodal-cap-chk"></span>'
                     + '</div>';
             }
             grid.innerHTML = rows;
             if (isManga) loadVolumeCovers(id, grid);
+            else loadEpisodeTitles(id, grid);
         } else {
             grid.innerHTML = '';
             empty.hidden = false;
