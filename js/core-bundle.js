@@ -6361,7 +6361,8 @@ function buildCatalogCardHtml(options) {
         progressTotal = 0,
         volCount = 0,
         chCount = 0,
-        info = ''
+        info = '',
+        titleAlt = ''
     } = options;
 
     const flipId = `flip-${id}`;
@@ -6389,6 +6390,9 @@ function buildCatalogCardHtml(options) {
     const genresAttr = genres ? ` data-genres="${escapeHtml(genres)}"` : '';
     const genresNormAttr = genresNorm ? ` data-genres-norm="${escapeHtml(genresNorm)}"` : '';
     const totalAttr = progressTotal > 0 ? ` data-total="${progressTotal}"` : '';
+    // Título alternativo (inglés) para que el modal pueda pasar más de un nombre
+    // al emparejado de portadas por volumen contra MangaDex.
+    const titleAltAttr = titleAlt ? ` data-title-alt="${escapeHtml(String(titleAlt))}"` : '';
 
     var safeImg = safeUrl(image);
     // Card vertical con banda de estado arriba (cian->purpura) y flip 3D. El
@@ -6400,7 +6404,7 @@ function buildCatalogCardHtml(options) {
     // data-action para la delegacion, .watch-status-select y el bloque
     // [data-progress] que states.js actualiza.
     return `
-    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}"${titleAltAttr} data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="cband-inner">
             <div class="cband-face cband-front">
@@ -6543,6 +6547,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
             genresNorm: genresNorm,
             categoria: detailCat,
             info: info,
+            titleAlt: item.title_english || '',
             progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
             volCount: volCount,
             chCount: chCount,
@@ -6692,6 +6697,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
             genresNorm: genresNorm,
             categoria: categoria,
             info: item.info || genres.join(' / '),
+            titleAlt: item.title_english || '',
             progressTotal: volCount || chCount || Number(item.episodes || 0),
             volCount: volCount,
             chCount: chCount,
@@ -6828,32 +6834,20 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
         return 'Volumen';
     }
 
-    var _coverCache = {};
-
     // Trae la portada REAL de cada volumen desde MangaDex y la inserta en su
     // fila, para que no quede la portada genérica del tomo 1 repetida. Funciona
     // tanto con títulos de MangaDex (UUID directo) como con los de AniList (id
-    // numérico), que se resuelven por título contra MangaDex. Silencioso ante
-    // error: queda la portada principal.
-    function loadVolumeCovers(id, grid, title) {
-        if (typeof window.resolveMangaDexVolumeCoverMap !== 'function') return;
-        var apply = function (map) {
-            if (!map) return;
-            var imgs = grid.querySelectorAll('.cmodal-cap-cover[data-vol]');
-            for (var i = 0; i < imgs.length; i++) {
-                var v = String(parseInt(imgs[i].getAttribute('data-vol'), 10));
-                if (map[v]) imgs[i].src = map[v];
-            }
-        };
-        if (_coverCache[id]) { apply(_coverCache[id]); return; }
+    // numérico), que se resuelven por título contra MangaDex. Se pasa también el
+    // título alternativo (inglés) de la card para que el emparejado no dependa
+    // de un solo idioma. Silencioso ante error: queda la portada principal.
+    function loadVolumeCovers(id, grid, title, titleAlt) {
+        if (typeof window.applyMangaDexVolumeCovers !== 'function') return;
         try {
-            Promise.resolve(window.resolveMangaDexVolumeCoverMap({ id: id, title: title }))
-                .then(function (map) {
-                    if (!map) return;
-                    _coverCache[id] = map;
-                    apply(map);
-                })
-                .catch(function () {});
+            window.applyMangaDexVolumeCovers({
+                item: { id: id, title: title, title_english: titleAlt },
+                grid: grid,
+                selector: '.cmodal-cap-cover[data-vol]'
+            });
         } catch (e) {}
     }
 
@@ -6916,6 +6910,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
         var id = card.getAttribute('data-item-id') || '';
         var category = card.getAttribute('data-category') || 'manga';
         var title = card.getAttribute('data-title') || 'Sin título';
+        var titleAlt = card.getAttribute('data-title-alt') || '';
         var img = card.getAttribute('data-img') || '';
         var progBox = card.querySelector('[data-progress]');
         var total = Number(card.getAttribute('data-total') || (progBox && progBox.getAttribute('data-total')) || 0);
@@ -6987,7 +6982,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
                     + '</div>';
             }
             grid.innerHTML = rows;
-            if (isManga) loadVolumeCovers(id, grid, title);
+            if (isManga) loadVolumeCovers(id, grid, title, titleAlt);
             else loadEpisodeTitles(id, grid);
         } else {
             grid.innerHTML = '';

@@ -96,32 +96,20 @@
         return 'Volumen';
     }
 
-    var _coverCache = {};
-
     // Trae la portada REAL de cada volumen desde MangaDex y la inserta en su
     // fila, para que no quede la portada genérica del tomo 1 repetida. Funciona
     // tanto con títulos de MangaDex (UUID directo) como con los de AniList (id
-    // numérico), que se resuelven por título contra MangaDex. Silencioso ante
-    // error: queda la portada principal.
-    function loadVolumeCovers(id, grid, title) {
-        if (typeof window.resolveMangaDexVolumeCoverMap !== 'function') return;
-        var apply = function (map) {
-            if (!map) return;
-            var imgs = grid.querySelectorAll('.cmodal-cap-cover[data-vol]');
-            for (var i = 0; i < imgs.length; i++) {
-                var v = String(parseInt(imgs[i].getAttribute('data-vol'), 10));
-                if (map[v]) imgs[i].src = map[v];
-            }
-        };
-        if (_coverCache[id]) { apply(_coverCache[id]); return; }
+    // numérico), que se resuelven por título contra MangaDex. Se pasa también el
+    // título alternativo (inglés) de la card para que el emparejado no dependa
+    // de un solo idioma. Silencioso ante error: queda la portada principal.
+    function loadVolumeCovers(id, grid, title, titleAlt) {
+        if (typeof window.applyMangaDexVolumeCovers !== 'function') return;
         try {
-            Promise.resolve(window.resolveMangaDexVolumeCoverMap({ id: id, title: title }))
-                .then(function (map) {
-                    if (!map) return;
-                    _coverCache[id] = map;
-                    apply(map);
-                })
-                .catch(function () {});
+            window.applyMangaDexVolumeCovers({
+                item: { id: id, title: title, title_english: titleAlt },
+                grid: grid,
+                selector: '.cmodal-cap-cover[data-vol]'
+            });
         } catch (e) {}
     }
 
@@ -184,6 +172,7 @@
         var id = card.getAttribute('data-item-id') || '';
         var category = card.getAttribute('data-category') || 'manga';
         var title = card.getAttribute('data-title') || 'Sin título';
+        var titleAlt = card.getAttribute('data-title-alt') || '';
         var img = card.getAttribute('data-img') || '';
         var progBox = card.querySelector('[data-progress]');
         var total = Number(card.getAttribute('data-total') || (progBox && progBox.getAttribute('data-total')) || 0);
@@ -255,7 +244,7 @@
                     + '</div>';
             }
             grid.innerHTML = rows;
-            if (isManga) loadVolumeCovers(id, grid, title);
+            if (isManga) loadVolumeCovers(id, grid, title, titleAlt);
             else loadEpisodeTitles(id, grid);
         } else {
             grid.innerHTML = '';
