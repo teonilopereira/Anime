@@ -294,7 +294,8 @@ function buildCatalogCardHtml(options) {
         progressTotal = 0,
         volCount = 0,
         chCount = 0,
-        info = ''
+        info = '',
+        titleAlt = ''
     } = options;
 
     const flipId = `flip-${id}`;
@@ -322,6 +323,9 @@ function buildCatalogCardHtml(options) {
     const genresAttr = genres ? ` data-genres="${escapeHtml(genres)}"` : '';
     const genresNormAttr = genresNorm ? ` data-genres-norm="${escapeHtml(genresNorm)}"` : '';
     const totalAttr = progressTotal > 0 ? ` data-total="${progressTotal}"` : '';
+    // Título alternativo (inglés) para que el modal pueda pasar más de un nombre
+    // al emparejado de portadas por volumen contra MangaDex.
+    const titleAltAttr = titleAlt ? ` data-title-alt="${escapeHtml(String(titleAlt))}"` : '';
 
     var safeImg = safeUrl(image);
     // Card vertical con banda de estado arriba (cian->purpura) y flip 3D. El
@@ -333,7 +337,7 @@ function buildCatalogCardHtml(options) {
     // data-action para la delegacion, .watch-status-select y el bloque
     // [data-progress] que states.js actualiza.
     return `
-    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}"${titleAltAttr} data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="cband-inner">
             <div class="cband-face cband-front">
@@ -476,6 +480,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
             genresNorm: genresNorm,
             categoria: detailCat,
             info: info,
+            titleAlt: item.title_english || '',
             progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
             volCount: volCount,
             chCount: chCount,
@@ -625,6 +630,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
             genresNorm: genresNorm,
             categoria: categoria,
             info: item.info || genres.join(' / '),
+            titleAlt: item.title_english || '',
             progressTotal: volCount || chCount || Number(item.episodes || 0),
             volCount: volCount,
             chCount: chCount,

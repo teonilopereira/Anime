@@ -226,9 +226,15 @@ function renderDetalle(item, nombreUrl, categoria) {
     const VOL_CHUNK = 120;
     const buildVolButton = (v) => {
         const active = UserStore.getItem(volumeStorageKey(userId, item.id, v, categoria)) ? ' is-active' : '';
+        // Cada tomo arranca con la portada principal de fondo y el número
+        // encima; loadDetailVolCovers() la reemplaza luego por la portada real
+        // de ese volumen (MangaDex). data-vol la identifica para el reemplazo.
         return `
                 <div class="cuadrado-wrapper">
-                    <button class="vol-btn cuadrado-item${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">${String(v).padStart(2, '0')}</button>
+                    <button class="vol-btn cuadrado-item has-cover${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">
+                        <img class="vol-cover" data-vol="${v}" src="${safeUrl(item.img)}" alt="" loading="lazy" aria-hidden="true">
+                        <span class="num-cap">${String(v).padStart(2, '0')}</span>
+                    </button>
                     <button class="btn-resumen" type="button" data-vol="${v}" aria-label="Ver resumen del volumen ${v}">RESUMEN</button>
                 </div>
             `;
@@ -682,6 +688,22 @@ function renderDetalle(item, nombreUrl, categoria) {
     if (isMangaOrNovela && totalVols > 0) {
         const grid = localLayout.querySelector('.vol-grid');
         if (grid) {
+            // Reemplaza la portada genérica de cada cuadro por la real del tomo
+            // (MangaDex). Best-effort y silencioso: si no resuelve, queda la
+            // principal. Se vuelve a llamar tras "Mostrar más" para cubrir los
+            // cuadros recién agregados (el mapa ya queda cacheado, es barato).
+            const loadDetailVolCovers = () => {
+                if (typeof window.applyMangaDexVolumeCovers !== 'function') return;
+                try {
+                    window.applyMangaDexVolumeCovers({
+                        item: item,
+                        grid: grid,
+                        selector: 'img.vol-cover[data-vol]'
+                    });
+                } catch (e) { /* silencioso */ }
+            };
+            loadDetailVolCovers();
+
             // Traer progreso desde SQL y reflejarlo en la UI (si hay sesión).
             syncProgressFromSupabase(categoria, item.id).then(() => {
                 grid.querySelectorAll('button.vol-btn').forEach((btn) => {
@@ -703,6 +725,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     moreBtn.insertAdjacentHTML('beforebegin', html);
                     if (to < totalVols) moreBtn.textContent = `Mostrar más (${totalVols - to} restantes)`;
                     else moreBtn.remove();
+                    loadDetailVolCovers();
                     return;
                 }
 

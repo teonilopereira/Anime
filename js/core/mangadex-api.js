@@ -363,29 +363,57 @@
         return null;
     }
 
+    // Junta todos los títulos que trae el ítem (principal, inglés, romaji,
+    // nativo), sin repetir y sin vacíos. AniList entrega el título en un idioma
+    // y MangaDex indexa por otro, así que buscar por uno solo fallaba en obras
+    // cuyo nombre difiere entre fuentes; probar varios sube mucho el acierto.
+    function mangaTitleCandidates(item) {
+        if (!item) return [];
+        var raw = [
+            item.titulo, item.title, item.title_english, item.titleEnglish,
+            item.romaji, item.title_romaji, item.native, item.title_native
+        ];
+        var seen = {};
+        var out = [];
+        for (var i = 0; i < raw.length; i++) {
+            var t = String(raw[i] == null ? '' : raw[i]).trim();
+            if (!t) continue;
+            var key = t.toLowerCase();
+            if (seen[key]) continue;
+            seen[key] = 1;
+            out.push(t);
+        }
+        return out;
+    }
+
     async function resolveMangaDexId(item) {
         if (!item) return null;
         if (isMangaDexUuid(item.id)) return item.id;
         if (isMangaDexUuid(item.mangadex_id)) return item.mangadex_id;
         if (isMangaDexUuid(item.mangaDexId)) return item.mangaDexId;
-        var title = item?.titulo || item?.title || '';
-        if (!title) return null;
 
-        var cacheKey = 'md_id_' + title.replace(/\s+/g, '_').toLowerCase();
+        var candidates = mangaTitleCandidates(item);
+        if (!candidates.length) return null;
+
+        // La caché va por el título principal para no desincronizarse con las
+        // claves ya guardadas: si ese título ya se resolvió antes, listo.
+        var cacheKey = 'md_id_' + candidates[0].replace(/\s+/g, '_').toLowerCase();
         try {
             var cached = localStorage.getItem(cacheKey);
             if (cached) return cached;
         } catch (_) {}
 
-        try {
-            var results = await searchMangaDex(title, 1);
-            if (results.length > 0 && isMangaDexUuid(results[0].id)) {
-                var mdId = results[0].id;
-                safeCacheSet(cacheKey, mdId);
-                return mdId;
+        for (var i = 0; i < candidates.length; i++) {
+            try {
+                var results = await searchMangaDex(candidates[i], 1);
+                if (results.length > 0 && isMangaDexUuid(results[0].id)) {
+                    var mdId = results[0].id;
+                    safeCacheSet(cacheKey, mdId);
+                    return mdId;
+                }
+            } catch (err) {
+                console.warn('resolveMangaDexId search error:', err);
             }
-        } catch (err) {
-            console.warn('resolveMangaDexId search error:', err);
         }
         return null;
     }
@@ -421,6 +449,29 @@
             console.warn('resolveMangaDexVolumeCoverMap error:', err);
             return null;
         }
+    };
+
+    // Pinta la portada REAL de cada volumen (MangaDex) sobre las <img data-vol>
+    // que haya dentro de `grid`. Best-effort y silencioso: si el título no
+    // resuelve, MangaDex no responde o no tiene portada de ese tomo, cada imagen
+    // se queda con el src que ya traía (la portada principal). Lo comparten el
+    // modal de la card (chapters-modal.js) y la grilla de volúmenes del detalle
+    // (render.js) para no duplicar la lógica ni la caché.
+    window.applyMangaDexVolumeCovers = async function (opts) {
+        opts = opts || {};
+        var grid = opts.grid;
+        var item = opts.item;
+        if (!grid || !item || typeof window.resolveMangaDexVolumeCoverMap !== 'function') return;
+        var selector = opts.selector || 'img[data-vol]';
+        try {
+            var map = await window.resolveMangaDexVolumeCoverMap(item);
+            if (!map) return;
+            var imgs = grid.querySelectorAll(selector);
+            for (var i = 0; i < imgs.length; i++) {
+                var v = String(parseInt(imgs[i].getAttribute('data-vol'), 10));
+                if (map[v]) imgs[i].src = map[v];
+            }
+        } catch (e) { /* silencioso: queda la portada principal */ }
     };
 
     window.resolveMangaDexCoverForVolume = async function (item, volNum) {
