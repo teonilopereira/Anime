@@ -344,14 +344,15 @@
 
 /* ── Botón en el dorso de la card (separado del de DETALLE) ── */
 .catalog-band-card .cband-back-actions .card-back-chapters-btn {
-    flex: 1 1 100%;
-    width: 100%;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     min-height: 40px;
-    padding: 9px 16px;
+    padding: 9px 10px;
     border-radius: var(--radius-md, 12px);
     cursor: pointer;
     font-family: var(--font-display, "Orbitron", sans-serif);

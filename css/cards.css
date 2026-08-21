@@ -1679,10 +1679,26 @@ body.reduce-motion .catalog-neon-card {
 .catalog-band-card .cband-back-actions {
     margin-top: auto;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Fila superior de acciones: los dos botones circulares (favorito y visto)
+   centrados. */
+.catalog-band-card .cband-back-actions-icons {
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
+}
+
+/* Fila inferior: los dos botones de texto (EPISODIOS/VOLÚMENES y DETALLE) lado
+   a lado a mitad de ancho cada uno, para que el dorso entre completo dentro de
+   la altura fija de la card sin que DETALLE quede recortado abajo. */
+.catalog-band-card .cband-back-actions-cta {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
 }
 
 .catalog-band-card .cband-back-actions .action-btn {
@@ -1708,12 +1724,13 @@ body.reduce-motion .catalog-neon-card {
 }
 
 .catalog-band-card .cband-back-actions .card-back-detail-btn {
-    flex: 1 1 100%;
-    width: 100%;
+    flex: 1 1 0;
+    width: auto;
     min-width: 0;
     margin-left: 0;
     min-height: 40px;
-    padding: 9px 16px;
+    padding: 9px 12px;
+    text-align: center;
     white-space: nowrap;
 }
 
@@ -1756,8 +1773,23 @@ body.reduce-motion .catalog-neon-card {
         font-size: 0.7rem;
     }
 
-    /* La fila de acciones ya es wrap con DETALLE a ancho completo (regla base);
-       en móvil solo se rebaja un poco la altura del botón de detalle. */
+    /* En móvil el catálogo pasa a 2 columnas y la card queda muy angosta:
+       "EPISODIOS/VOLÚMENES" y "DETALLE" no entran de texto uno al lado del otro
+       sin pisarse. El botón de episodios se colapsa a solo icono (mantiene su
+       aria-label/title) y DETALLE ocupa el resto de la fila, así ambos quedan en
+       una sola línea sin recortar el texto ni empujar contenido fuera de la card. */
+    .catalog-band-card .cband-back-actions .card-back-chapters-btn {
+        flex: 0 0 auto;
+        width: 44px;
+        min-width: 44px;
+        padding: 9px 0;
+        gap: 0;
+    }
+
+    .catalog-band-card .cband-back-actions .card-back-chapters-btn span {
+        display: none;
+    }
+
     .catalog-band-card .cband-back-actions .card-back-detail-btn {
         min-height: 38px;
     }
