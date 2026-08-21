@@ -96,41 +96,28 @@
         return 'Volumen';
     }
 
-    // ¿El id es un UUID de MangaDex? Solo esos títulos tienen portada por
-    // volumen consultable; los de AniList son numéricos y no la exponen.
-    function isMangaDexId(id) {
-        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id));
-    }
-
     var _coverCache = {};
 
-    // Trae las portadas reales por volumen desde MangaDex y las inserta en su
-    // ítem correspondiente. Silencioso ante error: queda la portada principal.
-    function loadVolumeCovers(id, grid) {
-        if (!isMangaDexId(id) || typeof window.mdFetch !== 'function') return;
+    // Trae la portada REAL de cada volumen desde MangaDex y la inserta en su
+    // fila, para que no quede la portada genérica del tomo 1 repetida. Funciona
+    // tanto con títulos de MangaDex (UUID directo) como con los de AniList (id
+    // numérico), que se resuelven por título contra MangaDex. Silencioso ante
+    // error: queda la portada principal.
+    function loadVolumeCovers(id, grid, title) {
+        if (typeof window.resolveMangaDexVolumeCoverMap !== 'function') return;
         var apply = function (map) {
             if (!map) return;
             var imgs = grid.querySelectorAll('.cmodal-cap-cover[data-vol]');
             for (var i = 0; i < imgs.length; i++) {
-                var v = imgs[i].getAttribute('data-vol');
+                var v = String(parseInt(imgs[i].getAttribute('data-vol'), 10));
                 if (map[v]) imgs[i].src = map[v];
             }
         };
         if (_coverCache[id]) { apply(_coverCache[id]); return; }
         try {
-            window.mdFetch('/cover?manga[]=' + encodeURIComponent(id) + '&limit=100&order[volume]=asc')
-                .then(function (json) {
-                    var arr = (json && json.data) || [];
-                    var map = {};
-                    for (var i = 0; i < arr.length; i++) {
-                        var at = arr[i] && arr[i].attributes;
-                        if (!at || at.volume == null || !at.fileName) continue;
-                        var key = String(parseInt(at.volume, 10));
-                        if (key === 'NaN') continue;
-                        if (!map[key]) {
-                            map[key] = 'https://uploads.mangadex.org/covers/' + id + '/' + at.fileName + '.256.jpg';
-                        }
-                    }
+            Promise.resolve(window.resolveMangaDexVolumeCoverMap({ id: id, title: title }))
+                .then(function (map) {
+                    if (!map) return;
                     _coverCache[id] = map;
                     apply(map);
                 })
@@ -268,7 +255,7 @@
                     + '</div>';
             }
             grid.innerHTML = rows;
-            if (isManga) loadVolumeCovers(id, grid);
+            if (isManga) loadVolumeCovers(id, grid, title);
             else loadEpisodeTitles(id, grid);
         } else {
             grid.innerHTML = '';

@@ -390,6 +390,39 @@
         return null;
     }
 
+    // Resuelve el manga en MangaDex (por UUID directo o por título) y devuelve el
+    // mapa completo { volKey: urlPortada } de una sola vez, reutilizando el mismo
+    // mapa cacheado que usa getMangaDexVolumeCover. Pensado para pintar la lista
+    // de volúmenes del modal con la portada específica de cada uno, incluso
+    // cuando el ítem viene de AniList (id numérico) y no trae el UUID.
+    window.resolveMangaDexVolumeCoverMap = async function (item) {
+        if (!item) return null;
+        var mdId = await resolveMangaDexId(item);
+        if (!mdId) return null;
+        try {
+            var mapKey = 'md_cov_map_' + mdId;
+            var map = null;
+            try {
+                var cachedMap = localStorage.getItem(mapKey);
+                if (cachedMap) map = JSON.parse(cachedMap);
+            } catch (_) { map = null; }
+            if (!map) {
+                map = await fetchMangaDexCoverMap(mdId);
+                safeCacheSet(mapKey, JSON.stringify(map));
+            }
+            var out = {};
+            for (var k in map) {
+                if (map.hasOwnProperty(k) && map[k]) {
+                    out[k] = MD_COVER_BASE + '/' + mdId + '/' + map[k];
+                }
+            }
+            return out;
+        } catch (err) {
+            console.warn('resolveMangaDexVolumeCoverMap error:', err);
+            return null;
+        }
+    };
+
     window.resolveMangaDexCoverForVolume = async function (item, volNum) {
         if (!item) return NO_COVER_PLACEHOLDER;
 
