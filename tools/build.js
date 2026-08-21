@@ -27,7 +27,7 @@ const SITE_URL = 'https://animedestiny.netlify.app';
 
 // Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
 // de busqueda). El resto se agrega solo, asi no hay que mantener una lista.
-const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html']);
+const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html', 'diag-portadas.html']);
 
 /**
  * Verificacion de propiedad de Google Search Console (token del meta tag).

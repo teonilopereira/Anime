@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Mismo connect-src / img-src que detalle.html, para reproducir las
+         condiciones reales de la app al llamar a MangaDex. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://api.mangadex.org; base-uri 'self'; form-action 'self'; object-src 'none';">
+    <link rel="canonical" href="https://animedestiny.netlify.app/diag-portadas.html">
+    <title>Diagnóstico de portadas por volumen</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #0b0b14; color: #e8e8f0; margin: 0; padding: 16px; line-height: 1.5; }
+        h1 { font-size: 1.2rem; }
+        .step { border: 1px solid #333; border-radius: 10px; padding: 12px 14px; margin: 12px 0; background: #14141f; }
+        .step h2 { font-size: 1rem; margin: 0 0 8px; }
+        .ok { color: #4ade80; } .bad { color: #f87171; } .pend { color: #fbbf24; }
+        pre { white-space: pre-wrap; word-break: break-word; background: #05050a; padding: 8px; border-radius: 6px; font-size: 0.8rem; max-height: 240px; overflow: auto; }
+        img { width: 90px; height: 128px; object-fit: cover; border: 2px solid #333; border-radius: 8px; background: #222; vertical-align: top; }
+        .imgs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .imgwrap { text-align: center; font-size: 0.75rem; }
+        button { background: #2563eb; color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; font-size: 1rem; }
+    </style>
+    <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
+</head>
+<body>
+    <h1>Diagnóstico de portadas por volumen</h1>
+    <p>Corre las mismas llamadas que la app para Jujutsu Kaisen y muestra dónde falla. Sacale captura al resultado.</p>
+    <button id="run" type="button">Volver a correr</button>
+
+    <div class="step" id="s1"><h2>1) Buscar el manga en MangaDex <span class="pend">…</span></h2><div class="body"></div></div>
+    <div class="step" id="s2"><h2>2) Traer el mapa de portadas (/cover) <span class="pend">…</span></h2><div class="body"></div></div>
+    <div class="step" id="s3"><h2>3) Cargar las imágenes de portada <span class="pend">…</span></h2><div class="body"></div></div>
+
+    <script>
+    (function () {
+        'use strict';
+        var JJK_UUID = 'c52b2ce3-7f95-469c-96b0-479524fb7a1a';
+        var COVER_BASE = 'https://uploads.mangadex.org/covers';
+
+        function setStatus(stepId, cls, text) {
+            var span = document.querySelector('#' + stepId + ' h2 span');
+            span.className = cls;
+            span.textContent = text;
+        }
+        function body(stepId) { return document.querySelector('#' + stepId + ' .body'); }
+        function log(stepId, html) { body(stepId).innerHTML += html; }
+
+        function mdFetch(path) {
+            return fetch('https://api.mangadex.org' + path, { headers: { 'Accept': 'application/json' } })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                });
+        }
+
+        async function run() {
+            document.querySelectorAll('.body').forEach(function (b) { b.innerHTML = ''; });
+            ['s1', 's2', 's3'].forEach(function (s) { setStatus(s, 'pend', '…'); });
+
+            // ── Paso 1: búsqueda ──
+            var mangaId = JJK_UUID;
+            try {
+                var searchJson = await mdFetch('/manga?title=Jujutsu%20Kaisen&limit=1&includes[]=cover_art&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica');
+                var first = searchJson && searchJson.data && searchJson.data[0];
+                if (first && first.id) {
+                    mangaId = first.id;
+                    setStatus('s1', 'ok', 'OK');
+                    log('s1', '<pre>id = ' + mangaId + '</pre>');
+                } else {
+                    setStatus('s1', 'bad', 'Sin resultados');
+                    log('s1', '<pre>La búsqueda no devolvió data. Uso el UUID fijo.</pre>');
+                }
+            } catch (e) {
+                setStatus('s1', 'bad', 'FALLÓ');
+                log('s1', '<pre>' + (e && e.name) + ': ' + (e && e.message) + '\n\nSi dice "Failed to fetch" / "TypeError", es CORS o red bloqueada desde el JS de la página (aunque el link abra a mano). Uso el UUID fijo para seguir.</pre>');
+            }
+
+            // ── Paso 2: mapa de portadas ──
+            var map = {};
+            try {
+                var offset = 0, total = 0, pages = 0;
+                do {
+                    var json = await mdFetch('/cover?manga[]=' + encodeURIComponent(mangaId) + '&limit=100&offset=' + offset);
+                    var items = (json && json.data) || [];
+                    total = Number((json && json.total) || 0);
+                    for (var i = 0; i < items.length; i++) {
+                        var a = items[i].attributes || {};
+                        var vol = a.volume != null ? String(Number(a.volume)) : '';
+                        if (vol && a.fileName && !(vol in map)) map[vol] = a.fileName;
+                    }
+                    if (!items.length) break;
+                    offset += 100; pages++;
+                } while (offset < total && offset < 300);
+
+                var keys = Object.keys(map).sort(function (x, y) { return Number(x) - Number(y); });
+                if (keys.length) {
+                    setStatus('s2', 'ok', 'OK — ' + keys.length + ' tomos');
+                    var sample = keys.slice(0, 6).map(function (k) { return 'vol ' + k + ' → ' + map[k]; }).join('\n');
+                    log('s2', '<pre>total covers reportadas: ' + total + '\ntomos con portada: ' + keys.length + ' (' + keys.join(', ') + ')\n\n' + sample + '</pre>');
+                } else {
+                    setStatus('s2', 'bad', 'Mapa vacío');
+                    log('s2', '<pre>El endpoint respondió pero no armé ningún tomo→archivo (total=' + total + ').</pre>');
+                }
+            } catch (e) {
+                setStatus('s2', 'bad', 'FALLÓ');
+                log('s2', '<pre>' + (e && e.name) + ': ' + (e && e.message) + '\n\n"Failed to fetch" / "TypeError" acá = CORS/red bloqueada en el fetch de /cover.</pre>');
+            }
+
+            // ── Paso 3: cargar imágenes ──
+            var volKeys = Object.keys(map).sort(function (x, y) { return Number(x) - Number(y); }).slice(0, 4);
+            if (!volKeys.length) {
+                setStatus('s3', 'bad', 'Sin datos');
+                log('s3', '<pre>No hay mapa del paso 2, no puedo probar imágenes.</pre>');
+                return;
+            }
+            setStatus('s3', 'pend', 'cargando…');
+            var wrap = document.createElement('div');
+            wrap.className = 'imgs';
+            body('s3').appendChild(wrap);
+            var pending = volKeys.length, okCount = 0;
+            volKeys.forEach(function (k) {
+                var url = COVER_BASE + '/' + mangaId + '/' + map[k];
+                var div = document.createElement('div');
+                div.className = 'imgwrap';
+                var img = new Image();
+                img.alt = 'vol ' + k;
+                img.onload = function () { okCount++; done('<div class="ok">vol ' + k + ' ✓</div>'); };
+                img.onerror = function () { done('<div class="bad">vol ' + k + ' ✗ (403/hotlink?)</div>'); };
+                function done(label) { div.innerHTML = label; if (--pending === 0) finish(); }
+                img.src = url;
+                div.appendChild(img);
+                wrap.appendChild(div);
+            });
+            function finish() {
+                if (okCount === volKeys.length) setStatus('s3', 'ok', 'OK — imágenes cargan');
+                else if (okCount === 0) setStatus('s3', 'bad', 'Ninguna imagen carga');
+                else setStatus('s3', 'pend', okCount + '/' + volKeys.length + ' cargan');
+            }
+        }
+
+        document.getElementById('run').addEventListener('click', run);
+        run();
+    })();
+    </script>
+</body>
+</html>
