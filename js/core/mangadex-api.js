@@ -315,46 +315,81 @@
         return String(value).trim().toLowerCase();
     }
 
-    // El endpoint /cover de MangaDex no filtra por volumen, así que
-    // traemos la lista de portadas del manga y armamos un mapa volumen → archivo.
+    // El endpoint /cover de MangaDex no filtra por volumen, así que traemos la
+    // lista de portadas del manga y armamos un mapa volumen → archivo.
+    //
+    // El orden `order[volume]=asc` es opcional: solo decide qué portada se elige
+    // cuando un tomo tiene varias (ediciones/idiomas); el mapa se completa igual
+    // recorriendo todas las páginas. Se pide con orden y, si esa variante falla
+    // (algunos proxies/redes rechazan el corchete anidado), se reintenta sin él
+    // en vez de quedarse sin ninguna portada.
     async function fetchMangaDexCoverMap(mangaId) {
-        var map = {};
         var PAGE = 100;
         var MAX_COVERS = 300;
-        var offset = 0;
-        var total = 0;
-        do {
-            var json = await mdFetch('/cover?manga[]=' + encodeURIComponent(mangaId) + '&limit=' + PAGE + '&offset=' + offset + '&order[volume]=asc');
-            var items = json?.data || [];
-            total = Number(json?.total || 0);
-            for (var i = 0; i < items.length; i++) {
-                var attrs = items[i]?.attributes || {};
-                var volKey = normalizeVolKey(attrs.volume);
-                if (volKey && attrs.fileName && !(volKey in map)) {
-                    map[volKey] = attrs.fileName;
+
+        async function pull(withOrder) {
+            var map = {};
+            var offset = 0;
+            var total = 0;
+            do {
+                var path = '/cover?manga[]=' + encodeURIComponent(mangaId) +
+                    '&limit=' + PAGE + '&offset=' + offset +
+                    (withOrder ? '&order[volume]=asc' : '');
+                var json = await mdFetch(path);
+                var items = json?.data || [];
+                total = Number(json?.total || 0);
+                for (var i = 0; i < items.length; i++) {
+                    var attrs = items[i]?.attributes || {};
+                    var volKey = normalizeVolKey(attrs.volume);
+                    if (volKey && attrs.fileName && !(volKey in map)) {
+                        map[volKey] = attrs.fileName;
+                    }
                 }
+                if (!items.length) break;
+                offset += PAGE;
+            } while (offset < total && offset < MAX_COVERS);
+            return map;
+        }
+
+        try {
+            return await pull(true);
+        } catch (err) {
+            console.warn('fetchMangaDexCoverMap: reintento sin order[volume]:', err);
+            return await pull(false);
+        }
+    }
+
+    function mapHasEntries(map) {
+        if (!map || typeof map !== 'object') return false;
+        for (var k in map) { if (map.hasOwnProperty(k)) return true; }
+        return false;
+    }
+
+    // Lee el mapa de portadas por volumen (cacheado en localStorage). NUNCA
+    // cachea un mapa vacío: si el fetch falla o vuelve sin portadas, dejar `{}`
+    // guardado lo envenenaba para siempre (un objeto vacío es "truthy", así que
+    // la caché nunca se consideraba un miss y no se reintentaba). Ahora un mapa
+    // vacío se trata como miss, se reintenta en la próxima carga y solo se
+    // cachea cuando trae portadas de verdad.
+    async function getCoverMapCached(mangaId) {
+        var mapKey = 'md_cov_map_' + mangaId;
+        try {
+            var cachedMap = localStorage.getItem(mapKey);
+            if (cachedMap) {
+                var parsed = JSON.parse(cachedMap);
+                if (mapHasEntries(parsed)) return parsed;
             }
-            if (!items.length) break;
-            offset += PAGE;
-        } while (offset < total && offset < MAX_COVERS);
-        return map;
+        } catch (_) { /* caché corrupta: se reintenta */ }
+
+        var map = await fetchMangaDexCoverMap(mangaId);
+        if (mapHasEntries(map)) safeCacheSet(mapKey, JSON.stringify(map));
+        return map || {};
     }
 
     async function getMangaDexVolumeCover(mangaId, volNum) {
         if (!mangaId || !volNum) return null;
         try {
-            var mapKey = 'md_cov_map_' + mangaId;
-            var map = null;
-            try {
-                var cachedMap = localStorage.getItem(mapKey);
-                if (cachedMap) map = JSON.parse(cachedMap);
-            } catch (_) { map = null; }
-
-            if (!map) {
-                map = await fetchMangaDexCoverMap(mangaId);
-                safeCacheSet(mapKey, JSON.stringify(map));
-            }
-
+            var map = await getCoverMapCached(mangaId);
             var fileName = map[normalizeVolKey(volNum)];
             if (fileName) return MD_COVER_BASE + '/' + mangaId + '/' + fileName;
         } catch (err) {
@@ -428,16 +463,7 @@
         var mdId = await resolveMangaDexId(item);
         if (!mdId) return null;
         try {
-            var mapKey = 'md_cov_map_' + mdId;
-            var map = null;
-            try {
-                var cachedMap = localStorage.getItem(mapKey);
-                if (cachedMap) map = JSON.parse(cachedMap);
-            } catch (_) { map = null; }
-            if (!map) {
-                map = await fetchMangaDexCoverMap(mdId);
-                safeCacheSet(mapKey, JSON.stringify(map));
-            }
+            var map = await getCoverMapCached(mdId);
             var out = {};
             for (var k in map) {
                 if (map.hasOwnProperty(k) && map[k]) {
