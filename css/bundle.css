@@ -4391,7 +4391,11 @@ body.reduce-motion .catalog-neon-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    /* En teléfonos angostos el título y la píldora de contador no siempre
+       entran en una sola línea. Con flex-wrap la píldora baja a su propia línea
+       en vez de estrujar el título hasta partir "EPISODIOS" en "EPISODIO / S". */
+    flex-wrap: wrap;
+    gap: 8px 12px;
     margin-bottom: 16px;
 }
 .cmodal-caps-head h3 {
@@ -4401,6 +4405,8 @@ body.reduce-motion .catalog-neon-card {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-main, #fff);
+    /* El título nunca se parte a mitad de palabra. */
+    white-space: nowrap;
 }
 .cmodal-contador {
     display: inline-flex;
