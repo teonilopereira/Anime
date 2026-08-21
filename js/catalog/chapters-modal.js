@@ -96,45 +96,83 @@
         return 'Volumen';
     }
 
-    // ¿El id es un UUID de MangaDex? Solo esos títulos tienen portada por
-    // volumen consultable; los de AniList son numéricos y no la exponen.
-    function isMangaDexId(id) {
-        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id));
-    }
-
     var _coverCache = {};
 
-    // Trae las portadas reales por volumen desde MangaDex y las inserta en su
-    // ítem correspondiente. Silencioso ante error: queda la portada principal.
-    function loadVolumeCovers(id, grid) {
-        if (!isMangaDexId(id) || typeof window.mdFetch !== 'function') return;
+    // Trae la portada REAL de cada volumen desde MangaDex y la inserta en su
+    // fila, para que no quede la portada genérica del tomo 1 repetida. Funciona
+    // tanto con títulos de MangaDex (UUID directo) como con los de AniList (id
+    // numérico), que se resuelven por título contra MangaDex. Silencioso ante
+    // error: queda la portada principal.
+    function loadVolumeCovers(id, grid, title) {
+        if (typeof window.resolveMangaDexVolumeCoverMap !== 'function') return;
         var apply = function (map) {
             if (!map) return;
             var imgs = grid.querySelectorAll('.cmodal-cap-cover[data-vol]');
             for (var i = 0; i < imgs.length; i++) {
-                var v = imgs[i].getAttribute('data-vol');
+                var v = String(parseInt(imgs[i].getAttribute('data-vol'), 10));
                 if (map[v]) imgs[i].src = map[v];
             }
         };
         if (_coverCache[id]) { apply(_coverCache[id]); return; }
         try {
-            window.mdFetch('/cover?manga[]=' + encodeURIComponent(id) + '&limit=100&order[volume]=asc')
-                .then(function (json) {
-                    var arr = (json && json.data) || [];
-                    var map = {};
-                    for (var i = 0; i < arr.length; i++) {
-                        var at = arr[i] && arr[i].attributes;
-                        if (!at || at.volume == null || !at.fileName) continue;
-                        var key = String(parseInt(at.volume, 10));
-                        if (key === 'NaN') continue;
-                        if (!map[key]) {
-                            map[key] = 'https://uploads.mangadex.org/covers/' + id + '/' + at.fileName + '.256.jpg';
-                        }
-                    }
+            Promise.resolve(window.resolveMangaDexVolumeCoverMap({ id: id, title: title }))
+                .then(function (map) {
+                    if (!map) return;
                     _coverCache[id] = map;
                     apply(map);
                 })
                 .catch(function () {});
+        } catch (e) {}
+    }
+
+    var _epTitleCache = {};
+
+    // Limpia el título que trae AniList en streamingEpisodes, que suele venir
+    // como "Episode 12 - El título real" o solo "Episode 12" (sin título). Se
+    // queda con el texto después del guion; si no hay más que "Episode N",
+    // devuelve '' para caer al genérico "Episodio N".
+    function cleanEpisodeTitle(raw) {
+        var t = String(raw == null ? '' : raw).trim();
+        if (!t) return '';
+        var m = t.match(/^\s*Episode\s+\d+\s*[-–—:.\)]+\s*(.+)$/i);
+        if (m) return m[1].trim();
+        if (/^\s*Episode\s+\d+\s*$/i.test(t)) return '';
+        return t;
+    }
+
+    // Trae los títulos reales de cada episodio desde AniList (streamingEpisodes,
+    // ya permitido por la CSP del catálogo y cacheado por getAnimeById) y los
+    // inserta en su fila. Silencioso ante error: queda "Episodio N".
+    function loadEpisodeTitles(id, grid) {
+        if (typeof window.getAnimeById !== 'function') return;
+        var apply = function (map) {
+            if (!map) return;
+            var names = grid.querySelectorAll('.cmodal-cap-name[data-ep]');
+            for (var i = 0; i < names.length; i++) {
+                var ep = names[i].getAttribute('data-ep');
+                if (!map[ep]) continue;
+                names[i].textContent = map[ep];
+                names[i].setAttribute('title', map[ep]);
+                var sub = grid.querySelector('.cmodal-cap-sub[data-ep-sub="' + ep + '"]');
+                if (sub) sub.textContent = 'Episodio ' + ep;
+            }
+        };
+        if (_epTitleCache[id]) { apply(_epTitleCache[id]); return; }
+        try {
+            Promise.resolve(window.getAnimeById(id)).then(function (item) {
+                var eps = (item && item.streamingEpisodes) || [];
+                var map = {};
+                for (var i = 0; i < eps.length; i++) {
+                    var raw = eps[i] && eps[i].title;
+                    if (!raw) continue;
+                    var mm = String(raw).match(/Episode\s+(\d+)/i);
+                    var num = mm ? String(parseInt(mm[1], 10)) : String(i + 1);
+                    var clean = cleanEpisodeTitle(raw);
+                    if (clean && !map[num]) map[num] = clean;
+                }
+                _epTitleCache[id] = map;
+                apply(map);
+            }).catch(function () {});
         } catch (e) {}
     }
 
@@ -202,15 +240,23 @@
                 var head = isManga
                     ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy">'
                     : '<span class="cmodal-cap-num">' + nn + '</span>';
-                var sub = isManga ? '<span class="cmodal-cap-sub">#' + nn + '</span>' : '';
+                // El nombre arranca genérico ("Episodio N" / "Volumen N"). En
+                // anime, loadEpisodeTitles lo reemplaza luego por el título real
+                // del episodio (data-ep) y baja "Episodio N" al subtítulo
+                // (data-ep-sub). En manga el subtítulo muestra "#NN".
+                var nameAttr = isAnime ? ' data-ep="' + n + '"' : '';
+                var sub = isManga
+                    ? '<span class="cmodal-cap-sub">#' + nn + '</span>'
+                    : '<span class="cmodal-cap-sub" data-ep-sub="' + n + '"></span>';
                 rows += '<div class="cmodal-cap' + (isManga ? ' cmodal-cap--cover' : '') + (done ? ' vista' : '') + '">'
                     + head
-                    + '<span class="cmodal-cap-b"><span class="cmodal-cap-name">' + esc(word + ' ' + n) + '</span>' + sub + '</span>'
+                    + '<span class="cmodal-cap-b"><span class="cmodal-cap-name"' + nameAttr + '>' + esc(word + ' ' + n) + '</span>' + sub + '</span>'
                     + '<span class="cmodal-cap-chk"></span>'
                     + '</div>';
             }
             grid.innerHTML = rows;
-            if (isManga) loadVolumeCovers(id, grid);
+            if (isManga) loadVolumeCovers(id, grid, title);
+            else loadEpisodeTitles(id, grid);
         } else {
             grid.innerHTML = '';
             empty.hidden = false;
