@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://corsproxy.io https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Explorá mangas, marcá volúmenes leídos y guardá tu progreso.">
     <meta name="keywords" content="manga, catálogo, volúmenes, visto, me gusta, seinen, shounen">
     <meta name="robots" content="index,follow">
@@ -23,22 +23,15 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=19eab594">
+        <link rel="stylesheet" href="css/bundle.min.css?v=22d4ff39">
 
-    <link rel="stylesheet" href="css/advanced-filter.css?v=19eab594">
-    <!-- Preconexion a los CDN de datos e imagenes: adelanta el handshake
-         DNS/TLS para que la primera portada y la primera llamada a la API no
-         arranquen desde cero. -->
-    <link rel="preconnect" href="https://graphql.anilist.co" crossorigin>
-    <link rel="preconnect" href="https://s4.anilist.co">
-    <link rel="preconnect" href="https://api.mangadex.org" crossorigin>
-    <link rel="preconnect" href="https://uploads.mangadex.org">
+    <link rel="stylesheet" href="css/advanced-filter.css?v=22d4ff39">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=19eab594">
+    <link rel="stylesheet" href="css/fonts.css?v=22d4ff39">
 
-    <script src="js/vendor/lucide.min.js?v=19eab594" defer></script>
-    <script src="js/core/theme.js?v=19eab594"></script>
+    <script src="js/vendor/lucide.min.js?v=22d4ff39" defer></script>
+    <script src="js/core/theme.js?v=22d4ff39"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="manga">
@@ -77,22 +70,25 @@
                         <div class="filter-header-icon-wrap">
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                         </div>
-                        <div class="filter-header-row-inner">
-                            <h2 data-i18n="catalog.filtros">FILTROS ADICIONALES</h2>
-                            <button id="clearFiltersBtn" class="clear-filters-btn" data-i18n="catalog.limpiar">Limpiar Filtros</button>
+                        <div class="filter-header-content">
+                            <div class="filter-header-row-inner">
+                                <h2 data-i18n="catalog.filtros">FILTROS ADICIONALES</h2>
+                                <button id="clearFiltersBtn" class="clear-filters-btn" data-i18n="catalog.limpiar">Limpiar Filtros</button>
+                            </div>
+                            
+                            <label class="nsfw-row-label">
+                                <div class="nsfw-checkbox">
+                                    <input type="checkbox" id="nsfwToggle">
+                                    <div class="nsfw-checkbox-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                </div>
+                                <div class="nsfw-text-block">
+                                    <div class="nsfw-title" data-i18n="catalog.nsfw.titulo">Mostrar NSFW</div>
+                                    <div class="nsfw-desc" data-i18n="catalog.nsfw.desc">Activa para mostrar contenido para adultos.</div>
+                                </div>
+                                <div class="filter-chevron"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+                            </label>
                         </div>
                     </div>
-
-                    <label class="nsfw-row-label">
-                        <div class="nsfw-checkbox">
-                            <input type="checkbox" id="nsfwToggle">
-                            <div class="nsfw-checkbox-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
-                        </div>
-                        <div class="nsfw-text-block">
-                            <div class="nsfw-title" data-i18n="catalog.nsfw.titulo">Mostrar NSFW</div>
-                            <div class="nsfw-desc" data-i18n="catalog.nsfw.desc">Activa para mostrar contenido para adultos.</div>
-                        </div>
-                    </label>
 
                     <div class="filter-section-divider">
                         <span class="fsd-line"></span>
@@ -173,13 +169,13 @@
     </div>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=19eab594"></script>
-    <script src="js/core/i18n.js?v=19eab594"></script>
-    <script src="js/core/namespace.js?v=19eab594"></script>
-    <script type="module" src="api/supabase-config.js?v=19eab594" async></script>
-    <script src="js/core-bundle.min.js?v=19eab594" defer></script>
-    <script src="js/core/mangadex-api.js?v=19eab594" defer></script>
-    <script src="js/pages/script.js?v=19eab594" defer></script>
+    <script src="js/core/config.js?v=22d4ff39"></script>
+    <script src="js/core/i18n.js?v=22d4ff39"></script>
+    <script src="js/core/namespace.js?v=22d4ff39"></script>
+    <script type="module" src="api/supabase-config.js?v=22d4ff39" async></script>
+    <script src="js/core-bundle.min.js?v=22d4ff39" defer></script>
+    <script src="js/core/mangadex-api.js?v=22d4ff39" defer></script>
+    <script src="js/pages/script.js?v=22d4ff39" defer></script>
 </body>
 </html>
 
