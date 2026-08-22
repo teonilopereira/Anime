@@ -318,7 +318,18 @@ async function waitForSupabase() {
         var key = 'lastDailyLogin:' + user.id;
         if (localStorage.getItem(key) === today) return;
         localStorage.setItem(key, today);
-        var delta = AnimeDestiny.Constants.XP_LOGIN || 10;
+
+        // Racha diaria: sube el contador de días seguidos y agrega un bonus de
+        // EXP que crece con la racha (además del login base). Se registra antes
+        // de sumar puntos para poder incluir el bonus en una sola operación.
+        var streak = null;
+        var streakBonus = 0;
+        if (window.AppStreak && typeof window.AppStreak.recordActivity === 'function') {
+            streak = window.AppStreak.recordActivity(user.id);
+            streakBonus = window.AppStreak.bonusForStreak(streak.count);
+        }
+
+        var delta = (AnimeDestiny.Constants.XP_LOGIN || 10) + streakBonus;
         if (typeof addUserPoints === 'function') {
             addUserPoints(user.id, delta);
         } else if (client && typeof client.addExperience === 'function') {
@@ -328,9 +339,18 @@ async function waitForSupabase() {
         }
         if (window.Toast) {
             setTimeout(function () {
-                window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+                if (streak && streak.count > 1) {
+                    window.Toast.success("¡Racha de " + streak.count + " días! (+" + delta + " EXP)");
+                } else {
+                    window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+                }
             }, 800);
         }
+        // Aviso para que la UI (widget de racha en inicio / mis-listas) se
+        // repinte sin recargar.
+        try {
+            window.dispatchEvent(new CustomEvent('streak-updated', { detail: streak || {} }));
+        } catch (_) { /* navegador viejo sin CustomEvent */ }
     }
 
     // Escuchar cambios de sesión de Supabase

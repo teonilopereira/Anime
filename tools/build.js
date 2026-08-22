@@ -27,7 +27,7 @@ const SITE_URL = 'https://animedestiny.netlify.app';
 
 // Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
 // de busqueda). El resto se agrega solo, asi no hay que mantener una lista.
-const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html']);
+const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html', 'diag-portadas.html']);
 
 /**
  * Verificacion de propiedad de Google Search Console (token del meta tag).
@@ -69,7 +69,7 @@ const ANALYTICS = {
 // ── Definición de fuentes ────────────────────────────────────────────────
 
 // CSS compartido → bundle. Orden fijo (base primero por reset/variables).
-const CSS_SOURCES = ['base', 'theme', 'components', 'cards', 'responsive', 'destiny-navbar', 'mascot']
+const CSS_SOURCES = ['base', 'theme', 'components', 'cards', 'chapters-modal', 'responsive', 'destiny-navbar', 'mascot']
     .map((n) => `css/${n}.css`);
 
 // JS core → bundle. Orden por dependencias de inicialización (igual que el viejo
@@ -82,6 +82,7 @@ const JS_SOURCES = [
     'js/datos.js',
     'js/core/user-store.js',
     'js/core/storage.js',
+    'js/core/streak.js',
     'js/core/auth.js',
     'js/security/sanitizer.js',
     'js/security/validator.js',
@@ -95,9 +96,11 @@ const JS_SOURCES = [
     'js/ui/mascot.js',
     'js/catalog/states.js',
     'js/catalog/cards.js',
+    'js/catalog/chapters-modal.js',
     'js/catalog/search.js',
     'js/catalog/pagination.js',
     'js/core/common-ui.js',
+    'js/core/reminders.js',
 ];
 
 // Nota: los CSS y JS especificos de cada pagina (usuario, detalle, login, etc.)

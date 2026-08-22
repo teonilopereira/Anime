@@ -35,6 +35,7 @@
     ];
 
     const NAV_SECUNDARIOS = [
+        { id: "calendario", href: "calendario.html", icon: "calendar-days", i18n: "nav.calendario", def: "Calendario" },
         { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking" },
         { id: "comparar", href: "comparar.html", icon: "columns-2", i18n: "nav.comparar", def: "Comparar" },
         { id: "top", href: "top.html", icon: "crown", i18n: "nav.top_jugadores", def: "Top de jugadores" },
@@ -249,6 +250,14 @@
         // Con el teclado el foco puede caer en un item tapado por la barra
         // retraida; si el foco entra a la navbar, se muestra.
         nav.addEventListener('focusin', () => nav.classList.remove('is-hidden'));
+
+        // Arranca retraida desde el principio (solo en desktop): la barra queda
+        // escondida hacia arriba al cargar y vuelve apenas el lector hace el
+        // gesto de subir. En mobile la barra superior ya vive fuera de pantalla,
+        // asi que ahi no se toca.
+        if (!esMobile()) {
+            nav.classList.add('is-hidden');
+        }
 
         evaluar();
     };

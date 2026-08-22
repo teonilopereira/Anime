@@ -1,6 +1,6 @@
 # Configuracion de Netlify para Anime Destiny.
 #
-# Solo define cabeceras de seguridad. NO se define un comando de build a
+# Define cabeceras de seguridad y de cache. NO se define un comando de build a
 # proposito: los artefactos (css/bundle.min.css, js/core-bundle.min.js,
 # js/vendor/) se generan localmente con `npm run build` y se versionan en el
 # repo, asi que Netlify solo publica archivos estaticos.
@@ -11,7 +11,7 @@
     # Muro anti-XSS/inyeccion: solo se ejecuta script propio y el CDN de jsdelivr;
     # las conexiones salientes quedan limitadas a Supabase y las APIs que la app
     # realmente usa. Debe mantenerse en sincronia con vercel.json.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co wss://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net https://api.animethemes.moe https://api.jikan.moe https://kitsu.io; media-src 'self' https://a.animethemes.moe; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co wss://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://corsproxy.io https://api.mymemory.translated.net https://api.animethemes.moe https://api.jikan.moe https://kitsu.io; media-src 'self' https://a.animethemes.moe; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';"
     # Forzar HTTPS por 2 anios (incluye subdominios).
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     # Impide que el navegador "adivine" el tipo MIME (vector de XSS con archivos subidos).
@@ -22,3 +22,35 @@
     X-Frame-Options = "SAMEORIGIN"
     # Desactivar APIs del navegador que la app no usa.
     Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()"
+
+# ── Cache de assets ─────────────────────────────────────────────────────────
+# Por defecto Netlify sirve los estaticos con `max-age=0, must-revalidate`, asi
+# que el navegador revalida CSS/JS/fuentes en cada visita (un 304 por archivo).
+# CSS y JS se referencian siempre con ?v=<hash-de-contenido> (lo estampa el
+# build), asi que cada version es una URL distinta: se pueden marcar `immutable`
+# y cachear un anio sin riesgo de servir una copia vieja — cuando cambia el
+# contenido cambia el ?v y el navegador la trata como un recurso nuevo.
+# Debe mantenerse en sincronia con vercel.json.
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Las fuentes tienen nombre de archivo estable y no cambian de contenido; se
+# cachean largo aunque no lleven ?v=.
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Imagenes (logo, iconos, sprites de mascotas): no llevan hash en el nombre, asi
+# que se cachean 30 dias con revalidacion en segundo plano en vez de `immutable`.
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, stale-while-revalidate=86400"

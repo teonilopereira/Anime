@@ -294,7 +294,8 @@ function buildCatalogCardHtml(options) {
         progressTotal = 0,
         volCount = 0,
         chCount = 0,
-        info = ''
+        info = '',
+        titleAlt = ''
     } = options;
 
     const flipId = `flip-${id}`;
@@ -304,6 +305,15 @@ function buildCatalogCardHtml(options) {
     const detailBtn = showDetail
         ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">DETALLE</a>`
         : '';
+    // Botón ancho (separado del de DETALLE) que abre la vista rápida con la
+    // lista de episodios/volúmenes y su estado de visto. La maneja
+    // js/catalog/chapters-modal.js por delegación (data-action="chapters").
+    const chaptersLabel = categoria === 'anime' ? 'Ver episodios' : 'Ver volúmenes y capítulos';
+    const chaptersShort = categoria === 'anime' ? 'EPISODIOS' : 'VOLÚMENES';
+    const chaptersBtn = `<button class="card-back-chapters-btn" type="button" aria-label="${escapeHtml(chaptersLabel)}" title="${escapeHtml(chaptersLabel)}" data-item-id="${escapeHtml(String(id))}" data-action="chapters">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        <span>${escapeHtml(chaptersShort)}</span>
+                    </button>`;
     const statusHtml = bandLabel
         ? `<span class="card-back-status-badge">${escapeHtml(bandLabel)}</span>`
         : '';
@@ -313,6 +323,9 @@ function buildCatalogCardHtml(options) {
     const genresAttr = genres ? ` data-genres="${escapeHtml(genres)}"` : '';
     const genresNormAttr = genresNorm ? ` data-genres-norm="${escapeHtml(genresNorm)}"` : '';
     const totalAttr = progressTotal > 0 ? ` data-total="${progressTotal}"` : '';
+    // Título alternativo (inglés) para que el modal pueda pasar más de un nombre
+    // al emparejado de portadas por volumen contra MangaDex.
+    const titleAltAttr = titleAlt ? ` data-title-alt="${escapeHtml(String(titleAlt))}"` : '';
 
     var safeImg = safeUrl(image);
     // Card vertical con banda de estado arriba (cian->purpura) y flip 3D. El
@@ -324,7 +337,7 @@ function buildCatalogCardHtml(options) {
     // data-action para la delegacion, .watch-status-select y el bloque
     // [data-progress] que states.js actualiza.
     return `
-    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}" data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}"${titleAltAttr} data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <input class="flip-toggle" type="checkbox" id="${flipId}">
         <div class="cband-inner">
             <div class="cband-face cband-front">
@@ -362,13 +375,18 @@ function buildCatalogCardHtml(options) {
                 </div>
                 ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
                 <div class="cband-back-actions">
-                    <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    </button>
-                    <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </button>
-                    ${detailBtn}
+                    <div class="cband-back-actions-icons">
+                        <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </button>
+                        <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <div class="cband-back-actions-cta">
+                        ${chaptersBtn}
+                        ${detailBtn}
+                    </div>
                 </div>
             </div>
         </div>
@@ -462,6 +480,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
             genresNorm: genresNorm,
             categoria: detailCat,
             info: info,
+            titleAlt: item.title_english || '',
             progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
             volCount: volCount,
             chCount: chCount,
@@ -611,6 +630,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
             genresNorm: genresNorm,
             categoria: categoria,
             info: item.info || genres.join(' / '),
+            titleAlt: item.title_english || '',
             progressTotal: volCount || chCount || Number(item.episodes || 0),
             volCount: volCount,
             chCount: chCount,

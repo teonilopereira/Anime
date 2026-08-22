@@ -16,6 +16,77 @@
     function isFileProtocol() { return window.location.protocol === "file:"; }
     let mode = "login";
 
+    // ── Volver a la página desde donde se abrió el login ───────────────
+    // Guardamos la URL de origen para regresar ahí después de iniciar sesión
+    // (incluido el rodeo de Google OAuth, que recarga Login.html al volver).
+    const RETURN_KEY = "ad-login-return";
+    // ¿Volvemos de Google/confirmación de correo? La URL trae tokens/código.
+    const returningFromOAuth = /access_token=|refresh_token=|[?&]code=/.test(
+        window.location.hash + window.location.search
+    );
+    let oauthRedirectDone = false;
+
+    // Devuelve una ruta interna segura (mismo origen y distinta de login), o "".
+    function sanitizeReturnUrl(url) {
+        if (!url) return "";
+        try {
+            const u = new URL(url, window.location.href);
+            if (u.origin !== window.location.origin) return "";
+            const file = (u.pathname.split("/").pop() || "").toLowerCase();
+            if (file === "login.html") return "";
+            return u.pathname + u.search + u.hash;
+        } catch (_) {
+            return "";
+        }
+    }
+
+    function storeReturnUrl(url) {
+        const clean = sanitizeReturnUrl(url);
+        if (!clean) return;
+        try { sessionStorage.setItem(RETURN_KEY, clean); } catch (_) {}
+        try { localStorage.setItem(RETURN_KEY, clean); } catch (_) {}
+    }
+
+    function clearReturnUrl() {
+        try { sessionStorage.removeItem(RETURN_KEY); } catch (_) {}
+        try { localStorage.removeItem(RETURN_KEY); } catch (_) {}
+    }
+
+    function getStoredReturnUrl() {
+        try {
+            const s = sessionStorage.getItem(RETURN_KEY);
+            if (s) return s;
+        } catch (_) {}
+        try {
+            return localStorage.getItem(RETURN_KEY) || "";
+        } catch (_) {
+            return "";
+        }
+    }
+
+    // Ruta a la que volver tras iniciar sesión (fallback: inicio).
+    function resolveReturnUrl() {
+        return getStoredReturnUrl() || "index.html";
+    }
+
+    function redirectToReturn() {
+        const target = resolveReturnUrl();
+        clearReturnUrl();
+        window.location.href = target;
+    }
+
+    // En una llegada nueva a login (no volviendo de OAuth), recordamos la
+    // página de origen. Prioridad: ?return=..., luego el referente.
+    if (!returningFromOAuth) {
+        let origin = "";
+        try {
+            origin = new URLSearchParams(window.location.search).get("return") || "";
+        } catch (_) {}
+        origin = sanitizeReturnUrl(origin) || sanitizeReturnUrl(document.referrer);
+        if (origin) storeReturnUrl(origin);
+        else clearReturnUrl(); // evitar quedarnos con un destino viejo
+    }
+
     function setStatus(message) {
         status.textContent = message || "";
     }
@@ -105,7 +176,7 @@
         function doRedirect() {
             if (redirected) return;
             redirected = true;
-            window.location.href = "index.html";
+            redirectToReturn();
         }
         window.addEventListener("supabase-auth-changed", function handler(e) {
             if (e.detail?.user) {
@@ -215,7 +286,19 @@
         if (client?.onAuthChange) {
             client.onAuthChange((detail) => {
                 applyAuthState(detail?.user || null);
-                if (detail?.user) saveLocalUser();
+                if (detail?.user) {
+                    saveLocalUser();
+                    // Volvimos de Google (o confirmación de correo) y ya hay
+                    // sesión: regresamos a la página desde donde se abrió login.
+                    if (returningFromOAuth && !oauthRedirectDone) {
+                        oauthRedirectDone = true;
+                        setStatus("Sesión iniciada. Volviendo...");
+                        setTimeout(
+                            redirectToReturn,
+                            AnimeDestiny.Constants.LOGIN_REDIRECT_DELAY_MS || 200
+                        );
+                    }
+                }
             });
         }
     });

@@ -789,6 +789,73 @@
         }
     };
 
+    // Calendario semanal de estrenos: todos los episodios que salen al aire en
+    // una ventana de días desde ahora. Alimenta calendario.html. Distinto de
+    // getAiringSchedule (ese consulta el "próximo episodio" de una lista de ids
+    // concreta, para las notificaciones del usuario).
+    var WEEKLY_AIRING_QUERY = `
+        query ($start: Int, $end: Int, $page: Int) {
+            Page(page: $page, perPage: 50) {
+                pageInfo { hasNextPage }
+                airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME) {
+                    episode
+                    airingAt
+                    media {
+                        id
+                        title { romaji english }
+                        coverImage { large }
+                        format
+                        genres
+                        isAdult
+                        countryOfOrigin
+                    }
+                }
+            }
+        }`;
+
+    window.getWeeklyAiringSchedule = async function (days) {
+        var span = Number(days) > 0 ? Math.min(Number(days), 14) : 7;
+        var now = Math.floor(Date.now() / 1000);
+        var end = now + span * 86400;
+
+        var cacheKey = 'weeklyAiring_' + span + '_' + Math.floor(now / 3600); // bucket horario
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+
+        try {
+            var all = [];
+            var page = 1;
+            var hasNext = true;
+            // Tope de páginas: una semana de estrenos entra de sobra en 5×50.
+            while (hasNext && page <= 5) {
+                var json = await anilistFetch(WEEKLY_AIRING_QUERY, { start: now, end: end, page: page });
+                var pageData = json && json.data && json.data.Page;
+                if (!pageData) break;
+                (pageData.airingSchedules || []).forEach(function (row) {
+                    var m = row && row.media;
+                    if (!m || m.isAdult) return;
+                    all.push({
+                        id: m.id,
+                        title: extractTitle(m.title),
+                        img: (m.coverImage && m.coverImage.large) || '',
+                        format: m.format || '',
+                        genres: Array.isArray(m.genres) ? m.genres : [],
+                        episode: Number(row.episode) || 0,
+                        airingAt: Number(row.airingAt) || 0
+                    });
+                });
+                hasNext = !!(pageData.pageInfo && pageData.pageInfo.hasNextPage);
+                page += 1;
+            }
+            all.sort(function (a, b) { return a.airingAt - b.airingAt; });
+            setApiCache(cacheKey, all, 30 * 60 * 1000);
+            return all;
+        } catch (err) {
+            console.warn('getWeeklyAiringSchedule error:', err);
+            return [];
+        }
+    };
+
     window.getMangaById = async function (id) {
         var numId = Number(id);
         if (!Number.isFinite(numId)) return null;

@@ -114,20 +114,23 @@ function formatCount(value) {
  * alineadas fila a fila, que es lo unico que hace comparable una comparacion.
  */
 function compareStatsFor(cat, item) {
-    const puntaje = { icon: 'star', value: formatScore(item?.score), label: 'Puntaje' };
-    const usuarios = { icon: 'trending-up', value: formatCompactNumber(item?.popularity), label: 'Usuarios' };
+    // `raw` es el numero puro detras del texto: lo usa la comparacion para
+    // resaltar cual de las dos cards gana en cada metrica.
+    const puntaje = { icon: 'star', value: formatScore(item?.score), label: cmpTr('compare.stat.puntaje', 'Puntaje'), raw: Number(item?.score) };
+    const usuarios = { icon: 'trending-up', value: formatCompactNumber(item?.popularity), label: cmpTr('compare.stat.usuarios', 'Usuarios'), raw: Number(item?.popularity) };
 
     if (cat === 'anime') {
         const episodios = Number(item?.episodes) || 0;
         return [
             puntaje,
-            { icon: 'play', value: formatCount(episodios), label: 'Episodios' },
+            { icon: 'play', value: formatCount(episodios), label: cmpTr('compare.stat.episodios', 'Episodios'), raw: episodios },
             {
                 icon: 'clock',
                 value: formatMinutes(item?.duration),
                 // Con un solo episodio (peliculas, especiales) el numero ya es la
                 // duracion total; con varios es lo que dura cada uno.
-                label: episodios > 1 ? 'Por episodio' : 'Duración'
+                label: episodios > 1 ? cmpTr('compare.stat.por_ep', 'Por episodio') : cmpTr('compare.stat.duracion', 'Duración'),
+                raw: Number(item?.duration)
             },
             usuarios
         ];
@@ -135,47 +138,96 @@ function compareStatsFor(cat, item) {
 
     return [
         puntaje,
-        { icon: 'book', value: formatCount(item?.volumes), label: 'Volúmenes' },
-        { icon: 'book-open', value: formatCount(item?.chapters), label: 'Capítulos' },
+        { icon: 'book', value: formatCount(item?.volumes), label: cmpTr('compare.stat.volumenes', 'Volúmenes'), raw: Number(item?.volumes) },
+        { icon: 'book-open', value: formatCount(item?.chapters), label: cmpTr('compare.stat.capitulos', 'Capítulos'), raw: Number(item?.chapters) },
         usuarios
     ];
 }
 
+// Los valores de formato/fuente/pais/estado son datos crudos de la API (enums),
+// no texto de UI: se traducen con mapas bilingues que viven al lado del dato, en
+// vez de meter ~50 claves en el diccionario i18n. cmpLang elige la columna.
+function cmpLang() {
+    return (window.AppI18n && typeof window.AppI18n.getLang === 'function' && window.AppI18n.getLang() === 'en') ? 'en' : 'es';
+}
+function cmpEnum(map, key) {
+    const e = map[String(key || '').toUpperCase()];
+    return e ? (e[cmpLang()] || e.es) : null;
+}
+
 // Los formatos de anime llegan como el enum crudo de AniList (MOVIE, TV_SHORT).
-// Los de manga y novela ya vienen legibles desde anilistItemToLocal.
+// Los de manga y novela ya vienen legibles (en español) desde anilistItemToLocal,
+// asi que tambien se contemplan Manhwa/Manhua/Novela/etc.
 const FORMATOS = {
-    TV: 'Serie',
-    TV_SHORT: 'Serie corta',
-    MOVIE: 'Película',
-    SPECIAL: 'Especial',
-    OVA: 'OVA',
-    ONA: 'ONA',
-    MUSIC: 'Musical',
-    MANGA: 'Manga',
-    NOVEL: 'Novela',
-    ONE_SHOT: 'One-shot'
+    TV: { es: 'Serie', en: 'Series' },
+    TV_SHORT: { es: 'Serie corta', en: 'Short series' },
+    MOVIE: { es: 'Película', en: 'Movie' },
+    SPECIAL: { es: 'Especial', en: 'Special' },
+    OVA: { es: 'OVA', en: 'OVA' },
+    ONA: { es: 'ONA', en: 'ONA' },
+    MUSIC: { es: 'Musical', en: 'Music' },
+    MANGA: { es: 'Manga', en: 'Manga' },
+    NOVEL: { es: 'Novela', en: 'Novel' },
+    NOVELA: { es: 'Novela', en: 'Novel' },
+    ONE_SHOT: { es: 'One-shot', en: 'One-shot' },
+    MANHWA: { es: 'Manhwa', en: 'Manhwa' },
+    MANHUA: { es: 'Manhua', en: 'Manhua' },
+    DOUJINSHI: { es: 'Doujinshi', en: 'Doujinshi' }
 };
 
 function formatMediaFormat(tipo) {
     const clave = String(tipo || '').toUpperCase().replace(/[\s-]/g, '_');
-    return FORMATOS[clave] || tipo;
+    return cmpEnum(FORMATOS, clave) || tipo;
 }
 
 // De que material salio la obra (enum `source` de AniList).
 const FUENTES = {
-    ORIGINAL: 'Original', MANGA: 'Manga', LIGHT_NOVEL: 'Novela ligera',
-    VISUAL_NOVEL: 'Novela visual', VIDEO_GAME: 'Videojuego', NOVEL: 'Novela',
-    WEB_NOVEL: 'Novela web', DOUJINSHI: 'Doujinshi', ANIME: 'Anime',
-    GAME: 'Juego', COMIC: 'Cómic', MULTIMEDIA_PROJECT: 'Proyecto multimedia',
-    PICTURE_BOOK: 'Libro ilustrado', LIVE_ACTION: 'Live action', OTHER: 'Otro'
+    ORIGINAL: { es: 'Original', en: 'Original' },
+    MANGA: { es: 'Manga', en: 'Manga' },
+    LIGHT_NOVEL: { es: 'Novela ligera', en: 'Light novel' },
+    VISUAL_NOVEL: { es: 'Novela visual', en: 'Visual novel' },
+    VIDEO_GAME: { es: 'Videojuego', en: 'Video game' },
+    NOVEL: { es: 'Novela', en: 'Novel' },
+    WEB_NOVEL: { es: 'Novela web', en: 'Web novel' },
+    DOUJINSHI: { es: 'Doujinshi', en: 'Doujinshi' },
+    ANIME: { es: 'Anime', en: 'Anime' },
+    GAME: { es: 'Juego', en: 'Game' },
+    COMIC: { es: 'Cómic', en: 'Comic' },
+    MULTIMEDIA_PROJECT: { es: 'Proyecto multimedia', en: 'Multimedia project' },
+    PICTURE_BOOK: { es: 'Libro ilustrado', en: 'Picture book' },
+    LIVE_ACTION: { es: 'Live action', en: 'Live action' },
+    OTHER: { es: 'Otro', en: 'Other' }
 };
 
 // countryOfOrigin llega como codigo de pais en AniList y como codigo de idioma
 // en MangaDex; se contemplan ambos.
 const PAISES = {
-    JP: 'Japón', JA: 'Japón', KR: 'Corea del Sur', KO: 'Corea del Sur',
-    CN: 'China', ZH: 'China', 'ZH-HK': 'China', TW: 'Taiwán'
+    JP: { es: 'Japón', en: 'Japan' }, JA: { es: 'Japón', en: 'Japan' },
+    KR: { es: 'Corea del Sur', en: 'South Korea' }, KO: { es: 'Corea del Sur', en: 'South Korea' },
+    CN: { es: 'China', en: 'China' }, ZH: { es: 'China', en: 'China' }, 'ZH-HK': { es: 'China', en: 'China' },
+    TW: { es: 'Taiwán', en: 'Taiwan' }
 };
+
+// El estado tambien es un enum. No se reusa el formatMediaStatus del core porque
+// ese es solo en español y lo comparten otras paginas: se traduce local acá.
+const ESTADOS = {
+    FINISHED: { es: 'Finalizado', en: 'Finished' },
+    NOT_YET_RELEASED: { es: 'Próximamente', en: 'Upcoming' },
+    HIATUS: { es: 'En pausa', en: 'On hiatus' },
+    CANCELLED: { es: 'Cancelado', en: 'Cancelled' }
+};
+const ESTADO_RELEASING = {
+    emision: { es: 'En emisión', en: 'Airing' },
+    publicacion: { es: 'En publicación', en: 'Publishing' }
+};
+function estadoDe(status, cat) {
+    const clave = String(status || '').toUpperCase();
+    if (clave === 'RELEASING') {
+        const e = ESTADO_RELEASING[(cat === 'manga' || cat === 'novelas') ? 'publicacion' : 'emision'];
+        return e[cmpLang()] || e.es;
+    }
+    return cmpEnum(ESTADOS, clave) || (status || '');
+}
 
 function autorDe(item) {
     const staff = Array.isArray(item?.staff) ? item.staff : [];
@@ -191,7 +243,8 @@ function periodoDe(item) {
     if (!desde) return SIN_DATO;
     const hasta = item?.endYear || null;
     if (hasta) return hasta === desde ? String(desde) : `${desde} – ${hasta}`;
-    return String(item?.status || '').toUpperCase() === 'RELEASING' ? `${desde} – hoy` : String(desde);
+    const hoy = cmpLang() === 'en' ? 'today' : 'hoy';
+    return String(item?.status || '').toUpperCase() === 'RELEASING' ? `${desde} – ${hoy}` : String(desde);
 }
 
 // Cuanto falta para el proximo episodio, en el mayor par de unidades util.
@@ -210,19 +263,19 @@ function formatoRestante(ms) {
  * cuatro, con "—" si falta el dato, para que las dos cards queden alineadas.
  */
 function detallesPara(cat, item) {
-    const favoritos = { label: 'Favoritos', value: formatCompactNumber(item?.favourites) };
+    const favoritos = { label: cmpTr('compare.det.favoritos', 'Favoritos'), value: formatCompactNumber(item?.favourites) };
     if (cat === 'anime') {
         return [
-            { label: 'Estudio', value: (Array.isArray(item?.studios) && item.studios.filter(Boolean)[0]) || SIN_DATO },
-            { label: 'Basado en', value: FUENTES[String(item?.source || '').toUpperCase()] || SIN_DATO },
-            { label: 'Emisión', value: periodoDe(item) },
+            { label: cmpTr('compare.det.estudio', 'Estudio'), value: (Array.isArray(item?.studios) && item.studios.filter(Boolean)[0]) || SIN_DATO },
+            { label: cmpTr('compare.det.basado', 'Basado en'), value: cmpEnum(FUENTES, item?.source) || SIN_DATO },
+            { label: cmpTr('compare.det.emision', 'Emisión'), value: periodoDe(item) },
             favoritos
         ];
     }
     return [
-        { label: 'Autor', value: autorDe(item) },
-        { label: 'Origen', value: PAISES[String(item?.countryOfOrigin || '').toUpperCase()] || SIN_DATO },
-        { label: 'Publicación', value: periodoDe(item) },
+        { label: cmpTr('compare.det.autor', 'Autor'), value: autorDe(item) },
+        { label: cmpTr('compare.det.origen', 'Origen'), value: cmpEnum(PAISES, item?.countryOfOrigin) || SIN_DATO },
+        { label: cmpTr('compare.det.publicacion', 'Publicación'), value: periodoDe(item) },
         favoritos
     ];
 }
@@ -234,15 +287,15 @@ function categoryIcon(cat) {
 }
 
 function categoryLabel(cat) {
-    if (cat === 'anime') return 'Anime';
-    if (cat === 'novelas') return 'Novela';
-    return 'Manga';
+    if (cat === 'anime') return cmpTr('compare.kind.anime', 'Anime');
+    if (cat === 'novelas') return cmpTr('compare.kind.novela', 'Novela');
+    return cmpTr('compare.kind.manga', 'Manga');
 }
 
 async function renderCompareCard(host, cat, item) {
     if (!host) return;
     if (!item) {
-        host.innerHTML = `<div class="cmp-empty">Seleccioná un ítem para comparar</div>`;
+        host.innerHTML = `<div class="cmp-empty">${escapeHtml(cmpTr('compare.vacio', 'Seleccioná un ítem para comparar'))}</div>`;
         return;
     }
 
@@ -259,9 +312,7 @@ async function renderCompareCard(host, cat, item) {
         .slice(0, 3);
     const anio = full.startYear || full.seasonYear || full.anio || null;
     const tipo = formatMediaFormat(full.type) || categoryLabel(cat);
-    const estado = (typeof formatMediaStatus === 'function')
-        ? formatMediaStatus(full.status, cat)
-        : (full.status || '');
+    const estado = estadoDe(full.status, cat);
     const sinopsis = String(full.synopsis || full.sinopsis || '').trim();
 
     const metaParts = [tipo, anio, generos.join(', ')].filter(Boolean);
@@ -306,7 +357,7 @@ async function renderCompareCard(host, cat, item) {
                 </div>
                 <div class="cmp-stats">
                     ${stats.map((s) => `
-                        <div class="cmp-stat">
+                        <div class="cmp-stat" data-label="${escapeHtml(s.label)}" data-raw="${Number.isFinite(s.raw) ? s.raw : ''}">
                             <i data-lucide="${escapeHtml(s.icon)}"></i>
                             <span class="cmp-stat-value">${escapeHtml(s.value)}</span>
                             <span class="cmp-stat-label">${escapeHtml(s.label)}</span>
@@ -316,7 +367,7 @@ async function renderCompareCard(host, cat, item) {
                 <div class="cmp-footer">
                     <span class="cmp-status" data-estado="${escapeHtml(String(full.status || '').toUpperCase())}">${escapeHtml(estado || SIN_DATO)}</span>
                     ${proximoEp ? `<span class="cmp-next-ep">${escapeHtml(proximoEp)}</span>` : ''}
-                    <a class="cmp-open" href="${escapeHtml(detailLink(cat, full))}">Abrir detalle</a>
+                    <a class="cmp-open" href="${escapeHtml(detailLink(cat, full))}">${escapeHtml(cmpTr('compare.abrir', 'Abrir detalle'))}</a>
                 </div>
             </div>
         </article>
@@ -327,6 +378,32 @@ async function renderCompareCard(host, cat, item) {
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
         try { window.lucide.createIcons(); } catch (e) { /* no bloquear el render */ }
     }
+}
+
+// El sentido de una comparacion es ver quien gana en cada fila. Se corre despues
+// de que las dos cards estan en el DOM: empareja las metricas por etiqueta (asi
+// funciona aunque los catalogos sean distintos y compartan solo Puntaje/Usuarios)
+// y marca el mayor. Si falta un dato de un lado, esa fila no se resalta.
+function resaltarGanadores(hostA, hostB) {
+    const statsA = Array.from(hostA?.querySelectorAll?.('.cmp-stat') || []);
+    const statsB = Array.from(hostB?.querySelectorAll?.('.cmp-stat') || []);
+    [...statsA, ...statsB].forEach((s) => s.classList.remove('is-winner', 'is-tie'));
+    if (!statsA.length || !statsB.length) return;
+
+    const rawDe = (el) => {
+        const v = el.getAttribute('data-raw');
+        return v === '' ? NaN : Number(v);
+    };
+    statsA.forEach((a) => {
+        const b = statsB.find((x) => x.getAttribute('data-label') === a.getAttribute('data-label'));
+        if (!b) return;
+        const ra = rawDe(a);
+        const rb = rawDe(b);
+        if (!Number.isFinite(ra) || !Number.isFinite(rb)) return;
+        if (ra > rb) a.classList.add('is-winner');
+        else if (rb > ra) b.classList.add('is-winner');
+        else { a.classList.add('is-tie'); b.classList.add('is-tie'); }
+    });
 }
 
 function syncUrl(cat1, id1, cat2, id2) {
@@ -348,11 +425,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const params = parseParams();
     const doCompare = document.getElementById('doCompare');
     const lados = [
-        { cat: document.getElementById('cat1'), input: document.getElementById('search1'), sug: document.getElementById('sug1'), host: document.getElementById('compareA'), catInicial: params.cat1, idInicial: params.id1, elegido: null, resultados: [], timer: null },
-        { cat: document.getElementById('cat2'), input: document.getElementById('search2'), sug: document.getElementById('sug2'), host: document.getElementById('compareB'), catInicial: params.cat2, idInicial: params.id2, elegido: null, resultados: [], timer: null }
+        { cat: document.getElementById('cat1'), input: document.getElementById('search1'), sug: document.getElementById('sug1'), host: document.getElementById('compareA'), catInicial: params.cat1, idInicial: params.id1, elegido: null, resultados: [], timer: null, activo: -1 },
+        { cat: document.getElementById('cat2'), input: document.getElementById('search2'), sug: document.getElementById('sug2'), host: document.getElementById('compareB'), catInicial: params.cat2, idInicial: params.id2, elegido: null, resultados: [], timer: null, activo: -1 }
     ];
 
     if (!doCompare || lados.some((l) => !l.cat || !l.input || !l.sug || !l.host)) return;
+
+    // Tras cualquier render, reevaluar quien gana cada metrica. Un solo punto:
+    // renderCompareCard pinta un lado, pero el resaltado necesita los dos.
+    function refrescarComparacion() {
+        resaltarGanadores(lados[0].host, lados[1].host);
+    }
 
     function actualizarUrl() {
         syncUrl(
@@ -364,6 +447,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function cerrarSugerencias(lado) {
         lado.sug.classList.remove('is-open');
         lado.sug.innerHTML = '';
+        lado.activo = -1;
+        lado.input.setAttribute('aria-expanded', 'false');
+        lado.input.removeAttribute('aria-activedescendant');
     }
 
     async function elegir(lado, item) {
@@ -371,15 +457,31 @@ document.addEventListener('DOMContentLoaded', () => {
         lado.input.value = compareItemTitle(item);
         cerrarSugerencias(lado);
         await renderCompareCard(lado.host, lado.cat.value, item);
+        refrescarComparacion();
         actualizarUrl();
     }
 
+    // Loading / sin resultados / error: sin esto el desplegable se cerraba en
+    // silencio y en una red lenta parecia que el buscador no funcionaba.
+    function mostrarEstado(lado, tipo) {
+        const textos = {
+            loading: cmpTr('compare.buscando', 'Buscando…'),
+            empty: cmpTr('compare.sin_resultados', 'Sin resultados'),
+            error: cmpTr('compare.error_busqueda', 'No se pudo buscar. Probá de nuevo.')
+        };
+        lado.sug.innerHTML = `<div class="cmp-suggestion-msg cmp-suggestion-msg--${tipo}" role="status">${escapeHtml(textos[tipo] || '')}</div>`;
+        lado.sug.classList.add('is-open');
+        lado.activo = -1;
+        lado.input.setAttribute('aria-expanded', 'true');
+        lado.input.removeAttribute('aria-activedescendant');
+    }
+
     function pintarSugerencias(lado) {
-        if (!lado.resultados.length) { cerrarSugerencias(lado); return; }
+        if (!lado.resultados.length) { mostrarEstado(lado, 'empty'); return; }
         lado.sug.innerHTML = lado.resultados.map((it, i) => {
             const img = compareItemImage(it);
             const meta = compareItemInfo(lado.cat.value, it);
-            return `<button type="button" class="cmp-suggestion" data-idx="${i}">
+            return `<button type="button" class="cmp-suggestion" role="option" aria-selected="false" id="${lado.sug.id}-opt-${i}" data-idx="${i}">
                 ${img ? `<img src="${safeUrl(img)}" alt="" width="34" height="48" loading="lazy" decoding="async">` : ''}
                 <span class="cmp-suggestion-body">
                     <span class="cmp-suggestion-title">${escapeHtml(compareItemTitle(it))}</span>
@@ -388,6 +490,35 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>`;
         }).join('');
         lado.sug.classList.add('is-open');
+        lado.activo = -1;
+        lado.input.setAttribute('aria-expanded', 'true');
+        lado.input.removeAttribute('aria-activedescendant');
+    }
+
+    // Navegacion con teclado: mueve el resaltado por las sugerencias y sincroniza
+    // aria-activedescendant para que un lector de pantalla anuncie la opcion.
+    function marcarActivo(lado) {
+        const ops = Array.from(lado.sug.querySelectorAll('.cmp-suggestion'));
+        ops.forEach((o, i) => {
+            const on = i === lado.activo;
+            o.classList.toggle('is-active', on);
+            o.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const actual = ops[lado.activo];
+        if (actual) {
+            lado.input.setAttribute('aria-activedescendant', actual.id);
+            if (typeof actual.scrollIntoView === 'function') actual.scrollIntoView({ block: 'nearest' });
+        } else {
+            lado.input.removeAttribute('aria-activedescendant');
+        }
+    }
+
+    function moverActivo(lado, delta) {
+        const n = lado.resultados.length;
+        if (!n) return;
+        if (lado.activo < 0) lado.activo = delta > 0 ? 0 : n - 1;
+        else lado.activo = (lado.activo + delta + n) % n;
+        marcarActivo(lado);
     }
 
     async function buscar(lado) {
@@ -395,8 +526,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Con una sola letra la busqueda quema cuota de AniList para devolver
         // cualquier cosa; desde dos ya es una consulta con intencion.
         if (query.length < 2) { cerrarSugerencias(lado); return; }
+        mostrarEstado(lado, 'loading');
         const cat = lado.cat.value;
         let resultados = [];
+        let huboError = false;
         try {
             if (cat === 'novelas' && typeof window.buscarNovelasEnApi === 'function') {
                 resultados = await window.buscarNovelasEnApi(query);
@@ -409,10 +542,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (md.length) resultados = window.mergeAnilistAndMd(Array.isArray(resultados) ? resultados : [], md);
                 } catch (_) { /* MangaDex caido: con AniList alcanza */ }
             }
-        } catch (_) { resultados = []; }
+        } catch (_) { huboError = true; }
 
         // Si mientras respondia la API el usuario siguio tipeando, esto quedo viejo.
         if (lado.input.value.trim() !== query) return;
+        if (huboError) { lado.resultados = []; mostrarEstado(lado, 'error'); return; }
         lado.resultados = (Array.isArray(resultados) ? resultados : []).slice(0, AnimeDestiny.Constants.API_SUGGESTION_LIMIT || 8);
         pintarSugerencias(lado);
     }
@@ -427,10 +561,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         lado.input.addEventListener('keydown', (e) => {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-            if (lado.resultados.length) elegir(lado, lado.resultados[0]);
-            else buscar(lado);
+            const abierto = lado.sug.classList.contains('is-open') && lado.resultados.length > 0;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (abierto) moverActivo(lado, 1);
+                else buscar(lado);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (abierto) moverActivo(lado, -1);
+            } else if (e.key === 'Escape') {
+                cerrarSugerencias(lado);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (lado.activo >= 0 && lado.resultados[lado.activo]) elegir(lado, lado.resultados[lado.activo]);
+                else if (lado.resultados.length) elegir(lado, lado.resultados[0]);
+                else buscar(lado);
+            }
         });
 
         lado.input.addEventListener('blur', () => {
@@ -453,6 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lado.resultados = [];
             cerrarSugerencias(lado);
             renderCompareCard(lado.host, lado.cat.value, null);
+            refrescarComparacion();
             actualizarUrl();
         });
     });
@@ -468,7 +615,52 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             await renderCompareCard(lado.host, lado.cat.value, lado.elegido);
         }
+        refrescarComparacion();
         actualizarUrl();
+    });
+
+    // Intercambiar los dos lados sin volver a buscar: cambia catalogo, texto y
+    // seleccion de uno por el otro y repinta. Util para invertir el "quien gana".
+    const swapBtn = document.getElementById('swapSides');
+    if (swapBtn) {
+        swapBtn.addEventListener('click', async () => {
+            const a = lados[0];
+            const b = lados[1];
+            [a.cat.value, b.cat.value] = [b.cat.value, a.cat.value];
+            [a.input.value, b.input.value] = [b.input.value, a.input.value];
+            [a.elegido, b.elegido] = [b.elegido, a.elegido];
+            a.resultados = [];
+            b.resultados = [];
+            cerrarSugerencias(a);
+            cerrarSugerencias(b);
+            await Promise.all([
+                renderCompareCard(a.host, a.cat.value, a.elegido),
+                renderCompareCard(b.host, b.cat.value, b.elegido)
+            ]);
+            refrescarComparacion();
+            actualizarUrl();
+        });
+    }
+
+    // Copiar el enlace de la comparacion (la URL ya lleva los ids sincronizados).
+    const copyBtn = document.getElementById('copyLink');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                if (window.Toast && typeof window.Toast.success === 'function') {
+                    window.Toast.success(cmpTr('compare.link_copiado', 'Enlace copiado'));
+                }
+            } catch (_) { /* clipboard bloqueado (permiso / contexto no seguro) */ }
+        });
+    }
+
+    // Al cambiar el idioma, las cards (que se pintan por JS, no via data-i18n)
+    // no se re-traducen solas: se repintan con la seleccion actual en el nuevo
+    // idioma. Si un lado esta vacio, renderCompareCard repinta el estado vacio.
+    window.addEventListener('i18n:changed', async () => {
+        await Promise.all(lados.map((lado) => renderCompareCard(lado.host, lado.cat.value, lado.elegido)));
+        refrescarComparacion();
     });
 
     // Estado inicial: ids de la URL (links compartidos) o cards vacias.

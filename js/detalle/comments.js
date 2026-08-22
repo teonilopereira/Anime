@@ -32,6 +32,12 @@
     // renderAll() (comentar, filtrar, borrar) los volvía a tapar todos.
     var _revelados = new Set();
 
+    // IDs de comentarios que el usuario actual likeó (corazón lleno). Se carga
+    // junto con los comentarios y se mantiene en memoria para pintar el estado.
+    var _misLikes = new Set();
+    // Guard anti doble-click mientras el like está en vuelo hacia la base.
+    var _likesEnVuelo = new Set();
+
     // ─── Helpers ──────────────────────────────────────────────────
     function esc(str) {
         return window.escapeHtml ? window.escapeHtml(String(str || "")) : String(str || "");
@@ -331,6 +337,17 @@
             bodyHtml +
             '<div class="comment-actions">';
 
+        // Like: visible para todos (invita a loguearse), corazón lleno si es propio.
+        var likeCount = Number(comment.likes_count) || 0;
+        var liked = _misLikes.has(comment.id);
+        html += '<button class="comment-like-btn' + (liked ? ' is-liked' : '') + '"' +
+            ' data-action="like" data-comment-id="' + esc(comment.id) + '"' +
+            ' aria-pressed="' + (liked ? 'true' : 'false') + '"' +
+            ' aria-label="Me gusta">' +
+            '<span class="comment-like-icon" aria-hidden="true">' + (liked ? '♥' : '♡') + '</span>' +
+            '<span class="comment-like-count"' + (likeCount ? '' : ' hidden') + '>' + likeCount + '</span>' +
+            '</button>';
+
         if (isSignedIn()) {
             html += '<button class="comment-action-btn" data-action="reply" data-comment-id="' + esc(comment.id) + '">Responder</button>';
         }
@@ -493,6 +510,8 @@
                     confirmDelete(commentId);
                 } else if (action === "submit") {
                     handleSubmit(btn);
+                } else if (action === "like") {
+                    handleLike(commentId, btn);
                 } else if (action === "reveal") {
                     _revelados.add(commentId);
                     var card = _container.querySelector('.comment-card[data-comment-id="' + commentId + '"]');
@@ -773,6 +792,60 @@
         }
     }
 
+    // Repinta un botón de like sin re-renderizar toda la lista (así no se
+    // pierden spoilers destapados ni el foco del textarea).
+    function paintLikeButton(btn, liked, count) {
+        if (!btn) return;
+        btn.classList.toggle("is-liked", liked);
+        btn.setAttribute("aria-pressed", liked ? "true" : "false");
+        var icon = btn.querySelector(".comment-like-icon");
+        if (icon) icon.textContent = liked ? "♥" : "♡";
+        var counter = btn.querySelector(".comment-like-count");
+        if (counter) {
+            counter.textContent = count;
+            counter.hidden = count <= 0;
+        }
+    }
+
+    async function handleLike(commentId, btn) {
+        if (!isSignedIn()) {
+            showToast("Iniciá sesión para reaccionar a los comentarios.", "info");
+            return;
+        }
+        if (_likesEnVuelo.has(commentId)) return;
+
+        var comment = _allComments.find(function (c) { return c.id === commentId; });
+        if (!comment) return;
+
+        var estabaLikeado = _misLikes.has(commentId);
+        var nuevoLikeado = !estabaLikeado;
+        var countPrevio = Number(comment.likes_count) || 0;
+        var countNuevo = Math.max(0, countPrevio + (nuevoLikeado ? 1 : -1));
+
+        // Optimista: pinto ya y sincronizo con la base en segundo plano.
+        if (nuevoLikeado) _misLikes.add(commentId); else _misLikes.delete(commentId);
+        comment.likes_count = countNuevo;
+        paintLikeButton(btn, nuevoLikeado, countNuevo);
+
+        _likesEnVuelo.add(commentId);
+        try {
+            if (nuevoLikeado) {
+                await window.AppSupabase.likeComment(commentId);
+            } else {
+                await window.AppSupabase.unlikeComment(commentId);
+            }
+        } catch (err) {
+            console.error("Error al reaccionar:", err);
+            // Revertir el estado optimista.
+            if (estabaLikeado) _misLikes.add(commentId); else _misLikes.delete(commentId);
+            comment.likes_count = countPrevio;
+            paintLikeButton(btn, estabaLikeado, countPrevio);
+            showToast(err.message || "No se pudo registrar la reacción.", "error");
+        } finally {
+            _likesEnVuelo.delete(commentId);
+        }
+    }
+
     // ─── Carga ────────────────────────────────────────────────────
     async function load(category, itemId) {
         _category = category || "";
@@ -788,6 +861,20 @@
             _activeFilter = null;
             _cachedRefInfo = null;
             _revelados.clear();
+
+            // Likes propios: qué comentarios likeó el usuario actual (corazón
+            // lleno). Sin sesión, o si la migración 009 no está aplicada, queda
+            // un set vacío y los corazones se pintan todos vacíos.
+            _misLikes = new Set();
+            if (isSignedIn() && _allComments.length && window.AppSupabase.loadMyCommentLikes) {
+                try {
+                    var ids = _allComments.map(function (c) { return c.id; });
+                    _misLikes = await window.AppSupabase.loadMyCommentLikes(ids) || new Set();
+                } catch (e) {
+                    console.warn("No se pudieron cargar los likes propios:", e);
+                }
+            }
+
             buildRefCounts();
             renderAll();
         } catch (err) {

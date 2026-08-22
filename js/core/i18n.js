@@ -12,6 +12,7 @@
             "nav.top":            "Top",
             "nav.top_jugadores":  "Top de jugadores",
             "nav.ranking":        "Ranking",
+            "nav.calendario":     "Calendario",
             "nav.mis_listas":     "Mis Listas",
             "nav.listas":         "Listas",
             "nav.mas":            "Más",
@@ -36,6 +37,7 @@
             "index.destacados":    "Destacados",
             "index.populares":     "Más populares",
             "index.continuar":     "Continuar viendo",
+            "index.recomendado":   "Recomendado para vos",
 
             // ── Catálogo (anime / manga / novelas) ───────────────────────────
             "catalog.title.anime":    "CATÁLOGO DE ANIME",
@@ -252,6 +254,10 @@
             "user.favoritos":  "Favoritos",
 
             // ── Comparar ─────────────────────────────────────────────────────
+            "calendar.titulo":         "CALENDARIO DE ESTRENOS",
+            "calendar.desc":           "Los episodios que salen esta semana. Seguí un anime para verlo destacado.",
+            "calendar.solo_seguidos":  "Solo lo que sigo",
+
             "compare.titulo":  "COMPARAR",
             "compare.desc":    "Compará dos títulos lado a lado.",
 
@@ -288,6 +294,33 @@
             "compare.sin_portada":    "Sin portada",
             "compare.sin_sinopsis":   "Sin sinopsis disponible.",
             "compare.sin_titulo":     "Sin título",
+            "compare.stat.puntaje":    "Puntaje",
+            "compare.stat.episodios":  "Episodios",
+            "compare.stat.por_ep":     "Por episodio",
+            "compare.stat.duracion":   "Duración",
+            "compare.stat.usuarios":   "Usuarios",
+            "compare.stat.volumenes":  "Volúmenes",
+            "compare.stat.capitulos":  "Capítulos",
+            "compare.det.estudio":     "Estudio",
+            "compare.det.basado":      "Basado en",
+            "compare.det.emision":     "Emisión",
+            "compare.det.favoritos":   "Favoritos",
+            "compare.det.autor":       "Autor",
+            "compare.det.origen":      "Origen",
+            "compare.det.publicacion": "Publicación",
+            "compare.kind.anime":      "Anime",
+            "compare.kind.manga":      "Manga",
+            "compare.kind.novela":     "Novela",
+            "compare.abrir":           "Abrir detalle",
+            "compare.vacio":           "Seleccioná un ítem para comparar",
+            "compare.buscando":        "Buscando…",
+            "compare.sin_resultados":  "Sin resultados",
+            "compare.error_busqueda":  "No se pudo buscar. Probá de nuevo.",
+            "compare.link_copiado":    "Enlace copiado",
+            "compare.intercambiar":    "Intercambiar",
+            "compare.copiar":          "Copiar enlace",
+            "compare.aria.intercambiar": "Intercambiar los dos lados",
+            "compare.aria.copiar":     "Copiar enlace de la comparación",
 
             // ── Ranking de títulos (ranking.html) ────────────────────────────
             "rank.tab.anime":         "Anime",
@@ -361,6 +394,7 @@
             "nav.top":            "Top",
             "nav.top_jugadores":  "Player ranking",
             "nav.ranking":        "Ranking",
+            "nav.calendario":     "Calendar",
             "nav.mis_listas":     "My Lists",
             "nav.listas":         "Lists",
             "nav.mas":            "More",
@@ -385,6 +419,7 @@
             "index.destacados":    "Featured",
             "index.populares":     "Most popular",
             "index.continuar":     "Continue watching",
+            "index.recomendado":   "Recommended for you",
 
             // ── Catalog ──────────────────────────────────────────────────────
             "catalog.title.anime":    "ANIME CATALOG",
@@ -601,6 +636,10 @@
             "user.favoritos": "Favorites",
 
             // ── Compare ──────────────────────────────────────────────────────
+            "calendar.titulo":         "RELEASE CALENDAR",
+            "calendar.desc":           "Episodes airing this week. Follow an anime to see it highlighted.",
+            "calendar.solo_seguidos":  "Only what I follow",
+
             "compare.titulo": "COMPARE",
             "compare.desc":   "Compare two titles side by side.",
 
@@ -637,6 +676,33 @@
             "compare.sin_portada":    "No cover",
             "compare.sin_sinopsis":   "No synopsis available.",
             "compare.sin_titulo":     "Untitled",
+            "compare.stat.puntaje":    "Score",
+            "compare.stat.episodios":  "Episodes",
+            "compare.stat.por_ep":     "Per episode",
+            "compare.stat.duracion":   "Duration",
+            "compare.stat.usuarios":   "Users",
+            "compare.stat.volumenes":  "Volumes",
+            "compare.stat.capitulos":  "Chapters",
+            "compare.det.estudio":     "Studio",
+            "compare.det.basado":      "Based on",
+            "compare.det.emision":     "Airing",
+            "compare.det.favoritos":   "Favorites",
+            "compare.det.autor":       "Author",
+            "compare.det.origen":      "Origin",
+            "compare.det.publicacion": "Publication",
+            "compare.kind.anime":      "Anime",
+            "compare.kind.manga":      "Manga",
+            "compare.kind.novela":     "Novel",
+            "compare.abrir":           "Open details",
+            "compare.vacio":           "Pick a title to compare",
+            "compare.buscando":        "Searching…",
+            "compare.sin_resultados":  "No results",
+            "compare.error_busqueda":  "Couldn't search. Try again.",
+            "compare.link_copiado":    "Link copied",
+            "compare.intercambiar":    "Swap",
+            "compare.copiar":          "Copy link",
+            "compare.aria.intercambiar": "Swap the two sides",
+            "compare.aria.copiar":     "Copy comparison link",
 
             // ── Title ranking (ranking.html) ─────────────────────────────────
             "rank.tab.anime":         "Anime",
@@ -781,6 +847,12 @@
             if (!translations[lang]) return;
             localStorage.setItem("pref:lang", lang);
             window.applyTranslations(lang);
+            // Aviso para el contenido que las paginas pintan por JS (no via
+            // data-i18n): esos no los alcanza applyTranslations y necesitan
+            // repintarse. Ej: las cards de comparar.
+            try {
+                window.dispatchEvent(new CustomEvent("i18n:changed", { detail: { lang: getCurrentLang() } }));
+            } catch (e) { /* CustomEvent no disponible: sin repintado en vivo */ }
         },
         getLang: getCurrentLang,
         t: function (key, args) {

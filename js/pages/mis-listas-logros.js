@@ -99,6 +99,13 @@ function renderAchievements() {
     const vistos = getViewedIdSet(userId);
     const fr = function (clave) { return franquiciaVista(vistos, clave); };
 
+    // Racha diaria: el mejor histórico decide los logros de racha (una vez que
+    // se alcanzó un hito, no se pierde aunque después se corte la racha).
+    const streakInfo = (window.AppStreak && typeof window.AppStreak.getStreak === 'function')
+        ? window.AppStreak.getStreak(userId)
+        : { count: 0, best: 0 };
+    const bestStreak = Math.max(Number(streakInfo.best) || 0, Number(streakInfo.count) || 0);
+
     const rules = [
         // — Me gusta —
         { id: 'fav1',  title: 'Corazón de Otaku',     desc: 'Marcá 1 título como "Me gusta".',   req: lists.fav >= 1,  icon: '❤️' },
@@ -129,6 +136,13 @@ function renderAchievements() {
         { id: 'level10', title: 'Caballero de Élite', desc: 'Alcanzá el nivel 10.', req: level >= 10, icon: '🛡️' },
         { id: 'level20', title: 'Súper Saiyajin',     desc: 'Alcanzá el nivel 20.', req: level >= 20, icon: '💥', secret: true },
         { id: 'level30', title: 'Ultra Instinto',     desc: 'Alcanzá el nivel 30.', req: level >= 30, icon: '🔱', secret: true },
+
+        // — Racha diaria (días seguidos entrando) —
+        { id: 'racha3',   title: 'Hábito Naciente',   desc: 'Mantené una racha de 3 días seguidos.',   req: bestStreak >= 3,   icon: '🔥' },
+        { id: 'racha7',   title: 'Semana Perfecta',   desc: 'Mantené una racha de 7 días seguidos.',   req: bestStreak >= 7,   icon: '📅' },
+        { id: 'racha14',  title: 'Rutina Otaku',      desc: 'Mantené una racha de 14 días seguidos.',  req: bestStreak >= 14,  icon: '⏳', secret: true },
+        { id: 'racha30',  title: 'Disciplina Shonen', desc: 'Mantené una racha de 30 días seguidos.',  req: bestStreak >= 30,  icon: '🗓️', secret: true },
+        { id: 'racha100', title: 'Voluntad de Acero', desc: 'Mantené una racha de 100 días seguidos.', req: bestStreak >= 100, icon: '💯', secret: true },
 
         // — Temáticos por categoría —
         { id: 'anime15',  title: 'Maestro del Anime',   desc: 'Marcá 15 animes como "Visto".',   req: catViewed.anime >= 15,   icon: '📺' },
