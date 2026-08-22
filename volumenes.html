@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://corsproxy.io https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta name="description" content="Lista de volúmenes de una obra, uno por fila, con su portada, capítulos y estado de lectura.">
+    <meta name="robots" content="noindex,follow">
+    <link rel="canonical" href="https://animedestiny.netlify.app/volumenes.html">
+    <title>Anime Destiny | Volúmenes</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#bc13fe">
+
+    <link rel="stylesheet" href="css/bundle.min.css?v=bb284fbb">
+    <link rel="stylesheet" href="css/volumenes.css?v=bb284fbb">
+    <link rel="preconnect" href="https://api.mangadex.org" crossorigin>
+    <link rel="preconnect" href="https://uploads.mangadex.org">
+    <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/fonts.css?v=bb284fbb">
+
+    <script src="js/vendor/lucide.min.js?v=bb284fbb" defer></script>
+    <script src="js/core/theme.js?v=bb284fbb"></script>
+    <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
+</head>
+<body data-page="volumenes">
+    <nav class="destiny-navbar">
+        <div id="nav-brand-container"></div>
+        <div id="nav-links-container"></div>
+        <div class="nav-actions">
+            <div id="nav-login-container"></div>
+        </div>
+    </nav>
+
+    <main class="vols-page" id="main-content">
+        <a class="vols-back" id="volsBack" href="manga.html">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span>Volver al catálogo</span>
+        </a>
+
+        <section class="vols-hero">
+            <div class="vols-hero-bg" data-hero-bg></div>
+            <div class="vols-hero-ov"></div>
+            <div class="vols-hero-in">
+                <div class="vols-portada"><img alt="" data-hero-cover loading="lazy"></div>
+                <div class="vols-hero-info">
+                    <span class="vols-tipo" data-hero-tipo></span>
+                    <h1 class="vols-title" data-hero-title>Volúmenes</h1>
+                    <span class="vols-badge"><span class="vols-badge-dot"></span><span data-hero-estado></span></span>
+                    <div class="vols-datos">
+                        <div class="vols-dato"><span class="vols-dl" data-dl1>Volúmenes</span><span class="vols-dv" data-dv1>?</span></div>
+                        <div class="vols-dato"><span class="vols-dl" data-dl2>Leídos</span><span class="vols-dv" data-dv2>0</span></div>
+                        <div class="vols-dato"><span class="vols-dl">Progreso</span><span class="vols-dv" data-dv3>0%</span></div>
+                    </div>
+                    <a class="vols-detail-link" data-detail-link href="#">Abrir detalle completo &rsaquo;</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="vols-list-wrap">
+            <div class="vols-list-head">
+                <h2 data-caps-title>VOLÚMENES</h2>
+                <span class="vols-contador"><span class="vols-dot-ok"></span><span data-caps-count></span></span>
+            </div>
+            <div class="vols-list" data-caps-list></div>
+            <p class="vols-empty" data-caps-empty hidden>La API no informó volúmenes para este título.</p>
+        </section>
+    </main>
+
+    <div id="footer-container"></div>
+    <script src="js/core/config.js?v=bb284fbb"></script>
+    <script src="js/core/i18n.js?v=bb284fbb"></script>
+    <script src="js/core/namespace.js?v=bb284fbb"></script>
+    <script type="module" src="api/supabase-config.js?v=bb284fbb" async></script>
+    <script src="js/core-bundle.min.js?v=bb284fbb" defer></script>
+    <script src="js/core/mangadex-api.js?v=bb284fbb" defer></script>
+    <script src="js/pages/volumenes.js?v=bb284fbb" defer></script>
+</body>
+</html>
