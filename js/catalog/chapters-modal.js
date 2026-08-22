@@ -113,6 +113,20 @@
         } catch (e) {}
     }
 
+    // Igual que loadVolumeCovers pero para CAPÍTULOS: MangaDex no tiene portada
+    // por capítulo, así que se muestra la del volumen que contiene a cada uno
+    // (resuelto vía aggregate). Silencioso ante error: queda la portada principal.
+    function loadChapterCovers(id, grid, title, titleAlt) {
+        if (typeof window.applyMangaDexChapterCovers !== 'function') return;
+        try {
+            window.applyMangaDexChapterCovers({
+                item: { id: id, title: title, title_english: titleAlt },
+                grid: grid,
+                selector: '.cmodal-cap-cover[data-chap]'
+            });
+        } catch (e) {}
+    }
+
     var _epTitleCache = {};
 
     // Limpia el título que trae AniList en streamingEpisodes, que suele venir
@@ -217,17 +231,21 @@
         var grid = q('[data-caps-grid]');
         var empty = q('[data-caps-empty]');
         var isManga = !isAnime;
+        var isChapter = isManga && prefix === 'CH';
         if (total > 0) {
             empty.hidden = true;
             var rows = '';
             for (var n = 1; n <= total; n++) {
                 var done = viewedAll || (watched && watched.has(n));
                 var nn = (n < 10 ? '0' + n : String(n));
-                // En manga cada ítem muestra una foto del volumen: arranca con la
-                // portada principal y, si es un título de MangaDex, se reemplaza
-                // por la portada real de ese número (loadVolumeCovers).
+                // En manga cada ítem muestra una foto: arranca con la portada
+                // principal y, si es un título de MangaDex, se reemplaza por la
+                // real. En volúmenes es la portada de ese tomo (data-vol,
+                // loadVolumeCovers); en capítulos, la del tomo que lo contiene
+                // (data-chap, loadChapterCovers).
+                var numAttr = isChapter ? ' data-chap="' + n + '"' : ' data-vol="' + n + '"';
                 var head = isManga
-                    ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy" referrerpolicy="no-referrer">'
+                    ? '<img class="cmodal-cap-cover"' + numAttr + ' src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy" referrerpolicy="no-referrer">'
                     : '<span class="cmodal-cap-num">' + nn + '</span>';
                 // El nombre arranca genérico ("Episodio N" / "Volumen N"). En
                 // anime, loadEpisodeTitles lo reemplaza luego por el título real
@@ -244,7 +262,8 @@
                     + '</div>';
             }
             grid.innerHTML = rows;
-            if (isManga) loadVolumeCovers(id, grid, title, titleAlt);
+            if (isChapter) loadChapterCovers(id, grid, title, titleAlt);
+            else if (isManga) loadVolumeCovers(id, grid, title, titleAlt);
             else loadEpisodeTitles(id, grid);
         } else {
             grid.innerHTML = '';

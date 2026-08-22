@@ -477,6 +477,91 @@
         }
     };
 
+    // MangaDex solo tiene portadas por VOLUMEN, nunca por capítulo. Para que un
+    // capítulo muestre "su" foto usamos la del tomo que lo contiene. El endpoint
+    // /manga/{id}/aggregate lista, tomo por tomo, qué capítulos incluye; con eso
+    // armamos el mapa capítulo → volumen. Cacheado en localStorage (nunca un mapa
+    // vacío, mismo criterio que getCoverMapCached) para no repegarle al aggregate
+    // en cada apertura del modal.
+    async function fetchMangaDexChapterVolumeMap(mangaId) {
+        var json = await mdFetch('/manga/' + encodeURIComponent(mangaId) + '/aggregate');
+        var volumes = json?.volumes || {};
+        var map = {};
+        Object.keys(volumes).forEach(function (volKey) {
+            var volNum = normalizeVolKey(volKey);
+            // "none" / vacío = capítulos sueltos sin tomo asignado: no tienen
+            // portada de volumen que mostrar, así que se saltan.
+            if (!volNum || volNum === 'none') return;
+            var caps = volumes[volKey]?.chapters || {};
+            Object.keys(caps).forEach(function (capKey) {
+                var capNum = String(parseInt(capKey, 10));
+                if (capNum !== 'NaN' && !(capNum in map)) map[capNum] = volNum;
+            });
+        });
+        return map;
+    }
+
+    async function getChapterVolumeMapCached(mangaId) {
+        var mapKey = 'md_chapvol_map_' + mangaId;
+        try {
+            var cached = localStorage.getItem(mapKey);
+            if (cached) {
+                var parsed = JSON.parse(cached);
+                if (mapHasEntries(parsed)) return parsed;
+            }
+        } catch (_) { /* caché corrupta: se reintenta */ }
+
+        var map = await fetchMangaDexChapterVolumeMap(mangaId);
+        if (mapHasEntries(map)) safeCacheSet(mapKey, JSON.stringify(map));
+        return map || {};
+    }
+
+    // Resuelve el manga (por UUID directo o por título AniList) y devuelve el mapa
+    // { capítulo → URL de portada del tomo que lo contiene }, combinando el mapa
+    // capítulo→volumen (aggregate) con el mapa volumen→portada que ya usa la
+    // grilla de volúmenes. Silencioso ante error: devuelve null y cada capítulo
+    // se queda con la portada principal.
+    window.resolveMangaDexChapterCoverMap = async function (item) {
+        if (!item) return null;
+        var mdId = await resolveMangaDexId(item);
+        if (!mdId) return null;
+        try {
+            var chapVol = await getChapterVolumeMapCached(mdId);
+            if (!mapHasEntries(chapVol)) return null;
+            var covers = await getCoverMapCached(mdId);
+            if (!mapHasEntries(covers)) return null;
+            var out = {};
+            for (var cap in chapVol) {
+                if (!chapVol.hasOwnProperty(cap)) continue;
+                var file = covers[chapVol[cap]];
+                if (file) out[cap] = MD_COVER_BASE + '/' + mdId + '/' + file;
+            }
+            return out;
+        } catch (err) {
+            console.warn('resolveMangaDexChapterCoverMap error:', err);
+            return null;
+        }
+    };
+
+    // Pinta sobre las <img data-chap> la portada del volumen que contiene cada
+    // capítulo. Mismo contrato best-effort que applyMangaDexVolumeCovers.
+    window.applyMangaDexChapterCovers = async function (opts) {
+        opts = opts || {};
+        var grid = opts.grid;
+        var item = opts.item;
+        if (!grid || !item || typeof window.resolveMangaDexChapterCoverMap !== 'function') return;
+        var selector = opts.selector || 'img[data-chap]';
+        try {
+            var map = await window.resolveMangaDexChapterCoverMap(item);
+            if (!map) return;
+            var imgs = grid.querySelectorAll(selector);
+            for (var i = 0; i < imgs.length; i++) {
+                var c = String(parseInt(imgs[i].getAttribute('data-chap'), 10));
+                if (map[c]) imgs[i].src = map[c];
+            }
+        } catch (e) { /* silencioso: queda la portada principal */ }
+    };
+
     // Pinta la portada REAL de cada volumen (MangaDex) sobre las <img data-vol>
     // que haya dentro de `grid`. Best-effort y silencioso: si el título no
     // resuelve, MangaDex no responde o no tiene portada de ese tomo, cada imagen
