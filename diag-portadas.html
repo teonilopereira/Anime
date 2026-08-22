@@ -30,7 +30,8 @@
     <div class="step" id="s1"><h2>1) API directa (fetch) <span class="pend">…</span></h2><div class="body"></div></div>
     <div class="step" id="s2"><h2>2) API vía proxy allorigins <span class="pend">…</span></h2><div class="body"></div></div>
     <div class="step" id="s3"><h2>3) API vía proxy corsproxy.io <span class="pend">…</span></h2><div class="body"></div></div>
-    <div class="step" id="s4"><h2>4) Imágenes de portada (uploads.mangadex.org) <span class="pend">…</span></h2><div class="body"></div></div>
+    <div class="step" id="s4"><h2>4) Imágenes con referer normal <span class="pend">…</span></h2><div class="body"></div></div>
+    <div class="step" id="s5"><h2>5) Imágenes SIN referer (el fix) <span class="pend">…</span></h2><div class="body"><p style="font-size:.8rem;color:#fbbf24;margin:0 0 6px">👀 Mirá si acá se ven las portadas REALES (con colores/personajes) en vez del cartel blanco de MangaDex.</p></div></div>
 
     <script>
     (function () {
@@ -82,24 +83,25 @@
             return false;
         }
 
-        function testImages() {
-            setS('s4', 'pend', 'cargando…');
+        function testImages(id, noReferer) {
+            setS(id, 'pend', 'cargando…');
             var wrap = document.createElement('div');
             wrap.className = 'imgs';
-            bodyEl('s4').appendChild(wrap);
+            bodyEl(id).appendChild(wrap);
             var pending = COVERS.length, ok = 0;
             COVERS.forEach(function (c) {
                 var div = document.createElement('div');
                 div.className = 'imgwrap';
                 var img = new Image();
+                if (noReferer) img.referrerPolicy = 'no-referrer';
                 img.onload = function () { ok++; fin('<div class="ok">vol ' + c.v + ' ✓</div>'); };
                 img.onerror = function () { fin('<div class="bad">vol ' + c.v + ' ✗</div>'); };
                 function fin(label) {
                     div.appendChild(img); div.innerHTML += label;
                     if (--pending === 0) {
-                        if (ok === COVERS.length) setS('s4', 'ok', 'OK — imágenes cargan');
-                        else if (ok === 0) setS('s4', 'bad', 'Ninguna carga');
-                        else setS('s4', 'pend', ok + '/' + COVERS.length);
+                        if (ok === COVERS.length) setS(id, 'ok', 'cargan — mirá las imágenes');
+                        else if (ok === 0) setS(id, 'bad', 'ninguna carga');
+                        else setS(id, 'pend', ok + '/' + COVERS.length);
                     }
                 }
                 img.src = COVER_BASE + c.f;
@@ -108,13 +110,17 @@
         }
 
         async function run() {
-            document.querySelectorAll('.body').forEach(function (b) { b.innerHTML = ''; });
-            ['s1', 's2', 's3', 's4'].forEach(function (s) { setS(s, 'pend', '…'); });
+            document.querySelectorAll('.body').forEach(function (b) {
+                // Conserva la nota de ayuda del paso 5.
+                var note = b.querySelector('p'); b.innerHTML = ''; if (note) b.appendChild(note);
+            });
+            ['s1', 's2', 's3', 's4', 's5'].forEach(function (s) { setS(s, 'pend', '…'); });
 
             await testFetch('s1', API, false);
             await testFetch('s2', 'https://api.allorigins.win/get?url=' + encodeURIComponent(API), true);
             await testFetch('s3', 'https://corsproxy.io/?url=' + encodeURIComponent(API), false);
-            testImages();
+            testImages('s4', false);
+            testImages('s5', true);
         }
 
         document.getElementById('run').addEventListener('click', run);
