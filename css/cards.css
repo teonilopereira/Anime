@@ -592,7 +592,7 @@
 
 .vol-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(var(--detail-square-size, 72px), 1fr));
     gap: 10px;
     align-items: start;
 }
@@ -614,6 +614,16 @@
     font-family: var(--font-display);
     transition: all 0.2s ease;
     aspect-ratio: 1;
+}
+
+/* Tamaño configurable de los cuadrados de detalle (capítulos, episodios y
+   volúmenes). El usuario lo ajusta en Configuración → Apariencia; el valor se
+   guarda en pref:detailSquareSize y se aplica como --detail-square-size en
+   :root. Sin preferencia se usa el default (70px). Solo afecta a .cuadrado-item,
+   no a los .vol-btn del reverso de las cards. */
+.cuadrado-item {
+    width: var(--detail-square-size, 70px);
+    min-height: var(--detail-square-size, 70px);
 }
 
 .vol-btn:hover,

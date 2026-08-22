@@ -161,6 +161,26 @@ function aplicarCpr(valor) {
     aplicarCprEnPagina(valor);
 }
 
+/* ── Tamaño de los cuadrados de detalles ── */
+const SQ_MIN = () => AnimeDestiny.Constants.DETAIL_SQUARE_MIN || 48;
+const SQ_MAX = () => AnimeDestiny.Constants.DETAIL_SQUARE_MAX || 120;
+const SQ_DEF = () => AnimeDestiny.Constants.DETAIL_SQUARE_DEFAULT || 70;
+
+// Igual que con las tarjetas por fila: separado del guardado para poder volver
+// al tamaño automático al restablecer sin reescribir la clave recién borrada.
+function aplicarSqSizeEnPagina(valor) {
+    if (valor === 'auto') {
+        document.documentElement.style.removeProperty('--detail-square-size');
+        return;
+    }
+    document.documentElement.style.setProperty('--detail-square-size', String(valor) + 'px');
+}
+
+function aplicarSqSize(valor) {
+    w('pref:detailSquareSize', String(valor));
+    aplicarSqSizeEnPagina(valor);
+}
+
 /* ── Pintar la UI con lo guardado ── */
 function syncUI() {
     var user = getCurrentUserName();
@@ -200,6 +220,11 @@ function syncUI() {
         $('cprSlider').value = val;
         $('cprValue').textContent = val;
     }
+
+    const sqSaved = parseInt(r('pref:detailSquareSize', ''), 10);
+    const sqVal = (sqSaved >= SQ_MIN() && sqSaved <= SQ_MAX()) ? sqSaved : SQ_DEF();
+    $('sqSizeSlider').value = sqVal;
+    $('sqSizeValue').textContent = sqVal;
 }
 
 /* ── Wiring: cada control guarda al cambiar ── */
@@ -363,13 +388,23 @@ $('cprSlider').addEventListener('input', function () {
     }
 });
 
+/* Tamaño de los cuadrados de detalles */
+$('sqSizeSlider').addEventListener('input', function () {
+    $('sqSizeValue').textContent = this.value;
+    const val = parseInt(this.value, 10);
+    if (val >= SQ_MIN() && val <= SQ_MAX()) {
+        aplicarSqSize(val);
+        avisarGuardado('✅ Cuadrados de ' + val + ' px');
+    }
+});
+
 /* Preferencias locales de visualizacion. Se usan para exportar y para
  * restablecer. Las listas y el progreso viven en Supabase: no estan aca. */
 const PREF_KEYS = [
     'pref:bgMode', 'pref:bgColor', 'pref:bgImage',
     'pref:compactCards', 'pref:reduceMotion', 'pref:nsfw',
     'pref:notif', 'pref:contenido', 'pref:privacidad', 'pref:cardsPerRow',
-    'pref:mascot', 'pref:mascotRoam',
+    'pref:detailSquareSize', 'pref:mascot', 'pref:mascotRoam',
     ...Object.values(COLOR_KEYS)
 ];
 
@@ -416,6 +451,7 @@ $('resetAll').addEventListener('click', () => {
     if (!confirm('¿Restablecer la apariencia a los valores por defecto? Tus listas y tu progreso no se tocan.')) return;
     PREF_KEYS.forEach(k => localStorage.removeItem(k));
     aplicarCprEnPagina('auto');
+    aplicarSqSizeEnPagina('auto');
     applyCustomColors();
     applyBgToPage();
     syncUI();
