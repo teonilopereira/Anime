@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://corsproxy.io https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net wss://llytokoztnjuczuppzgs.supabase.co; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';">
     <meta name="description" content="Los animes, mangas y novelas mejor puntuados por la comunidad, en tres rankings separados.">
     <meta name="keywords" content="ranking, top, mejores animes, mejores mangas, mejores novelas, puntuación">
     <meta name="robots" content="index,follow">
@@ -23,16 +23,11 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-    <link rel="stylesheet" href="css/bundle.min.css?v=d1719695">
+    <link rel="stylesheet" href="css/bundle.min.css?v=e30ea988">
 
-    <!-- Preconexion a los CDN de datos e imagenes: adelanta el handshake
-         DNS/TLS para que la primera portada y la primera llamada a la API no
-         arranquen desde cero. -->
-    <link rel="preconnect" href="https://graphql.anilist.co" crossorigin>
-    <link rel="preconnect" href="https://s4.anilist.co">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=d1719695">
+    <link rel="stylesheet" href="css/fonts.css?v=e30ea988">
     <style>
         /* ── Panel principal (mismo marco que el ranking de jugadores) ── */
         .trk-container {
@@ -344,8 +339,8 @@
             .trk-score-num { font-size: 0.95rem; }
         }
     </style>
-    <script src="js/vendor/lucide.min.js?v=d1719695" defer></script>
-    <script src="js/core/theme.js?v=d1719695"></script>
+    <script src="js/vendor/lucide.min.js?v=e30ea988" defer></script>
+    <script src="js/core/theme.js?v=e30ea988"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="ranking">
@@ -390,11 +385,11 @@
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=d1719695"></script>
-    <script src="js/core/i18n.js?v=d1719695"></script>
-    <script src="js/core/namespace.js?v=d1719695"></script>
-    <script src="api/supabase-config.js?v=d1719695" type="module" async></script>
-    <script src="js/core-bundle.min.js?v=d1719695" defer></script>
-    <script src="js/pages/ranking-top.js?v=d1719695" defer></script>
+    <script src="js/core/config.js?v=e30ea988"></script>
+    <script src="js/core/i18n.js?v=e30ea988"></script>
+    <script src="js/core/namespace.js?v=e30ea988"></script>
+    <script src="api/supabase-config.js?v=e30ea988" type="module" async></script>
+    <script src="js/core-bundle.min.js?v=e30ea988" defer></script>
+    <script src="js/pages/ranking-top.js?v=e30ea988" defer></script>
 </body>
 </html>
