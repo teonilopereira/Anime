@@ -219,7 +219,7 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
                     if (coverUrl) {
                         coverHtml = `
                             <div class="modal-volume-cover">
-                                <img src="${safeUrl(coverUrl)}" alt="Portada Volumen ${epNum}">
+                                <img src="${safeUrl(coverUrl)}" alt="Portada Volumen ${epNum}" referrerpolicy="no-referrer">
                             </div>
                         `;
                     }

@@ -11,7 +11,7 @@
     # Muro anti-XSS/inyeccion: solo se ejecuta script propio y el CDN de jsdelivr;
     # las conexiones salientes quedan limitadas a Supabase y las APIs que la app
     # realmente usa. Debe mantenerse en sincronia con vercel.json.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co wss://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://api.mymemory.translated.net https://api.animethemes.moe https://api.jikan.moe https://kitsu.io; media-src 'self' https://a.animethemes.moe; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co wss://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://corsproxy.io https://api.mymemory.translated.net https://api.animethemes.moe https://api.jikan.moe https://kitsu.io; media-src 'self' https://a.animethemes.moe; font-src 'self' https://fonts.gstatic.com data:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';"
     # Forzar HTTPS por 2 anios (incluye subdominios).
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     # Impide que el navegador "adivine" el tipo MIME (vector de XSS con archivos subidos).
