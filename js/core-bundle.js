@@ -1392,20 +1392,43 @@
         'zombies':'631ef465-9aba-4afb-b0fc-ea10efe274a8'
     };
 
-    function mdFetch(path) {
+    // MangaDex NO manda cabeceras CORS para todos los orígenes, así que el fetch
+    // directo desde el navegador falla con "Failed to fetch" en muchas redes
+    // (confirmado en producción). Cuando pasa, se reintenta a través de un proxy
+    // CORS y se recuerda el bloqueo para ir directo al proxy en las siguientes
+    // llamadas de la sesión (evita un fetch fallido por cada una).
+    var MD_API = 'https://api.mangadex.org';
+    var MD_PROXY = 'https://corsproxy.io/?url=';
+    var _mdDirectBlocked = false;
+
+    function mdFetchUrl(fullUrl) {
         return new Promise(function (resolve, reject) {
             var controller = new AbortController();
             var timer = setTimeout(function () { controller.abort(); reject(new Error('Timeout')); }, REQUEST_TIMEOUT);
-            fetch('https://api.mangadex.org' + path, {
+            fetch(fullUrl, {
                 method: 'GET', headers: { 'Accept': 'application/json' }, signal: controller.signal
             }).then(function (res) {
                 clearTimeout(timer);
                 if (!res.ok) return res.text().then(function (t) { reject(new Error('MD HTTP ' + res.status)); });
                 return res.json();
             }).then(function (json) {
-                if (json.errors) { reject(new Error('MD error: ' + (json.errors[0]?.detail || '?'))); return; }
+                if (json && json.errors) { reject(new Error('MD error: ' + (json.errors[0]?.detail || '?'))); return; }
                 resolve(json);
             }).catch(function (err) { clearTimeout(timer); reject(err); });
+        });
+    }
+
+    function mdFetch(path) {
+        var direct = MD_API + path;
+        var proxied = MD_PROXY + encodeURIComponent(direct);
+        if (_mdDirectBlocked) return mdFetchUrl(proxied);
+        return mdFetchUrl(direct).catch(function (err) {
+            // Solo el bloqueo de red/CORS justifica el proxy; un Timeout o un
+            // error HTTP real de MangaDex se propagan tal cual.
+            var msg = String((err && err.message) || '');
+            if (msg.indexOf('MD HTTP') === 0 || msg === 'Timeout') throw err;
+            _mdDirectBlocked = true;
+            return mdFetchUrl(proxied);
         });
     }
 
@@ -6965,7 +6988,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
                 // portada principal y, si es un título de MangaDex, se reemplaza
                 // por la portada real de ese número (loadVolumeCovers).
                 var head = isManga
-                    ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy">'
+                    ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy" referrerpolicy="no-referrer">'
                     : '<span class="cmodal-cap-num">' + nn + '</span>';
                 // El nombre arranca genérico ("Episodio N" / "Volumen N"). En
                 // anime, loadEpisodeTitles lo reemplaza luego por el título real

@@ -232,7 +232,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         return `
                 <div class="cuadrado-wrapper">
                     <button class="vol-btn cuadrado-item has-cover${active}" type="button" data-vol="${v}" aria-label="Volumen ${v}">
-                        <img class="vol-cover" data-vol="${v}" src="${safeUrl(item.img)}" alt="" loading="lazy" aria-hidden="true">
+                        <img class="vol-cover" data-vol="${v}" src="${safeUrl(item.img)}" alt="" loading="lazy" aria-hidden="true" referrerpolicy="no-referrer">
                         <span class="num-cap">${String(v).padStart(2, '0')}</span>
                     </button>
                     <button class="btn-resumen" type="button" data-vol="${v}" aria-label="Ver resumen del volumen ${v}">RESUMEN</button>

@@ -227,7 +227,7 @@
                 // portada principal y, si es un título de MangaDex, se reemplaza
                 // por la portada real de ese número (loadVolumeCovers).
                 var head = isManga
-                    ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy">'
+                    ? '<img class="cmodal-cap-cover" data-vol="' + n + '" src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy" referrerpolicy="no-referrer">'
                     : '<span class="cmodal-cap-num">' + nn + '</span>';
                 // El nombre arranca genérico ("Episodio N" / "Volumen N"). En
                 // anime, loadEpisodeTitles lo reemplaza luego por el título real
