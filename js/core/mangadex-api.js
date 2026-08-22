@@ -477,6 +477,48 @@
         }
     };
 
+    // Detalle por VOLUMEN para la página de volúmenes (volumenes.html): resuelve
+    // el manga (UUID directo o por título AniList) y combina el aggregate
+    // (capítulos que incluye cada tomo) con el mapa volumen → portada. Devuelve
+    // un objeto { volKey: { count, first, last, cover } } donde `count` es la
+    // cantidad de capítulos del tomo, `first`/`last` el rango de capítulos y
+    // `cover` la URL de la portada real del tomo (o null). Best-effort: si el
+    // título no resuelve o MangaDex no responde, devuelve null y la página cae a
+    // la información genérica.
+    window.resolveMangaDexVolumeDetails = async function (item) {
+        if (!item) return null;
+        var mdId = await resolveMangaDexId(item);
+        if (!mdId) return null;
+        try {
+            var json = await mdFetch('/manga/' + encodeURIComponent(mdId) + '/aggregate');
+            var volumes = json?.volumes || {};
+            var covers = {};
+            try { covers = await getCoverMapCached(mdId); } catch (_) { covers = {}; }
+
+            var out = {};
+            Object.keys(volumes).forEach(function (volKey) {
+                var volNum = normalizeVolKey(volKey);
+                if (!volNum || volNum === 'none') return;
+                var caps = volumes[volKey]?.chapters || {};
+                var capNums = Object.keys(caps)
+                    .map(function (c) { return Number(c); })
+                    .filter(function (c) { return Number.isFinite(c); })
+                    .sort(function (a, b) { return a - b; });
+                var file = covers[volNum];
+                out[volNum] = {
+                    count: Object.keys(caps).length,
+                    first: capNums.length ? capNums[0] : null,
+                    last: capNums.length ? capNums[capNums.length - 1] : null,
+                    cover: file ? (MD_COVER_BASE + '/' + mdId + '/' + file) : null
+                };
+            });
+            return out;
+        } catch (err) {
+            console.warn('resolveMangaDexVolumeDetails error:', err);
+            return null;
+        }
+    };
+
     // MangaDex solo tiene portadas por VOLUMEN, nunca por capítulo. Para que un
     // capítulo muestre "su" foto usamos la del tomo que lo contiene. El endpoint
     // /manga/{id}/aggregate lista, tomo por tomo, qué capítulos incluye; con eso

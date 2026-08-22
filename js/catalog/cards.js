@@ -305,15 +305,29 @@ function buildCatalogCardHtml(options) {
     const detailBtn = showDetail
         ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">DETALLE</a>`
         : '';
-    // Botón ancho (separado del de DETALLE) que abre la vista rápida con la
-    // lista de episodios/volúmenes y su estado de visto. La maneja
-    // js/catalog/chapters-modal.js por delegación (data-action="chapters").
+    // Botón ancho (separado del de DETALLE) que lleva a la página de volúmenes
+    // (volumenes.html): una lista donde cada volumen ocupa una fila con su
+    // portada, capítulos y estado de lectura. Antes abría un modal por encima de
+    // las cards; ahora es una página aparte a la que se navega con todos los
+    // datos de la obra en la query string.
     const chaptersLabel = categoria === 'anime' ? 'Ver episodios' : 'Ver volúmenes y capítulos';
     const chaptersShort = categoria === 'anime' ? 'EPISODIOS' : 'VOLÚMENES';
-    const chaptersBtn = `<button class="card-back-chapters-btn" type="button" aria-label="${escapeHtml(chaptersLabel)}" title="${escapeHtml(chaptersLabel)}" data-item-id="${escapeHtml(String(id))}" data-action="chapters">
+    // Prefijo (EP/VOL/CH) coherente con buildCatalogBackProgressHtml, para que la
+    // página muestre el mismo tipo de unidad que la card.
+    const volsPrefix = categoria === 'anime' ? 'EP' : (volCount > 0 ? 'VOL' : 'CH');
+    const volsUrl = 'volumenes.html?cat=' + encodeURIComponent(categoria)
+        + '&id=' + encodeURIComponent(String(id))
+        + '&nombre=' + encodeURIComponent(title)
+        + '&img=' + encodeURIComponent(image || '')
+        + '&total=' + encodeURIComponent(String(progressTotal || 0))
+        + '&prefix=' + encodeURIComponent(volsPrefix)
+        + '&estado=' + encodeURIComponent(status || '')
+        + (captionInfo ? '&tipo=' + encodeURIComponent(captionInfo) : '')
+        + (titleAlt ? '&alt=' + encodeURIComponent(String(titleAlt)) : '');
+    const chaptersBtn = `<a class="card-back-chapters-btn" href="${escapeHtml(volsUrl)}" aria-label="${escapeHtml(chaptersLabel)}" title="${escapeHtml(chaptersLabel)}" data-remember-catalog="1">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                         <span>${escapeHtml(chaptersShort)}</span>
-                    </button>`;
+                    </a>`;
     const statusHtml = bandLabel
         ? `<span class="card-back-status-badge">${escapeHtml(bandLabel)}</span>`
         : '';
