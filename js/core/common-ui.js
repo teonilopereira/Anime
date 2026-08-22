@@ -569,6 +569,19 @@
         } catch { /* no-op (prefs) */ }
     })();
 
+    // ── Tamaño de los cuadrados de detalle (localStorage → CSS var) ──
+    (() => {
+        try {
+            const sq = localStorage.getItem('pref:detailSquareSize');
+            if (sq) {
+                const n = parseInt(sq, 10);
+                if (n >= (AnimeDestiny.Constants.DETAIL_SQUARE_MIN || 48) && n <= (AnimeDestiny.Constants.DETAIL_SQUARE_MAX || 120)) {
+                    document.documentElement.style.setProperty('--detail-square-size', String(n) + 'px');
+                }
+            }
+        } catch { /* no-op (prefs) */ }
+    })();
+
     // ── RUN ──
     const installSecurityHandlers = () => {
         if (window.__adSecurityHandlersInstalled) return;

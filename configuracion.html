@@ -19,15 +19,15 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=e30ea988">
+        <link rel="stylesheet" href="css/bundle.min.css?v=bb284fbb">
 
-    <link rel="stylesheet" href="css/configuracion.css?v=e30ea988">
+    <link rel="stylesheet" href="css/configuracion.css?v=bb284fbb">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=e30ea988">
-    <script src="js/vendor/lucide.min.js?v=e30ea988" defer></script>
-    <script src="js/core/theme.js?v=e30ea988"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=bb284fbb">
+    <script src="js/vendor/lucide.min.js?v=bb284fbb" defer></script>
+    <script src="js/core/theme.js?v=bb284fbb"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="configuracion">
@@ -196,6 +196,14 @@
                     </div>
                     <p class="cfg-note cfg-note-sm" data-i18n="config.cpr.nota">Solo aplica en pantallas grandes; en el celular se mantiene el diseño responsive.</p>
                 </div>
+                <div class="cfg-slider-wrap">
+                    <label for="sqSizeSlider" class="cfg-toggle-label" data-i18n="config.sqsize.titulo">Tamaño de los cuadrados de detalles</label>
+                    <div class="cfg-toggle-desc" data-i18n="config.sqsize.desc">Cambia el tamaño de los cuadrados de capítulos, episodios y volúmenes en cada ficha.</div>
+                    <div class="cfg-slider-inner">
+                        <input type="range" id="sqSizeSlider" class="cfg-range" min="48" max="120" value="70" step="2">
+                        <span id="sqSizeValue" class="cfg-cpr-value">70</span>
+                    </div>
+                </div>
             </div>
 
             <!-- -- COLORES -- -->
@@ -290,18 +298,18 @@
     <!-- Toast -->
     <div class="cfg-toast" id="cfgToast"></div>
 
-    <script src="js/core/config.js?v=e30ea988"></script>
-    <script src="js/core/i18n.js?v=e30ea988"></script>
+    <script src="js/core/config.js?v=bb284fbb"></script>
+    <script src="js/core/i18n.js?v=bb284fbb"></script>
 
-    <script src="js/core/constants.js?v=e30ea988"></script>
-    <script src="js/core/namespace.js?v=e30ea988"></script>
-<script type="module" src="api/supabase-config.js?v=e30ea988" async></script>
-    <script src="js/core/user-store.js?v=e30ea988" defer></script>
-    <script src="js/core/auth.js?v=e30ea988" defer></script>
-    <script src="js/core/push.js?v=e30ea988" defer></script>
+    <script src="js/core/constants.js?v=bb284fbb"></script>
+    <script src="js/core/namespace.js?v=bb284fbb"></script>
+<script type="module" src="api/supabase-config.js?v=bb284fbb" async></script>
+    <script src="js/core/user-store.js?v=bb284fbb" defer></script>
+    <script src="js/core/auth.js?v=bb284fbb" defer></script>
+    <script src="js/core/push.js?v=bb284fbb" defer></script>
 
-    <script src="js/ui/mascot.js?v=e30ea988" defer></script>
-    <script src="js/pages/configuracion.js?v=e30ea988" defer></script>
-    <script src="js/core/common-ui.js?v=e30ea988" defer></script>
+    <script src="js/ui/mascot.js?v=bb284fbb" defer></script>
+    <script src="js/pages/configuracion.js?v=bb284fbb" defer></script>
+    <script src="js/core/common-ui.js?v=bb284fbb" defer></script>
 </body>
 </html>

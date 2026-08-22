@@ -16,6 +16,9 @@
         CARDS_PER_ROW_MIN: 2,
         CARDS_PER_ROW_MAX: 8,
         CARDS_PER_ROW_DEFAULT: 4,
+        DETAIL_SQUARE_MIN: 48,
+        DETAIL_SQUARE_MAX: 120,
+        DETAIL_SQUARE_DEFAULT: 70,
         TOAST_DURATION_MS: 4000,
         XP_BASE: 100,
         XP_MULTIPLIER: 1.2,
@@ -8844,6 +8847,19 @@ window.addEventListener("supabase-auth-changed", function () {
                 if (n >= (AnimeDestiny.Constants.CARDS_PER_ROW_MIN || 2) && n <= (AnimeDestiny.Constants.CARDS_PER_ROW_MAX || 8)) {
                     document.documentElement.style.setProperty('--cards-per-row', String(n));
                     document.body.classList.add('fixed-cards-row');
+                }
+            }
+        } catch { /* no-op (prefs) */ }
+    })();
+
+    // ── Tamaño de los cuadrados de detalle (localStorage → CSS var) ──
+    (() => {
+        try {
+            const sq = localStorage.getItem('pref:detailSquareSize');
+            if (sq) {
+                const n = parseInt(sq, 10);
+                if (n >= (AnimeDestiny.Constants.DETAIL_SQUARE_MIN || 48) && n <= (AnimeDestiny.Constants.DETAIL_SQUARE_MAX || 120)) {
+                    document.documentElement.style.setProperty('--detail-square-size', String(n) + 'px');
                 }
             }
         } catch { /* no-op (prefs) */ }
