@@ -6952,6 +6952,19 @@ body.reduce-motion .destiny-navbar {
         padding: 0 20px;
     }
 
+    /* El desplegable "Más" cae como panel absoluto (top: 100%+8px) sobre la
+       zona de nav-actions (buscador + usuario). Como .nav-actions tiene
+       z-index:1 y crea su propio contexto de apilado, el panel —aun con su
+       z-index:10— quedaba PINTADO POR DEBAJO y sus items (Calendario, Ranking…)
+       no recibían el tap: parecía que el botón no funcionaba. Elevando el
+       contenedor de links por encima de nav-actions, el panel vuelve a quedar
+       arriba y clickeable. No molesta con el panel cerrado: los links y
+       nav-actions ocupan filas distintas y no se superponen. */
+    #nav-links-container {
+        position: relative;
+        z-index: 5;
+    }
+
     /* ── Mostrar bottom tab bar ── */
     .mobile-bottom-nav {
         display: flex;

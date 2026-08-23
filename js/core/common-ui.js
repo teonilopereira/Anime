@@ -320,12 +320,13 @@
                 e.stopPropagation();
                 const isOpen = navbar.classList.toggle('is-open');
                 moreBtn.classList.toggle('is-open', isOpen);
-                if (!isOpen && typeof window.__navMoreClose === 'function') window.__navMoreClose();
+                // Al cerrar la hoja se contrae también el menú secundario, para
+                // que la próxima vez que se abra no aparezca ya desplegado.
+                if (typeof window.__navMoreClose === 'function') window.__navMoreClose();
                 if (isOpen) {
-                    // El menú secundario se abre solo: si no, el que viene
-                    // buscando Comparar o Ranking tiene que adivinar que hay
-                    // que tocar otro botón más.
-                    if (typeof window.__navMoreOpen === 'function') window.__navMoreOpen();
+                    // El menú secundario arranca contraído: la hoja muestra las
+                    // pestañas principales y el botón "Más", y quien busca
+                    // Calendario/Comparar/Ranking lo toca para desplegarlo.
                     const input = navbar.querySelector('.nav-search-input');
                     if (input) setTimeout(() => input.focus(), 100);
                 }
