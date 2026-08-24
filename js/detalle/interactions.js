@@ -94,7 +94,7 @@ async function fetchKitsuEpisode(anilistId, ep) {
     }
 }
 
-async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
+async function showEpisodeInfoModal(item, epNum, isAnime, categoria, coverHint) {
     const modal = document.getElementById('resumenModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
@@ -204,7 +204,17 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria) {
             const isMangaDexUuid = (value) => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
             const hasMangaDexSource = isMangaDexUuid(item?.id) || isMangaDexUuid(item?.mangadex_id) || isMangaDexUuid(item?.mangaDexId);
 
-            let coverHtml = `
+            // Pista de portada: la tapa que ya se veía en el tomo de la grilla
+            // (portada específica del volumen). Se muestra al instante y luego,
+            // si MangaDex resuelve una mejor, se reemplaza.
+            const hintCover = (typeof coverHint === 'string' && coverHint) ? coverHint : '';
+            let coverHtml = hintCover
+                ? `
+                <div class="modal-volume-cover">
+                    <img src="${safeUrl(hintCover)}" alt="Portada Volumen ${epNum}" referrerpolicy="no-referrer">
+                </div>
+            `
+                : `
                 <div class="modal-volume-cover modal-volume-cover--empty" aria-hidden="true">
                     <span>Portada del volumen no disponible</span>
                 </div>

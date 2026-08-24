@@ -601,7 +601,7 @@
 
 .modal-volume-cover {
     width: 100%;
-    max-width: 200px;
+    max-width: 260px;
     aspect-ratio: 2 / 3;
     margin: 0 auto 15px;
     overflow: hidden;
