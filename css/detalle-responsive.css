@@ -346,6 +346,14 @@ a.season-chain-item:hover {
     .cuadrado-item {
         min-height: 56px;
     }
+    /* Tomos algo más chicos y juntos en pantallas angostas. */
+    .vol-grid {
+        grid-template-columns: repeat(auto-fill, minmax(clamp(76px, var(--detail-square-size, 92px), 130px), 1fr));
+        gap: 10px;
+    }
+    .vol-tomo.has-cover {
+        min-height: 0;
+    }
     .modal-content {
         max-height: 90vh;
     }
