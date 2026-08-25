@@ -88,7 +88,11 @@ function renderDetalle(item, nombreUrl, categoria) {
     const editor = item.editor ?? item.publisher ?? null;
 
     const volumenes = item.volumes ?? item.volumenes ?? item.volumen ?? item.vols ?? null;
-    const totalVols = parseVolumenes(volumenes);
+    // Cantidad de tomos declarada por la API. Muchas obras (en curso, o
+    // indexadas sin lastVolume) la traen en 0/null aunque tengan tomos
+    // publicados: en ese caso se resuelve luego contra MangaDex (ver
+    // resolveEffectiveVolumeCount más abajo), así que no es const.
+    let totalVols = parseVolumenes(volumenes);
     const userId = getCurrentUserIdSafe();
 
     // El titulo va con el nombre de la obra primero: es lo que se lee en la
@@ -246,14 +250,14 @@ function renderDetalle(item, nombreUrl, categoria) {
             `;
     };
 
-    if (isMangaOrNovela && totalVols > 0) {
+    if (isMangaOrNovela) {
         const markedVolumes = Array.from({ length: totalVols }, (_, i) => {
             const v = i + 1;
             return UserStore.getItem(volumeStorageKey(userId, item.id, v, categoria)) ? 1 : 0;
         }).reduce((acc, value) => acc + value, 0);
         const pct = totalVols > 0 ? Math.round((markedVolumes / totalVols) * 100) : 0;
         progressPanelHtml = `
-            <div class="detail-progress-card">
+            <div class="detail-progress-card"${totalVols > 0 ? '' : ' hidden'}>
                 <div class="detail-progress-head">
                     <span>Progreso</span>
                     <strong>${pct}% visto</strong>
@@ -264,7 +268,10 @@ function renderDetalle(item, nombreUrl, categoria) {
                 <div class="detail-progress-meta">${markedVolumes} de ${totalVols} volúmenes marcados</div>
             </div>
         `;
-        // Render por bloques para no inyectar cientos de nodos de una
+        // Render por bloques para no inyectar cientos de nodos de una. Cuando la
+        // API no declaró tomos (totalVols === 0) la grilla arranca vacía con un
+        // aviso de carga y se completa al resolver el conteo real en MangaDex
+        // (resolveEffectiveVolumeCount, en el bloque de eventos de abajo).
         const firstChunk = Math.min(VOL_CHUNK, totalVols);
         let buttons = '';
         for (let v = 1; v <= firstChunk; v++) buttons += buildVolButton(v);
@@ -275,8 +282,10 @@ function renderDetalle(item, nombreUrl, categoria) {
         extraBlockHtml = `
             <div class="detail-section">
                 <h2 class="detail-h2">Volúmenes</h2>
-                <p class="detail-help">Tocá un volumen para marcarlo en verde (guardado por usuario).</p>
+                <p class="detail-help" data-vol-help${totalVols > 0 ? '' : ' hidden'}>Tocá un tomo para ver su portada; usá el botón "Leído" para marcarlo.</p>
+                <p class="detail-help" data-vol-loading${totalVols > 0 ? ' hidden' : ''}>Buscando los tomos publicados…</p>
                 <div class="vol-grid" data-manga-id="${escapeHtml(item.id)}" data-total-vols="${totalVols}">${buttons}</div>
+                <p class="capitulos-empty" data-vol-empty hidden>La API no informó tomos para este título.</p>
             </div>
         `;
     }
@@ -691,7 +700,7 @@ function renderDetalle(item, nombreUrl, categoria) {
  
     renderProgressPanel();
 
-    if (isMangaOrNovela && totalVols > 0) {
+    if (isMangaOrNovela) {
         const grid = localLayout.querySelector('.vol-grid');
         if (grid) {
             // Reemplaza la portada genérica de cada cuadro por la real del tomo
@@ -710,21 +719,84 @@ function renderDetalle(item, nombreUrl, categoria) {
             };
             loadDetailVolCovers();
 
-            // Traer progreso desde SQL y reflejarlo en la UI (si hay sesión).
-            syncProgressFromSupabase(categoria, item.id).then(() => {
+            // Refleja en cada tomo (borde/badge y botón "Leído") el progreso ya
+            // guardado. Se usa al pintar y tras completar la grilla asíncrona.
+            const syncVolStates = () => {
                 grid.querySelectorAll('button.vol-btn').forEach((btn) => {
-                    const vol = Number.parseInt(btn.getAttribute('data-vol') || btn.getAttribute('data-vol-ver') || '', 10);
+                    const vol = Number.parseInt(btn.getAttribute('data-vol-ver') || btn.getAttribute('data-vol') || '', 10);
                     if (!Number.isFinite(vol) || vol <= 0) return;
-                    const key = volumeStorageKey(getCurrentUserIdSafe(), item.id, vol, categoria);
-                    const on = !!UserStore.getItem(key);
+                    const on = !!UserStore.getItem(volumeStorageKey(getCurrentUserIdSafe(), item.id, vol, categoria));
                     btn.classList.toggle('is-active', on);
-                    const wrapper = btn.closest('.cuadrado-wrapper');
-                    const chk = wrapper ? wrapper.querySelector('.vol-check-btn') : null;
+                    const chk = btn.closest('.cuadrado-wrapper')?.querySelector('.vol-check-btn');
                     if (chk) {
                         chk.classList.toggle('is-active', on);
                         chk.setAttribute('aria-pressed', on ? 'true' : 'false');
                     }
                 });
+            };
+
+            // Completa la grilla cuando la API no declaró tomos: pinta `count`
+            // tomos, muestra el panel de progreso y engancha portadas/estado.
+            const populateVols = (count) => {
+                if (!(count > 0)) return;
+                totalVols = count;
+                grid.setAttribute('data-total-vols', String(count));
+                const firstChunk = Math.min(VOL_CHUNK, count);
+                let html = '';
+                for (let v = 1; v <= firstChunk; v++) html += buildVolButton(v);
+                if (count > firstChunk) {
+                    html += `<button type="button" class="vol-grid-more">Mostrar más (${count - firstChunk} restantes)</button>`;
+                }
+                grid.innerHTML = html;
+                const card = localLayout.querySelector('.detail-progress-card');
+                if (card) card.hidden = false;
+                const help = localLayout.querySelector('[data-vol-help]');
+                if (help) help.hidden = false;
+                loadDetailVolCovers();
+                syncVolStates();
+                renderProgressPanel();
+            };
+
+            // Si la API no informó cantidad de tomos, se resuelve contra MangaDex
+            // (mismo mapa de portadas que ya se usa): el mayor número de volumen
+            // con portada publicada es la cantidad de tomos. Así las obras en
+            // curso o sin lastVolume también muestran sus tomos, no solo las que
+            // traen el conteo (p. ej. Jujutsu Kaisen).
+            if (totalVols === 0 && categoria === 'manga') {
+                const loadingEl = localLayout.querySelector('[data-vol-loading]');
+                const emptyEl = localLayout.querySelector('[data-vol-empty]');
+                (async () => {
+                    let count = 0;
+                    try {
+                        if (typeof window.resolveMangaDexVolumeCoverMap === 'function') {
+                            const map = await window.resolveMangaDexVolumeCoverMap(item);
+                            if (map) {
+                                Object.keys(map).forEach((k) => {
+                                    const n = Number.parseInt(k, 10);
+                                    if (Number.isFinite(n) && n > count) count = n;
+                                });
+                            }
+                        }
+                    } catch (e) { /* silencioso */ }
+                    if (loadingEl) loadingEl.hidden = true;
+                    if (count > 0) {
+                        populateVols(count);
+                    } else if (emptyEl) {
+                        emptyEl.hidden = false;
+                    }
+                })();
+            } else if (totalVols === 0) {
+                // Novelas u obras sin conteo que no se resuelven en MangaDex:
+                // no dejar el aviso de carga colgado.
+                const loadingEl = localLayout.querySelector('[data-vol-loading]');
+                const emptyEl = localLayout.querySelector('[data-vol-empty]');
+                if (loadingEl) loadingEl.hidden = true;
+                if (emptyEl) emptyEl.hidden = false;
+            }
+
+            // Traer progreso desde SQL y reflejarlo en la UI (si hay sesión).
+            syncProgressFromSupabase(categoria, item.id).then(() => {
+                syncVolStates();
                 renderProgressPanel();
             });
 
