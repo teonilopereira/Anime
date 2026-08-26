@@ -1,6 +1,15 @@
 (function () {
     "use strict";
 
+    // Traducción con fallback al español si i18n aún no cargó.
+    function loginTr(key, fallback, args) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+            const out = window.AppI18n.t(key, args);
+            if (out && out.charAt(0) !== '[') return out;
+        }
+        return fallback;
+    }
+
     const form = document.getElementById("loginForm");
     const title = document.getElementById("loginTitle");
     const tabLogin = document.getElementById("tabLogin");
@@ -99,8 +108,8 @@
         usernameField.classList.toggle("is-hidden", !isRegister);
         usernameInput.required = isRegister;
         passwordInput.autocomplete = isRegister ? "new-password" : "current-password";
-        title.textContent = isRegister ? "Crear cuenta" : "Iniciar sesión";
-        submitBtn.textContent = isRegister ? "Crear cuenta" : "Entrar";
+        title.textContent = isRegister ? loginTr('login.msg.crear_cuenta', "Crear cuenta") : loginTr('login.msg.iniciar_sesion', "Iniciar sesión");
+        submitBtn.textContent = isRegister ? loginTr('login.msg.crear_cuenta', "Crear cuenta") : loginTr('login.msg.entrar', "Entrar");
         setStatus("");
     }
 
@@ -110,7 +119,7 @@
             || user.user_metadata?.name
             || user.user_metadata?.full_name
             || (user.email ? user.email.split("@")[0] : "")
-            || "Usuario";
+            || loginTr('nav.usuario', "Usuario");
     }
 
     // Adapta el panel según haya sesión o no: invitado ve el formulario y
@@ -130,10 +139,10 @@
         logoutBtn.style.display = loggedIn ? "" : "none";
 
         if (loggedIn) {
-            title.textContent = "Tu cuenta";
-            setStatus("Conectado como " + userDisplayName(user) + ".");
+            title.textContent = loginTr('login.msg.tu_cuenta', "Tu cuenta");
+            setStatus(loginTr('login.msg.conectado', "Conectado como {name}.", { name: userDisplayName(user) }));
         } else {
-            title.textContent = mode === "register" ? "Crear cuenta" : "Iniciar sesión";
+            title.textContent = mode === "register" ? loginTr('login.msg.crear_cuenta', "Crear cuenta") : loginTr('login.msg.iniciar_sesion', "Iniciar sesión");
         }
     }
 
@@ -157,18 +166,18 @@
 
     function describeSupabaseUnavailableReason() {
         if (window.location.protocol === "file:") {
-            return "Abrí la página con un servidor local (node tools/serve.cjs). Supabase no funciona bien desde file://.";
+            return loginTr('login.msg.file_protocol', "Abrí la página con un servidor local (node tools/serve.cjs). Supabase no funciona bien desde file://.");
         }
         if (!window.AppConfig?.supabaseUrl || !window.AppConfig?.supabaseAnonKey) {
-            return "Falta la configuración de Supabase en js/core/config.js.";
+            return loginTr('login.msg.falta_config', "Falta la configuración de Supabase en js/core/config.js.");
         }
         if (navigator.onLine === false) {
-            return "No hay conexión de red.";
+            return loginTr('login.msg.sin_red', "No hay conexión de red.");
         }
         if (!window.AppSupabase && !window.AppSupabaseReady) {
-            return "No se cargó Supabase. Revisá la conexión o abrí la app desde un servidor local.";
+            return loginTr('login.msg.no_cargo', "No se cargó Supabase. Revisá la conexión o abrí la app desde un servidor local.");
         }
-        return "Supabase no está disponible. Revisá la conexión y recargá la página.";
+        return loginTr('login.msg.no_disponible', "Supabase no está disponible. Revisá la conexión y recargá la página.");
     }
 
     function goHomeSoon() {
@@ -203,45 +212,45 @@
         const username = usernameInput.value.trim();
 
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setStatus("Ingresá un correo válido.");
+            setStatus(loginTr('login.msg.correo_invalido', "Ingresá un correo válido."));
             return;
         }
         if (password.length < (AnimeDestiny.Constants.MIN_PASSWORD_LENGTH || 6)) {
-            setStatus("La contraseña debe tener al menos 6 caracteres.");
+            setStatus(loginTr('login.msg.pass_corta', "La contraseña debe tener al menos 6 caracteres."));
             return;
         }
         if (mode === "register" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) {
-            setStatus("El usuario debe tener al menos 3 caracteres.");
+            setStatus(loginTr('login.msg.usuario_corto', "El usuario debe tener al menos 3 caracteres."));
             return;
         }
 
         submitBtn.disabled = true;
-        setStatus(mode === "register" ? "Creando cuenta..." : "Iniciando sesión...");
+        setStatus(mode === "register" ? loginTr('login.msg.creando', "Creando cuenta...") : loginTr('login.msg.iniciando', "Iniciando sesión..."));
 
         try {
             if (mode === "register") {
                 const data = await client.signUpWithEmail(email, password, username);
                 saveLocalUser();
                 if (data?.session) {
-                    setStatus("Cuenta creada. Entrando...");
+                    setStatus(loginTr('login.msg.cuenta_entrando', "Cuenta creada. Entrando..."));
                     goHomeSoon();
                 } else {
-                    setStatus("Cuenta creada. Revisá tu correo para confirmarla.");
+                    setStatus(loginTr('login.msg.cuenta_confirmar', "Cuenta creada. Revisá tu correo para confirmarla."));
                 }
             } else {
                 const data = await client.signInWithEmail(email, password);
                 saveLocalUser();
-                setStatus("Sesión iniciada.");
+                setStatus(loginTr('login.msg.sesion_iniciada', "Sesión iniciada."));
                 goHomeSoon();
             }
         } catch (error) {
             const message = String(error?.message || "");
             if (message.toLowerCase().includes("invalid login")) {
-                setStatus("Correo o contraseña incorrectos.");
+                setStatus(loginTr('login.msg.credenciales', "Correo o contraseña incorrectos."));
             } else if (message.toLowerCase().includes("email not confirmed")) {
-                setStatus("Confirmá tu correo antes de iniciar sesión.");
+                setStatus(loginTr('login.msg.no_confirmado', "Confirmá tu correo antes de iniciar sesión."));
             } else {
-                setStatus("Error: " + message);
+                setStatus(loginTr('login.msg.error', "Error: {message}", { message: message }));
             }
         } finally {
             submitBtn.disabled = false;
@@ -255,14 +264,14 @@
             return;
         }
         if (typeof client.signInWithGoogle !== 'function') {
-            setStatus("El inicio con Google no está habilitado en esta configuración.");
+            setStatus(loginTr('login.msg.google_no', "El inicio con Google no está habilitado en esta configuración."));
             return;
         }
-        setStatus("Abriendo Google...");
+        setStatus(loginTr('login.msg.abriendo_google', "Abriendo Google..."));
         try {
             await client.signInWithGoogle();
         } catch (error) {
-            setStatus("No se pudo iniciar con Google: " + (error?.message || ""));
+            setStatus(loginTr('login.msg.google_error', "No se pudo iniciar con Google: {message}", { message: error?.message || "" }));
         }
     });
 
@@ -273,12 +282,12 @@
         } finally {
             if (typeof window.refreshUserUi === "function") window.refreshUserUi();
             applyAuthState(null);
-            setStatus("Sesión cerrada.");
+            setStatus(loginTr('login.msg.sesion_cerrada', "Sesión cerrada."));
         }
     });
 
     if (isFileProtocol()) {
-        setStatus("⚠️ Estás usando file://. Usá un servidor local: node tools/serve.cjs");
+        setStatus(loginTr('login.msg.file_warn', "⚠️ Estás usando file://. Usá un servidor local: node tools/serve.cjs"));
     }
 
     // Reaccionar al estado de sesión (se dispara de inmediato con el estado actual)
@@ -292,7 +301,7 @@
                     // sesión: regresamos a la página desde donde se abrió login.
                     if (returningFromOAuth && !oauthRedirectDone) {
                         oauthRedirectDone = true;
-                        setStatus("Sesión iniciada. Volviendo...");
+                        setStatus(loginTr('login.msg.volviendo', "Sesión iniciada. Volviendo..."));
                         setTimeout(
                             redirectToReturn,
                             AnimeDestiny.Constants.LOGIN_REDIRECT_DELAY_MS || 200
