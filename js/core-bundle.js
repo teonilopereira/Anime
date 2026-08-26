@@ -1887,6 +1887,15 @@ function obtenerDetalleItem(categoria, id) {
 (function (window, document) {
     "use strict";
 
+    // Traducción con fallback al español si i18n aún no cargó.
+    function authTr(key, fallback, args) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+            var out = window.AppI18n.t(key, args);
+            if (out && out.charAt(0) !== '[') return out;
+        }
+        return fallback;
+    }
+
     // ─────────────────────────────────────────────
     // Supabase es la ÚNICA fuente de verdad de sesión.
     // No se usa localStorage para tokens ni usuarios.
@@ -2045,10 +2054,10 @@ async function waitForSupabase() {
                     });
                 }
             } else {
-                nameEl.textContent = 'Invitado';
-                btnEl.textContent = 'Ingresar';
+                nameEl.textContent = authTr('nav.usuario_invitado', 'Invitado');
+                btnEl.textContent = authTr('nav.ingresar', 'Ingresar');
                 btnEl.href = 'Login.html';
-                btnEl.setAttribute('aria-label', 'Iniciar sesión');
+                btnEl.setAttribute('aria-label', authTr('auth.iniciar_sesion', 'Iniciar sesión'));
                 avatarEl.classList.remove('has-image');
                 avatarEl.style.removeProperty('background-image');
                 if (gradeEl) { gradeEl.hidden = true; gradeEl.textContent = ''; }
@@ -2071,16 +2080,16 @@ async function waitForSupabase() {
 
         const loginEmail = email || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(username) ? username : "");
 
-        if (!username && !email) return setMsg("Escribí un nombre de usuario o correo.");
-        if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg("El usuario debe tener al menos 3 caracteres.");
-        if (mode === "create" && !isValidGmailAddress(email)) return setMsg("Usá un correo @gmail.com válido.");
-        if (!password || password.length < (AnimeDestiny.Constants.MIN_PASSWORD_LENGTH || 6)) return setMsg("La contraseña debe tener al menos 6 caracteres.");
+        if (!username && !email) return setMsg(authTr('auth.err.falta_usuario', "Escribí un nombre de usuario o correo."));
+        if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg(authTr('auth.err.usuario_corto', "El usuario debe tener al menos 3 caracteres."));
+        if (mode === "create" && !isValidGmailAddress(email)) return setMsg(authTr('auth.err.gmail', "Usá un correo @gmail.com válido."));
+        if (!password || password.length < (AnimeDestiny.Constants.MIN_PASSWORD_LENGTH || 6)) return setMsg(authTr('auth.err.pass_corta', "La contraseña debe tener al menos 6 caracteres."));
 
-        setMsg(mode === "create" ? "Creando cuenta..." : "Iniciando sesión...");
+        setMsg(mode === "create" ? authTr('auth.creando', "Creando cuenta...") : authTr('auth.iniciando', "Iniciando sesión..."));
 
         const client = await waitForSupabase();
         if (!client?.client) {
-            setMsg("No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.");
+            setMsg(authTr('auth.err.sin_servidor', "No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo."));
             return;
         }
 
@@ -2095,42 +2104,42 @@ async function waitForSupabase() {
                 if (error) {
                     if (error.message?.toLowerCase().includes("already registered") ||
                         error.message?.toLowerCase().includes("already exists")) {
-                        setMsg("Ese correo ya tiene una cuenta. Iniciá sesión en cambio.");
+                        setMsg(authTr('auth.err.ya_existe', "Ese correo ya tiene una cuenta. Iniciá sesión en cambio."));
                     } else if (error.message?.toLowerCase().includes("invalid email")) {
-                        setMsg("El correo ingresado no es válido.");
+                        setMsg(authTr('auth.err.email_invalido', "El correo ingresado no es válido."));
                     } else if (error.message?.toLowerCase().includes("password")) {
-                        setMsg("La contraseña es muy débil. Usá al menos 6 caracteres.");
+                        setMsg(authTr('auth.err.pass_debil', "La contraseña es muy débil. Usá al menos 6 caracteres."));
                     } else {
-                        setMsg("Error al crear cuenta. Intentá de nuevo.");
+                        setMsg(authTr('auth.err.crear', "Error al crear cuenta. Intentá de nuevo."));
                     }
                     return;
                 }
 
                 if (data?.user && !data?.session) {
-                    setMsg("✅ Cuenta creada. Revisá tu correo para confirmarla.");
+                    setMsg(authTr('auth.ok.confirmar', "✅ Cuenta creada. Revisá tu correo para confirmarla."));
                     window.setTimeout(closeUserModal, 2500);
                     return;
                 }
 
                 if (data?.session) {
                     await refreshUserUi();
-                    setMsg("✅ Cuenta creada exitosamente.");
+                    setMsg(authTr('auth.ok.creada', "✅ Cuenta creada exitosamente."));
                     window.setTimeout(closeUserModal, 800);
                     return;
                 }
 
-                setMsg("Cuenta creada. Iniciá sesión para continuar.");
+                setMsg(authTr('auth.ok.creada_login', "Cuenta creada. Iniciá sesión para continuar."));
                 window.setTimeout(closeUserModal, 1500);
 
             } catch (err) {
                 console.error("Error inesperado al crear cuenta:", err);
-                setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
+                setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
             }
             return;
         }
 
         if (!loginEmail) {
-            setMsg("Ingresá tu correo electrónico para iniciar sesión.");
+            setMsg(authTr('auth.err.falta_email', "Ingresá tu correo electrónico para iniciar sesión."));
             return;
         }
 
@@ -2143,14 +2152,14 @@ async function waitForSupabase() {
             if (error) {
                 if (error.message?.toLowerCase().includes("invalid login") ||
                     error.message?.toLowerCase().includes("invalid credentials")) {
-                    setMsg("Correo o contraseña incorrectos.");
+                    setMsg(authTr('auth.err.credenciales', "Correo o contraseña incorrectos."));
                 } else if (error.message?.toLowerCase().includes("email not confirmed")) {
-                    setMsg("Confirmá tu correo antes de iniciar sesión.");
+                    setMsg(authTr('auth.err.no_confirmado', "Confirmá tu correo antes de iniciar sesión."));
                 } else if (error.message?.toLowerCase().includes("network") ||
                            error.message?.toLowerCase().includes("fetch")) {
-                    setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
+                    setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
                 } else {
-                    setMsg("Error al iniciar sesión. Intentá de nuevo.");
+                    setMsg(authTr('auth.err.login', "Error al iniciar sesión. Intentá de nuevo."));
                 }
                 return;
             }
@@ -2162,11 +2171,11 @@ async function waitForSupabase() {
                 return;
             }
 
-            setMsg("No se pudo iniciar sesión. Intentá de nuevo.");
+            setMsg(authTr('auth.err.no_login', "No se pudo iniciar sesión. Intentá de nuevo."));
 
         } catch (err) {
             console.error("Error inesperado al iniciar sesión:", err);
-            setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
+            setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
         }
     }
 
@@ -2226,9 +2235,9 @@ async function waitForSupabase() {
         if (window.Toast) {
             setTimeout(function () {
                 if (streak && streak.count > 1) {
-                    window.Toast.success("¡Racha de " + streak.count + " días! (+" + delta + " EXP)");
+                    window.Toast.success(authTr('auth.racha', "¡Racha de {count} días! (+{delta} EXP)", { count: streak.count, delta: delta }));
                 } else {
-                    window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+                    window.Toast.success(authTr('auth.bienvenido', "¡Bienvenido! (+{delta} EXP por login diario)", { delta: delta }));
                 }
             }, 800);
         }
@@ -5200,6 +5209,15 @@ window.CharacterRegistry = [
 (function (window) {
     "use strict";
 
+    // Traducción con fallback al español si i18n aún no cargó.
+    function stTr(key, fallback, args) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+            const out = window.AppI18n.t(key, args);
+            if (out && out.charAt(0) !== '[') return out;
+        }
+        return fallback;
+    }
+
     const SYNC_QUEUE_KEY = "syncQueue";
 
     function getSyncQueue() {
@@ -5231,7 +5249,7 @@ window.CharacterRegistry = [
                     await client.addExperience(op.payload.delta);
                 }
             } catch (error) {
-                if (isSessionExpired(error)) showSyncToast('Sesión expirada. Los cambios pendientes se reintentarán automáticamente.', 'session-expired');
+                if (isSessionExpired(error)) showSyncToast(stTr('toast.session.pending', 'Sesión expirada. Los cambios pendientes se reintentarán automáticamente.'), 'session-expired');
                 remaining.push(op);
             }
         }
@@ -5254,7 +5272,7 @@ window.CharacterRegistry = [
             return;
         }
         client.saveItemState(payload).catch((error) => {
-            if (isSessionExpired(error)) showSyncToast('Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.', 'session-expired');
+            if (isSessionExpired(error)) showSyncToast(stTr('toast.session.progress', 'Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.'), 'session-expired');
             console.warn('No se pudo sincronizar estado a Supabase:', error);
             enqueueSync({ type: "item_state", payload });
         });
@@ -5262,11 +5280,19 @@ window.CharacterRegistry = [
 
     // ─── Estados de seguimiento (viendo / pendiente / pausado / abandonado) ──
     const WATCH_STATUSES = ['viendo', 'pendiente', 'pausado', 'abandonado'];
+    // Etiquetas de seguimiento resueltas por i18n en el momento de usarse
+    // (reutilizan las claves card.seguimiento.* del selector de la card).
+    const WATCH_STATUS_KEYS = {
+        viendo: ['card.seguimiento.viendo', 'Viendo'],
+        pendiente: ['card.seguimiento.pendiente', 'Pendiente'],
+        pausado: ['card.seguimiento.pausado', 'En pausa'],
+        abandonado: ['card.seguimiento.abandonado', 'Abandonado']
+    };
     const WATCH_STATUS_LABELS = {
-        viendo: 'Viendo',
-        pendiente: 'Pendiente',
-        pausado: 'En pausa',
-        abandonado: 'Abandonado'
+        get viendo() { return stTr.apply(null, WATCH_STATUS_KEYS.viendo); },
+        get pendiente() { return stTr.apply(null, WATCH_STATUS_KEYS.pendiente); },
+        get pausado() { return stTr.apply(null, WATCH_STATUS_KEYS.pausado); },
+        get abandonado() { return stTr.apply(null, WATCH_STATUS_KEYS.abandonado); }
     };
 
     function watchStatusKey(userId, itemId) {
@@ -5320,8 +5346,8 @@ window.CharacterRegistry = [
         );
 
         if (window.Toast) {
-            if (clean) window.Toast.success('Estado: ' + WATCH_STATUS_LABELS[clean]);
-            else window.Toast.info('Estado de seguimiento quitado');
+            if (clean) window.Toast.success(stTr('toast.estado', 'Estado: {label}', { label: WATCH_STATUS_LABELS[clean] }));
+            else window.Toast.info(stTr('toast.estado_quitado', 'Estado de seguimiento quitado'));
         }
         return clean;
     }
@@ -5355,7 +5381,7 @@ window.CharacterRegistry = [
             return;
         }
         client.addExperience(effectiveDelta).catch((error) => {
-            if (isSessionExpired(error)) showSyncToast('Sesión expirada. La experiencia se sincronizará al reconectar.', 'session-expired');
+            if (isSessionExpired(error)) showSyncToast(stTr('toast.session.exp', 'Sesión expirada. La experiencia se sincronizará al reconectar.'), 'session-expired');
             enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
         });
     }
@@ -5636,7 +5662,7 @@ window.CharacterRegistry = [
                 const metaEl = progressBox.querySelector('[data-meta-text]');
 
                 if (fillEl) fillEl.style.width = `${meta.pct}%`;
-                if (pctEl) pctEl.textContent = `${meta.pct}% VISTO`;
+                if (pctEl) pctEl.textContent = stTr('card.pct_visto', `${meta.pct}% VISTO`, { pct: meta.pct });
                 if (pctOnlyEl) pctOnlyEl.textContent = `${meta.pct}%`;
                 if (metaEl) {
                     const pr = progressBox.getAttribute('data-prefix') || 'EP';
@@ -5672,15 +5698,15 @@ window.CharacterRegistry = [
             if (typeof window._invalidateProgressIndex === 'function') window._invalidateProgressIndex();
             addUserPoints(userId, xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.success(`¡Agregado a Favoritos! ❤️ (+${xp} EXP)`);
-                if (type === 'viewed') window.Toast.success(`¡Marcado como Visto! 👁️ (+${xp} EXP)`);
+                if (type === 'fav') window.Toast.success(stTr('toast.fav_add', `¡Agregado a Favoritos! ❤️ (+${xp} EXP)`, { xp: xp }));
+                if (type === 'viewed') window.Toast.success(stTr('toast.visto_add', `¡Marcado como Visto! 👁️ (+${xp} EXP)`, { xp: xp }));
             }
         } else {
             UserStore.removeItem(storageKey);
             addUserPoints(userId, -xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.info(`Quitado de Favoritos (-${xp} EXP)`);
-                if (type === 'viewed') window.Toast.info(`Marcado como no visto (-${xp} EXP)`);
+                if (type === 'fav') window.Toast.info(stTr('toast.fav_remove', `Quitado de Favoritos (-${xp} EXP)`, { xp: xp }));
+                if (type === 'viewed') window.Toast.info(stTr('toast.visto_remove', `Marcado como no visto (-${xp} EXP)`, { xp: xp }));
             }
         }
 
@@ -5911,6 +5937,16 @@ window.CharacterRegistry = [
 // Render de tarjetas, progreso y carga de catálogo desde API
 // ==========================================
 
+// Traducción con fallback: si i18n aún no cargó (o la clave no existe),
+// devolvemos el texto en español para no dejar la tarjeta en blanco.
+function catTr(key, fallback, args) {
+    if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+        const out = window.AppI18n.t(key, args);
+        if (out && out.charAt(0) !== '[') return out;
+    }
+    return fallback;
+}
+
 const CATALOG_FLIP_ICON_SVG = '<svg class="catalog-flip-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>';
 
 var SKELETON_COUNT = AnimeDestiny.Constants.SKELETON_COUNT || 40;
@@ -5943,17 +5979,22 @@ function getApiPoster(item) {
 
 function getApiCatalogInfo(categoria, item) {
     if (categoria === 'anime') {
-        const parts = [item?.type, item?.episodes ? `${item.episodes} eps` : '', item?.status].filter(Boolean);
-        return parts.join(' / ') || 'Anime';
+        const eps = item?.episodes ? `${item.episodes} ${catTr('card.unit.eps', 'eps')}` : '';
+        const parts = [item?.type, eps, item?.status].filter(Boolean);
+        return parts.join(' / ') || catTr('card.type.anime', 'Anime');
     }
 
     const typeLabel = String(item?.type || '').toLowerCase().includes('light')
-        ? 'Novela ligera'
-        : (String(item?.type || '').toLowerCase() === 'novel' ? 'Novela' : (item?.type || 'Manga'));
-    const volcap = item?.volumes ? `${item.volumes} vol.` : (item?.chapters ? `${item.chapters} cap.` : '');
+        ? catTr('card.type.novela_ligera', 'Novela ligera')
+        : (String(item?.type || '').toLowerCase() === 'novel'
+            ? catTr('card.type.novela', 'Novela')
+            : (item?.type || catTr('card.type.manga', 'Manga')));
+    const volcap = item?.volumes
+        ? `${item.volumes} ${catTr('card.unit.vol', 'vol.')}`
+        : (item?.chapters ? `${item.chapters} ${catTr('card.unit.cap', 'cap.')}` : '');
     const parts = [typeLabel, volcap, item?.status].filter(Boolean);
-    if (categoria === 'novelas') return parts.join(' / ') || 'Novela';
-    return parts.join(' / ') || 'Manga';
+    if (categoria === 'novelas') return parts.join(' / ') || catTr('card.type.novela', 'Novela');
+    return parts.join(' / ') || catTr('card.type.manga', 'Manga');
 }
 
 
@@ -5994,13 +6035,13 @@ function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
     var prefix, label;
     if (categoria === 'anime') {
         prefix = 'EP';
-        label = 'capítulos';
+        label = catTr('card.label.capitulos', 'capítulos');
     } else if (volCount > 0) {
         prefix = 'VOL';
-        label = 'volúmenes';
+        label = catTr('card.label.volumenes', 'volúmenes');
     } else {
         prefix = 'CH';
-        label = 'capítulos';
+        label = catTr('card.label.capitulos', 'capítulos');
     }
     const safeTotal = Number(total) > 0 ? Number(total) : 0;
     
@@ -6009,12 +6050,12 @@ function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
         return `
         <div class="card-back-progress-wrapper" data-progress data-total="0" data-label="${label}" data-prefix="${prefix}">
             <div class="card-back-progress-card card-back-no-progress-card">
-                <span class="no-progress-text">Progreso libre</span>
-                <span class="no-progress-subtext">Marcá como visto completo usando el botón 👁</span>
+                <span class="no-progress-text">${escapeHtml(catTr('card.progreso_libre', 'Progreso libre'))}</span>
+                <span class="no-progress-subtext">${escapeHtml(catTr('card.progreso_libre_sub', 'Marcá como visto completo usando el botón 👁'))}</span>
             </div>
             <div class="card-back-footer-status" style="display:none" data-viewed-footer>
                 <div class="footer-line"></div>
-                <span>100% VISTO</span>
+                <span>${escapeHtml(catTr('card.pct_visto', '100% VISTO', { pct: 100 }))}</span>
                 <div class="footer-line"></div>
             </div>
         </div>`;
@@ -6035,7 +6076,7 @@ function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
             </div>
             <div class="card-back-footer-status">
                 <div class="footer-line"></div>
-                <span data-pct-text>0% VISTO</span>
+                <span data-pct-text>${escapeHtml(catTr('card.pct_visto', '0% VISTO', { pct: 0 }))}</span>
                 <div class="footer-line"></div>
             </div>
         </div>`;
@@ -6105,7 +6146,7 @@ function countAnimeEpisodesWatched(userId, animeId, totalEps) {
 function resolveCatalogProgress(userId, category, itemId, card) {
     const box = card.querySelector('[data-progress]');
     const dataTotal = Number(box?.getAttribute('data-total') || 0);
-    const label = box?.getAttribute('data-label') || (category === 'anime' ? 'capítulos' : 'volúmenes');
+    const label = box?.getAttribute('data-label') || (category === 'anime' ? catTr('card.label.capitulos', 'capítulos') : catTr('card.label.volumenes', 'volúmenes'));
     const viewed = !!UserStore.getItem(statusStorageKey(userId, itemId, 'viewed'));
 
     if (!dataTotal) {
@@ -6153,20 +6194,29 @@ window.toggleCardComplete = function (input, itemId) {
 function translateCatalogStatus(status) {
     const s = String(status || '').trim().toUpperCase();
     const map = {
-        'RELEASING': 'En emisión',
-        'CURRENTLY AIRING': 'En emisión',
-        'CURRENTLY PUBLISHING': 'Publicándose',
-        'PUBLISHING': 'Publicándose',
-        'FINISHED': 'Finalizado',
-        'FINISHED AIRING': 'Finalizado',
-        'COMPLETED': 'Finalizado',
-        'NOT_YET_RELEASED': 'Próximamente',
-        'NOT YET AIRED': 'Próximamente',
-        'CANCELLED': 'Cancelado',
-        'HIATUS': 'En pausa',
-        'ON HIATUS': 'En pausa'
+        'RELEASING': 'card.status.releasing',
+        'CURRENTLY AIRING': 'card.status.releasing',
+        'CURRENTLY PUBLISHING': 'card.status.publishing',
+        'PUBLISHING': 'card.status.publishing',
+        'FINISHED': 'card.status.finished',
+        'FINISHED AIRING': 'card.status.finished',
+        'COMPLETED': 'card.status.finished',
+        'NOT_YET_RELEASED': 'card.status.upcoming',
+        'NOT YET AIRED': 'card.status.upcoming',
+        'CANCELLED': 'card.status.cancelled',
+        'HIATUS': 'card.status.hiatus',
+        'ON HIATUS': 'card.status.hiatus'
     };
-    return map[s] || String(status || '').trim();
+    const fallbacks = {
+        'card.status.releasing': 'En emisión',
+        'card.status.publishing': 'Publicándose',
+        'card.status.finished': 'Finalizado',
+        'card.status.upcoming': 'Próximamente',
+        'card.status.cancelled': 'Cancelado',
+        'card.status.hiatus': 'En pausa'
+    };
+    const key = map[s];
+    return key ? catTr(key, fallbacks[key]) : String(status || '').trim();
 }
 
 // Linea secundaria de la card (tipo · episodios), sin el estado: ese ya se
@@ -6208,18 +6258,18 @@ function buildCatalogCardHtml(options) {
 
     const flipId = `flip-${id}`;
     const safeId = escapeHtml(String(id));
-    const bandLabel = translateCatalogStatus(status) || 'En emisión';
+    const bandLabel = translateCatalogStatus(status) || catTr('card.status.releasing', 'En emisión');
     const captionInfo = captionFromInfo(info, status);
     const detailBtn = showDetail
-        ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">DETALLE</a>`
+        ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">${escapeHtml(catTr('card.btn.detalle', 'DETALLE'))}</a>`
         : '';
     // Botón ancho (separado del de DETALLE) que lleva a la página de volúmenes
     // (volumenes.html): una lista donde cada volumen ocupa una fila con su
     // portada, capítulos y estado de lectura. Antes abría un modal por encima de
     // las cards; ahora es una página aparte a la que se navega con todos los
     // datos de la obra en la query string.
-    const chaptersLabel = categoria === 'anime' ? 'Ver episodios' : 'Ver volúmenes y capítulos';
-    const chaptersShort = categoria === 'anime' ? 'EPISODIOS' : 'VOLÚMENES';
+    const chaptersLabel = categoria === 'anime' ? catTr('card.btn.ver_episodios', 'Ver episodios') : catTr('card.btn.ver_vols', 'Ver volúmenes y capítulos');
+    const chaptersShort = categoria === 'anime' ? catTr('card.btn.episodios', 'EPISODIOS') : catTr('card.btn.volumenes', 'VOLÚMENES');
     // Prefijo (EP/VOL/CH) coherente con buildCatalogBackProgressHtml, para que la
     // página muestre el mismo tipo de unidad que la card.
     const volsPrefix = categoria === 'anime' ? 'EP' : (volCount > 0 ? 'VOL' : 'CH');
@@ -6274,34 +6324,34 @@ function buildCatalogCardHtml(options) {
                     <span class="catalog-card-title cband-title">${escapeHtml(title)}</span>
                     ${captionHtml}
                 </div>
-                <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="Ver información de ${escapeHtml(title)}" title="Ver info">
+                <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="${escapeHtml(catTr('card.aria.ver_info', 'Ver información de {title}', { title: title }))}" title="${escapeHtml(catTr('card.aria.ver_info_short', 'Ver info'))}">
                     ${CATALOG_FLIP_ICON_SVG}
                 </label>
             </div>
             <div class="cband-face cband-back">
                 <div class="cband-back-head">
                     <h2 class="card-back-title">${escapeHtml(title)}</h2>
-                    <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="Volver al frente" title="Volver">
+                    <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="${escapeHtml(catTr('card.aria.volver', 'Volver al frente'))}" title="${escapeHtml(catTr('card.aria.volver_short', 'Volver'))}">
                         ${CATALOG_FLIP_ICON_SVG}
                     </label>
                 </div>
                 <div class="cband-back-controls">
                     ${statusHtml}
-                    <select class="watch-status-select" data-item-id="${safeId}" aria-label="Estado de seguimiento">
-                        <option value="">— Seguimiento —</option>
-                        <option value="viendo">Viendo</option>
-                        <option value="pendiente">Pendiente</option>
-                        <option value="pausado">En pausa</option>
-                        <option value="abandonado">Abandonado</option>
+                    <select class="watch-status-select" data-item-id="${safeId}" aria-label="${escapeHtml(catTr('card.aria.seguimiento', 'Estado de seguimiento'))}">
+                        <option value="">${escapeHtml(catTr('card.seguimiento.placeholder', '— Seguimiento —'))}</option>
+                        <option value="viendo">${escapeHtml(catTr('card.seguimiento.viendo', 'Viendo'))}</option>
+                        <option value="pendiente">${escapeHtml(catTr('card.seguimiento.pendiente', 'Pendiente'))}</option>
+                        <option value="pausado">${escapeHtml(catTr('card.seguimiento.pausado', 'En pausa'))}</option>
+                        <option value="abandonado">${escapeHtml(catTr('card.seguimiento.abandonado', 'Abandonado'))}</option>
                     </select>
                 </div>
                 ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
                 <div class="cband-back-actions">
                     <div class="cband-back-actions-icons">
-                        <button class="action-btn fav-btn" type="button" aria-label="Favorito" data-item-id="${safeId}" data-action="fav">
+                        <button class="action-btn fav-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.favorito', 'Favorito'))}" data-item-id="${safeId}" data-action="fav">
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                         </button>
-                        <button class="action-btn viewed-btn" type="button" aria-label="Visto" data-item-id="${safeId}" data-action="viewed">
+                        <button class="action-btn viewed-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.visto', 'Visto'))}" data-item-id="${safeId}" data-action="viewed">
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         </button>
                     </div>
@@ -6325,25 +6375,25 @@ function describirErrorDeApi(error) {
 
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         return {
-            kicker: 'Sin conexión',
-            detalle: 'Parece que te quedaste sin internet. Reconectate y recargá la página.'
+            kicker: catTr('card.err.sin_conexion.kicker', 'Sin conexión'),
+            detalle: catTr('card.err.sin_conexion.detalle', 'Parece que te quedaste sin internet. Reconectate y recargá la página.')
         };
     }
     if (msg.includes('429') || msg.includes('Límite de peticiones')) {
         return {
-            kicker: 'Demasiadas peticiones',
-            detalle: 'AniList está limitando las peticiones por exceso de uso. Esperá un minuto y recargá — no es un problema de tu conexión.'
+            kicker: catTr('card.err.rate.kicker', 'Demasiadas peticiones'),
+            detalle: catTr('card.err.rate.detalle', 'AniList está limitando las peticiones por exceso de uso. Esperá un minuto y recargá — no es un problema de tu conexión.')
         };
     }
     if (msg.includes('Timeout')) {
         return {
-            kicker: 'La API tardó demasiado',
-            detalle: 'AniList no respondió a tiempo. Puede estar saturada; probá de nuevo en unos segundos.'
+            kicker: catTr('card.err.timeout.kicker', 'La API tardó demasiado'),
+            detalle: catTr('card.err.timeout.detalle', 'AniList no respondió a tiempo. Puede estar saturada; probá de nuevo en unos segundos.')
         };
     }
     return {
-        kicker: 'API no disponible',
-        detalle: 'Revisá tu conexión, esperá unos segundos y recargá la página.'
+        kicker: catTr('card.err.generico.kicker', 'API no disponible'),
+        detalle: catTr('card.err.generico.detalle', 'Revisá tu conexión, esperá unos segundos y recargá la página.')
     };
 }
 
@@ -6380,7 +6430,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
 
     var cardsHtml = items.map((item) => {
         const id = item.id ?? item.mal_id;
-        const title = item.title || 'Sin título';
+        const title = item.title || catTr('card.sin_titulo', 'Sin título');
         const image = getApiPoster(item);
         const info = getApiCatalogInfo(categoria, item);
         const genres = getApiGenresList(item);
@@ -6396,7 +6446,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
             title: title,
             image: image,
             detailUrl: detailUrl,
-            status: item.status || 'En emisión',
+            status: item.status || 'RELEASING',
             searchIndex: searchIndex,
             genres: genres.join('|'),
             genresNorm: genresNorm,
@@ -6448,8 +6498,8 @@ async function buscarCatalogoLiviano(categoria, search) {
 
 async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append = false) {
     const loaderLabel = categoria === 'anime'
-        ? 'animes'
-        : (categoria === 'novelas' ? 'novelas' : 'mangas');
+        ? catTr('card.loader.animes', 'animes')
+        : (categoria === 'novelas' ? catTr('card.loader.novelas', 'novelas') : catTr('card.loader.mangas', 'mangas'));
     const getTopItems = categoria === 'anime'
         ? window.getTopAnimes
         : (categoria === 'novelas' ? window.getTopNovelas : window.getTopMangas);
@@ -6483,9 +6533,9 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                 window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = [];
                 mainContainer.innerHTML = `
                     <section class="empty-state">
-                        <span class="empty-state-kicker">Sin resultados</span>
-                        <h2>La API no devolvió ${escapeHtml(loaderLabel)} para esta página.</h2>
-                        <p>Posible límite de velocidad (rate limit). Esperá unos segundos y recargá.</p>
+                        <span class="empty-state-kicker">${escapeHtml(catTr('card.empty.kicker', 'Sin resultados'))}</span>
+                        <h2>${escapeHtml(catTr('card.empty.titulo', 'La API no devolvió {tipo} para esta página.', { tipo: loaderLabel }))}</h2>
+                        <p>${escapeHtml(catTr('card.empty.detalle', 'Posible límite de velocidad (rate limit). Esperá unos segundos y recargá.'))}</p>
                     </section>
                 `;
                 try { inicializarBusquedaCatalogo(); } catch (e) {}
@@ -6508,7 +6558,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             mainContainer.innerHTML = `
                 <section class="empty-state">
                     <span class="empty-state-kicker">${escapeHtml(causa.kicker)}</span>
-                    <h2>No se pudo cargar el catálogo de ${escapeHtml(loaderLabel)}.</h2>
+                    <h2>${escapeHtml(catTr('card.err.titulo', 'No se pudo cargar el catálogo de {tipo}.', { tipo: loaderLabel }))}</h2>
                     <p>${escapeHtml(causa.detalle)}</p>
                 </section>
             `;
@@ -6533,7 +6583,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
     items.forEach(function (item) {
         var id = String(item.id || item.item_id || item.mal_id || item.itemId || 0);
         if (append && existingIds.has(id)) return;
-        var title = item.titulo || item.title || item.name || 'Sin t\u00EDtulo';
+        var title = item.titulo || item.title || item.name || catTr('card.sin_titulo', 'Sin t\u00EDtulo');
         var image = item.img || item.image || item.cover_image || '';
         var genres = String(item.info || item.synopsis || '').split('/').map(function (g) { return g.trim(); }).filter(Boolean);
         var genresNorm = genres.map(function (g) { return normalizeCatalogGenre(g); }).join('|');

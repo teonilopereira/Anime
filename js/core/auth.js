@@ -1,6 +1,15 @@
 (function (window, document) {
     "use strict";
 
+    // Traducción con fallback al español si i18n aún no cargó.
+    function authTr(key, fallback, args) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+            var out = window.AppI18n.t(key, args);
+            if (out && out.charAt(0) !== '[') return out;
+        }
+        return fallback;
+    }
+
     // ─────────────────────────────────────────────
     // Supabase es la ÚNICA fuente de verdad de sesión.
     // No se usa localStorage para tokens ni usuarios.
@@ -159,10 +168,10 @@ async function waitForSupabase() {
                     });
                 }
             } else {
-                nameEl.textContent = 'Invitado';
-                btnEl.textContent = 'Ingresar';
+                nameEl.textContent = authTr('nav.usuario_invitado', 'Invitado');
+                btnEl.textContent = authTr('nav.ingresar', 'Ingresar');
                 btnEl.href = 'Login.html';
-                btnEl.setAttribute('aria-label', 'Iniciar sesión');
+                btnEl.setAttribute('aria-label', authTr('auth.iniciar_sesion', 'Iniciar sesión'));
                 avatarEl.classList.remove('has-image');
                 avatarEl.style.removeProperty('background-image');
                 if (gradeEl) { gradeEl.hidden = true; gradeEl.textContent = ''; }
@@ -185,16 +194,16 @@ async function waitForSupabase() {
 
         const loginEmail = email || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(username) ? username : "");
 
-        if (!username && !email) return setMsg("Escribí un nombre de usuario o correo.");
-        if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg("El usuario debe tener al menos 3 caracteres.");
-        if (mode === "create" && !isValidGmailAddress(email)) return setMsg("Usá un correo @gmail.com válido.");
-        if (!password || password.length < (AnimeDestiny.Constants.MIN_PASSWORD_LENGTH || 6)) return setMsg("La contraseña debe tener al menos 6 caracteres.");
+        if (!username && !email) return setMsg(authTr('auth.err.falta_usuario', "Escribí un nombre de usuario o correo."));
+        if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg(authTr('auth.err.usuario_corto', "El usuario debe tener al menos 3 caracteres."));
+        if (mode === "create" && !isValidGmailAddress(email)) return setMsg(authTr('auth.err.gmail', "Usá un correo @gmail.com válido."));
+        if (!password || password.length < (AnimeDestiny.Constants.MIN_PASSWORD_LENGTH || 6)) return setMsg(authTr('auth.err.pass_corta', "La contraseña debe tener al menos 6 caracteres."));
 
-        setMsg(mode === "create" ? "Creando cuenta..." : "Iniciando sesión...");
+        setMsg(mode === "create" ? authTr('auth.creando', "Creando cuenta...") : authTr('auth.iniciando', "Iniciando sesión..."));
 
         const client = await waitForSupabase();
         if (!client?.client) {
-            setMsg("No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.");
+            setMsg(authTr('auth.err.sin_servidor', "No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo."));
             return;
         }
 
@@ -209,42 +218,42 @@ async function waitForSupabase() {
                 if (error) {
                     if (error.message?.toLowerCase().includes("already registered") ||
                         error.message?.toLowerCase().includes("already exists")) {
-                        setMsg("Ese correo ya tiene una cuenta. Iniciá sesión en cambio.");
+                        setMsg(authTr('auth.err.ya_existe', "Ese correo ya tiene una cuenta. Iniciá sesión en cambio."));
                     } else if (error.message?.toLowerCase().includes("invalid email")) {
-                        setMsg("El correo ingresado no es válido.");
+                        setMsg(authTr('auth.err.email_invalido', "El correo ingresado no es válido."));
                     } else if (error.message?.toLowerCase().includes("password")) {
-                        setMsg("La contraseña es muy débil. Usá al menos 6 caracteres.");
+                        setMsg(authTr('auth.err.pass_debil', "La contraseña es muy débil. Usá al menos 6 caracteres."));
                     } else {
-                        setMsg("Error al crear cuenta. Intentá de nuevo.");
+                        setMsg(authTr('auth.err.crear', "Error al crear cuenta. Intentá de nuevo."));
                     }
                     return;
                 }
 
                 if (data?.user && !data?.session) {
-                    setMsg("✅ Cuenta creada. Revisá tu correo para confirmarla.");
+                    setMsg(authTr('auth.ok.confirmar', "✅ Cuenta creada. Revisá tu correo para confirmarla."));
                     window.setTimeout(closeUserModal, 2500);
                     return;
                 }
 
                 if (data?.session) {
                     await refreshUserUi();
-                    setMsg("✅ Cuenta creada exitosamente.");
+                    setMsg(authTr('auth.ok.creada', "✅ Cuenta creada exitosamente."));
                     window.setTimeout(closeUserModal, 800);
                     return;
                 }
 
-                setMsg("Cuenta creada. Iniciá sesión para continuar.");
+                setMsg(authTr('auth.ok.creada_login', "Cuenta creada. Iniciá sesión para continuar."));
                 window.setTimeout(closeUserModal, 1500);
 
             } catch (err) {
                 console.error("Error inesperado al crear cuenta:", err);
-                setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
+                setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
             }
             return;
         }
 
         if (!loginEmail) {
-            setMsg("Ingresá tu correo electrónico para iniciar sesión.");
+            setMsg(authTr('auth.err.falta_email', "Ingresá tu correo electrónico para iniciar sesión."));
             return;
         }
 
@@ -257,14 +266,14 @@ async function waitForSupabase() {
             if (error) {
                 if (error.message?.toLowerCase().includes("invalid login") ||
                     error.message?.toLowerCase().includes("invalid credentials")) {
-                    setMsg("Correo o contraseña incorrectos.");
+                    setMsg(authTr('auth.err.credenciales', "Correo o contraseña incorrectos."));
                 } else if (error.message?.toLowerCase().includes("email not confirmed")) {
-                    setMsg("Confirmá tu correo antes de iniciar sesión.");
+                    setMsg(authTr('auth.err.no_confirmado', "Confirmá tu correo antes de iniciar sesión."));
                 } else if (error.message?.toLowerCase().includes("network") ||
                            error.message?.toLowerCase().includes("fetch")) {
-                    setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
+                    setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
                 } else {
-                    setMsg("Error al iniciar sesión. Intentá de nuevo.");
+                    setMsg(authTr('auth.err.login', "Error al iniciar sesión. Intentá de nuevo."));
                 }
                 return;
             }
@@ -276,11 +285,11 @@ async function waitForSupabase() {
                 return;
             }
 
-            setMsg("No se pudo iniciar sesión. Intentá de nuevo.");
+            setMsg(authTr('auth.err.no_login', "No se pudo iniciar sesión. Intentá de nuevo."));
 
         } catch (err) {
             console.error("Error inesperado al iniciar sesión:", err);
-            setMsg("Sin conexión al servidor. Revisá tu internet e intentá de nuevo.");
+            setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
         }
     }
 
@@ -340,9 +349,9 @@ async function waitForSupabase() {
         if (window.Toast) {
             setTimeout(function () {
                 if (streak && streak.count > 1) {
-                    window.Toast.success("¡Racha de " + streak.count + " días! (+" + delta + " EXP)");
+                    window.Toast.success(authTr('auth.racha', "¡Racha de {count} días! (+{delta} EXP)", { count: streak.count, delta: delta }));
                 } else {
-                    window.Toast.success("¡Bienvenido! (+" + delta + " EXP por login diario)");
+                    window.Toast.success(authTr('auth.bienvenido', "¡Bienvenido! (+{delta} EXP por login diario)", { delta: delta }));
                 }
             }, 800);
         }

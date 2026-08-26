@@ -6,6 +6,15 @@
 (function (window) {
     "use strict";
 
+    // Traducción con fallback al español si i18n aún no cargó.
+    function stTr(key, fallback, args) {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+            const out = window.AppI18n.t(key, args);
+            if (out && out.charAt(0) !== '[') return out;
+        }
+        return fallback;
+    }
+
     const SYNC_QUEUE_KEY = "syncQueue";
 
     function getSyncQueue() {
@@ -37,7 +46,7 @@
                     await client.addExperience(op.payload.delta);
                 }
             } catch (error) {
-                if (isSessionExpired(error)) showSyncToast('Sesión expirada. Los cambios pendientes se reintentarán automáticamente.', 'session-expired');
+                if (isSessionExpired(error)) showSyncToast(stTr('toast.session.pending', 'Sesión expirada. Los cambios pendientes se reintentarán automáticamente.'), 'session-expired');
                 remaining.push(op);
             }
         }
@@ -60,7 +69,7 @@
             return;
         }
         client.saveItemState(payload).catch((error) => {
-            if (isSessionExpired(error)) showSyncToast('Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.', 'session-expired');
+            if (isSessionExpired(error)) showSyncToast(stTr('toast.session.progress', 'Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.'), 'session-expired');
             console.warn('No se pudo sincronizar estado a Supabase:', error);
             enqueueSync({ type: "item_state", payload });
         });
@@ -68,11 +77,19 @@
 
     // ─── Estados de seguimiento (viendo / pendiente / pausado / abandonado) ──
     const WATCH_STATUSES = ['viendo', 'pendiente', 'pausado', 'abandonado'];
+    // Etiquetas de seguimiento resueltas por i18n en el momento de usarse
+    // (reutilizan las claves card.seguimiento.* del selector de la card).
+    const WATCH_STATUS_KEYS = {
+        viendo: ['card.seguimiento.viendo', 'Viendo'],
+        pendiente: ['card.seguimiento.pendiente', 'Pendiente'],
+        pausado: ['card.seguimiento.pausado', 'En pausa'],
+        abandonado: ['card.seguimiento.abandonado', 'Abandonado']
+    };
     const WATCH_STATUS_LABELS = {
-        viendo: 'Viendo',
-        pendiente: 'Pendiente',
-        pausado: 'En pausa',
-        abandonado: 'Abandonado'
+        get viendo() { return stTr.apply(null, WATCH_STATUS_KEYS.viendo); },
+        get pendiente() { return stTr.apply(null, WATCH_STATUS_KEYS.pendiente); },
+        get pausado() { return stTr.apply(null, WATCH_STATUS_KEYS.pausado); },
+        get abandonado() { return stTr.apply(null, WATCH_STATUS_KEYS.abandonado); }
     };
 
     function watchStatusKey(userId, itemId) {
@@ -126,8 +143,8 @@
         );
 
         if (window.Toast) {
-            if (clean) window.Toast.success('Estado: ' + WATCH_STATUS_LABELS[clean]);
-            else window.Toast.info('Estado de seguimiento quitado');
+            if (clean) window.Toast.success(stTr('toast.estado', 'Estado: {label}', { label: WATCH_STATUS_LABELS[clean] }));
+            else window.Toast.info(stTr('toast.estado_quitado', 'Estado de seguimiento quitado'));
         }
         return clean;
     }
@@ -161,7 +178,7 @@
             return;
         }
         client.addExperience(effectiveDelta).catch((error) => {
-            if (isSessionExpired(error)) showSyncToast('Sesión expirada. La experiencia se sincronizará al reconectar.', 'session-expired');
+            if (isSessionExpired(error)) showSyncToast(stTr('toast.session.exp', 'Sesión expirada. La experiencia se sincronizará al reconectar.'), 'session-expired');
             enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
         });
     }
@@ -442,7 +459,7 @@
                 const metaEl = progressBox.querySelector('[data-meta-text]');
 
                 if (fillEl) fillEl.style.width = `${meta.pct}%`;
-                if (pctEl) pctEl.textContent = `${meta.pct}% VISTO`;
+                if (pctEl) pctEl.textContent = stTr('card.pct_visto', `${meta.pct}% VISTO`, { pct: meta.pct });
                 if (pctOnlyEl) pctOnlyEl.textContent = `${meta.pct}%`;
                 if (metaEl) {
                     const pr = progressBox.getAttribute('data-prefix') || 'EP';
@@ -478,15 +495,15 @@
             if (typeof window._invalidateProgressIndex === 'function') window._invalidateProgressIndex();
             addUserPoints(userId, xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.success(`¡Agregado a Favoritos! ❤️ (+${xp} EXP)`);
-                if (type === 'viewed') window.Toast.success(`¡Marcado como Visto! 👁️ (+${xp} EXP)`);
+                if (type === 'fav') window.Toast.success(stTr('toast.fav_add', `¡Agregado a Favoritos! ❤️ (+${xp} EXP)`, { xp: xp }));
+                if (type === 'viewed') window.Toast.success(stTr('toast.visto_add', `¡Marcado como Visto! 👁️ (+${xp} EXP)`, { xp: xp }));
             }
         } else {
             UserStore.removeItem(storageKey);
             addUserPoints(userId, -xp);
             if (window.Toast) {
-                if (type === 'fav') window.Toast.info(`Quitado de Favoritos (-${xp} EXP)`);
-                if (type === 'viewed') window.Toast.info(`Marcado como no visto (-${xp} EXP)`);
+                if (type === 'fav') window.Toast.info(stTr('toast.fav_remove', `Quitado de Favoritos (-${xp} EXP)`, { xp: xp }));
+                if (type === 'viewed') window.Toast.info(stTr('toast.visto_remove', `Marcado como no visto (-${xp} EXP)`, { xp: xp }));
             }
         }
 
