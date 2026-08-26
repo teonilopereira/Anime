@@ -315,11 +315,22 @@
         return String(value).trim().toLowerCase();
     }
 
+    // Prioridad de idioma para elegir la portada de un tomo cuando hay varias
+    // ediciones (MangaDex guarda portadas por idioma). Sin esto se tomaba la
+    // primera que llegara, que podía ser una edición en un idioma cualquiera
+    // (p. ej. kazajo/cirílico). Se prefiere español, luego inglés y luego la
+    // original japonesa; cualquier otro idioma queda de último recurso.
+    var COVER_LOCALE_PRIORITY = ['es-la', 'es', 'es-419', 'en', 'ja', 'ja-ro'];
+    function coverLocaleRank(locale) {
+        var i = COVER_LOCALE_PRIORITY.indexOf(String(locale == null ? '' : locale).toLowerCase());
+        return i === -1 ? COVER_LOCALE_PRIORITY.length + 1 : i;
+    }
+
     // El endpoint /cover de MangaDex no filtra por volumen, así que traemos la
-    // lista de portadas del manga y armamos un mapa volumen → archivo.
+    // lista de portadas del manga y armamos un mapa volumen → archivo, quedándonos
+    // con la portada del idioma de mayor prioridad para cada tomo.
     //
-    // El orden `order[volume]=asc` es opcional: solo decide qué portada se elige
-    // cuando un tomo tiene varias (ediciones/idiomas); el mapa se completa igual
+    // El orden `order[volume]=asc` es opcional: el mapa se completa igual
     // recorriendo todas las páginas. Se pide con orden y, si esa variante falla
     // (algunos proxies/redes rechazan el corchete anidado), se reintenta sin él
     // en vez de quedarse sin ninguna portada.
@@ -329,6 +340,7 @@
 
         async function pull(withOrder) {
             var map = {};
+            var bestRank = {}; // volKey → rango de idioma ya elegido (menor = mejor)
             var offset = 0;
             var total = 0;
             do {
@@ -341,8 +353,13 @@
                 for (var i = 0; i < items.length; i++) {
                     var attrs = items[i]?.attributes || {};
                     var volKey = normalizeVolKey(attrs.volume);
-                    if (volKey && attrs.fileName && !(volKey in map)) {
+                    if (!volKey || !attrs.fileName) continue;
+                    var rank = coverLocaleRank(attrs.locale);
+                    // Se guarda la primera de cada tomo y luego solo se reemplaza
+                    // por una de idioma de mayor prioridad.
+                    if (!(volKey in map) || rank < bestRank[volKey]) {
                         map[volKey] = attrs.fileName;
+                        bestRank[volKey] = rank;
                     }
                 }
                 if (!items.length) break;
@@ -372,7 +389,9 @@
     // vacío se trata como miss, se reintenta en la próxima carga y solo se
     // cachea cuando trae portadas de verdad.
     async function getCoverMapCached(mangaId) {
-        var mapKey = 'md_cov_map_' + mangaId;
+        // La v2 invalida los mapas cacheados antes de priorizar idioma (que
+        // podían tener guardada la portada en un idioma cualquiera, p. ej. kazajo).
+        var mapKey = 'md_cov_map_v2_' + mangaId;
         try {
             var cachedMap = localStorage.getItem(mapKey);
             if (cachedMap) {
@@ -633,7 +652,7 @@
         if (volNum) {
             var mdId = await resolveMangaDexId(item);
             if (mdId) {
-                var cacheKey = 'md_cov_' + mdId + '_v' + volNum;
+                var cacheKey = 'md_cov_v2_' + mdId + '_v' + volNum;
                 try {
                     var cached = localStorage.getItem(cacheKey);
                     if (cached) return cached;
