@@ -315,15 +315,39 @@
         return String(value).trim().toLowerCase();
     }
 
+    // Idioma elegido en la app (Configuración → i18n). Default español.
+    function currentUiLang() {
+        try {
+            if (window.AppI18n && typeof window.AppI18n.getLang === 'function') {
+                return window.AppI18n.getLang();
+            }
+            return localStorage.getItem('pref:lang') || 'es';
+        } catch (_) {
+            return 'es';
+        }
+    }
+
+    // Bucket de idioma para la portada: 'en' si la app está en inglés, 'es' si no.
+    // Se usa además en la clave de caché para que al cambiar de idioma se
+    // resuelva la portada del nuevo idioma en vez de servir la cacheada.
+    function coverLangTag() {
+        return String(currentUiLang() || 'es').toLowerCase().indexOf('en') === 0 ? 'en' : 'es';
+    }
+
     // Prioridad de idioma para elegir la portada de un tomo cuando hay varias
     // ediciones (MangaDex guarda portadas por idioma). Sin esto se tomaba la
     // primera que llegara, que podía ser una edición en un idioma cualquiera
-    // (p. ej. kazajo/cirílico). Se prefiere español, luego inglés y luego la
-    // original japonesa; cualquier otro idioma queda de último recurso.
-    var COVER_LOCALE_PRIORITY = ['es-la', 'es', 'es-419', 'en', 'ja', 'ja-ro'];
-    function coverLocaleRank(locale) {
-        var i = COVER_LOCALE_PRIORITY.indexOf(String(locale == null ? '' : locale).toLowerCase());
-        return i === -1 ? COVER_LOCALE_PRIORITY.length + 1 : i;
+    // (p. ej. kazajo/cirílico). Se prioriza el idioma seleccionado en la app
+    // (inglés o español), luego el otro, luego la original japonesa; cualquier
+    // otro idioma queda de último recurso.
+    function coverLocalePriority() {
+        return coverLangTag() === 'en'
+            ? ['en', 'es-la', 'es', 'es-419', 'ja', 'ja-ro']
+            : ['es-la', 'es', 'es-419', 'en', 'ja', 'ja-ro'];
+    }
+    function coverLocaleRank(priority, locale) {
+        var i = priority.indexOf(String(locale == null ? '' : locale).toLowerCase());
+        return i === -1 ? priority.length + 1 : i;
     }
 
     // El endpoint /cover de MangaDex no filtra por volumen, así que traemos la
@@ -341,6 +365,7 @@
         async function pull(withOrder) {
             var map = {};
             var bestRank = {}; // volKey → rango de idioma ya elegido (menor = mejor)
+            var priority = coverLocalePriority();
             var offset = 0;
             var total = 0;
             do {
@@ -354,7 +379,7 @@
                     var attrs = items[i]?.attributes || {};
                     var volKey = normalizeVolKey(attrs.volume);
                     if (!volKey || !attrs.fileName) continue;
-                    var rank = coverLocaleRank(attrs.locale);
+                    var rank = coverLocaleRank(priority, attrs.locale);
                     // Se guarda la primera de cada tomo y luego solo se reemplaza
                     // por una de idioma de mayor prioridad.
                     if (!(volKey in map) || rank < bestRank[volKey]) {
@@ -391,7 +416,9 @@
     async function getCoverMapCached(mangaId) {
         // La v2 invalida los mapas cacheados antes de priorizar idioma (que
         // podían tener guardada la portada en un idioma cualquiera, p. ej. kazajo).
-        var mapKey = 'md_cov_map_v2_' + mangaId;
+        // El bucket de idioma va en la clave: al cambiar es↔en se resuelve la
+        // portada del nuevo idioma en vez de servir la del anterior.
+        var mapKey = 'md_cov_map_v2_' + coverLangTag() + '_' + mangaId;
         try {
             var cachedMap = localStorage.getItem(mapKey);
             if (cachedMap) {
@@ -652,7 +679,7 @@
         if (volNum) {
             var mdId = await resolveMangaDexId(item);
             if (mdId) {
-                var cacheKey = 'md_cov_v2_' + mdId + '_v' + volNum;
+                var cacheKey = 'md_cov_v2_' + coverLangTag() + '_' + mdId + '_v' + volNum;
                 try {
                     var cached = localStorage.getItem(cacheKey);
                     if (cached) return cached;
