@@ -219,18 +219,7 @@
             trailer: (item.trailer && item.trailer.id)
                 ? { id: String(item.trailer.id).trim(), site: item.trailer.site || '' }
                 : null,
-            characters: (item.characters?.edges || []).map(function (e) {
-                var va = (e.voiceActors || [])[0] || null;
-                return {
-                    id: e.node?.id || null,
-                    name: e.node?.name?.full || '',
-                    image: e.node?.image?.large || '',
-                    role: e.role || '',
-                    vaId: va?.id || null,
-                    vaName: va?.name?.full || '',
-                    vaImage: va?.image?.large || ''
-                };
-            }).filter(function (c) { return c.name; }),
+            characters: mapCharacterEdges(item.characters?.edges),
             seasons: buildSeasonsFromItem(item, type)
         };
     }
@@ -731,6 +720,74 @@
         } catch (err) {
             console.warn('AniList getAnimeById error:', err);
             return null;
+        }
+    };
+
+    // ─── Reparto completo de una obra (paginado) ───
+    // MEDIA_BY_ID_QUERY solo trae 12 personajes para que la ficha cargue rápido.
+    // Esta consulta pide el resto bajo demanda cuando el usuario toca
+    // "Ver todos los personajes" en el detalle.
+    var CHARACTERS_BY_ID_QUERY = `
+        query ($id: Int, $page: Int) {
+            Media(id: $id) {
+                characters(sort: [ROLE, RELEVANCE], page: $page, perPage: 25) {
+                    pageInfo { hasNextPage currentPage }
+                    edges {
+                        role
+                        node { id name { full } image { large } }
+                        voiceActors(language: JAPANESE, sort: [RELEVANCE]) { id name { full } image { large } }
+                    }
+                }
+            }
+        }`;
+
+    // Techo defensivo: obras con cientos de personajes (One Piece, etc.) podrían
+    // disparar el rate limit de AniList si pidiéramos todas las páginas. 8 * 25 =
+    // 200 personajes es más que suficiente para un reparto.
+    var MAX_CHARACTER_PAGES = 8;
+
+    // Normaliza los edges de personajes de AniList al shape que usa la app. Lo
+    // comparten anilistItemToLocal (los 12 del detalle) y getCharactersByMediaId
+    // (el reparto completo), así que la forma del objeto queda en un solo lugar.
+    function mapCharacterEdges(edges) {
+        return (edges || []).map(function (e) {
+            var va = (e.voiceActors || [])[0] || null;
+            return {
+                id: e.node?.id || null,
+                name: e.node?.name?.full || '',
+                image: e.node?.image?.large || '',
+                role: e.role || '',
+                vaId: va?.id || null,
+                vaName: va?.name?.full || '',
+                vaImage: va?.image?.large || ''
+            };
+        }).filter(function (c) { return c.name; });
+    }
+
+    window.getCharactersByMediaId = async function (id) {
+        var numId = Number(id);
+        if (!Number.isFinite(numId)) return [];
+        var cacheKey = 'mediaCharacters_' + numId;
+        var cached = getApiCache(cacheKey);
+        if (cached) return cached;
+
+        try {
+            var all = [];
+            var page = 1;
+            var hasNext = true;
+            while (hasNext && page <= MAX_CHARACTER_PAGES) {
+                var json = await anilistFetch(CHARACTERS_BY_ID_QUERY, { id: numId, page: page });
+                var chars = json?.data?.Media?.characters;
+                if (!chars) break;
+                all = all.concat(mapCharacterEdges(chars.edges));
+                hasNext = !!(chars.pageInfo && chars.pageInfo.hasNextPage);
+                page += 1;
+            }
+            if (all.length) setApiCache(cacheKey, all);
+            return all;
+        } catch (err) {
+            console.warn('AniList getCharactersByMediaId error:', err);
+            return [];
         }
     };
 

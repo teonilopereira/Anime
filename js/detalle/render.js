@@ -488,6 +488,37 @@ function renderDetalle(item, nombreUrl, categoria) {
         try { window.lucide.createIcons(); } catch (e) { /* no bloquear el render */ }
     }
 
+    // ── Ver todos los personajes ──
+    // La ficha pinta 12 personajes; este botón pide el reparto completo a AniList
+    // (paginado, ver getCharactersByMediaId en api.js) y reemplaza la grilla. Si
+    // no hay más o falla, deja el botón para reintentar.
+    const seeAllCharsBtn = localLayout.querySelector('.detail-see-all-chars');
+    if (seeAllCharsBtn && typeof window.getCharactersByMediaId === 'function') {
+        seeAllCharsBtn.addEventListener('click', async () => {
+            const grid = localLayout.querySelector('#charGrid');
+            if (!grid) return;
+            const original = seeAllCharsBtn.textContent;
+            seeAllCharsBtn.disabled = true;
+            seeAllCharsBtn.textContent = 'Cargando...';
+            try {
+                const all = await window.getCharactersByMediaId(seeAllCharsBtn.dataset.mediaId);
+                if (all && all.length && typeof buildCharacterCardsHtml === 'function') {
+                    grid.innerHTML = buildCharacterCardsHtml(all);
+                    // Solo tiene sentido una vez: ya está el reparto completo.
+                    seeAllCharsBtn.closest('.char-see-all-wrap')?.remove();
+                } else {
+                    seeAllCharsBtn.disabled = false;
+                    seeAllCharsBtn.textContent = original;
+                    if (window.Toast) window.Toast.info('No se pudieron cargar más personajes.');
+                }
+            } catch (e) {
+                seeAllCharsBtn.disabled = false;
+                seeAllCharsBtn.textContent = original;
+                if (window.Toast) window.Toast.error('Error al cargar los personajes.');
+            }
+        });
+    }
+
     const favBtn = localLayout.querySelector('.fav-btn');
     const viewedBtn = localLayout.querySelector('.viewed-btn');
     const shareBtn = localLayout.querySelector('.share-btn');
