@@ -179,6 +179,40 @@ a.char-side:hover .char-name {
     opacity: 0.8;
 }
 
+/* Botón "Ver todos los personajes": pide el reparto completo a la API. */
+.char-see-all-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
+}
+.detail-see-all-chars {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 20px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(188,19,254,0.35);
+    background: rgba(188,19,254,0.10);
+    color: var(--text-main);
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.detail-see-all-chars:hover {
+    background: rgba(188,19,254,0.20);
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 14px rgba(188,19,254,0.30);
+}
+.detail-see-all-chars:disabled {
+    opacity: 0.6;
+    cursor: default;
+    box-shadow: none;
+}
+
 @media (max-width: 520px) {
     .char-grid {
         grid-template-columns: 1fr;

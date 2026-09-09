@@ -111,12 +111,14 @@ function buildRelatedHtml(item, cadenaTemporadas) {
 // Vienen en la misma query por id que el resto del detalle, asi que la
 // seccion no cuesta un request extra. Solo AniList los tiene: en obras de
 // MangaDex la lista llega vacia y la seccion no se pinta.
-function buildCharactersHtml(item) {
+// Arma solo las tarjetas del reparto (sin el contenedor de sección). Se usa en
+// dos momentos: el render inicial de la ficha (los 12 personajes que trae la
+// query del detalle) y "Ver todos", que reemplaza el contenido de la grilla con
+// el reparto completo pedido a AniList (ver render.js). Tener el markup de la
+// card en un solo lugar evita que las dos vistas se desincronicen.
+function buildCharacterCardsHtml(characters) {
     var characterRoleLabels = { MAIN: 'Principal', SUPPORTING: 'Secundario', BACKGROUND: 'Fondo' };
-    var characters = Array.isArray(item.characters) ? item.characters : [];
-    if (!characters.length) return '';
-    return '<div class="detail-section detail-section-chars"><h2 class="detail-h2">Personajes</h2><div class="char-grid">' +
-        characters.map(function (c) {
+    return (Array.isArray(characters) ? characters : []).map(function (c) {
             var roleLabel = characterRoleLabels[c.role] || '';
             // Cada mitad enlaza a su ficha en personaje.html cuando hay id: el
             // personaje (tipo=character) a la izquierda y el seiyū (tipo=staff) a
@@ -153,8 +155,26 @@ function buildCharactersHtml(item) {
                 charTagEnd +
                 vaHtml +
                 '</div>';
-        }).join('') +
-        '</div></div>';
+        }).join('');
+}
+
+function buildCharactersHtml(item) {
+    var characters = Array.isArray(item.characters) ? item.characters : [];
+    if (!characters.length) return '';
+    // El detalle solo pide 12 personajes (MEDIA_BY_ID_QUERY). Si llegaron los 12
+    // completos es probable que haya más, así que ofrecemos "Ver todos" para
+    // traer el reparto completo bajo demanda. Solo aplica a obras de AniList
+    // (id numérico); las de MangaDex no traen personajes y ni entran acá.
+    var hayMas = characters.length >= 12 && Number.isFinite(Number(item.id));
+    var verTodosHtml = hayMas
+        ? '<div class="char-see-all-wrap">' +
+            '<button class="detail-see-all-chars" type="button" data-media-id="' + escapeHtml(String(item.id)) + '">Ver todos los personajes</button>' +
+          '</div>'
+        : '';
+    return '<div class="detail-section detail-section-chars"><h2 class="detail-h2">Personajes</h2>' +
+        '<div class="char-grid" id="charGrid">' +
+        buildCharacterCardsHtml(characters) +
+        '</div>' + verTodosHtml + '</div>';
 }
 
 // ── SEO / meta tags / datos estructurados ──
