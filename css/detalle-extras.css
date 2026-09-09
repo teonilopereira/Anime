@@ -145,12 +145,24 @@ a.char-side:hover .char-name {
     justify-content: flex-end;
     text-align: right;
 }
+/* Personajes de cuerpo completo: 'contain' muestra la ilustración entera sin
+   recortar las piernas (antes 'cover' la cortaba a la altura del torso). La caja
+   es más alta para dar sitio a la figura y el fondo suave disimula el letterbox
+   cuando el arte no llena todo el alto. */
 .char-face {
-    width: 56px;
-    height: 78px;
-    object-fit: cover;
+    width: 72px;
+    height: 108px;
+    object-fit: contain;
+    object-position: center bottom;
     flex-shrink: 0;
     background: rgba(var(--ink-rgb),0.04);
+    align-self: stretch;
+}
+/* El seiyū es una foto real de la persona (un retrato), no una ilustración de
+   cuerpo completo: se recorta como bust para no dejar franjas vacías. */
+.char-side-va .char-face {
+    object-fit: cover;
+    object-position: center top;
 }
 .char-text {
     display: flex;
