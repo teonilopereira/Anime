@@ -208,6 +208,8 @@
                 importBtn.textContent = 'Importando...';
                 runImport(data, getEl('malImportProgress'), getEl('malImportResult'), function () {
                     importState.running = false;
+                    importBtn.disabled = false;
+                    importBtn.textContent = '⬇ IMPORTAR TODO';
                 });
             });
         }
@@ -291,10 +293,19 @@
                             var epKeys = [];
                             for (var e = 1; e <= item.entry.watchedEp; e++) epKeys.push('s:0|ep:' + e);
                             progressPromise = saveProgressesSequential(supabase, 'anime', String(anilistId), epKeys, true);
-                        } else if ((item.category === 'manga' || item.category === 'novelas') && item.entry.readVol > 0) {
-                            var volKeys = [];
-                            for (var v = 1; v <= item.entry.readVol; v++) volKeys.push('vol:' + v);
-                            progressPromise = saveProgressesSequential(supabase, item.category, String(anilistId), volKeys, true);
+                        } else if (item.category === 'manga' || item.category === 'novelas') {
+                            // MAL trackea manga por volúmenes y/o capítulos. La mayoría
+                            // de los lectores usa capítulos, así que si no hay volúmenes
+                            // marcados caemos a los capítulos leídos (my_read_chapters).
+                            if (item.entry.readVol > 0) {
+                                var volKeys = [];
+                                for (var v = 1; v <= item.entry.readVol; v++) volKeys.push('vol:' + v);
+                                progressPromise = saveProgressesSequential(supabase, item.category, String(anilistId), volKeys, true);
+                            } else if (item.entry.readCh > 0) {
+                                var chKeys = [];
+                                for (var c = 1; c <= item.entry.readCh; c++) chKeys.push('ch:' + c);
+                                progressPromise = saveProgressesSequential(supabase, item.category, String(anilistId), chKeys, true);
+                            }
                         }
 
                         return progressPromise.then(function () {
@@ -349,6 +360,13 @@
             if (onDone) onDone();
         });
     }
+
+    // Funciones puras expuestas para pruebas unitarias (sin efectos en el DOM).
+    window.MalImport = {
+        parseMalXml: parseMalXml,
+        shouldMarkViewed: shouldMarkViewed,
+        malStatusToWatchStatus: malStatusToWatchStatus
+    };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initMalImport);
