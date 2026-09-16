@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel de Agentes</title>
+<!--
+  HERRAMIENTA PRIVADA — no se enlaza en el menu, ni en el sitemap.
+  Un panel de "agentes" (voces en conflicto) que revisan tu codigo/idea.
+  Dos motores:
+    1) Reglas (script puro): analiza metricas del texto pegado. Gratis, offline.
+    2) Claude (API): opiniones reales. La API key se guarda SOLO en tu navegador
+       (localStorage). Nunca se sube al repo ni se publica.
+  Abrilo directo con doble clic (file://) o servido, funciona igual.
+-->
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#050505; --panel:#0a0519; --panel-2:#1a0b2e;
+  --neon:#bc13fe; --cyan:#00f2ff;
+  --ink:255,255,255;
+  --text:#ffffff; --muted:rgba(255,255,255,.72); --faint:rgba(255,255,255,.38);
+  --border:rgba(255,255,255,.12);
+  --ok:#3ddc84; --warn:#ffb020; --bad:#ff4d6d;
+  --font-d:"Orbitron","Segoe UI",sans-serif;
+  --font-b:"Rajdhani","Segoe UI",system-ui,sans-serif;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100vh}
+body{
+  font-family:var(--font-b); color:var(--text); line-height:1.5;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(188,19,254,.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(0,242,255,.10), transparent 55%),
+    var(--bg);
+  padding:24px 16px 80px;
+}
+.wrap{max-width:1100px;margin:0 auto}
+h1{
+  font-family:var(--font-d); font-weight:800; letter-spacing:.04em;
+  font-size:clamp(1.5rem,4vw,2.3rem); margin:.2em 0 .1em;
+  background:linear-gradient(90deg,var(--cyan),var(--neon));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.sub{color:var(--muted); margin:0 0 22px; max-width:70ch}
+.card{
+  background:linear-gradient(180deg, rgba(26,11,46,.55), rgba(10,5,25,.75));
+  border:1px solid var(--border); border-radius:var(--r);
+  padding:18px; margin-bottom:16px;
+  backdrop-filter:blur(6px);
+}
+label{display:block; font-weight:700; color:var(--muted); margin:0 0 6px; font-size:.9rem;
+  letter-spacing:.03em; text-transform:uppercase}
+textarea, input[type=password], input[type=text], select{
+  width:100%; background:rgba(0,0,0,.35); color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:11px 12px;
+  font-family:var(--font-b); font-size:1rem;
+}
+textarea{min-height:210px; resize:vertical; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.9rem; line-height:1.45}
+:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+.row{display:flex; gap:14px; flex-wrap:wrap}
+.row > *{flex:1 1 220px; min-width:0}
+.hint{color:var(--faint); font-size:.82rem; margin-top:6px}
+.controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:14px}
+button{
+  font-family:var(--font-d); font-weight:700; letter-spacing:.03em;
+  cursor:pointer; border:none; border-radius:999px; padding:12px 22px; font-size:.95rem;
+  color:#050505; background:linear-gradient(90deg,var(--cyan),var(--neon));
+  transition:transform .1s ease, box-shadow .2s ease;
+  box-shadow:0 6px 20px rgba(188,19,254,.35);
+}
+button:hover{transform:translateY(-1px); box-shadow:0 10px 28px rgba(188,19,254,.5)}
+button:disabled{opacity:.5; cursor:not-allowed; box-shadow:none; transform:none}
+button.ghost{background:transparent; color:var(--muted); border:1px solid var(--border); box-shadow:none}
+.seg{display:inline-flex; border:1px solid var(--border); border-radius:999px; overflow:hidden}
+.seg button{border-radius:0; background:transparent; color:var(--muted); box-shadow:none; padding:9px 16px; font-size:.85rem}
+.seg button.active{background:linear-gradient(90deg, rgba(0,242,255,.22), rgba(188,19,254,.22)); color:#fff}
+.hidden{display:none !important}
+#status{color:var(--muted); font-size:.9rem; min-height:1.2em; margin-top:10px}
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-top:8px}
+.agent{
+  border:1px solid var(--border); border-radius:var(--r); padding:16px;
+  background:linear-gradient(180deg, rgba(10,5,25,.6), rgba(5,5,10,.8));
+  position:relative; overflow:hidden;
+}
+.agent::before{content:""; position:absolute; inset:0 auto 0 0; width:4px; background:var(--accent,#888)}
+.agent h3{font-family:var(--font-d); margin:0 0 4px; font-size:1.02rem; letter-spacing:.04em; color:var(--accent,#fff)}
+.agent .opt{color:var(--faint); font-size:.78rem; margin:0 0 10px; text-transform:uppercase; letter-spacing:.04em}
+.agent ul{margin:0; padding-left:0; list-style:none}
+.agent li{margin:0 0 7px; padding-left:0; font-size:.96rem}
+.tag{display:inline-block; font-family:var(--font-d); font-size:.62rem; font-weight:700;
+  padding:2px 7px; border-radius:6px; margin-right:6px; vertical-align:middle; letter-spacing:.05em}
+.t-seguro{background:rgba(61,220,132,.18); color:var(--ok); border:1px solid rgba(61,220,132,.4)}
+.t-probable{background:rgba(255,176,32,.16); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+.t-sup{background:rgba(255,77,109,.16); color:var(--bad); border:1px solid rgba(255,77,109,.4)}
+.verdict{border:1px solid rgba(0,242,255,.35); background:linear-gradient(180deg, rgba(0,242,255,.08), rgba(188,19,254,.08));
+  border-radius:var(--r); padding:18px; margin-top:18px}
+.verdict h3{font-family:var(--font-d); margin:0 0 8px; color:var(--cyan)}
+.verdict .who{font-family:var(--font-d); font-size:1.15rem; color:#fff}
+.metrics{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.chip{font-size:.78rem; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:4px 10px}
+.chip b{color:var(--cyan); font-family:var(--font-d)}
+details summary{cursor:pointer; color:var(--muted); font-weight:700}
+a{color:var(--cyan)}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Panel de Agentes</h1>
+  <p class="sub">Cuatro voces en conflicto (más un Revisor Técnico) que miran tu código o tu idea
+  y te dicen qué conviene y qué falla. No coinciden entre ellas: cada una optimiza algo distinto
+  y sacrifica algo distinto. Herramienta privada — nada de lo que pegues acá se sube a ningún lado.</p>
+
+  <!-- ENTRADA -->
+  <div class="card">
+    <label for="code">Pegá tu código, tu idea o el diff a revisar</label>
+    <textarea id="code" placeholder="// Pegá acá el archivo, la función, o describí la feature/idea…"></textarea>
+    <div class="hint">Consejo: para revisar el proyecto entero, pegá un archivo por vez (ej. <code>js/pages/inicio.js</code>). El motor por reglas mira métricas; Claude lee y razona.</div>
+
+    <div class="controls">
+      <div class="seg" id="engineSeg" role="tablist" aria-label="Motor">
+        <button data-engine="rules" class="active">⚙️ Reglas</button>
+        <button data-engine="claude">✨ Claude</button>
+      </div>
+      <button id="run">Convocar al panel</button>
+      <button id="clear" class="ghost">Limpiar</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <!-- CONFIG CLAUDE -->
+  <div class="card hidden" id="claudeCfg">
+    <label>Configuración de Claude</label>
+    <div class="row">
+      <div>
+        <input type="password" id="apiKey" placeholder="sk-ant-… (tu API key de Anthropic)" autocomplete="off">
+        <div class="hint">Se guarda solo en <b>tu navegador</b> (localStorage). No viaja a ningún servidor salvo la API de Anthropic.</div>
+      </div>
+      <div style="flex:0 1 220px">
+        <select id="model">
+          <option value="claude-opus-5">Opus 5 — el más capaz</option>
+          <option value="claude-sonnet-5" selected>Sonnet 5 — equilibrado (recomendado)</option>
+          <option value="claude-haiku-4-5">Haiku 4.5 — rápido y barato</option>
+        </select>
+        <div class="hint">Para revisar código, Sonnet 5 rinde muy bien y sale más barato.</div>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:10px">
+      ⚠️ Poner la key en el HTML solo es aceptable porque esto es <b>privado y para vos</b>.
+      No publiques ni compartas este archivo con la key adentro (la key vive en localStorage, no en el archivo, así que compartir el .html es seguro).
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="results"></div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Estado + persistencia mínima (solo preferencias locales)
+   ============================================================ */
+const $ = (s) => document.querySelector(s);
+const els = {
+  code: $("#code"), run: $("#run"), clear: $("#clear"), status: $("#status"),
+  results: $("#results"), claudeCfg: $("#claudeCfg"),
+  apiKey: $("#apiKey"), model: $("#model"), engineSeg: $("#engineSeg"),
+};
+let engine = "rules";
+
+try {
+  const savedKey = localStorage.getItem("panel.apiKey");
+  const savedModel = localStorage.getItem("panel.model");
+  const savedEngine = localStorage.getItem("panel.engine");
+  if (savedKey) els.apiKey.value = savedKey;
+  if (savedModel) els.model.value = savedModel;
+  if (savedEngine) setEngine(savedEngine);
+} catch (_) {}
+
+els.apiKey.addEventListener("change", () => { try { localStorage.setItem("panel.apiKey", els.apiKey.value.trim()); } catch(_){} });
+els.model.addEventListener("change", () => { try { localStorage.setItem("panel.model", els.model.value); } catch(_){} });
+
+els.engineSeg.querySelectorAll("button").forEach((b) =>
+  b.addEventListener("click", () => setEngine(b.dataset.engine)));
+
+function setEngine(e) {
+  engine = e;
+  els.engineSeg.querySelectorAll("button").forEach((b) =>
+    b.classList.toggle("active", b.dataset.engine === e));
+  els.claudeCfg.classList.toggle("hidden", e !== "claude");
+  try { localStorage.setItem("panel.engine", e); } catch(_){}
+}
+
+els.clear.addEventListener("click", () => {
+  els.code.value = ""; els.results.innerHTML = ""; els.status.textContent = "";
+  els.code.focus();
+});
+
+els.run.addEventListener("click", run);
+
+/* ============================================================
+   Definición de las voces (según tu /panel)
+   ============================================================ */
+const AGENTS = [
+  { id:"inv",  name:"INVERSIONISTA", color:"#3ddc84",
+    optimiza:"retorno · sacrifica: lo lindo",
+    system:"Sos el INVERSIONISTA de un panel. Solo te importa: ¿por qué esto, por qué ahora, por qué vos? Preguntás por el costo de oportunidad y por qué nadie más lo hizo ya. Ignorás si la idea/código es 'linda'. Optimizás retorno; sacrificás elegancia." },
+  { id:"dist", name:"DISTRIBUCIÓN", color:"#00f2ff",
+    optimiza:"alcance · sacrifica: calidad técnica",
+    system:"Sos DISTRIBUCIÓN en un panel. No discutís si el producto/código es bueno. Preguntás: ¿quién se entera, por qué canal, y por qué dejaría lo que ya usa? Aplicado a código: descubribilidad, docs, nombres, onboarding. Ignorás la calidad técnica." },
+  { id:"pre",  name:"PRE-MORTEM", color:"#ffb020",
+    optimiza:"supervivencia · sacrifica: optimismo",
+    system:"Sos PRE-MORTEM en un panel. Asumí que ya fracasó, 18 meses después. Escribí la causa de muerte MÁS PROBABLE, no la más dramática. Prohibido decir 'podría fallar': decí qué falló exactamente. Optimizás supervivencia; sacrificás el optimismo." },
+  { id:"op",   name:"OPERADOR", color:"#bc13fe",
+    optimiza:"mantenibilidad · sacrifica: estrategia",
+    system:"Sos el OPERADOR en un panel. Preguntás quién hace el trabajo el martes a las 9am, con qué recursos, y qué pasa cuando esa persona se enferma (bus factor, tests, deuda, legibilidad). Ignorás la estrategia." },
+  { id:"rev",  name:"REVISOR TÉCNICO", color:"#ff4d6d",
+    optimiza:"corrección · sacrifica: velocidad",
+    system:"Sos el REVISOR TÉCNICO en un panel. Señalás bugs concretos, riesgos de seguridad, y complejidad innecesaria en el código. Sé específico (archivo/línea/patrón). Optimizás corrección; sacrificás velocidad de entrega." },
+];
+
+const PANEL_RULES =
+  "Reglas del panel:\n" +
+  "- Máximo 4 líneas por voz. Sin preámbulo.\n" +
+  "- Cada afirmación etiquetada al inicio con [Seguro], [Probable] o [Suposición].\n" +
+  "- Nombrá explícitamente qué sacrifica tu voz.\n" +
+  "- Debés contradecir a alguna otra voz en al menos un punto concreto.";
+
+/* ============================================================
+   Orquestador
+   ============================================================ */
+async function run() {
+  const text = els.code.value.trim();
+  if (!text) { setStatus("Pegá algo primero."); return; }
+  els.results.innerHTML = "";
+  els.run.disabled = true;
+
+  try {
+    if (engine === "rules") {
+      setStatus("Analizando por reglas…");
+      const metrics = analyze(text);
+      const cards = AGENTS.map((a) => ({ agent:a, lines: RULE_VOICES[a.id](metrics) }));
+      renderMetrics(metrics);
+      renderPanel(cards);
+      renderVerdict(ruleVerdict(metrics), null);
+      setStatus("Listo (motor por reglas).");
+    } else {
+      await runClaude(text);
+    }
+  } catch (err) {
+    setStatus("Error: " + (err && err.message ? err.message : err));
+  } finally {
+    els.run.disabled = false;
+  }
+}
+
+function setStatus(html) { els.status.innerHTML = html; }
+
+/* ============================================================
+   MOTOR 1 — Reglas (métricas del texto)
+   ============================================================ */
+function analyze(t) {
+  const lines = t.split(/\r?\n/);
+  const nonEmpty = lines.filter((l) => l.trim().length);
+  const count = (re) => (t.match(re) || []).length;
+
+  const commentLines = lines.filter((l) => /^\s*(\/\/|#|\*|<!--|\/\*)/.test(l)).length;
+  const todos = count(/\b(TODO|FIXME|HACK|XXX|WIP)\b/gi);
+  const logs = count(/\b(console\.(log|debug)|print\s*\(|System\.out|var_dump|dd\()/g);
+  const funcs = count(/\b(function\b|=>|\bdef \b|\bfunc \b)/g);
+  const hasTests = /\b(test\s*\(|describe\s*\(|it\s*\(|expect\s*\(|assert|\.spec\.|__tests__)/.test(t);
+  const hasErr = /\b(try\b|catch\b|except\b|rescue\b|\.catch\s*\()/.test(t);
+  const hasAsync = /\b(async\b|await\b|Promise|\.then\s*\()/.test(t);
+  const secrets = /\b(api[_-]?key|secret|password|passwd|token|bearer)\b\s*[:=]\s*['"][^'"]{6,}/i.test(t);
+  const longLine = lines.reduce((m, l) => Math.max(m, l.length), 0);
+  const looksLikeIdea = funcs === 0 && !/[{};]/.test(t) && nonEmpty.length < 40;
+
+  // duplicación aproximada: líneas no triviales repetidas
+  const freq = {};
+  nonEmpty.forEach((l) => { const k = l.trim(); if (k.length > 12) freq[k] = (freq[k]||0)+1; });
+  const dups = Object.values(freq).filter((n) => n >= 3).length;
+
+  // función más larga (heurística por bloques de llaves)
+  let depth = 0, curLen = 0, longestFn = 0;
+  for (const l of lines) {
+    if (/\{/.test(l) && /(function|=>|\bdef |\bfunc )/.test(l)) { depth = 1; curLen = 0; }
+    else if (depth > 0) { curLen++; if (/\}/.test(l)) { longestFn = Math.max(longestFn, curLen); depth = 0; } }
+  }
+
+  const commentRatio = nonEmpty.length ? commentLines / nonEmpty.length : 0;
+  const lang = guessLang(t);
+
+  return {
+    chars: t.length, lines: lines.length, code: nonEmpty.length,
+    commentLines, commentRatio, todos, logs, funcs, dups, longestFn, longLine,
+    hasTests, hasErr, hasAsync, secrets, looksLikeIdea, lang,
+  };
+}
+
+function guessLang(t) {
+  if (/\bimport .* from |=>|const |let /.test(t)) return "JS/TS";
+  if (/\bdef |import \w|self\./.test(t)) return "Python";
+  if (/<\w+[\s>]/.test(t)) return "HTML";
+  if (/[{;]/.test(t)) return "código";
+  return "texto/idea";
+}
+
+// helper: arma línea etiquetada
+const L = (tag, txt) => ({ tag, txt });
+
+const RULE_VOICES = {
+  inv(m) {
+    const out = [];
+    if (m.looksLikeIdea)
+      out.push(L("Probable", "Es una idea, no código: el costo real recién aparece cuando la construís. ¿Por qué esto y no otra cosa de tu backlog?"));
+    else
+      out.push(L("Seguro", `${m.code} líneas de ${m.lang}: cada línea es mantenimiento futuro. ¿El retorno justifica el costo de tenerlo vivo?`));
+    if (m.funcs > 12) out.push(L("Probable", `${m.funcs} funciones acá: mucha superficie. Quizá el 20% te da el 80% del valor — recortá.`));
+    if (!m.hasTests && !m.looksLikeIdea) out.push(L("Suposición", "Shipealo sin tests y validá si a alguien le importa antes de pulir. Sacrifico robustez por aprender rápido."));
+    out.push(L("Seguro", "Sacrifico lo 'lindo': no me importa la elegancia, me importa si mueve la aguja."));
+    return out.slice(0, 4);
+  },
+  dist(m) {
+    const out = [];
+    if (m.commentRatio < 0.05)
+      out.push(L("Seguro", `Casi sin comentarios (${(m.commentRatio*100|0)}%): nadie más va a entender esto. Si no se explica, no se adopta.`));
+    else
+      out.push(L("Probable", "Tiene comentarios, bien: eso es tu 'canal'. Falta un README que diga para qué sirve y cómo se usa."));
+    out.push(L("Probable", "¿Quién se entera de que esto existe? Un nombre claro y un ejemplo copiable venden más que el mejor código."));
+    if (m.looksLikeIdea) out.push(L("Suposición", "Como idea: definí en una frase por qué alguien dejaría lo que ya usa por esto."));
+    out.push(L("Seguro", "Sacrifico la calidad técnica: puede estar feo por dentro si por fuera se entiende y se encuentra."));
+    return out.slice(0, 4);
+  },
+  pre(m) {
+    const out = [];
+    if (m.secrets) out.push(L("Seguro", "Muerte por secreto filtrado: hay una key/token hardcodeada. En 18 meses alguien la sube a git y te vacía la cuenta."));
+    else if (m.todos >= 3) out.push(L("Probable", `Muerte por deuda: ${m.todos} TODO/FIXME. El que quedó sin hacer es justo el que rompe producción.`));
+    else if (!m.hasErr && m.hasAsync) out.push(L("Probable", "Muerte por promesa sin catch: un fetch falla en silencio, el usuario ve pantalla vacía y nadie sabe por qué."));
+    else if (m.longestFn > 60) out.push(L("Probable", `Muerte por función-monstruo (~${m.longestFn} líneas): nadie se anima a tocarla, se pudre y bloquea todo lo demás.`));
+    else out.push(L("Suposición", "Muerte por abandono: funciona, nadie lo mantiene, en 18 meses una dependencia rompe y no hay quien lo arregle."));
+    if (m.dups >= 1) out.push(L("Probable", `${m.dups} bloque(s) duplicado(s): el bug se arregla en un lado y sigue vivo en el otro.`));
+    out.push(L("Seguro", "Sacrifico el optimismo: mi trabajo es nombrar el cadáver, no animarte."));
+    return out.slice(0, 4);
+  },
+  op(m) {
+    const out = [];
+    out.push(m.hasTests
+      ? L("Seguro", "Hay tests: el que lo agarre el martes 9am tiene red. Bien.")
+      : L("Seguro", "Sin tests: el martes 9am, el que toca esto reza. Cualquier cambio es a ciegas."));
+    if (m.logs >= 3) out.push(L("Probable", `${m.logs} console.log/print sueltos: ruido en producción y señal de debug sin terminar.`));
+    if (m.longestFn > 60) out.push(L("Probable", `Función de ~${m.longestFn} líneas: si el que la escribió se enferma, nadie más la entiende. Partila.`));
+    if (m.commentRatio < 0.05 && !m.looksLikeIdea) out.push(L("Suposición", "Sin comentarios, el bus factor es 1. Documentá aunque sea las decisiones raras."));
+    out.push(L("Seguro", "Sacrifico la estrategia: no me importa si es buena idea, me importa quién la sostiene."));
+    return out.slice(0, 4);
+  },
+  rev(m) {
+    const out = [];
+    if (m.secrets) out.push(L("Seguro", "🔴 Credencial hardcodeada: sacala YA a variable de entorno / config fuera del repo."));
+    if (m.hasAsync && !m.hasErr) out.push(L("Probable", "Código async sin try/catch ni .catch(): agregá manejo de errores o vas a comer rechazos silenciosos."));
+    if (m.longestFn > 60) out.push(L("Probable", `Función de ~${m.longestFn} líneas: alta complejidad, refactorizá en piezas testeables.`));
+    if (m.dups >= 1) out.push(L("Probable", `${m.dups} duplicación(es) evidente(s): extraé a función/constante compartida.`));
+    if (m.logs >= 3) out.push(L("Suposición", `${m.logs} logs de debug: limpialos o pasalos a un logger con niveles.`));
+    if (out.length === 0) out.push(L("Probable", "No detecto red flags obvias por métricas — pero las métricas no leen lógica. Pasá el motor Claude para una revisión real."));
+    out.push(L("Seguro", "Sacrifico velocidad: prefiero frenar el merge antes que romper prod."));
+    return out.slice(0, 4);
+  },
+};
+
+function ruleVerdict(m) {
+  // Elige UNA voz ganadora según la señal dominante.
+  let who, why, cambia;
+  if (m.secrets) {
+    who = "REVISOR TÉCNICO";
+    why = "Hay una credencial hardcodeada: es el riesgo más caro y más inmediato. Todo lo demás espera.";
+    cambia = "Que confirmes que esa key es falsa/de ejemplo y no toca ningún servicio real.";
+  } else if (!m.hasTests && !m.looksLikeIdea && (m.longestFn > 60 || m.funcs > 10)) {
+    who = "OPERADOR";
+    why = "Código de tamaño real sin tests y con funciones largas: el costo no es construirlo, es sostenerlo. Sin red, se te cae encima.";
+    cambia = "Que exista una suite de tests que cubra los caminos críticos (aunque sea 3).";
+  } else if (m.todos >= 3 || m.dups >= 1) {
+    who = "PRE-MORTEM";
+    why = "La deuda visible (TODOs / duplicación) es la causa de muerte más probable a 18 meses. Se arregla ahora o te cobra intereses.";
+    cambia = "Que cierres los TODO críticos o unifiques los bloques duplicados.";
+  } else if (m.looksLikeIdea) {
+    who = "INVERSIONISTA";
+    why = "Todavía es idea: la pregunta cara no es cómo, es por qué esto y por qué vos. Sin esa respuesta, construir es apostar a ciegas.";
+    cambia = "Una frase que justifique el costo de oportunidad frente a la próxima cosa de tu backlog.";
+  } else {
+    who = "DISTRIBUCIÓN";
+    why = "El código pinta sano; el cuello de botella deja de ser técnico y pasa a ser que alguien lo encuentre y lo use.";
+    cambia = "Que midas si hay demanda real (uso, feedback) — ahí cambia quién gana.";
+  }
+  return { who, why, cambia };
+}
+
+/* ============================================================
+   MOTOR 2 — Claude (API directa desde el navegador)
+   ============================================================ */
+async function runClaude(text) {
+  const key = els.apiKey.value.trim();
+  if (!key) { setStatus("Falta la API key de Anthropic (arriba, en Configuración de Claude)."); return; }
+  const model = els.model.value;
+
+  // Rendercards vacías con spinner
+  const cards = AGENTS.map((a) => ({ agent:a, lines:[L("Probable","…")] }));
+  renderPanel(cards);
+  const cardEls = {};
+  document.querySelectorAll(".agent").forEach((el) => { cardEls[el.dataset.id] = el; });
+
+  setStatus(`<span class="spinner"></span>Convocando ${AGENTS.length} voces con ${model}…`);
+
+  const results = {};
+  await Promise.all(AGENTS.map(async (a) => {
+    const ul = cardEls[a.id].querySelector("ul");
+    ul.innerHTML = `<li><span class="spinner"></span>pensando…</li>`;
+    try {
+      const reply = await callClaude(key, model, a, text);
+      results[a.id] = reply;
+      ul.innerHTML = parseLabeled(reply).map(liHTML).join("");
+    } catch (e) {
+      ul.innerHTML = `<li><span class="tag t-sup">Error</span>${escapeHtml(e.message||String(e))}</li>`;
+    }
+  }));
+
+  // Veredicto de cierre: síntesis
+  setStatus(`<span class="spinner"></span>Escribiendo el veredicto…`);
+  try {
+    const verdict = await callVerdict(key, model, text, results);
+    renderVerdict(null, verdict);
+    setStatus(`Listo (Claude · ${model}).`);
+  } catch (e) {
+    setStatus("Voces listas, pero falló el veredicto: " + (e.message||e));
+  }
+}
+
+async function callClaude(key, model, agent, text) {
+  const system =
+    agent.system + "\n\n" + PANEL_RULES +
+    "\nSalida: solo tus 3-4 líneas, cada una empezando con [Seguro]/[Probable]/[Suposición]. Nada más.";
+  const body = {
+    model, max_tokens: 700,
+    system,
+    messages: [{ role:"user", content:
+      "Revisá esto desde tu rol. Si es código, señalá lo concreto; si es una idea, evaluála.\n\n---\n" + text }],
+  };
+  return anthropic(key, body);
+}
+
+async function callVerdict(key, model, text, voices) {
+  const transcript = AGENTS.map((a) => `${a.name}:\n${voices[a.id]||"(sin respuesta)"}`).join("\n\n");
+  const system =
+    "Sos el moderador del panel. Ya hablaron las voces. Cerrá con el formato OBLIGATORIO:\n" +
+    "1) 'Qué voz gana esta vez y por qué' — UNA sola, elegida, con el motivo (2-3 líneas).\n" +
+    "2) 'Qué dato específico haría cambiar ese veredicto' — una línea.\n" +
+    "Sin preámbulo. Directo.";
+  const body = {
+    model, max_tokens: 500, system,
+    messages: [{ role:"user", content: `MATERIAL REVISADO:\n${text}\n\n---\nLO QUE DIJO CADA VOZ:\n${transcript}` }],
+  };
+  return anthropic(key, body);
+}
+
+async function anthropic(key, body) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{
+      "content-type":"application/json",
+      "x-api-key":key,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const j = await res.json(); if (j.error && j.error.message) msg = j.error.message; } catch(_){}
+    if (res.status === 401) msg = "API key inválida (401). Revisá la key.";
+    if (res.status === 429) msg = "Límite de uso (429). Probá de nuevo en un rato.";
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  return (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+}
+
+/* ============================================================
+   Parseo + render
+   ============================================================ */
+function parseLabeled(txt) {
+  // Convierte texto crudo en líneas {tag, txt} detectando [Etiqueta]
+  const lines = txt.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const out = [];
+  for (let l of lines) {
+    const m = l.match(/^[-*•]?\s*\[?\s*(seguro|probable|suposici[oó]n|supuesto)\s*\]?\s*[:\-]?\s*(.*)$/i);
+    if (m) out.push(L(normTag(m[1]), m[2] || ""));
+    else if (out.length) out[out.length-1].txt += " " + l; // continuación
+    else out.push(L("Probable", l));
+  }
+  return out.length ? out : [L("Probable", txt)];
+}
+function normTag(s) {
+  s = s.toLowerCase();
+  if (s.startsWith("seg")) return "Seguro";
+  if (s.startsWith("prob")) return "Probable";
+  return "Suposición";
+}
+function tagClass(t) {
+  if (t === "Seguro") return "t-seguro";
+  if (t === "Probable") return "t-probable";
+  return "t-sup";
+}
+function liHTML(item) {
+  return `<li><span class="tag ${tagClass(item.tag)}">${item.tag}</span>${escapeHtml(item.txt)}</li>`;
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+function renderPanel(cards) {
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  grid.innerHTML = cards.map((c) => `
+    <div class="agent" data-id="${c.agent.id}" style="--accent:${c.agent.color}">
+      <h3>${c.agent.name}</h3>
+      <p class="opt">Optimiza ${c.agent.optimiza}</p>
+      <ul>${c.lines.map(liHTML).join("")}</ul>
+    </div>`).join("");
+  els.results.appendChild(grid);
+}
+
+function renderMetrics(m) {
+  const chips = [
+    ["Tipo", m.looksLikeIdea ? "idea" : m.lang],
+    ["Líneas de código", m.code],
+    ["Funciones", m.funcs],
+    ["Comentarios", `${(m.commentRatio*100)|0}%`],
+    ["TODOs", m.todos],
+    ["Logs debug", m.logs],
+    ["Fn más larga", m.longestFn || "—"],
+    ["Tests", m.hasTests ? "sí" : "no"],
+    ["Manejo de errores", m.hasErr ? "sí" : "no"],
+    ["Secreto hardcodeado", m.secrets ? "⚠️ sí" : "no"],
+  ];
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerHTML = `<label>Radiografía (motor por reglas)</label>
+    <div class="metrics">${chips.map(([k,v]) => `<span class="chip">${k}: <b>${v}</b></span>`).join("")}</div>`;
+  els.results.appendChild(div);
+}
+
+function renderVerdict(rule, claudeText) {
+  const div = document.createElement("div");
+  div.className = "verdict";
+  if (rule) {
+    div.innerHTML = `<h3>Veredicto</h3>
+      <p class="who">Gana: ${rule.who}</p>
+      <p>${escapeHtml(rule.why)}</p>
+      <p style="color:var(--muted)"><b>Qué lo cambiaría:</b> ${escapeHtml(rule.cambia)}</p>`;
+  } else {
+    div.innerHTML = `<h3>Veredicto</h3><p>${escapeHtml(claudeText).replace(/\n/g,"<br>")}</p>`;
+  }
+  els.results.appendChild(div);
+}
+</script>
+</body>
+</html>
