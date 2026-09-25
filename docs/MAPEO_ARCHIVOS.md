@@ -61,7 +61,7 @@ Cada página lleva `data-page="…"`; el navbar y el footer los inyecta
 
 ## `css/` — Hojas de estilo
 
-**Generados por build (no editar a mano):** `bundle.css`, `bundle.min.css`.
+**Generado por build (no editar a mano):** `bundle.min.css`.
 El resto son las fuentes que el build concatena.
 
 | Archivo | Propósito |
@@ -79,13 +79,13 @@ El resto son las fuentes que el build concatena.
 | `configuracion.css` | Página de configuración (toggles, selector de tamaño). |
 | `login.css` | Página de login. |
 | `mascot.css` | Mascota / pet interactivo (ver `js/ui/mascot.js`). |
-| `bundle.css` / `bundle.min.css` | **Generados.** Concatenación (y minificado) de las fuentes anteriores. |
+| `bundle.min.css` | **Generado.** Concatenación minificada de las fuentes anteriores. |
 
 ---
 
 ## `js/` — Raíz
 
-**Generados por build:** `core-bundle.js`, `core-bundle.min.js` (concatenan los
+**Generado por build:** `core-bundle.min.js` (concatena los
 módulos de `js/core/`; las páginas cargan el `.min`).
 
 | Archivo | Propósito |
@@ -219,11 +219,7 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | `MAPEO_ARCHIVOS.md` | Este documento. |
 | `README_ESTADISTICAS.md` | Sistema de estadísticas (nivel, XP, likes, vistos, triggers). |
 | `SETUP_SUPABASE.md` | Guía de configuración de Supabase. |
-| `implementation_plan.md` | Plan de integración de MangaDex. |
-| `task.md` | Checklist de tareas. |
-| `walkthrough.md` | Fixes aplicados (sesión, navbar, sincronización, progreso). |
 | `segundo-cerebro.md` | Mapa del proyecto por dominios, generado desde `code-map.json`. |
-| `nav-preview.html` | Vista previa del navbar (herramienta de desarrollo). |
 
 ---
 

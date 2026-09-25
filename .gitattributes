@@ -5,8 +5,6 @@
 # hacer checkout en Windows, el build los reescribiria y git los marcaria como
 # modificados sin que su contenido cambiara. Eso hacia ruido en el chequeo de
 # "bundles al dia" del CI.
-css/bundle.css          text eol=lf
 css/bundle.min.css      text eol=lf
-js/core-bundle.js       text eol=lf
 js/core-bundle.min.js   text eol=lf
 js/vendor/*.js          text eol=lf

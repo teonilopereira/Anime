@@ -23,16 +23,6 @@
         return new Intl.DateTimeFormat(locale).format(date);
     }
 
-    function truncateText(value, maxLength = AnimeDestiny.Constants.TRUNCATE_MAX_LENGTH || 140) {
-        const text = String(value ?? "").trim();
-        if (text.length <= maxLength) return text;
-        return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}...`;
-    }
-
-    function parseUrlParams(search = window.location.search) {
-        return Object.fromEntries(new URLSearchParams(search).entries());
-    }
-
     function normalizeText(value) {
         return String(value ?? "")
             .toLowerCase()

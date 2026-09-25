@@ -2,8 +2,8 @@
  * build.js — Pipeline de build unificado de Anime Destiny.
  *
  * Un solo comando (`npm run build`) que:
- *   1. Concatena los CSS compartidos → css/bundle.css y los minifica → css/bundle.min.css
- *   2. Concatena los JS core → js/core-bundle.js y los minifica → js/core-bundle.min.js
+ *   1. Concatena los CSS compartidos y los minifica → css/bundle.min.css
+ *   2. Concatena los JS core y los minifica → js/core-bundle.min.js
  *   3. Calcula UNA versión (hash de contenido) y la estampa en todos los HTML + sw.js,
  *      reemplazando los tres contadores manuales que antes se bumpeaban a mano.
  *
@@ -27,7 +27,7 @@ const SITE_URL = 'https://animedestiny.netlify.app';
 
 // Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
 // de busqueda). El resto se agrega solo, asi no hay que mantener una lista.
-const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html', 'diag-portadas.html', 'volumenes.html']);
+const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html', 'volumenes.html']);
 
 /**
  * Verificacion de propiedad de Google Search Console (token del meta tag).
@@ -270,9 +270,7 @@ const [cssMinRes, jsMinRes] = await Promise.all([
 const cssMin = cssMinRes.code;
 const jsMin = jsMinRes.code;
 
-writeUtf8('css/bundle.css', cssBundle);
 writeUtf8('css/bundle.min.css', cssMin);
-writeUtf8('js/core-bundle.js', jsBundle);
 writeUtf8('js/core-bundle.min.js', jsMin);
 
 // ── Bundles CSS por pagina ───────────────────────────────────────────────

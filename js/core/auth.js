@@ -63,11 +63,6 @@ async function waitForSupabase() {
     // UI
     // ─────────────────────────────────────────────
 
-    function setMsg(text) {
-        const msg = document.getElementById("userModalMsg");
-        if (msg) msg.textContent = text || "";
-    }
-
     function displayNameFromProfile(user, profile) {
         if (profile?.display_name) return profile.display_name;
         return displayNameFromUser(user);
@@ -181,116 +176,6 @@ async function waitForSupabase() {
 
     function closeUserModal() {
         document.getElementById("userModal")?.classList.remove("is-open");
-    }
-
-    function isValidGmailAddress(value) {
-        return /^[^\s@]+@gmail\.com$/i.test(String(value || "").trim());
-    }
-
-    async function loginWithPassword(mode) {
-        const username  = String(document.getElementById("userNameInput")?.value  || "").trim();
-        const email     = String(document.getElementById("userEmailInput")?.value || "").trim();
-        const password  = String(document.getElementById("userPassInput")?.value  || "");
-
-        const loginEmail = email || (/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(username) ? username : "");
-
-        if (!username && !email) return setMsg(authTr('auth.err.falta_usuario', "Escribí un nombre de usuario o correo."));
-        if (mode === "create" && username.length < (AnimeDestiny.Constants.MIN_USERNAME_LENGTH || 3)) return setMsg(authTr('auth.err.usuario_corto', "El usuario debe tener al menos 3 caracteres."));
-        if (mode === "create" && !isValidGmailAddress(email)) return setMsg(authTr('auth.err.gmail', "Usá un correo @gmail.com válido."));
-        if (!password || password.length < (AnimeDestiny.Constants.MIN_PASSWORD_LENGTH || 6)) return setMsg(authTr('auth.err.pass_corta', "La contraseña debe tener al menos 6 caracteres."));
-
-        setMsg(mode === "create" ? authTr('auth.creando', "Creando cuenta...") : authTr('auth.iniciando', "Iniciando sesión..."));
-
-        const client = await waitForSupabase();
-        if (!client?.client) {
-            setMsg(authTr('auth.err.sin_servidor', "No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo."));
-            return;
-        }
-
-        if (mode === "create") {
-            try {
-                const { data, error } = await client.client.auth.signUp({
-                    email,
-                    password,
-                    options: { data: { username, name: username, full_name: username } }
-                });
-
-                if (error) {
-                    if (error.message?.toLowerCase().includes("already registered") ||
-                        error.message?.toLowerCase().includes("already exists")) {
-                        setMsg(authTr('auth.err.ya_existe', "Ese correo ya tiene una cuenta. Iniciá sesión en cambio."));
-                    } else if (error.message?.toLowerCase().includes("invalid email")) {
-                        setMsg(authTr('auth.err.email_invalido', "El correo ingresado no es válido."));
-                    } else if (error.message?.toLowerCase().includes("password")) {
-                        setMsg(authTr('auth.err.pass_debil', "La contraseña es muy débil. Usá al menos 6 caracteres."));
-                    } else {
-                        setMsg(authTr('auth.err.crear', "Error al crear cuenta. Intentá de nuevo."));
-                    }
-                    return;
-                }
-
-                if (data?.user && !data?.session) {
-                    setMsg(authTr('auth.ok.confirmar', "✅ Cuenta creada. Revisá tu correo para confirmarla."));
-                    window.setTimeout(closeUserModal, 2500);
-                    return;
-                }
-
-                if (data?.session) {
-                    await refreshUserUi();
-                    setMsg(authTr('auth.ok.creada', "✅ Cuenta creada exitosamente."));
-                    window.setTimeout(closeUserModal, 800);
-                    return;
-                }
-
-                setMsg(authTr('auth.ok.creada_login', "Cuenta creada. Iniciá sesión para continuar."));
-                window.setTimeout(closeUserModal, 1500);
-
-            } catch (err) {
-                console.error("Error inesperado al crear cuenta:", err);
-                setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
-            }
-            return;
-        }
-
-        if (!loginEmail) {
-            setMsg(authTr('auth.err.falta_email', "Ingresá tu correo electrónico para iniciar sesión."));
-            return;
-        }
-
-        try {
-            const { data, error } = await client.client.auth.signInWithPassword({
-                email: loginEmail,
-                password
-            });
-
-            if (error) {
-                if (error.message?.toLowerCase().includes("invalid login") ||
-                    error.message?.toLowerCase().includes("invalid credentials")) {
-                    setMsg(authTr('auth.err.credenciales', "Correo o contraseña incorrectos."));
-                } else if (error.message?.toLowerCase().includes("email not confirmed")) {
-                    setMsg(authTr('auth.err.no_confirmado', "Confirmá tu correo antes de iniciar sesión."));
-                } else if (error.message?.toLowerCase().includes("network") ||
-                           error.message?.toLowerCase().includes("fetch")) {
-                    setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
-                } else {
-                    setMsg(authTr('auth.err.login', "Error al iniciar sesión. Intentá de nuevo."));
-                }
-                return;
-            }
-
-            if (data?.user) {
-                await refreshUserUi();
-                setMsg("");
-                window.setTimeout(closeUserModal, 600);
-                return;
-            }
-
-            setMsg(authTr('auth.err.no_login', "No se pudo iniciar sesión. Intentá de nuevo."));
-
-        } catch (err) {
-            console.error("Error inesperado al iniciar sesión:", err);
-            setMsg(authTr('auth.err.sin_conexion', "Sin conexión al servidor. Revisá tu internet e intentá de nuevo."));
-        }
     }
 
     async function logoutUser() {
