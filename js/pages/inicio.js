@@ -76,16 +76,16 @@
     function cardHtml(item) {
         var img = item.img || '';
         var badge = item.badge
-            ? '<span class="home-mini-badge">' + esc(item.badge) + '</span>'
+            ? '<span class="wcard-pill home-mini-badge">' + esc(item.badge) + '</span>'
             : '';
         var imgTag = img
             ? '<img class="home-mini-img" loading="lazy" src="' + esc(img) + '" alt="' + esc(item.titulo) +
               '" data-title="' + esc(item.titulo) + '" data-fallback-catalog="1">'
-            : '<span class="home-mini-noimg" aria-hidden="true">🎞️</span>';
+            : '<span class="wcard-empty" aria-hidden="true">' + esc(String(item.titulo || '?').charAt(0)) + '</span>';
 
-        return '<a class="home-mini-card" href="' + esc(detailUrl(item.category, item.id)) + '">' +
-                    '<span class="home-mini-poster">' + imgTag + badge + '</span>' +
-                    '<span class="home-mini-title">' + esc(item.titulo) + '</span>' +
+        return '<a class="wcard home-mini-card" href="' + esc(detailUrl(item.category, item.id)) + '">' +
+                    '<span class="wcard-media">' + imgTag + badge + '</span>' +
+                    '<span class="wcard-text"><span class="wcard-title">' + esc(item.titulo) + '</span></span>' +
                 '</a>';
     }
 
