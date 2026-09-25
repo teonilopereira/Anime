@@ -203,7 +203,10 @@
             // MangaDex trae el año de publicacion directo en attributes.year.
             startYear: Number(attrs.year) || null,
             endYear: null,
-            staff: staffList
+            staff: staffList,
+            // Tiendas y sitio de la traducción oficial (attributes.links). Los
+            // usa la sección "Dónde leer" de la ficha (js/detalle/watch-links.js).
+            mangadexLinks: attrs.links || null
         };
     }
 

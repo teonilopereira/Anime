@@ -206,6 +206,9 @@
             countryOfOrigin: item.countryOfOrigin || null,
             nextAiringEpisode: item.nextAiringEpisode || null,
             streamingEpisodes: item.streamingEpisodes || [],
+            // Solo viene en MEDIA_BY_ID_QUERY. Alimenta "Dónde ver / Dónde leer"
+            // en la ficha (js/detalle/watch-links.js), que filtra los oficiales.
+            externalLinks: item.externalLinks || [],
             // Los tres campos de abajo solo vienen en MEDIA_BY_ID_QUERY: en las
             // listas del catalogo quedan vacios y la ficha simplemente no pinta
             // esas secciones.
@@ -374,6 +377,7 @@
                 staff(perPage: 6) { edges { role node { name { full } } } }
                 nextAiringEpisode { airingAt timeUntilAiring episode }
                 streamingEpisodes { title thumbnail url site }
+                externalLinks { url site type language isDisabled }
                 studios { nodes { name } }
                 bannerImage
                 trailer { id site }
