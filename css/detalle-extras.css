@@ -32,6 +32,13 @@
     pointer-events: none;
 }
 
+/* ── Dónde ver / Dónde leer (watch-links.js) ── */
+.detail-watch-note {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    color: rgba(var(--ink-rgb),0.5);
+}
+
 /* ── Tráiler ── */
 .trailer-box {
     position: relative;

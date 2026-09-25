@@ -223,6 +223,9 @@ function renderDetalle(item, nombreUrl, categoria) {
     // ── Tráiler ── (ver buildTrailerHtml en js/detalle/render-sections.js)
     const trailerHtml = buildTrailerHtml(item);
 
+    // ── Dónde ver / Dónde leer ── (ver js/detalle/watch-links.js)
+    const watchLinksHtml = window.DetalleWatchLinks ? window.DetalleWatchLinks.html(item, isAnime) : '';
+
     let extraBlockHtml = '';
     let progressPanelHtml = '';
 
@@ -390,6 +393,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <a href="#" class="detail-see-more">Ver más</a>
                 </div>
 
+                ${watchLinksHtml}
                 ${trailerHtml}
 
                 <div class="detail-section">
