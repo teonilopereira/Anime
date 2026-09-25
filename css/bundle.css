@@ -3959,363 +3959,290 @@ body.reduce-motion .catalog-neon-card {
 }
 
 /* ==========================================
-   CATALOG BAND CARD — poster vertical con banda
-   de estado arriba (cian->púrpura) y flip 3D.
-   El frente muestra la portada + título; el botón
-   gira la card al dorso con las acciones, con un
-   botón para volver. Conserva los hooks funcionales
-   (.catalog-neon-card, .flip-toggle, .fav-btn/.viewed-btn,
-   .watch-status-select, [data-progress]).
+   CATALOG RAIL CARD — "portada con riel".
+   Todo a la vista, sin giro: la portada lleva el
+   estado arriba a la izquierda, favorito y visto
+   arriba a la derecha y un riel abajo con el
+   progreso y el seguimiento. Debajo de la portada
+   van el título (link al detalle), la línea de
+   tipo/episodios y el botón de episodios/volúmenes.
+   Conserva los hooks funcionales (.catalog-neon-card,
+   .fav-btn/.viewed-btn, .watch-status-select,
+   [data-progress], .cband-status/.cband-info).
 ========================================== */
 
-.catalog-band-card {
+.catalog-rail-card {
     width: 100%;
     height: auto;
-    perspective: 1400px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    --crail-overlay: rgba(7, 6, 15, 0.82);
 }
 
-.catalog-band-card .cband-inner {
+.catalog-rail-card .crail-media {
     position: relative;
-    width: 100%;
-    height: 400px;
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.catalog-band-card .flip-toggle:checked ~ .cband-inner {
-    transform: rotateY(180deg);
-}
-
-/* Bloqueo de clics de la cara que mira hacia atrás.
-   backface-visibility: hidden oculta la cara girada pero NO se hereda a sus
-   hijos posicionados (caption, botón de flip, topbar). Con preserve-3d esos
-   hijos siguen "de frente" para el hit-testing y roban los clics de la cara
-   visible, así que sobre el dorso no se podían apretar los botones (DETALLE,
-   favorito, visto). Se apagan explícitamente los eventos de puntero de la cara
-   que no está mirando al usuario en cada estado del flip. */
-.catalog-band-card .cband-back {
-    pointer-events: none;
-}
-
-.catalog-band-card .flip-toggle:checked ~ .cband-inner .cband-front {
-    pointer-events: none;
-}
-
-.catalog-band-card .flip-toggle:checked ~ .cband-inner .cband-back {
-    pointer-events: auto;
-}
-
-.catalog-band-card .cband-face {
-    position: absolute;
-    inset: 0;
-    box-sizing: border-box;
-    backface-visibility: hidden;
-    border-radius: 16px;
+    aspect-ratio: 2 / 3;
+    max-width: 100%;
+    border-radius: 14px;
     overflow: hidden;
-    border: 1px solid rgba(var(--card-hud-rgb), 0.4);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.catalog-band-card:hover .cband-face {
-    border-color: rgba(var(--card-hud-rgb), 0.6);
-    box-shadow: 0 0 22px rgba(var(--card-hud-rgb), 0.22);
-}
-
-/* ── Frente ── */
-.catalog-band-card .cband-front {
     background: #0a1220;
+    border: 1px solid rgba(var(--card-hud-rgb), 0.18);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.catalog-band-card .cband-media {
+.catalog-rail-card:hover .crail-media,
+.catalog-rail-card:focus-within .crail-media {
+    border-color: rgba(var(--card-hud-rgb), 0.55);
+    box-shadow: 0 0 20px rgba(var(--card-hud-rgb), 0.16);
+}
+
+.catalog-rail-card .crail-media img {
     position: absolute;
     inset: 0;
-}
-
-.catalog-band-card .cband-media img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center top;
     display: block;
-    background: rgba(var(--ink-rgb), 0.04);
     transition: transform 0.5s ease;
 }
 
-.catalog-band-card:hover .cband-media img {
-    transform: scale(1.05);
+.catalog-rail-card:hover .crail-media img {
+    transform: scale(1.04);
 }
 
-.catalog-band-card .cband-media::after {
-    content: "";
+/* Estado: texto + punto de color (el color refuerza, no reemplaza al texto). */
+.catalog-rail-card .crail-status {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(transparent 42%, rgba(0, 0, 0, 0.85));
-    pointer-events: none;
-}
-
-/* Banda de estado superior */
-.catalog-band-card .cband-topbar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 3;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: linear-gradient(90deg, rgba(0, 242, 255, 0.95), rgba(188, 19, 254, 0.9));
-    color: #04121a;
-    font-family: var(--font-display);
-    font-size: 0.66rem;
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}
-
-.catalog-band-card .cband-dot {
-    flex: 0 0 auto;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #04121a;
-    box-shadow: 0 0 0 3px rgba(var(--ink-rgb), 0.45);
-}
-
-.catalog-band-card .cband-status {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.catalog-band-card .cband-caption {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 8px;
+    left: 8px;
     z-index: 2;
-    padding: 14px 52px 16px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.catalog-band-card .cband-title {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    max-width: calc(100% - 56px);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--crail-overlay);
+    color: #ece9fb;
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 0.58rem;
     font-weight: 700;
-    line-height: 1.15;
-    color: var(--text-main);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    --crail-tone: #00f2ff;
 }
 
-.catalog-band-card .cband-info {
-    font-size: 0.78rem;
-    color: rgba(159, 178, 204, 0.95);
+.catalog-rail-card .crail-status[data-tone="finished"] { --crail-tone: #22c55e; }
+.catalog-rail-card .crail-status[data-tone="hiatus"] { --crail-tone: #f5b83d; }
+.catalog-rail-card .crail-status[data-tone="cancelled"] { --crail-tone: #f43f5e; }
+.catalog-rail-card .crail-status[data-tone="upcoming"] { --crail-tone: #bc13fe; }
+
+.catalog-rail-card .crail-dot {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--crail-tone);
+    box-shadow: 0 0 8px var(--crail-tone);
+}
+
+.catalog-rail-card .cband-status {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.catalog-band-card .cband-front .cband-flip {
+/* Favorito y visto, siempre visibles. */
+.catalog-rail-card .crail-quick {
     position: absolute;
-    right: 12px;
-    bottom: 12px;
-    z-index: 4;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: grid;
+    gap: 6px;
 }
 
-/* ── Dorso ── */
-.catalog-band-card .cband-back {
-    transform: rotateY(180deg);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px 14px 16px;
-    background:
-        radial-gradient(circle at 50% 0%, rgba(var(--card-hud-rgb), 0.14), transparent 55%),
-        linear-gradient(180deg, #0a1220, #0b1020);
-    /* Red de seguridad: si el contenido del dorso llega a superar la altura
-       fija de la card (títulos largos + progreso + acciones), se puede
-       desplazar en vez de quedar recortado por el overflow:hidden de la cara. */
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(var(--card-hud-rgb), 0.4) transparent;
-}
-
-.catalog-band-card .cband-back-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.catalog-band-card .cband-back .card-back-title {
-    margin: 0;
-    font-family: "Orbitron", var(--font-display);
-    font-size: 1rem;
-    line-height: 1.2;
-    text-align: left;
-    color: var(--accent-cyan);
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.35);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.catalog-band-card .cband-back-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.catalog-band-card .cband-back-controls .watch-status-select {
-    margin-top: 0;
-}
-
-.catalog-band-card .cband-back .card-back-progress-wrapper {
-    margin-top: 2px;
-}
-
-/* Acciones del dorso: los dos botones circulares (favorito y visto) van en una
-   fila centrada y el botón DETALLE ocupa el ancho completo debajo. Antes DETALLE
-   era `width:auto; margin-left:auto`, así que en cards angostas (2 columnas en
-   móvil) se comprimía hasta que el texto "DETALLE" se apilaba letra por letra en
-   vertical y se salía de la card. Con flex-wrap + flex:1 1 100% el botón nunca se
-   estruja: siempre baja a su propia fila a ancho completo. */
-.catalog-band-card .cband-back-actions {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* Fila superior de acciones: los dos botones circulares (favorito y visto)
-   centrados. */
-.catalog-band-card .cband-back-actions-icons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-}
-
-/* Fila inferior: los dos botones de texto (EPISODIOS/VOLÚMENES y DETALLE) lado
-   a lado a mitad de ancho cada uno, para que el dorso entre completo dentro de
-   la altura fija de la card sin que DETALLE quede recortado abajo. */
-.catalog-band-card .cband-back-actions-cta {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-}
-
-.catalog-band-card .cband-back-actions .action-btn {
-    flex: 0 0 auto;
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+.catalog-rail-card .crail-quick .action-btn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
     padding: 0;
     border-radius: 50%;
+    color: #ece9fb;
+    background: var(--crail-overlay);
+    border-color: rgba(255, 255, 255, 0.18);
 }
 
-.catalog-band-card .cband-back-actions .fav-btn.active {
+.catalog-rail-card .crail-quick .fav-btn.active {
     color: #f43f5e;
     border-color: #f43f5e;
     box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
 }
 
-.catalog-band-card .cband-back-actions .viewed-btn.active {
+.catalog-rail-card .crail-quick .viewed-btn.active {
     color: #22c55e;
     border-color: #22c55e;
     box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
 }
 
-.catalog-band-card .cband-back-actions .card-back-detail-btn {
-    flex: 1 1 0;
+/* Riel inferior: progreso a la izquierda, seguimiento a la derecha. */
+.catalog-rail-card .crail-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 10px 12px;
+    background: linear-gradient(180deg, transparent, rgba(7, 6, 15, 0.9) 45%);
+}
+
+.catalog-rail-card .crail-progress {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.catalog-rail-card .crail-progress-label {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--card-back-mono, var(--font-display));
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #e6e2fb;
+    font-variant-numeric: tabular-nums;
+}
+
+/* La línea se ubica contra .crail-media (el primer ancestro posicionado). */
+.catalog-rail-card .crail-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.catalog-rail-card .crail-line-fill {
+    border-radius: 0;
+    box-shadow: none;
+    transition: width 0.3s ease;
+}
+
+.catalog-rail-card .crail-select {
+    flex: 0 1 auto;
     width: auto;
     min-width: 0;
-    margin-left: 0;
-    min-height: 40px;
-    padding: 9px 12px;
-    text-align: center;
+    max-width: 62%;
+    min-height: 28px;
+    margin: 0 0 0 auto;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--crail-overlay);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ece9fb;
+    font-size: 0.66rem;
+    text-overflow: ellipsis;
+}
+
+/* Texto bajo la portada: título (al detalle) + botón de episodios/volúmenes. */
+.catalog-rail-card .crail-text {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px 8px;
+    align-items: start;
+    padding: 0 2px;
+}
+
+.catalog-rail-card .crail-title {
+    grid-column: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.catalog-rail-card a.crail-title:hover,
+.catalog-rail-card a.crail-title:focus-visible {
+    color: var(--nav-accent);
+}
+
+.catalog-rail-card .crail-info {
+    grid-column: 1;
+    font-size: 0.82rem;
+    color: rgba(var(--ink-rgb), 0.6);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.catalog-rail-card .crail-chapters {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: var(--text-main);
+    border: 1px solid rgba(var(--ink-rgb), 0.18);
+    background: transparent;
+    transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.catalog-rail-card .crail-chapters:hover,
+.catalog-rail-card .crail-chapters:focus-visible {
+    color: var(--nav-accent);
+    border-color: var(--nav-accent);
+    box-shadow: 0 0 12px var(--nav-accent-soft);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .catalog-band-card .cband-inner {
+    .catalog-rail-card .crail-media img,
+    .catalog-rail-card .crail-line-fill {
         transition: none;
     }
 }
 
 @media (max-width: 520px) {
-    /* En telefonos el catalogo pasa a 2 columnas y la card queda angosta:
-       el dorso se recompone para que su contenido entre sin recortarse. */
-    .catalog-band-card .cband-inner {
-        height: 360px;
-    }
-
-    .catalog-band-card .cband-back {
-        gap: 8px;
-        padding: 12px 12px 14px;
-    }
-
-    .catalog-band-card .cband-back-head {
-        gap: 8px;
-    }
-
-    .catalog-band-card .cband-back .card-back-title {
-        font-size: 0.9rem;
-        line-height: 1.15;
-    }
-
-    /* El boton de flip del dorso se achica un poco para no comerse el ancho
-       del titulo en pantallas chicas. */
-    .catalog-band-card .cband-back .cband-flip {
+    /* En teléfonos el catálogo pasa a 2 columnas y la card queda angosta. */
+    .catalog-rail-card .crail-quick .action-btn {
         width: 32px;
         height: 32px;
-        flex: 0 0 32px;
+        min-width: 32px;
+        min-height: 32px;
     }
 
-    .catalog-band-card .cband-back .watch-status-select {
-        font-size: 0.7rem;
+    /* Card angosta: el progreso arriba y el seguimiento a todo el ancho
+       debajo, así ninguno de los dos queda cortado. */
+    .catalog-rail-card .crail-rail {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 32px 8px 10px;
+        gap: 6px;
     }
 
-    /* En móvil el catálogo pasa a 2 columnas y la card queda muy angosta:
-       "EPISODIOS/VOLÚMENES" y "DETALLE" no entran de texto uno al lado del otro
-       sin pisarse. El botón de episodios se colapsa a solo icono (mantiene su
-       aria-label/title) y DETALLE ocupa el resto de la fila, así ambos quedan en
-       una sola línea sin recortar el texto ni empujar contenido fuera de la card. */
-    .catalog-band-card .cband-back-actions .card-back-chapters-btn {
-        flex: 0 0 auto;
-        width: 44px;
-        min-width: 44px;
-        padding: 9px 0;
-        gap: 0;
+    .catalog-rail-card .crail-select {
+        max-width: 100%;
+        margin: 0;
     }
 
-    .catalog-band-card .cband-back-actions .card-back-chapters-btn span {
-        display: none;
-    }
-
-    .catalog-band-card .cband-back-actions .card-back-detail-btn {
-        min-height: 38px;
-    }
-}
-
-@media (max-width: 380px) {
-    /* Telefonos muy angostos: ajuste fino de tipografia y botones del dorso. */
-    .catalog-band-card .cband-back .card-back-title {
+    .catalog-rail-card .crail-title {
         font-size: 0.82rem;
-    }
-
-    .catalog-band-card .cband-back-actions .action-btn {
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        min-height: 36px;
     }
 }
 
@@ -4714,34 +4641,6 @@ body.reduce-motion .catalog-neon-card {
     background: rgba(188, 19, 254, 0.36);
     box-shadow: 0 0 16px rgba(188, 19, 254, 0.4);
 }
-
-/* ── Botón en el dorso de la card (separado del de DETALLE) ── */
-.catalog-band-card .cband-back-actions .card-back-chapters-btn {
-    flex: 1 1 0;
-    width: auto;
-    min-width: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    min-height: 40px;
-    padding: 9px 10px;
-    border-radius: var(--radius-md, 12px);
-    cursor: pointer;
-    font-family: var(--font-display, "Orbitron", sans-serif);
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #fff;
-    background: rgba(188, 19, 254, 0.18);
-    border: 1px solid rgba(188, 19, 254, 0.5);
-    transition: background 0.15s, box-shadow 0.15s;
-}
-.catalog-band-card .cband-back-actions .card-back-chapters-btn:hover {
-    background: rgba(188, 19, 254, 0.34);
-    box-shadow: 0 0 16px rgba(188, 19, 254, 0.4);
-}
-.catalog-band-card .cband-back-actions .card-back-chapters-btn svg { flex: none; }
 
 @media (max-width: 560px) {
     .cmodal-hero-in { flex-direction: column; align-items: stretch; }
