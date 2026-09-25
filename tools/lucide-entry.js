@@ -31,6 +31,7 @@ import {
     Heart,
     Lightbulb,
     Link,
+    ListOrdered,
     Medal,
     Menu,
     Pause,
@@ -44,6 +45,7 @@ import {
     TrendingUp,
     Trophy,
     Users,
+    WifiOff,
     XCircle,
 } from 'lucide';
 
@@ -69,6 +71,7 @@ const icons = {
     Heart,
     Lightbulb,
     Link,
+    ListOrdered,
     Medal,
     Menu,
     Pause,
@@ -82,6 +85,7 @@ const icons = {
     TrendingUp,
     Trophy,
     Users,
+    WifiOff,
     XCircle,
 };
 
