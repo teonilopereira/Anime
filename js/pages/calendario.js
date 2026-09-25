@@ -61,22 +61,25 @@
         return _followed;
     }
 
+    // Misma card "portada con riel" que el resto de la app (.wcard): la hora
+    // de emisión va en la píldora y la estrella de "lo seguís" en la esquina.
     function cardHtml(ep) {
         var d = new Date(ep.airingAt * 1000);
         var mine = _followed && _followed.has(String(ep.id));
         var poster = ep.img
             ? '<img class="cal-poster-img" loading="lazy" src="' + esc(ep.img) + '" alt="' + esc(ep.title) +
               '" data-title="' + esc(ep.title) + '" data-fallback-catalog="1">'
-            : '<span class="cal-poster-noimg" aria-hidden="true">🎞️</span>';
+            : '<span class="wcard-empty" aria-hidden="true">' + esc(String(ep.title || '?').charAt(0)) + '</span>';
 
-        return '<a class="cal-card' + (mine ? ' cal-card--mine' : '') + '" href="detalle.html?cat=anime&id=' + encodeURIComponent(ep.id) + '">' +
-                    '<span class="cal-poster">' + poster + '</span>' +
-                    '<span class="cal-info">' +
-                        '<span class="cal-time">' + hhmm(d) + '</span>' +
-                        '<span class="cal-title">' + esc(ep.title) + '</span>' +
-                        '<span class="cal-ep">Episodio ' + (ep.episode || '?') + '</span>' +
+        return '<a class="wcard cal-card' + (mine ? ' cal-card--mine' : '') + '" href="detalle.html?cat=anime&id=' + encodeURIComponent(ep.id) + '">' +
+                    '<span class="wcard-media">' + poster +
+                        '<span class="wcard-pill cal-time">' + hhmm(d) + '</span>' +
+                        (mine ? '<span class="wcard-corner cal-mine-badge" aria-label="Lo seguís">★</span>' : '') +
                     '</span>' +
-                    (mine ? '<span class="cal-mine-badge" aria-label="Lo seguís">★</span>' : '') +
+                    '<span class="wcard-text">' +
+                        '<span class="wcard-title">' + esc(ep.title) + '</span>' +
+                        '<span class="wcard-meta">Episodio ' + (ep.episode || '?') + '</span>' +
+                    '</span>' +
                 '</a>';
     }
 
@@ -112,7 +115,7 @@
         host.innerHTML = groups.map(function (g) {
             return '<section class="cal-day">' +
                         '<h2 class="cal-day-title">' + esc(g.group.label) + '</h2>' +
-                        '<div class="cal-grid">' + g.group.items.map(cardHtml).join('') + '</div>' +
+                        '<div class="wcard-grid cal-grid">' + g.group.items.map(cardHtml).join('') + '</div>' +
                     '</section>';
         }).join('');
     }

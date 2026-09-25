@@ -211,37 +211,21 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
         `;
     }
 
-    // Para recomendaciones: Card vertical estilo manga.html pero adaptada
+    // Para recomendaciones: la misma card "portada con riel" que el resto de
+    // la app (.wcard), con el género que motivó la recomendación en la píldora.
     const safeId = escapeHtml(String(item.id));
     const title = escapeHtml(item.titulo);
     return `
-    <div class="card-container catalog-neon-card" data-item-id="${safeId}" data-category="${escapeHtml(item.__category)}">
-        <input class="flip-toggle" type="checkbox" id="flip-${safeId}">
-        <div class="catalog-card-shell">
-            <div class="catalog-card-inner">
-                <div class="catalog-card-media">
-                    <div class="card-inner">
-                        <div class="card-front">
-                            <div class="catalog-card-poster">
-                                <img src="${safeUrl(item.img)}" alt="${title}" width="230" height="345" decoding="async" loading="lazy" data-fallback-catalog="1">
-                            </div>
-                        </div>
-                        <div class="card-back card-back-neon">
-                            <h2 class="card-back-title">${title}</h2>
-                            <span style="color:#00f2ff;font-weight:bold;margin-bottom:10px;display:block;">${escapeHtml(match || '')}</span>
-                            <a class="details-btn card-back-detail-btn" href="${escapeHtml(link)}">DETALLE</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="catalog-card-bar">
-                    <span class="catalog-card-title">${title}</span>
-                    <label class="catalog-card-flip-btn" for="flip-${safeId}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7M16 3h5v5M10 14L21 3"/></svg>
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
+    <a class="wcard recommend-card" href="${escapeHtml(link)}" data-item-id="${safeId}" data-category="${escapeHtml(item.__category)}">
+        <span class="wcard-media">
+            <img src="${safeUrl(item.img)}" alt="${title}" width="230" height="345" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${title}">
+            ${match ? `<span class="wcard-pill">${escapeHtml(match)}</span>` : ''}
+        </span>
+        <span class="wcard-text">
+            <span class="wcard-title">${title}</span>
+            <span class="wcard-meta">${escapeHtml(category)}</span>
+        </span>
+    </a>
     `;
 }
 

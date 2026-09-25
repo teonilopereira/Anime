@@ -2357,69 +2357,51 @@ body.reduce-motion .toast-item {
     width: 100%;
 }
 
-.skeleton-card-shell,
-.skeleton-card-inner,
-.skeleton-card-poster,
-.skeleton-card-bar,
-.skeleton-card-bar-line,
-.skeleton-card-bar-icon {
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--radius-lg);
-    background: #05060a;
-}
-
+/* Misma silueta que la card "portada con riel": portada 2:3 redondeada y dos
+   líneas de texto debajo. */
 .skeleton-card-shell {
-    border: 1px solid rgba(0, 242, 255, 0.12);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
-    height: 440px;
+    display: block;
 }
 
 .skeleton-card-inner {
     display: flex;
     flex-direction: column;
-    gap: 0;
-    height: 100%;
+    gap: 10px;
 }
 
-.skeleton-card-poster {
-    flex: 0 0 80%;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+.skeleton-card-poster,
+.skeleton-card-bar-line,
+.skeleton-card-bar-icon {
     background: linear-gradient(110deg, #090b14 30%, #11172a 50%, #090b14 70%);
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
 
+.skeleton-card-poster {
+    aspect-ratio: 2 / 3;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 242, 255, 0.12);
+}
+
 .skeleton-card-bar {
-    flex: 0 0 20%;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-start;
     gap: 8px;
-    min-height: 42px;
-    padding: 8px 12px;
-    border-top: 1px solid rgba(0, 242, 255, 0.10);
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+    padding: 0 2px;
 }
 
 .skeleton-card-bar-line {
     flex: 1;
-    height: 12px;
+    height: 14px;
+    margin-top: 4px;
     border-radius: 4px;
-    background: linear-gradient(110deg, #090b14 30%, #11172a 50%, #090b14 70%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.8s ease-in-out infinite;
 }
 
 .skeleton-card-bar-icon {
-    width: 28px;
-    height: 20px;
-    border-radius: 4px;
-    background: linear-gradient(110deg, #090b14 30%, #11172a 50%, #090b14 70%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.8s ease-in-out infinite;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
 }
 
 @keyframes skeleton-shimmer {
@@ -4173,6 +4155,8 @@ body.reduce-motion .catalog-neon-card {
     line-height: 1.2;
     color: var(--text-main);
     text-decoration: none;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
 .catalog-rail-card a.crail-title:hover,
@@ -4243,6 +4227,184 @@ body.reduce-motion .catalog-neon-card {
 
     .catalog-rail-card .crail-title {
         font-size: 0.82rem;
+    }
+}
+
+/* ==========================================
+   WORK CARD — la misma card "portada con riel" para
+   todas las obras fuera del catálogo (inicio,
+   relacionados, estudio, calendario, recomendaciones).
+   Portada 2:3 con borde y brillo al pasar, píldora
+   oscura arriba a la izquierda, esquina opcional arriba
+   a la derecha y título + meta debajo de la portada.
+========================================== */
+
+.wcard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    text-decoration: none;
+    color: var(--text-main);
+}
+
+.wcard-media {
+    position: relative;
+    display: block;
+    aspect-ratio: 2 / 3;
+    max-width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0a1220;
+    border: 1px solid rgba(0, 242, 255, 0.18);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.wcard:hover .wcard-media,
+.wcard:focus-visible .wcard-media {
+    border-color: rgba(0, 242, 255, 0.55);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.16);
+}
+
+.wcard:focus-visible {
+    outline: none;
+}
+
+.wcard-media img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.wcard:hover .wcard-media img {
+    transform: scale(1.04);
+}
+
+.wcard-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.22);
+}
+
+.wcard-pill {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    max-width: calc(100% - 52px);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(7, 6, 15, 0.82);
+    color: #ece9fb;
+    font-family: var(--font-display);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wcard-pill::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--wcard-tone, #00f2ff);
+    box-shadow: 0 0 8px var(--wcard-tone, #00f2ff);
+}
+
+.wcard-media:has(.wcard-corner) .wcard-pill {
+    max-width: calc(100% - 84px);
+}
+
+.wcard-corner {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: inline-grid;
+    place-items: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: rgba(7, 6, 15, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ece9fb;
+    font-family: var(--card-back-mono, var(--font-display));
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.wcard-text {
+    display: grid;
+    gap: 2px;
+    padding: 0 2px;
+    min-width: 0;
+}
+
+.wcard-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-main);
+}
+
+.wcard:hover .wcard-title,
+.wcard:focus-visible .wcard-title {
+    color: var(--nav-accent);
+}
+
+.wcard-meta {
+    font-size: 0.82rem;
+    color: rgba(var(--ink-rgb), 0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Grilla estándar de work cards (mismo ancho mínimo que el catálogo). */
+.wcard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 18px 14px;
+}
+
+@media (max-width: 520px) {
+    .wcard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px 10px;
+    }
+
+    .wcard-title {
+        font-size: 0.82rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wcard-media img {
+        transition: none;
     }
 }
 

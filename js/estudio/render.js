@@ -45,30 +45,31 @@
             '</div>';
     }
 
-    // Card de una obra producida por el estudio (enlaza al detalle).
+    // Card de una obra producida por el estudio (enlaza al detalle). Usa la
+    // misma card "portada con riel" que el resto de la app (.wcard): la nota va
+    // en la esquina y "Principal" en la píldora.
     function workCard(w) {
         var href = w.id ? 'detalle.html?cat=' + esc(w.cat) + '&id=' + esc(String(w.id)) : '';
         var cover = w.cover
-            ? '<img class="persona-card-cover" src="' + url(w.cover) + '" alt="" loading="lazy">'
-            : '<span class="persona-card-cover persona-card-cover--empty"></span>';
-        var badges = [];
+            ? '<img src="' + url(w.cover) + '" alt="" loading="lazy">'
+            : '<span class="wcard-empty" aria-hidden="true">' + esc(String(w.title || '?').charAt(0)) + '</span>';
         var fmt = FORMAT_LABELS[w.format] || w.format || '';
         var sub = [];
         if (fmt) sub.push(esc(fmt));
         if (w.year) sub.push(esc(String(w.year)));
-        if (w.score) badges.push('<span class="estudio-score">★ ' + esc(String((w.score / 10).toFixed(1))) + '</span>');
-        if (w.isMain) badges.push('<span class="estudio-main-badge">Estudio principal</span>');
 
         var inner =
-            cover +
-            '<span class="persona-card-body">' +
-                '<span class="persona-card-title">' + esc(w.title) + '</span>' +
-                (sub.length ? '<span class="persona-card-role">' + sub.join(' · ') + '</span>' : '') +
-                (badges.length ? '<span class="estudio-badges">' + badges.join('') + '</span>' : '') +
+            '<span class="wcard-media">' + cover +
+                (w.isMain ? '<span class="wcard-pill">Principal</span>' : '') +
+                (w.score ? '<span class="wcard-corner">★ ' + esc(String((w.score / 10).toFixed(1))) + '</span>' : '') +
+            '</span>' +
+            '<span class="wcard-text">' +
+                '<span class="wcard-title">' + esc(w.title) + '</span>' +
+                (sub.length ? '<span class="wcard-meta">' + sub.join(' · ') + '</span>' : '') +
             '</span>';
         return href
-            ? '<a class="persona-card estudio-card" href="' + href + '">' + inner + '</a>'
-            : '<div class="persona-card estudio-card">' + inner + '</div>';
+            ? '<a class="wcard estudio-card" href="' + href + '">' + inner + '</a>'
+            : '<div class="wcard estudio-card">' + inner + '</div>';
     }
 
     function heroBlock(data) {
@@ -92,13 +93,13 @@
         if (main.length) {
             html += '<section class="persona-section">' +
                 '<h2 class="persona-h2">Obras principales<span class="persona-count">' + main.length + '</span></h2>' +
-                '<div class="persona-grid estudio-grid">' + main.map(workCard).join('') + '</div>' +
+                '<div class="wcard-grid estudio-grid">' + main.map(workCard).join('') + '</div>' +
             '</section>';
         }
         if (other.length) {
             html += '<section class="persona-section">' +
                 '<h2 class="persona-h2">Participaciones<span class="persona-count">' + other.length + '</span></h2>' +
-                '<div class="persona-grid estudio-grid">' + other.map(workCard).join('') + '</div>' +
+                '<div class="wcard-grid estudio-grid">' + other.map(workCard).join('') + '</div>' +
             '</section>';
         }
         return html;

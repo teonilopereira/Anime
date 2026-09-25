@@ -83,7 +83,7 @@ function buildRelatedHtml(item, cadenaTemporadas) {
     }
     var relatedList = Object.keys(relatedMap).map(function (k) { return relatedMap[k]; }).slice(0, 12);
     if (!relatedList.length) return '';
-    return '<div class="detail-section detail-section-related"><h2 class="detail-h2">Relacionados</h2><div class="related-grid">' +
+    return '<div class="detail-section detail-section-related"><h2 class="detail-h2">Relacionados</h2><div class="wcard-grid related-grid">' +
         relatedList.map(function (r) {
             var cat = relatedCategory(r.format);
             var label = relationTypeLabels[r.relationType] || r.relationType || 'Relacionado';
@@ -93,14 +93,14 @@ function buildRelatedHtml(item, cadenaTemporadas) {
             // grilla.
             var portada = r.img
                 ? '<img src="' + safeUrl(r.img) + '" alt="" loading="lazy" decoding="async" data-fallback-catalog="1" data-title="' + escapeHtml(r.title) + '">'
-                : '<span class="related-cover-empty" aria-hidden="true">' + escapeHtml(String(r.title).charAt(0)) + '</span>';
-            return '<a class="related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
-                '<span class="related-cover">' + portada +
-                    '<span class="related-type-badge">' + escapeHtml(label) + '</span>' +
+                : '<span class="wcard-empty" aria-hidden="true">' + escapeHtml(String(r.title).charAt(0)) + '</span>';
+            return '<a class="wcard related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
+                '<span class="wcard-media">' + portada +
+                    '<span class="wcard-pill">' + escapeHtml(label) + '</span>' +
                 '</span>' +
-                '<span class="related-body">' +
-                    '<span class="related-title">' + escapeHtml(r.title) + '</span>' +
-                    (meta ? '<span class="related-meta">' + escapeHtml(meta) + '</span>' : '') +
+                '<span class="wcard-text">' +
+                    '<span class="wcard-title">' + escapeHtml(r.title) + '</span>' +
+                    (meta ? '<span class="wcard-meta">' + escapeHtml(meta) + '</span>' : '') +
                 '</span>' +
                 '</a>';
         }).join('') +
