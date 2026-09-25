@@ -62,12 +62,13 @@ function rebuildBundle() {
 
 // Los bundles son SALIDA del build: si dispararan un rebuild, el watcher
 // entraria en bucle infinito (build escribe -> watcher detecta -> build...).
-var GENERADOS = ["bundle.css", "bundle.min.css", "core-bundle.js", "core-bundle.min.js"];
+// Todo *.min.css / *.min.js es salida (bundle, bundle-lite, detalle, mascota).
+var GENERADOS = ["bundle.css", "core-bundle.js"];
 
 function esFuente(filename) {
     if (!filename) return false;
     var base = path.basename(filename);
-    if (GENERADOS.indexOf(base) !== -1) return false;
+    if (GENERADOS.indexOf(base) !== -1 || /\.min\.(css|js)$/.test(base)) return false;
     return base.endsWith(".js") || base.endsWith(".css");
 }
 

@@ -1311,8 +1311,8 @@
     }
 
     // ── Envolver window.Toast ──────────────────────────────────────────────
-    // toast.js corre antes en el bundle, así que window.Toast ya existe. Si la
-    // mascota está encendida, el slime habla en lugar del toast; si está
+    // mascot-loader.js (en el bundle, después de toast.js) carga este archivo
+    // con window.Toast ya definido. Si la mascota está encendida, el slime habla en lugar del toast; si está
     // apagada, cae al toast original.
     var Original = window.Toast;
 

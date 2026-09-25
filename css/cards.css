@@ -64,69 +64,12 @@
     height: 300px;
 }
 
-.card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-}
-
-.card-front,
-.card-back {
-    position: absolute;
-    inset: 0;
-    backface-visibility: hidden;
-    overflow: hidden;
-    border-radius: var(--radius-lg);
-    box-sizing: border-box;
-}
-
-.card-front img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    background: rgba(var(--ink-rgb), 0.04);
-}
-
-.card-back {
-    background: #0b1020;
-    transform: rotateY(180deg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 24px 18px;
-    text-align: center;
-    border: 1px solid var(--nav-accent-soft);
-    position: relative;
-}
-
-.card-back::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(135deg, var(--nav-accent-soft), rgba(var(--ink-rgb), 0.03)),
-        radial-gradient(circle at 50% 0%, rgba(var(--ink-rgb), 0.08), transparent 52%);
-    opacity: 0.9;
-    z-index: 0;
-}
-
-.card-back > * {
-    position: relative;
-    z-index: 1;
-}
-
 @keyframes cardBackGlow {
     0% { background-position: 0% 0%; }
     50% { background-position: 100% 60%; }
     100% { background-position: 0% 0%; }
 }
 
-.card-back h2,
 .card-back-title {
     color: var(--accent-cyan);
     margin: 0;
@@ -137,232 +80,11 @@
     word-break: break-word;
 }
 
-.card-back-neon {
-    justify-content: flex-start;
-    gap: 10px;
-    padding: 16px 14px;
-    border-radius: 0;
-    border: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 242, 255, 0.4) transparent;
-    background: #050812;
-}
-
-.card-back-neon .card-back-title {
-    text-transform: none;
-    font-size: 1.25rem;
-    line-height: 1.1;
-    text-align: center;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 6px;
-    font-family: "Orbitron", var(--font-display);
-    color: var(--accent-cyan);
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
-}
-
-.card-back-buttons-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    margin-bottom: auto;
-}
-
-.card-back-neon .card-back-detail-btn,
-.card-back-neon .card-back-status-badge {
-    width: 80%;
-    min-height: 36px;
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    font-family: var(--font-display);
-    text-align: center;
-    border-radius: 20px;
-    background: transparent;
-    border: 1px solid var(--accent-cyan);
-    color: var(--text-main);
-    box-shadow: inset 0 0 8px rgba(0, 242, 255, 0.2), 0 0 10px rgba(0, 242, 255, 0.2);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    transition: all 0.2s ease;
-}
-
-.card-back-neon .card-back-detail-btn {
-    font-size: 0.95rem;
-    min-height: 40px;
-    letter-spacing: 0.1em;
-}
-
-.card-back-neon .card-back-detail-btn:hover {
-    background: rgba(0, 242, 255, 0.1);
-    box-shadow: inset 0 0 12px rgba(0, 242, 255, 0.4), 0 0 16px rgba(0, 242, 255, 0.4);
-    transform: scale(1.02);
-}
-
-.card-back-neon .card-back-status-badge {
-    text-transform: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.card-back-neon .card-back-actions {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    width: 100%;
-    margin-top: 10px;
-    margin-bottom: 14px;
-}
-
-.card-back-neon .card-back-actions .action-btn {
-    flex: none;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    border: 1px solid rgba(var(--ink-rgb), 0.5);
-    background: transparent;
-    color: var(--text-main);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 8px rgba(var(--ink-rgb), 0.1);
-}
-
-.card-back-neon .card-back-actions .action-btn:hover {
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 12px rgba(0, 242, 255, 0.5);
-    color: var(--accent-cyan);
-    transform: scale(1.05);
-}
-
-.card-back-neon .card-back-actions .action-btn.active {
-    background: rgba(0, 242, 255, 0.2);
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 16px rgba(0, 242, 255, 0.6);
-    color: var(--accent-cyan);
-}
-
-/* PROGRESS */
-.card-back-progress-wrapper {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.card-back-progress-card {
-    width: 100%;
-    padding: 10px 14px;
-    border-radius: 12px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--accent-cyan);
-    box-shadow: 0 0 10px rgba(0, 242, 255, 0.15);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    box-sizing: border-box;
-}
-
-.card-back-progress-head {
-    text-align: center;
-    font-family: "Orbitron", var(--font-display);
-    font-size: 0.85rem;
-    color: var(--text-main);
-    letter-spacing: 0.05em;
-}
-
-.card-back-progress-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.card-back-progress-track {
-    flex: 1;
-    height: 12px;
-    border-radius: 6px;
-    background: rgba(var(--ink-rgb), 0.1);
-    overflow: hidden;
-}
-
 .card-back-progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #00f2ff, #bc13fe);
     box-shadow: 0 0 8px rgba(188, 19, 254, 0.5);
     transition: width 0.3s ease;
-}
-
-.card-back-progress-pct {
-    font-family: "Orbitron", var(--font-display);
-    font-size: 0.85rem;
-    color: var(--text-main);
-    width: 38px;
-    text-align: right;
-}
-
-/* FOOTER STATUS */
-.card-back-footer-status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    font-family: "Orbitron", var(--font-display);
-    font-size: 0.85rem;
-    color: var(--accent-cyan);
-    font-weight: 600;
-}
-
-.card-back-footer-status .footer-line {
-    flex: 1;
-    height: 1px;
-    background: var(--accent-cyan);
-    position: relative;
-    opacity: 0.7;
-}
-
-.card-back-footer-status .footer-line::before {
-    content: "";
-    position: absolute;
-    width: 3px;
-    height: 3px;
-    background: var(--accent-cyan);
-    border-radius: 50%;
-    top: -1px;
-}
-
-.card-back-footer-status .footer-line:first-child::before {
-    right: 0;
-}
-
-.card-back-footer-status .footer-line:last-child::before {
-    left: 0;
-}
-
-.card-back p {
-    margin: 0;
-    font-size: 0.86rem;
-    opacity: 0.9;
-    line-height: 1.4;
-}
-
-.card-actions,
-.card-back-actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
 }
 
 .action-btn,
@@ -391,40 +113,6 @@
     box-shadow: 0 0 16px var(--nav-accent-soft);
 }
 
-.card-back-detail-btn,
-.details-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 40px;
-    padding: 10px 14px;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: var(--text-main);
-    font-family: var(--font-display);
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background: var(--nav-accent-soft);
-    border: 1px solid var(--nav-accent-soft);
-    box-shadow: 0 0 12px var(--nav-accent-soft);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-}
-
-.card-back-detail-btn:hover,
-.details-btn:hover {
-    transform: translateY(-1px);
-    border-color: var(--nav-accent);
-    box-shadow: 0 0 18px var(--nav-accent-soft);
-}
-
-.card-back-detail-btn:active,
-.details-btn:active {
-    transform: translateY(0);
-}
-
-.card-back-status-badge,
 .status {
     display: inline-flex;
     align-items: center;
@@ -437,25 +125,8 @@
     font-weight: 700;
 }
 
-.card-back-status-badge {
-    color: var(--text-main);
-    background: rgba(var(--ink-rgb), 0.08);
-}
-
-.on-air { background: var(--nav-accent-soft); box-shadow: 0 0 14px var(--nav-accent-soft); }
 .finished { background: rgba(var(--ink-rgb), 0.10); }
 
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin: 15px 0;
-    font-size: 0.9rem;
-    border-top: 1px solid rgba(var(--ink-rgb), 0.1);
-    padding-top: 10px;
-}
-
-.card-progress,
 .detail-progress-card {
     width: 100%;
     align-self: stretch;
@@ -466,14 +137,7 @@
     opacity: 0.98;
 }
 
-.card-progress {
-    margin-top: 12px;
-    padding: 10px 12px;
-}
-
-.card-progress-track,
-.detail-progress-track,
-.card-back-progress-track {
+.detail-progress-track {
     width: 100%;
     height: 12px;
     border-radius: var(--radius-pill);
@@ -481,39 +145,12 @@
     background: rgba(var(--ink-rgb), 0.08);
 }
 
-.card-progress-track {
-    height: 14px;
-    background: rgba(5, 5, 5, 0.6);
-    border: 1px solid rgba(188, 19, 254, 0.2);
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
-}
-
-.card-progress-fill,
 .detail-progress-fill,
 .card-back-progress-fill {
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, rgba(0, 242, 255, 0.75), rgba(188, 19, 254, 0.85));
     box-shadow: 0 0 14px rgba(188, 19, 254, 0.22);
-}
-
-.card-progress-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-size: 0.72rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    color: rgba(var(--ink-rgb), 0.92);
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.55);
-    pointer-events: none;
-}
-
-.card-progress-text {
-    display: none;
 }
 
 .detail-progress-card {
@@ -538,38 +175,6 @@
     margin-top: 8px;
     font-size: 0.9rem;
     opacity: 0.82;
-}
-
-.card-back-progress-card {
-    width: 100%;
-    margin-top: 6px;
-    padding: 10px 12px;
-    border-radius: var(--radius-lg);
-    background: rgba(var(--surface-panel-rgb), 0.5);
-    border: 1px solid rgba(188, 19, 254, 0.18);
-    box-shadow: 0 0 12px rgba(188, 19, 254, 0.08);
-}
-
-.card-back-progress-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    align-items: baseline;
-    font-family: var(--font-display);
-    font-size: 0.7rem;
-    letter-spacing: 0.04em;
-    margin-bottom: 6px;
-}
-
-.card-back-progress-head strong {
-    color: var(--accent-cyan);
-    font-size: 0.75rem;
-}
-
-.card-back-progress-meta {
-    margin-top: 6px;
-    font-size: 0.62rem;
-    opacity: 0.7;
 }
 
 .vol-grid {
@@ -615,13 +220,11 @@
     box-shadow: 0 0 16px rgba(0, 242, 255, 0.25);
 }
 
-.vol-btn.is-active,
-.cuadrado-item.is-visto {
+.vol-btn.is-active {
     background: rgba(34, 197, 94, 0.15);
     border-color: rgba(34, 197, 94, 0.55);
 }
 
-.cuadrado-item.is-visto:hover,
 .vol-btn.is-active:hover {
     border-color: rgba(34, 197, 94, 0.75);
     box-shadow: 0 0 16px rgba(34, 197, 94, 0.35);
@@ -633,19 +236,6 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     color: var(--text-main);
-}
-
-.vol-btn .check-icono,
-.cuadrado-item .check-icono {
-    font-size: 0.8rem;
-    color: var(--accent-cyan);
-    opacity: 0.8;
-}
-
-.cuadrado-item.is-visto .check-icono,
-.vol-btn.is-active .check-icono {
-    color: #22c55e;
-    opacity: 1;
 }
 
 /* ── Cuadro de volumen con portada del tomo ──
@@ -805,8 +395,7 @@
     gap: 6px;
 }
 
-.btn-resumen,
-.btn-info-ep {
+.btn-resumen {
     min-height: 28px;
     padding: 4px 10px;
     border-radius: var(--radius-md);
@@ -828,7 +417,6 @@
     transition: opacity 0.25s, transform 0.25s;
 }
 
-.cuadrado-item.is-visto + .btn-resumen,
 .vol-btn.is-active + .btn-resumen,
 .cuadrado-item.is-active + .btn-resumen {
     opacity: 1;
@@ -836,16 +424,14 @@
     pointer-events: auto;
 }
 
-.btn-resumen:hover,
-.btn-info-ep:hover {
+.btn-resumen:hover {
     opacity: 1;
     border-color: rgba(0, 242, 255, 0.7);
     background: rgba(0, 242, 255, 0.15);
     box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
 }
 
-.btn-resumen:active,
-.btn-info-ep:active {
+.btn-resumen:active {
     transform: scale(0.95);
 }
 
@@ -875,262 +461,6 @@
     transform: translateY(-8px) scale(1.02);
 }
 
-.catalog-neon-card:hover .catalog-card-shell {
-    filter: drop-shadow(0 0 14px rgba(var(--card-hud-rgb), 0.35)) drop-shadow(0 0 34px rgba(var(--card-hud-rgb), 0.16));
-    border-color: rgba(120, 150, 255, 0.45);
-}
-
-.catalog-card-inner {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    height: 100%;
-    background: transparent;
-    border: 0;
-}
-
-.catalog-card-shell {
-    position: relative;
-    height: 440px;
-    padding: 30px 12px 28px;
-    background: linear-gradient(180deg, #0a1220 0%, #050a14 55%, #071018 100%);
-    border: 1px solid rgba(var(--card-hud-rgb), 0.45);
-    border-radius: 16px;
-    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 10px rgba(var(--card-hud-rgb), 0.10));
-    transition: filter 0.4s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.4s ease;
-}
-
-/* ── Barra azul inclinada superior izquierda ── */
-.catalog-card-shell::before {
-    content: "";
-    position: absolute;
-    top: 10px;
-    left: 14px;
-    width: 36%;
-    height: 9px;
-    background: linear-gradient(90deg, var(--card-hud-bright), var(--card-hud-deep));
-    clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
-    filter: drop-shadow(0 0 5px rgba(var(--card-hud-rgb), 0.55));
-    pointer-events: none;
-    z-index: 2;
-}
-
-/* ── Barra azul pequeña inferior izquierda ── */
-.catalog-card-shell::after {
-    content: "";
-    position: absolute;
-    bottom: 10px;
-    left: 14px;
-    width: 62px;
-    height: 8px;
-    background: linear-gradient(90deg, var(--card-hud-bright), var(--card-hud-deep));
-    clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-    filter: drop-shadow(0 0 4px rgba(var(--card-hud-rgb), 0.45));
-    pointer-events: none;
-    z-index: 2;
-}
-
-/* ── Corner decorations (DOM elements) ── */
-.card-corner {
-    position: absolute;
-    z-index: 2;
-    pointer-events: none;
-}
-
-/* Top-right: franjas azules diagonales "////" */
-.card-corner-tr {
-    top: 9px;
-    right: 14px;
-    width: 64px;
-    height: 12px;
-    background: repeating-linear-gradient(
-        115deg,
-        var(--card-hud-bright) 0px,
-        var(--card-hud-bright) 7px,
-        transparent 7px,
-        transparent 14px
-    );
-    clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-    filter: drop-shadow(0 0 4px rgba(var(--card-hud-rgb), 0.45));
-}
-
-/* Corchetes en las 4 esquinas.
-   Se reutiliza este único elemento como capa a lo ancho de la card: cada
-   esquina son dos barras (una horizontal y una vertical) resueltas con
-   background-layers, así no hace falta sumar nodos al HTML. */
-.card-corner-br {
-    inset: 5px;
-    border-radius: 12px;
-    --br: linear-gradient(var(--card-hud), var(--card-hud));
-    background:
-        /* sup-izq */      var(--br) left    top    / 26px 2px  no-repeat,
-        var(--br) left    top    / 2px  26px no-repeat,
-        /* sup-der */      var(--br) right   top    / 26px 2px  no-repeat,
-        var(--br) right   top    / 2px  26px no-repeat,
-        /* inf-izq */      var(--br) left    bottom / 26px 2px  no-repeat,
-        var(--br) left    bottom / 2px  26px no-repeat,
-        /* inf-der */      var(--br) right   bottom / 26px 2px  no-repeat,
-        var(--br) right   bottom / 2px  26px no-repeat;
-    filter: drop-shadow(0 0 6px rgba(var(--card-hud-rgb), 0.55));
-    opacity: 0.9;
-    transition: opacity 0.4s ease, filter 0.4s ease;
-}
-
-.catalog-neon-card:hover .card-corner-br {
-    opacity: 1;
-    filter: drop-shadow(0 0 10px rgba(var(--card-hud-rgb), 0.85));
-}
-
-/* Barras verticales segmentadas sobre los bordes laterales, a media altura. */
-.catalog-card-inner::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: -8px;
-    right: -8px;
-    height: 46px;
-    transform: translateY(-50%);
-    z-index: 3;
-    pointer-events: none;
-    --seg: repeating-linear-gradient(
-        180deg,
-        var(--card-hud) 0px,
-        var(--card-hud) 7px,
-        transparent 7px,
-        transparent 13px
-    );
-    background:
-        var(--seg) left  center / 3px 100% no-repeat,
-        var(--seg) right center / 3px 100% no-repeat;
-    filter: drop-shadow(0 0 5px rgba(var(--card-hud-rgb), 0.5));
-    opacity: 0.85;
-}
-
-/* ── Illustration area ── */
-.catalog-card-media {
-    flex: 1 1 auto;
-    min-height: 0;
-    position: relative;
-    overflow: hidden;
-    border-radius: 6px;
-    border: 1px solid rgba(90, 140, 255, 0.55);
-    box-shadow:
-        0 0 12px rgba(var(--card-hud-rgb), 0.22),
-        inset 0 0 8px rgba(var(--card-hud-rgb), 0.10);
-}
-
-.catalog-card-media::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-        180deg,
-        transparent 0px,
-        transparent 3px,
-        rgba(80, 130, 255, 0.02) 3px,
-        rgba(80, 130, 255, 0.02) 4px
-    );
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.catalog-neon-card:hover .catalog-card-media::before {
-    opacity: 1;
-}
-
-.catalog-card-media::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 28%;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
-    pointer-events: none;
-    z-index: 1;
-}
-
-.catalog-card-media .card-inner {
-    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.catalog-card-poster {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-
-.catalog-card-poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 20%;
-    display: block;
-    transition: transform 0.55s ease, filter 0.4s ease;
-    will-change: transform;
-}
-
-.catalog-neon-card:hover .catalog-card-poster img {
-    transform: scale(1.06);
-    filter: brightness(1.06) saturate(1.1);
-}
-
-/* ── Flip mechanism (CSS-only) ── */
-.flip-toggle {
-    display: none;
-}
-
-.catalog-neon-card .flip-toggle:checked ~ .catalog-card-shell .catalog-card-media .card-inner {
-    transform: rotateY(180deg);
-}
-
-/* ── Bottom band ── */
-.catalog-card-bar {
-    position: relative;
-    flex: 0 0 52px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    min-height: 52px;
-    padding: 0 8px 0 14px;
-    background: linear-gradient(180deg, #08090f 0%, #030409 100%);
-    border: 1px solid rgba(95, 110, 190, 0.38);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-/* Textura scan-line sutil de la barra */
-.catalog-card-bar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-        180deg,
-        transparent 0px,
-        transparent 2px,
-        rgba(80, 130, 255, 0.02) 2px,
-        rgba(80, 130, 255, 0.02) 3px
-    );
-}
-
-/* Placa azul (paralelogramo) detrás del botón circular */
-.catalog-card-bar::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 62px;
-    background: linear-gradient(135deg, var(--card-hud-bright) 0%, var(--card-hud-deep) 100%);
-    clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%);
-    pointer-events: none;
-}
-
 /* ── Typography ── */
 .catalog-card-title {
     flex: 1;
@@ -1147,126 +477,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-
-/* ── Circular button ── */
-.catalog-card-flip-btn {
-    position: relative;
-    z-index: 1;
-    flex: 0 0 auto;
-    display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    margin: 0;
-    padding: 0;
-    border-radius: 50%;
-    border: 1.5px solid rgba(235, 242, 255, 0.85);
-    background: radial-gradient(circle, #0b1533 0%, #05060f 75%);
-    color: var(--text-main);
-    cursor: pointer;
-    box-shadow: 0 0 6px rgba(3, 8, 30, 0.6);
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.catalog-flip-icon {
-    width: 14px;
-    height: 14px;
-    display: block;
-}
-
-.catalog-card-flip-btn:hover {
-    transform: scale(1.10) rotate(20deg);
-    border-color: var(--text-main);
-    box-shadow: 0 0 10px rgba(var(--ink-rgb), 0.35);
-}
-
-.catalog-neon-card .flip-toggle:checked ~ .catalog-card-shell .catalog-card-flip-btn {
-    border-color: var(--text-main);
-    box-shadow: 0 0 10px rgba(var(--ink-rgb), 0.30);
-}
-
-/* ── Card back — TERMINAL / HUD READOUT ── */
-.card-back-neon {
-    /* Pila monoespaciada con degradado: si mas adelante se agrega
-       "Share Tech Mono" a los <link> de Google Fonts, el dorso la toma
-       sola; hasta entonces cae en la monospace del sistema. */
-    --card-back-mono: "Share Tech Mono", ui-monospace, "Cascadia Mono", "Courier New", monospace;
-    justify-content: flex-start;
-    gap: 8px;
-    padding: 14px 13px;
-    border-radius: 0;
-    border: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(var(--card-hud-rgb, 0, 242, 255), 0.4) transparent;
-    font-family: var(--card-back-mono);
-    /* Scanlines horizontales sutiles sobre el fondo oscuro. */
-    background:
-        repeating-linear-gradient(180deg, transparent 0 3px, rgba(var(--card-hud-rgb, 0, 242, 255), 0.05) 3px 4px),
-        linear-gradient(180deg, #020610 0%, #04101a 100%);
-}
-
-/* Corchetes en las 4 esquinas dibujados con capas de background sobre un
-   unico pseudo-elemento (mismo truco que .card-corner-br): dos barras por
-   esquina, sin sumar nodos al HTML del dorso. */
-.card-back-neon::before {
-    content: "";
-    position: absolute;
-    inset: 6px;
-    z-index: 0;
-    pointer-events: none;
-    --bk: linear-gradient(var(--card-hud, #00f2ff), var(--card-hud, #00f2ff));
-    background:
-        var(--bk) left    top    / 16px 2px  no-repeat,
-        var(--bk) left    top    / 2px  16px no-repeat,
-        var(--bk) right   top    / 16px 2px  no-repeat,
-        var(--bk) right   top    / 2px  16px no-repeat,
-        var(--bk) left    bottom / 16px 2px  no-repeat,
-        var(--bk) left    bottom / 2px  16px no-repeat,
-        var(--bk) right   bottom / 16px 2px  no-repeat,
-        var(--bk) right   bottom / 2px  16px no-repeat;
-    filter: drop-shadow(0 0 4px rgba(var(--card-hud-rgb, 0, 242, 255), 0.6));
-    opacity: 0.85;
-}
-
-.card-back-neon .card-back-title {
-    text-transform: none;
-    font-family: var(--card-back-mono);
-    font-size: 0.82rem;
-    line-height: 1.2;
-    letter-spacing: 0.02em;
-    text-align: center;
-    color: var(--card-hud, #00f2ff);
-    text-shadow: 0 0 8px rgba(var(--card-hud-rgb, 0, 242, 255), 0.55);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 2px;
-}
-
-.card-back-neon .card-back-detail-btn {
-    width: 100%;
-    min-height: 30px;
-    padding: 6px 10px;
-    font-family: var(--card-back-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
-    border-radius: 0;
-}
-
-.card-back-neon .card-back-status-badge {
-    font-family: var(--card-back-mono);
-    font-size: 0.66rem;
-    min-height: 20px;
-    padding: 3px 10px;
-    border-radius: 0;
-    border-style: dashed;
-    border-color: var(--card-hud-deep, #00a8c8);
-    color: var(--card-hud-bright, #7df9ff);
-    letter-spacing: 0.08em;
 }
 
 /* Select de estado de seguimiento en el dorso */
@@ -1298,102 +508,6 @@
     color: var(--text-main);
 }
 
-.card-back-neon .card-back-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    width: 100%;
-    margin-top: 6px;
-    margin-bottom: 6px;
-}
-
-.card-back-neon .card-back-actions .action-btn {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 1px solid rgba(var(--ink-rgb), 0.15);
-    background: rgba(var(--ink-rgb), 0.06);
-    color: var(--text-main);
-    cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card-back-neon .card-back-actions .action-btn:hover {
-    transform: translateY(-2px);
-    border-color: var(--nav-accent);
-    box-shadow: 0 0 12px var(--nav-accent-soft);
-}
-
-.card-back-neon .card-back-actions .action-btn.active {
-    background: rgba(34, 197, 94, 0.12);
-    border-color: rgba(34, 197, 94, 0.5);
-    box-shadow: 0 0 14px rgba(34, 197, 94, 0.25);
-    color: #22c55e;
-}
-
-.card-back-neon .card-back-actions .action-btn.fav-btn.active {
-    background: rgba(239, 68, 68, 0.12);
-    border-color: rgba(239, 68, 68, 0.5);
-    box-shadow: 0 0 14px rgba(239, 68, 68, 0.25);
-    color: #ef4444;
-}
-
-.card-back-progress-card .card-back-progress-track {
-    height: 8px;
-}
-
-/* Progreso en modo terminal: caja y barra rectangulares, relleno cian solido
-   y tipografia monoespaciada en los textos. */
-.card-back-neon .card-back-progress-card {
-    border-radius: 0;
-    border-color: rgba(var(--card-hud-rgb, 0, 242, 255), 0.35);
-    background: rgba(0, 8, 16, 0.6);
-    box-shadow: none;
-    padding: 8px 10px;
-    gap: 6px;
-}
-
-.card-back-neon .card-back-progress-head,
-.card-back-neon .card-back-progress-pct,
-.card-back-neon .card-back-footer-status,
-.card-back-neon .no-progress-text,
-.card-back-neon .no-progress-subtext {
-    font-family: var(--card-back-mono);
-    color: var(--card-hud-bright, #7df9ff);
-}
-
-.card-back-neon .card-back-progress-track {
-    border-radius: 0;
-    border: 1px solid rgba(var(--card-hud-rgb, 0, 242, 255), 0.35);
-    background: transparent;
-}
-
-.card-back-neon .card-back-progress-fill {
-    border-radius: 0;
-    background: var(--card-hud, #00f2ff);
-    box-shadow: 0 0 8px rgba(var(--card-hud-rgb, 0, 242, 255), 0.5);
-}
-
-/* Acomodo del flujo vertical del dorso:
-   el `.card-back-buttons-stack` traia `margin-bottom: auto`, que empujaba el
-   select, las acciones y el progreso al fondo dejando un hueco grande arriba.
-   En su lugar el contenido fluye desde arriba y el bloque de progreso queda
-   anclado al pie (margin-top: auto), como un readout de HUD. */
-.card-back-neon .card-back-buttons-stack {
-    margin-bottom: 0;
-}
-
-.card-back-neon .card-back-progress-wrapper {
-    margin-top: auto;
-    padding-top: 4px;
-    gap: 8px;
-}
-
 /* ==========================================
    HUD EXTRAS — extra style layer
 ========================================== */
@@ -1410,59 +524,19 @@
     100% { transform: translateY(100%); opacity: 0; }
 }
 
-.catalog-card-inner::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    /* Ocupa el alto completo de la card a proposito: asi translateY(100%)
-       recorre exactamente su altura sin depender del valor en px, que cambia
-       por breakpoint (440 / 380 / 360). */
-    height: 100%;
-    z-index: 10;
-    pointer-events: none;
-    /* La linea y su resplandor van como capas del background en vez de
-       box-shadow: sobre una caja de alto completo el box-shadow dibujaria el
-       halo alrededor de toda la card en lugar de seguir a la linea. */
-    background:
-        linear-gradient(90deg, transparent 0%, rgba(var(--card-hud-rgb-bright), 0.55) 20%, rgba(var(--card-hud-rgb), 0.40) 80%, transparent 100%)
-            0 0 / 100% 2px no-repeat,
-        linear-gradient(180deg, transparent 0%, rgba(var(--card-hud-rgb-bright), 0.20) 45%, rgba(var(--card-hud-rgb), 0.16) 55%, transparent 100%)
-            0 -8px / 100% 18px no-repeat;
-    animation: hud-scanline 4s linear infinite;
-    opacity: 0;
-}
-
-.catalog-neon-card:hover .catalog-card-inner::before {
-    animation-duration: 2.8s;
-}
-
 /* La scanline es decorativa y corre en bucle en cada card: es lo primero que
    conviene apagar. Cubre las dos vias, el ajuste "Reducir animaciones" de la
    pagina de configuracion y la preferencia del sistema operativo.
    Con animation: none la scanline se queda en su estado base (opacity: 0), o
    sea invisible, que es justo lo que se busca. */
-body.reduce-motion .catalog-card-inner::before,
 body.reduce-motion .catalog-neon-card {
     animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .catalog-card-inner::before,
     .catalog-neon-card {
         animation: none;
     }
-}
-
-/* ── Acentos azules se intensifican en hover ── */
-.catalog-neon-card:hover .card-corner-tr {
-    filter: drop-shadow(0 0 7px rgba(var(--card-hud-rgb-bright), 0.75));
-}
-
-.catalog-neon-card:hover .catalog-card-shell::before,
-.catalog-neon-card:hover .catalog-card-shell::after {
-    filter: drop-shadow(0 0 8px rgba(var(--card-hud-rgb-bright), 0.75));
 }
 
 /* ── Card entrance animation ── */
@@ -1494,36 +568,6 @@ body.reduce-motion .catalog-neon-card {
 .catalog-neon-card:nth-child(11) { animation-delay: 0.40s; }
 .catalog-neon-card:nth-child(12) { animation-delay: 0.44s; }
 
-/* ── Image HUD color tint (subtle blue overlay) ── */
-.catalog-card-poster::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(
-        180deg,
-        rgba(var(--card-hud-rgb-bright), 0.05) 0%,
-        transparent 40%,
-        transparent 70%,
-        rgba(var(--card-hud-rgb-deep), 0.07) 100%
-    );
-    mix-blend-mode: screen;
-    opacity: 0.7;
-    transition: opacity 0.4s ease;
-}
-
-.catalog-neon-card:hover .catalog-card-poster::after {
-    opacity: 1;
-    background: linear-gradient(
-        180deg,
-        rgba(var(--card-hud-rgb-bright), 0.09) 0%,
-        transparent 35%,
-        transparent 65%,
-        rgba(var(--card-hud-rgb-deep), 0.11) 100%
-    );
-}
-
 @media (max-width: 1100px) {
     .card-container:not(.catalog-neon-card) {
         width: 180px;
@@ -1532,61 +576,11 @@ body.reduce-motion .catalog-neon-card {
 }
 
 @media (max-width: 640px) {
-    .card-actions,
-    .card-back-actions {
-        gap: 8px;
-    }
-
-    .details-btn,
-    .card-back-detail-btn {
-        min-height: 38px;
-        padding: 9px 12px;
-    }
-
-    .catalog-card-shell {
-        height: 380px;
-        padding: 24px 9px 22px;
-    }
-
-    .catalog-card-shell::before {
-        top: 8px;
-        left: 11px;
-        height: 7px;
-    }
-
-    .catalog-card-shell::after {
-        bottom: 8px;
-        left: 11px;
-        width: 48px;
-        height: 6px;
-    }
-
-    .card-corner-tr {
-        top: 7px;
-        right: 11px;
-        width: 50px;
-        height: 10px;
-    }
-
-    .catalog-card-bar {
-        flex: 0 0 44px;
-        min-height: 44px;
-        padding: 0 6px 0 10px;
-    }
-
-    .catalog-card-bar::after {
-        width: 52px;
-        clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%);
-    }
 
     .catalog-card-title {
         font-size: 0.66rem;
     }
 
-    .catalog-card-inner::before {
-        animation: none;
-        display: none;
-    }
 }
 
 /* ==========================================

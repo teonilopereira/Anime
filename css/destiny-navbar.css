@@ -479,18 +479,6 @@ body.reduce-motion .destiny-navbar {
     position: relative;
 }
 
-.nav-search-icon {
-    position: absolute;
-    left: 18px;
-    z-index: 1;
-    font-size: 1.3rem;
-    color: rgba(var(--ink-rgb),0.6);
-    pointer-events: none;
-    line-height: 1;
-    top: 50%;
-    transform: translateY(-50%);
-}
-
 .destiny-navbar .nav-search-input {
     width: 100%;
     max-width: none;
@@ -833,11 +821,6 @@ body.reduce-motion .destiny-navbar {
         min-height: 36px;
     }
 
-    .nav-search-icon {
-        font-size: 1.1rem;
-        left: 14px;
-    }
-
     .destiny-navbar .nav-user-name {
         font-size: 0.75rem;
     }
@@ -903,11 +886,6 @@ body.reduce-motion .destiny-navbar {
         padding: 0 10px 0 34px;
         min-height: 32px;
         font-size: 0.78rem;
-    }
-
-    .nav-search-icon {
-        font-size: 0.95rem;
-        left: 10px;
     }
 
     .destiny-navbar .nav-user-avatar {

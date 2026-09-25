@@ -3,7 +3,9 @@
  *
  * Un solo comando (`npm run build`) que:
  *   1. Concatena los CSS compartidos y los minifica → css/bundle.min.css
+ *      (y una variante sin cards → css/bundle-lite.min.css)
  *   2. Concatena los JS core y los minifica → js/core-bundle.min.js
+ *      (la mascota va aparte → js/mascot.min.js + css/mascot.min.css)
  *   3. Calcula UNA versión (hash de contenido) y la estampa en todos los HTML + sw.js,
  *      reemplazando los tres contadores manuales que antes se bumpeaban a mano.
  *
@@ -69,8 +71,16 @@ const ANALYTICS = {
 // ── Definición de fuentes ────────────────────────────────────────────────
 
 // CSS compartido → bundle. Orden fijo (base primero por reset/variables).
-const CSS_SOURCES = ['base', 'theme', 'components', 'cards', 'chapters-modal', 'responsive', 'destiny-navbar', 'mascot']
+// mascot.css ya no va aca: viaja con la mascota (ver MASCOT mas abajo).
+const CSS_SOURCES = ['base', 'theme', 'components', 'cards', 'chapters-modal', 'responsive', 'destiny-navbar']
     .map((n) => `css/${n}.css`);
+
+// Variante liviana del bundle, sin los estilos de cards ni del modal de
+// capitulos. La usan las paginas que no cargan core-bundle.min.js (login,
+// legales, configuracion...): sin ese JS no hay forma de que pinten una card.
+// Mismo orden que CSS_SOURCES menos esos archivos, asi la cascada es identica.
+const CSS_LITE_EXCLUDE = new Set(['css/cards.css', 'css/chapters-modal.css']);
+const CSS_LITE_SOURCES = CSS_SOURCES.filter((rel) => !CSS_LITE_EXCLUDE.has(rel));
 
 // JS core → bundle. Orden por dependencias de inicialización (igual que el viejo
 // build-js-bundle.ps1). config.js / i18n.js / namespace.js quedan FUERA a propósito:
@@ -88,12 +98,9 @@ const JS_SOURCES = [
     'js/security/validator.js',
     'js/utils.js',
     'js/ui/toast.js',
-    // Los registros de personajes deben ir ANTES que mascot.js para que el
-    // elegido esté disponible en todas las páginas (no solo en el selector, que
-    // además los carga sueltos).
-    'js/ui/mascots.js',
-    'js/ui/characters.js',
-    'js/ui/mascot.js',
+    // La mascota no va en el bundle: este cargador la pide despues del
+    // contenido. Tiene que ir despues de toast.js (envuelve window.Toast).
+    'js/ui/mascot-loader.js',
     'js/catalog/states.js',
     'js/catalog/cards.js',
     'js/catalog/chapters-modal.js',
@@ -102,6 +109,17 @@ const JS_SOURCES = [
     'js/core/common-ui.js',
     'js/core/reminders.js',
 ];
+
+// Mascota: bundle aparte que mascot-loader.js pide cuando la pagina ya cargo.
+// Los registros de personajes van ANTES que mascot.js para que el elegido este
+// disponible al arrancar. configuracion.html y personajes.html lo cargan con
+// <script>/<link> propios (necesitan window.Mascot aunque este apagada).
+const MASCOT = {
+    js: ['js/ui/mascots.js', 'js/ui/characters.js', 'js/ui/mascot.js'],
+    css: ['css/mascot.css'],
+    jsOut: 'js/mascot.min.js',
+    cssOut: 'css/mascot.min.css',
+};
 
 // Nota: los CSS y JS especificos de cada pagina (usuario, detalle, login, etc.)
 // NO van al bundle compartido — se cargan sueltos y el estampado de version los
@@ -157,8 +175,8 @@ function writeUtf8(rel, data) {
     fs.writeFileSync(abs(rel), data, { encoding: 'utf8' });
 }
 
-function concatCss() {
-    return CSS_SOURCES
+function concatCss(fuentes = CSS_SOURCES) {
+    return fuentes
         .map((rel) => `/* ===== ${path.basename(rel)} ===== */\n${readSource(rel)}`)
         .join('\n');
 }
@@ -260,17 +278,38 @@ for (const { entry, to, format } of VENDOR_BUNDLES) {
     }
 })();
 
-const cssBundle = concatCss();
-const jsBundle = concatJs();
+// ── Mascota ──────────────────────────────────────────────────────────────
+// Primero, porque su version se estampa dentro del core bundle (el cargador
+// necesita saber que URL pedir). Es un hash propio de sus archivos, no la
+// version global: la global depende del core bundle y seria circular.
+const [mascotJsRes, mascotCssRes] = await Promise.all([
+    esbuild.transform(MASCOT.js.map((rel) => `${readSource(rel)}\n`).join('\n'), { loader: 'js', minify: true }),
+    esbuild.transform(MASCOT.css.map(readSource).join('\n'), { loader: 'css', minify: true }),
+]);
+writeUtf8(MASCOT.jsOut, mascotJsRes.code);
+writeUtf8(MASCOT.cssOut, mascotCssRes.code);
+const mascotVersion = crypto.createHash('sha256')
+    .update(mascotJsRes.code).update(mascotCssRes.code)
+    .digest('hex').slice(0, 8);
 
-const [cssMinRes, jsMinRes] = await Promise.all([
+const cssBundle = concatCss();
+const cssLiteBundle = concatCss(CSS_LITE_SOURCES);
+const jsBundle = concatJs();
+if (!jsBundle.includes('__MASCOT_VERSION__')) {
+    throw new Error('js/ui/mascot-loader.js no tiene el marcador __MASCOT_VERSION__');
+}
+
+const [cssMinRes, cssLiteMinRes, jsMinRes] = await Promise.all([
     esbuild.transform(cssBundle, { loader: 'css', minify: true }),
-    esbuild.transform(jsBundle, { loader: 'js', minify: true }),
+    esbuild.transform(cssLiteBundle, { loader: 'css', minify: true }),
+    esbuild.transform(jsBundle.split('__MASCOT_VERSION__').join(mascotVersion), { loader: 'js', minify: true }),
 ]);
 const cssMin = cssMinRes.code;
+const cssLiteMin = cssLiteMinRes.code;
 const jsMin = jsMinRes.code;
 
 writeUtf8('css/bundle.min.css', cssMin);
+writeUtf8('css/bundle-lite.min.css', cssLiteMin);
 writeUtf8('js/core-bundle.min.js', jsMin);
 
 // ── Bundles CSS por pagina ───────────────────────────────────────────────
@@ -287,6 +326,15 @@ for (const [out, fuentes] of Object.entries(PAGE_CSS_BUNDLES)) {
 // ── Versión ──────────────────────────────────────────────────────────────
 
 const htmlFiles = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'));
+
+// La variante liviana no trae los estilos de cards: una pagina que la use y
+// cargue el core bundle (que las pinta) se veria rota.
+for (const file of htmlFiles) {
+    const src = fs.readFileSync(abs(file), 'utf8');
+    if (src.includes('css/bundle-lite.min.css') && src.includes('js/core-bundle.min.js')) {
+        throw new Error(`${file} carga js/core-bundle.min.js: tiene que usar css/bundle.min.css, no bundle-lite.`);
+    }
+}
 
 // Expresion unica: identifica los assets locales tanto para calcular la version
 // como para estamparla. Asi no pueden desincronizarse.
@@ -306,8 +354,11 @@ for (const file of htmlFiles) {
 }
 
 // Las dependencias vendorizadas que se importan como modulo (no via <script>)
-// no aparecen en los HTML, asi que se suman a mano.
+// no aparecen en los HTML, asi que se suman a mano. Lo mismo la mascota, que
+// la pide mascot-loader.js desde el JS.
 for (const { to } of VENDOR_BUNDLES) assetPaths.add(to);
+assetPaths.add(MASCOT.jsOut);
+assetPaths.add(MASCOT.cssOut);
 
 // Se hashea el contenido NORMALIZADO (CRLF -> LF), no los bytes crudos: los
 // saltos de linea dependen de como llego el archivo al disco (git checkout con
@@ -492,6 +543,8 @@ if (swAfter !== swBefore) fs.writeFileSync(swPath, swAfter, 'utf8');
 const kb = (s) => `${(s.length / 1024).toFixed(1)} KB`;
 console.log(`Build OK — versión ${version}`);
 console.log(`  css/bundle.min.css     ${kb(cssMin)}  (fuente ${kb(cssBundle)})`);
+console.log(`  css/bundle-lite.min.css ${kb(cssLiteMin)}  (sin cards)`);
 console.log(`  js/core-bundle.min.js  ${kb(jsMin)}  (fuente ${kb(jsBundle)})`);
+console.log(`  mascota                ${kb(mascotJsRes.code)} JS + ${kb(mascotCssRes.code)} CSS  (v ${mascotVersion})`);
 console.log(`  HTML estampados: ${stampedHtml}/${htmlFiles.length}`);
 console.log(`  sw.js CACHE_NAME: anime-destiny-${version}`);
