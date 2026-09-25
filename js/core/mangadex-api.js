@@ -479,27 +479,67 @@
         var candidates = mangaTitleCandidates(item);
         if (!candidates.length) return null;
 
-        // La caché va por el título principal para no desincronizarse con las
-        // claves ya guardadas: si ese título ya se resolvió antes, listo.
-        var cacheKey = 'md_id_' + candidates[0].replace(/\s+/g, '_').toLowerCase();
+        // IDs externos del ítem (AniList / MAL). MangaDex los publica en
+        // attributes.links (al / mal), así que sirven para elegir la obra exacta
+        // entre los resultados de la búsqueda por título.
+        var alId = /^\d+$/.test(String(item.id || '')) ? String(item.id) : '';
+        var malId = item.mal_id != null && /^\d+$/.test(String(item.mal_id)) ? String(item.mal_id) : '';
+
+        // v2: antes se tomaba el PRIMER resultado de la búsqueda y quedaba
+        // cacheado para siempre. En obras con varias entradas parecidas (novela,
+        // spin-offs, ediciones a color) ese primero solía ser otra obra sin
+        // portadas por tomo, y todos los tomos mostraban la misma tapa. La clave
+        // nueva descarta esas resoluciones viejas; si hay id de AniList va por él.
+        var cacheKey = alId
+            ? 'md_id_v2_al_' + alId
+            : 'md_id_v2_' + candidates[0].replace(/\s+/g, '_').toLowerCase();
         try {
             var cached = localStorage.getItem(cacheKey);
             if (cached) return cached;
         } catch (_) {}
 
+        // La ficha pide el id varias veces (portadas, conteo de tomos, "Mostrar
+        // más"): se comparte la misma búsqueda en curso en vez de repetirla.
+        if (!resolveIdInFlight[cacheKey]) {
+            resolveIdInFlight[cacheKey] = searchMangaDexIdByTitles(candidates, alId, malId, cacheKey);
+        }
+        return resolveIdInFlight[cacheKey];
+    }
+
+    var resolveIdInFlight = {};
+
+    async function searchMangaDexIdByTitles(candidates, alId, malId, cacheKey) {
+        function linksMatch(result) {
+            var links = result && result.mangadexLinks;
+            if (!links) return false;
+            if (alId && String(links.al || '') === alId) return true;
+            if (malId && String(links.mal || '') === malId) return true;
+            return false;
+        }
+
+        var fallbackId = null;
         for (var i = 0; i < candidates.length; i++) {
             try {
-                var results = await searchMangaDex(candidates[i], 1);
-                if (results.length > 0 && isMangaDexUuid(results[0].id)) {
-                    var mdId = results[0].id;
-                    safeCacheSet(cacheKey, mdId);
-                    return mdId;
+                var results = await searchMangaDex(candidates[i], 10);
+                for (var j = 0; j < results.length; j++) {
+                    if (isMangaDexUuid(results[j].id) && linksMatch(results[j])) {
+                        safeCacheSet(cacheKey, results[j].id);
+                        return results[j].id;
+                    }
                 }
+                if (!fallbackId && results.length > 0 && isMangaDexUuid(results[0].id)) {
+                    fallbackId = results[0].id;
+                }
+                // Sin ids externos no hay con qué desempatar: el primer
+                // resultado del primer título que responda es lo mejor posible.
+                if (fallbackId && !alId && !malId) break;
             } catch (err) {
                 console.warn('resolveMangaDexId search error:', err);
             }
         }
-        return null;
+        // Coincidencia débil (por título): se usa pero NO se cachea, para que en
+        // la próxima carga se vuelva a intentar la coincidencia exacta.
+        return fallbackId;
     }
 
     // Resuelve el manga en MangaDex (por UUID directo o por título) y devuelve el
