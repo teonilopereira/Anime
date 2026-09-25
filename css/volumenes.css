@@ -165,7 +165,7 @@
     text-decoration: none;
     padding: 9px 16px;
     border-radius: var(--radius-md, 12px);
-    color: #fff;
+    color: var(--text-main);
     background: rgba(188, 19, 254, 0.2);
     border: 1px solid rgba(188, 19, 254, 0.5);
     width: fit-content;

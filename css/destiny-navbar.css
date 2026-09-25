@@ -1,5 +1,45 @@
 /* Navbar estilo Anime Destiny para manga.html. */
 
+/* La navbar y la barra inferior son siempre oscuras. Con el tema claro se les
+   devuelve la paleta oscura para que el texto y los acentos que heredan del tema
+   no queden oscuros sobre fondo oscuro. Mismo doble selector que theme.css
+   (sistema y eleccion explicita): mantener ambos en sincronia. */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .destiny-navbar,
+    :root:not([data-theme="dark"]) .mobile-bottom-nav {
+        color-scheme: dark;
+        --ink-rgb: 255, 255, 255;
+        --surface-dark-rgb: 5, 5, 10;
+        --surface-card-rgb: 10, 5, 25;
+        --surface-panel-rgb: 26, 11, 46;
+        --surface-dark: rgba(var(--surface-dark-rgb), 0.86);
+        --surface-card: rgba(var(--surface-card-rgb), 0.80);
+        --text-main: #ffffff;
+        --text-muted: rgba(var(--ink-rgb), 0.72);
+        --text-faint: rgba(var(--ink-rgb), 0.35);
+        --neon-purple: #bc13fe;
+        --accent-cyan: #00f2ff;
+        color: var(--text-main);
+    }
+}
+
+:root[data-theme="light"] .destiny-navbar,
+:root[data-theme="light"] .mobile-bottom-nav {
+    color-scheme: dark;
+    --ink-rgb: 255, 255, 255;
+    --surface-dark-rgb: 5, 5, 10;
+    --surface-card-rgb: 10, 5, 25;
+    --surface-panel-rgb: 26, 11, 46;
+    --surface-dark: rgba(var(--surface-dark-rgb), 0.86);
+    --surface-card: rgba(var(--surface-card-rgb), 0.80);
+    --text-main: #ffffff;
+    --text-muted: rgba(var(--ink-rgb), 0.72);
+    --text-faint: rgba(var(--ink-rgb), 0.35);
+    --neon-purple: #bc13fe;
+    --accent-cyan: #00f2ff;
+    color: var(--text-main);
+}
+
 /* ── Mobile Bottom Tab Bar (base, oculto en desktop) ── */
 .mobile-bottom-nav {
     display: none;
