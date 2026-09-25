@@ -188,10 +188,6 @@ function saveDetailStateToSupabase(category, item, fav, viewed) {
     });
 }
 
-function hasSqlSession() {
-    return !!(window.AppSupabase?.getCurrentUserSync?.());
-}
-
 function parseGeneros(item) {
     if (!item) return [];
     if (Array.isArray(item.generos)) {
@@ -217,35 +213,4 @@ function parseVolumenes(volumenes) {
     if (volumenes === null || volumenes === undefined) return 0;
     var n = Number(volumenes);
     return Number.isFinite(n) && n > 0 ? n : 0;
-}
-
-function getApiUnifiedProgress(userId, itemId, progressArg, category) {
-    let watched = 0;
-    let total = 0;
-    if (category === 'anime') {
-        if (Array.isArray(progressArg)) {
-            progressArg.forEach((season, seasonIdx) => {
-                const eps = Number(season.episodios || season.episodes || 0);
-                total += eps;
-                for (let ep = 1; ep <= eps; ep++) {
-                    const key = episodeStorageKey(userId, itemId, seasonIdx, ep);
-                    if (UserStore.getItem(key)) watched++;
-                }
-            });
-        } else {
-            total = Number(progressArg) || 0;
-            for (let ep = 1; ep <= total; ep++) {
-                const key = episodeStorageKey(userId, itemId, 0, ep);
-                if (UserStore.getItem(key)) watched++;
-            }
-        }
-    } else {
-        total = Number(progressArg) || 0;
-        for (let vol = 1; vol <= total; vol++) {
-            const key = volumeStorageKey(userId, itemId, vol, category);
-            if (UserStore.getItem(key)) watched++;
-        }
-    }
-    const pct = total > 0 ? Math.min(100, Math.round((watched / total) * 100)) : 0;
-    return { watched, pct };
 }

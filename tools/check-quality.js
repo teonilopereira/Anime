@@ -100,7 +100,6 @@ for (const file of jsFiles) {
 // CSP: una sola definicion, en las cabeceras de netlify.toml y vercel.json. Un
 // <meta> en un HTML se suma a la cabecera (el navegador aplica ambas) y cualquier
 // diferencia bloquea recursos solo en esa pagina, asi que no se permiten.
-// diag-portadas.html es una herramienta de diagnostico y queda fuera.
 const netlifyCsp = (fs.readFileSync(path.join(ROOT, 'netlify.toml'), 'utf8')
   .match(/Content-Security-Policy = "([^"]*)"/) || [])[1];
 const vercelCsp = (JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8')).headers || [])
@@ -111,7 +110,7 @@ if (!netlifyCsp || netlifyCsp !== vercelCsp) {
   issueCount += 1;
   console.log('CSP netlify.toml y vercel.json no coinciden (o falta en alguno).');
 }
-for (const name of fs.readdirSync(ROOT).filter((f) => f.endsWith('.html') && f !== 'diag-portadas.html')) {
+for (const name of fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'))) {
   if (/http-equiv=["']Content-Security-Policy["']/i.test(fs.readFileSync(path.join(ROOT, name), 'utf8'))) {
     failed = true;
     issueCount += 1;

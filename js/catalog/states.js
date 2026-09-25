@@ -368,13 +368,6 @@
         }
     }
 
-    function getUserStateSummary(userId) {
-        const points = getUserPoints(userId);
-        const level = levelFromPoints(points);
-        const { fav: favorites, viewed } = countUserStatesBoth(userId);
-        return { points, level, favorites, viewed };
-    }
-
     function buildSearchIndexForItem(category, item) {
         const parts = [
             item?.titulo,

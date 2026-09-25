@@ -49,11 +49,6 @@ function obtenerItemsCategoria(categoria) {
     return [];
 }
 
-/** Obtiene un item específico de una categoría */
-function obtenerItemCategoria(categoria, id) {
-    return obtenerItemsCategoria(categoria).then(items => items.find(i => i.id == id) || null);
-}
-
 /** Obtiene el detalle de un item */
 // Implementación completa de obtenerDetalleItem
 function obtenerDetalleItem(categoria, id) {

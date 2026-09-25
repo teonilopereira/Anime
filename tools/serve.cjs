@@ -13,7 +13,7 @@ const SRC_DIRS = [
     "js/core", "js/catalog", "js/security", "js/ui", "js/utils.js", "js/datos.js",
     "css"
 ];
-const BUNDLE_PATH = path.join(ROOT, "js/core-bundle.js");
+const BUNDLE_PATH = path.join(ROOT, "js/core-bundle.min.js");
 
 // Mismo CSP que produccion (netlify.toml es la unica fuente): sin esto, en local
 // no se veria ninguna violacion del CSP hasta hacer deploy.
