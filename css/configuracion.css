@@ -150,7 +150,7 @@
     padding: 10px 14px;
     border-radius: 10px;
     border: 1px solid rgba(0,242,255,0.18);
-    background: rgba(0,0,0,0.4);
+    background: rgba(var(--surface-dark-rgb),0.4);
     color: var(--text-main);
     font-family: var(--font-body);
     font-size: 0.95rem;
@@ -164,7 +164,7 @@
     box-shadow: 0 0 12px var(--accent-cyan-18);
 }
 .cfg-field select option {
-    background: #0a051a;
+    background: rgb(var(--surface-card-rgb));
     color: var(--text-main);
 }
 .cfg-field input[type="color"] {

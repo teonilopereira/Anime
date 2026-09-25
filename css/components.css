@@ -672,7 +672,7 @@ main { padding-bottom: 24px; }
     margin-top: 26px;
     padding: 26px 16px 14px;
     border-top: 1px solid rgba(188, 19, 254, 0.22);
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(var(--surface-dark-rgb), 0.35);
     backdrop-filter: blur(10px);
 }
 
@@ -1150,7 +1150,7 @@ main { padding-bottom: 24px; }
     margin-top: 20px;
 }
 .compare-card {
-    background: rgba(10, 14, 36, 0.82);
+    background: rgba(var(--surface-card-rgb), 0.82);
     border: 1px solid rgba(59, 130, 246, 0.18);
     border-radius: 12px;
     overflow: hidden;
@@ -1857,7 +1857,7 @@ main { padding-bottom: 24px; }
     margin: 20px 0 16px 0;
     border: 1.5px solid rgba(188, 19, 254, 0.35);
     border-radius: 14px;
-    background: rgba(5, 5, 12, 0.7);
+    background: rgba(var(--surface-dark-rgb), 0.7);
     backdrop-filter: blur(16px);
     box-sizing: border-box;
     box-shadow: 0 0 28px rgba(188, 19, 254, 0.1), 0 2px 12px rgba(0,0,0,0.4);
