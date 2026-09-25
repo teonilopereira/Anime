@@ -6008,8 +6008,6 @@ function catTr(key, fallback, args) {
     return fallback;
 }
 
-const CATALOG_FLIP_ICON_SVG = '<svg class="catalog-flip-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>';
-
 var SKELETON_COUNT = AnimeDestiny.Constants.SKELETON_COUNT || 40;
 
 function renderSkeletonCards(container, count) {
@@ -6092,7 +6090,11 @@ function getApiGenresList(item) {
 
 
 
-function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
+// Progreso de la card: la etiqueta (EP 3/12) va en el riel inferior de la
+// portada y la línea de avance en el borde de abajo. La línea se posiciona
+// contra .crail-media, así que puede vivir dentro de este mismo bloque
+// [data-progress], que es el que states.js actualiza.
+function buildCatalogProgressHtml(categoria, total, volCount, chCount) {
     var prefix, label;
     if (categoria === 'anime') {
         prefix = 'EP';
@@ -6105,40 +6107,21 @@ function buildCatalogBackProgressHtml(categoria, total, volCount, chCount) {
         label = catTr('card.label.capitulos', 'capítulos');
     }
     const safeTotal = Number(total) > 0 ? Number(total) : 0;
-    
-    // Si no hay total, mostramos una interfaz alternativa simplificada
+
+    // Sin total conocido: "Progreso libre" hasta que se marque como visto.
     if (safeTotal === 0) {
         return `
-        <div class="card-back-progress-wrapper" data-progress data-total="0" data-label="${label}" data-prefix="${prefix}">
-            <div class="card-back-progress-card card-back-no-progress-card">
-                <span class="no-progress-text">${escapeHtml(catTr('card.progreso_libre', 'Progreso libre'))}</span>
-                <span class="no-progress-subtext">${escapeHtml(catTr('card.progreso_libre_sub', 'Marcá como visto completo usando el botón 👁'))}</span>
-            </div>
-            <div class="card-back-footer-status" style="display:none" data-viewed-footer>
-                <div class="footer-line"></div>
-                <span>${escapeHtml(catTr('card.pct_visto', '100% VISTO', { pct: 100 }))}</span>
-                <div class="footer-line"></div>
-            </div>
+        <div class="crail-progress" data-progress data-total="0" data-label="${label}" data-prefix="${prefix}">
+            <span class="crail-progress-label card-back-no-progress-card">${escapeHtml(catTr('card.progreso_libre', 'Progreso libre'))}</span>
+            <span class="crail-progress-label" data-viewed-footer style="display:none">${escapeHtml(catTr('card.pct_visto', '100% VISTO', { pct: 100 }))}</span>
         </div>`;
     }
 
     return `
-        <div class="card-back-progress-wrapper" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}" style="display:none">
-            <div class="card-back-progress-card">
-                <div class="card-back-progress-head" data-meta-text>
-                    ${prefix} 0/${safeTotal}
-                </div>
-                <div class="card-back-progress-row">
-                    <div class="card-back-progress-track">
-                        <div class="card-progress-fill card-back-progress-fill" style="width:0%"></div>
-                    </div>
-                    <div class="card-back-progress-pct" data-pct-only>0%</div>
-                </div>
-            </div>
-            <div class="card-back-footer-status">
-                <div class="footer-line"></div>
-                <span data-pct-text>${escapeHtml(catTr('card.pct_visto', '0% VISTO', { pct: 0 }))}</span>
-                <div class="footer-line"></div>
+        <div class="crail-progress" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}">
+            <span class="crail-progress-label" data-meta-text>${prefix} 0/${safeTotal}</span>
+            <div class="crail-line" aria-hidden="true">
+                <div class="card-back-progress-fill crail-line-fill" style="width:0%"></div>
             </div>
         </div>`;
 }
@@ -6297,6 +6280,16 @@ function captionFromInfo(info, status) {
         .join(' · ');
 }
 
+// Tono del punto de estado (color por estado, además del texto).
+function catalogStatusTone(status) {
+    const s = String(status || '').trim().toUpperCase();
+    if (/FINISHED|COMPLETED/.test(s)) return 'finished';
+    if (/HIATUS/.test(s)) return 'hiatus';
+    if (/CANCELLED/.test(s)) return 'cancelled';
+    if (/NOT_YET|NOT YET|UPCOMING/.test(s)) return 'upcoming';
+    return 'releasing';
+}
+
 function buildCatalogCardHtml(options) {
     const {
         id,
@@ -6317,21 +6310,15 @@ function buildCatalogCardHtml(options) {
         titleAlt = ''
     } = options;
 
-    const flipId = `flip-${id}`;
     const safeId = escapeHtml(String(id));
     const bandLabel = translateCatalogStatus(status) || catTr('card.status.releasing', 'En emisión');
+    const tone = catalogStatusTone(status);
     const captionInfo = captionFromInfo(info, status);
-    const detailBtn = showDetail
-        ? `<a class="details-btn card-back-detail-btn" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">${escapeHtml(catTr('card.btn.detalle', 'DETALLE'))}</a>`
-        : '';
-    // Botón ancho (separado del de DETALLE) que lleva a la página de volúmenes
-    // (volumenes.html): una lista donde cada volumen ocupa una fila con su
-    // portada, capítulos y estado de lectura. Antes abría un modal por encima de
-    // las cards; ahora es una página aparte a la que se navega con todos los
-    // datos de la obra en la query string.
+    // Página de volúmenes/episodios (volumenes.html): una lista donde cada
+    // volumen ocupa una fila con su portada, capítulos y estado de lectura. Se
+    // navega con todos los datos de la obra en la query string.
     const chaptersLabel = categoria === 'anime' ? catTr('card.btn.ver_episodios', 'Ver episodios') : catTr('card.btn.ver_vols', 'Ver volúmenes y capítulos');
-    const chaptersShort = categoria === 'anime' ? catTr('card.btn.episodios', 'EPISODIOS') : catTr('card.btn.volumenes', 'VOLÚMENES');
-    // Prefijo (EP/VOL/CH) coherente con buildCatalogBackProgressHtml, para que la
+    // Prefijo (EP/VOL/CH) coherente con buildCatalogProgressHtml, para que la
     // página muestre el mismo tipo de unidad que la card.
     const volsPrefix = categoria === 'anime' ? 'EP' : (volCount > 0 ? 'VOL' : 'CH');
     const volsUrl = 'volumenes.html?cat=' + encodeURIComponent(categoria)
@@ -6343,85 +6330,59 @@ function buildCatalogCardHtml(options) {
         + '&estado=' + encodeURIComponent(status || '')
         + (captionInfo ? '&tipo=' + encodeURIComponent(captionInfo) : '')
         + (titleAlt ? '&alt=' + encodeURIComponent(String(titleAlt)) : '');
-    const chaptersBtn = `<a class="card-back-chapters-btn" href="${escapeHtml(volsUrl)}" aria-label="${escapeHtml(chaptersLabel)}" title="${escapeHtml(chaptersLabel)}" data-remember-catalog="1">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                        <span>${escapeHtml(chaptersShort)}</span>
-                    </a>`;
-    const statusHtml = bandLabel
-        ? `<span class="card-back-status-badge">${escapeHtml(bandLabel)}</span>`
-        : '';
+    const chaptersBtn = `<a class="card-back-chapters-btn crail-chapters" href="${escapeHtml(volsUrl)}" aria-label="${escapeHtml(chaptersLabel)}" title="${escapeHtml(chaptersLabel)}" data-remember-catalog="1">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </a>`;
+    const titleHtml = showDetail
+        ? `<a class="catalog-card-title crail-title" href="${escapeHtml(detailUrl)}" data-remember-catalog="1">${escapeHtml(title)}</a>`
+        : `<span class="catalog-card-title crail-title">${escapeHtml(title)}</span>`;
     const captionHtml = captionInfo
-        ? `<span class="cband-info">${escapeHtml(captionInfo)}</span>`
+        ? `<span class="cband-info crail-info">${escapeHtml(captionInfo)}</span>`
         : '';
     const genresAttr = genres ? ` data-genres="${escapeHtml(genres)}"` : '';
     const genresNormAttr = genresNorm ? ` data-genres-norm="${escapeHtml(genresNorm)}"` : '';
     const totalAttr = progressTotal > 0 ? ` data-total="${progressTotal}"` : '';
-    // Título alternativo (inglés) para que el modal pueda pasar más de un nombre
-    // al emparejado de portadas por volumen contra MangaDex.
+    // Título alternativo (inglés) para que la página de volúmenes pueda pasar
+    // más de un nombre al emparejado de portadas contra MangaDex.
     const titleAltAttr = titleAlt ? ` data-title-alt="${escapeHtml(String(titleAlt))}"` : '';
 
     var safeImg = safeUrl(image);
-    // Card vertical con banda de estado arriba (cian->purpura) y flip 3D. El
-    // frente muestra la portada + el titulo sobre un degradado inferior; el
-    // boton gira la card y el dorso trae las acciones (favorito, visto,
-    // seguimiento, detalle y progreso), con un boton para volver al frente.
-    // Se conservan los hooks funcionales: .catalog-neon-card para busqueda y
-    // generos, .flip-toggle + label para el giro, .fav-btn/.viewed-btn con
-    // data-action para la delegacion, .watch-status-select y el bloque
-    // [data-progress] que states.js actualiza.
+    // Card "portada con riel": todo a la vista, sin giro. La portada lleva el
+    // estado arriba a la izquierda, favorito y visto arriba a la derecha y un
+    // riel abajo con el progreso y el seguimiento; debajo van el título (que
+    // lleva al detalle), la línea de tipo/episodios y el botón de episodios o
+    // volúmenes. Se conservan los hooks funcionales: .catalog-neon-card para
+    // búsqueda y géneros, .fav-btn/.viewed-btn con data-action para la
+    // delegación, .watch-status-select, el bloque [data-progress] que states.js
+    // actualiza y .cband-status/.cband-info que lee chapters-modal.js.
     return `
-    <div class="card-container catalog-neon-card catalog-band-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}"${titleAltAttr} data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
-        <input class="flip-toggle" type="checkbox" id="${flipId}">
-        <div class="cband-inner">
-            <div class="cband-face cband-front">
-                <div class="cband-media">
-                    <img src="${safeImg}" alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
-                </div>
-                <div class="cband-topbar">
-                    <span class="cband-dot"></span>
-                    <span class="cband-status">${escapeHtml(bandLabel)}</span>
-                </div>
-                <div class="cband-caption">
-                    <span class="catalog-card-title cband-title">${escapeHtml(title)}</span>
-                    ${captionHtml}
-                </div>
-                <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="${escapeHtml(catTr('card.aria.ver_info', 'Ver información de {title}', { title: title }))}" title="${escapeHtml(catTr('card.aria.ver_info_short', 'Ver info'))}">
-                    ${CATALOG_FLIP_ICON_SVG}
-                </label>
+    <div class="card-container catalog-neon-card catalog-rail-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}"${titleAltAttr} data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
+        <div class="crail-media">
+            <img src="${safeImg}" alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
+            <span class="crail-status" data-tone="${tone}"><span class="crail-dot" aria-hidden="true"></span><span class="cband-status">${escapeHtml(bandLabel)}</span></span>
+            <div class="crail-quick">
+                <button class="action-btn fav-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.favorito', 'Favorito'))}" data-item-id="${safeId}" data-action="fav">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </button>
+                <button class="action-btn viewed-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.visto', 'Visto'))}" data-item-id="${safeId}" data-action="viewed">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
             </div>
-            <div class="cband-face cband-back">
-                <div class="cband-back-head">
-                    <h2 class="card-back-title">${escapeHtml(title)}</h2>
-                    <label class="catalog-card-flip-btn cband-flip" for="${flipId}" aria-label="${escapeHtml(catTr('card.aria.volver', 'Volver al frente'))}" title="${escapeHtml(catTr('card.aria.volver_short', 'Volver'))}">
-                        ${CATALOG_FLIP_ICON_SVG}
-                    </label>
-                </div>
-                <div class="cband-back-controls">
-                    ${statusHtml}
-                    <select class="watch-status-select" data-item-id="${safeId}" aria-label="${escapeHtml(catTr('card.aria.seguimiento', 'Estado de seguimiento'))}">
-                        <option value="">${escapeHtml(catTr('card.seguimiento.placeholder', '— Seguimiento —'))}</option>
-                        <option value="viendo">${escapeHtml(catTr('card.seguimiento.viendo', 'Viendo'))}</option>
-                        <option value="pendiente">${escapeHtml(catTr('card.seguimiento.pendiente', 'Pendiente'))}</option>
-                        <option value="pausado">${escapeHtml(catTr('card.seguimiento.pausado', 'En pausa'))}</option>
-                        <option value="abandonado">${escapeHtml(catTr('card.seguimiento.abandonado', 'Abandonado'))}</option>
-                    </select>
-                </div>
-                ${buildCatalogBackProgressHtml(categoria, progressTotal, volCount, chCount)}
-                <div class="cband-back-actions">
-                    <div class="cband-back-actions-icons">
-                        <button class="action-btn fav-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.favorito', 'Favorito'))}" data-item-id="${safeId}" data-action="fav">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                        </button>
-                        <button class="action-btn viewed-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.visto', 'Visto'))}" data-item-id="${safeId}" data-action="viewed">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                        </button>
-                    </div>
-                    <div class="cband-back-actions-cta">
-                        ${chaptersBtn}
-                        ${detailBtn}
-                    </div>
-                </div>
+            <div class="crail-rail">
+                ${buildCatalogProgressHtml(categoria, progressTotal, volCount, chCount)}
+                <select class="watch-status-select crail-select" data-item-id="${safeId}" aria-label="${escapeHtml(catTr('card.aria.seguimiento', 'Estado de seguimiento'))}">
+                    <option value="">${escapeHtml(catTr('card.seguimiento.placeholder', '— Seguimiento —'))}</option>
+                    <option value="viendo">${escapeHtml(catTr('card.seguimiento.viendo', 'Viendo'))}</option>
+                    <option value="pendiente">${escapeHtml(catTr('card.seguimiento.pendiente', 'Pendiente'))}</option>
+                    <option value="pausado">${escapeHtml(catTr('card.seguimiento.pausado', 'En pausa'))}</option>
+                    <option value="abandonado">${escapeHtml(catTr('card.seguimiento.abandonado', 'Abandonado'))}</option>
+                </select>
             </div>
+        </div>
+        <div class="crail-text">
+            ${titleHtml}
+            ${chaptersBtn}
+            ${captionHtml}
         </div>
     </div>`;
 }
