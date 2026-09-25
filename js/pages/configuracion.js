@@ -88,18 +88,26 @@ const COLOR_DEFAULTS = {
 
 function applyCustomColors() {
     var vars = {
-        '--neon-purple': r(COLOR_KEYS.clrNeonPurple, COLOR_DEFAULTS.clrNeonPurple),
-        '--nav-accent':  r(COLOR_KEYS.clrNavAccent,  COLOR_DEFAULTS.clrNavAccent),
-        '--accent-cyan': r(COLOR_KEYS.clrCyan,       COLOR_DEFAULTS.clrCyan),
-        '--dark-bg':     r(COLOR_KEYS.clrDarkBg,     COLOR_DEFAULTS.clrDarkBg),
-        '--text-main':   r(COLOR_KEYS.clrTextMain,   COLOR_DEFAULTS.clrTextMain),
-        '--text-muted':  r(COLOR_KEYS.clrTextMuted,  COLOR_DEFAULTS.clrTextMuted)
+        '--neon-purple': COLOR_KEYS.clrNeonPurple,
+        '--nav-accent':  COLOR_KEYS.clrNavAccent,
+        '--accent-cyan': COLOR_KEYS.clrCyan,
+        '--dark-bg':     COLOR_KEYS.clrDarkBg,
+        '--text-main':   COLOR_KEYS.clrTextMain,
+        '--text-muted':  COLOR_KEYS.clrTextMuted
     };
     var root = document.documentElement;
+    // Solo se fija inline lo que el usuario personalizo, igual que common-ui.js.
+    // Poner los defaults inline pisaba el tema claro: --text-main quedaba en
+    // blanco y los textos de esta pagina eran invisibles sobre fondo claro.
     for (var name in vars) {
-        if (vars.hasOwnProperty(name)) root.style.setProperty(name, vars[name]);
+        if (!vars.hasOwnProperty(name)) continue;
+        var val = r(vars[name]);
+        if (val) root.style.setProperty(name, val);
+        else root.style.removeProperty(name);
     }
-    root.style.setProperty('--nav-accent-soft', vars['--nav-accent'] + '3d');
+    var navAccent = r(COLOR_KEYS.clrNavAccent);
+    if (navAccent) root.style.setProperty('--nav-accent-soft', navAccent + '3d');
+    else root.style.removeProperty('--nav-accent-soft');
 }
 
 /* ── Fondo ── */

@@ -20,11 +20,11 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=e0149860">
+        <link rel="stylesheet" href="css/bundle.min.css?v=9db82a28">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=e0149860">
+    <link rel="stylesheet" href="css/fonts.css?v=9db82a28">
     <style>
         /* LAYOUT LISTAS */
         .lists-layout {
@@ -37,7 +37,7 @@
         .lists-sidebar {
             background:
                 repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80,130,255,0.012) 3px, rgba(80,130,255,0.012) 4px),
-                linear-gradient(180deg, rgba(6,8,18,0.95), rgba(4,5,12,0.95));
+                linear-gradient(180deg, rgba(var(--surface-card-rgb),0.95), rgba(var(--surface-dark-rgb),0.95));
             border-right: 1px solid rgba(77,134,255,0.2);
             padding: 28px 16px 24px;
             display: flex;
@@ -227,7 +227,7 @@
             border: 1.5px solid rgba(77,134,255,0.7);
             border-radius: 999px;
             background: linear-gradient(135deg, rgba(28,70,240,0.4), rgba(77,134,255,0.2));
-            color: #d9e4ff;
+            color: var(--text-main);
             font-family: 'Rajdhani', sans-serif;
             font-size: 0.9rem;
             font-weight: 700;
@@ -451,7 +451,7 @@
         .category-card {
             background:
                 repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80,130,255,0.01) 3px, rgba(80,130,255,0.01) 4px),
-                linear-gradient(180deg, rgba(10,12,24,0.9), rgba(5,6,14,0.9));
+                linear-gradient(180deg, rgba(var(--surface-card-rgb),0.9), rgba(var(--surface-dark-rgb),0.9));
             border: 1px solid rgba(77,134,255,0.18);
             border-radius: 16px;
             padding: 20px;
@@ -1085,7 +1085,7 @@
             padding: 10px 14px;
             margin-bottom: 8px;
             border-radius: 12px;
-            background: rgba(10,12,24,0.8);
+            background: rgba(var(--surface-card-rgb),0.8);
             border: 1px solid rgba(var(--ink-rgb),0.07);
             text-decoration: none;
             transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
@@ -1189,8 +1189,8 @@
 }
     </style>
 
-    <script src="js/vendor/lucide.min.js?v=e0149860" defer></script>
-    <script src="js/core/theme.js?v=e0149860"></script>
+    <script src="js/vendor/lucide.min.js?v=9db82a28" defer></script>
+    <script src="js/core/theme.js?v=9db82a28"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="listas" data-no-profile-strip="true">
@@ -1393,14 +1393,14 @@
         </main>
     </div>
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=e0149860"></script>
-    <script src="js/core/i18n.js?v=e0149860"></script>
-    <script src="js/core/namespace.js?v=e0149860"></script>
-    <script type="module" src="api/supabase-config.js?v=e0149860" async></script>
-    <script src="js/core-bundle.min.js?v=e0149860" defer></script>
-    <script src="js/pages/mis-listas.js?v=e0149860" defer></script>
-    <script src="js/pages/mis-listas-logros.js?v=e0149860" defer></script>
-    <script src="js/pages/mis-listas-apodos.js?v=e0149860" defer></script>
-    <script src="js/pages/mis-listas-puntos.js?v=e0149860" defer></script>
+    <script src="js/core/config.js?v=9db82a28"></script>
+    <script src="js/core/i18n.js?v=9db82a28"></script>
+    <script src="js/core/namespace.js?v=9db82a28"></script>
+    <script type="module" src="api/supabase-config.js?v=9db82a28" async></script>
+    <script src="js/core-bundle.min.js?v=9db82a28" defer></script>
+    <script src="js/pages/mis-listas.js?v=9db82a28" defer></script>
+    <script src="js/pages/mis-listas-logros.js?v=9db82a28" defer></script>
+    <script src="js/pages/mis-listas-apodos.js?v=9db82a28" defer></script>
+    <script src="js/pages/mis-listas-puntos.js?v=9db82a28" defer></script>
 </body>
 

@@ -215,7 +215,7 @@ body.menu-page .menu-container {
     transform: translateY(-50%);
     border: 1px solid rgba(0, 242, 255, 0.28);
     border-radius: 50%;
-    background: rgba(6, 8, 18, 0.9);
+    background: rgba(var(--surface-card-rgb), 0.9);
     color: var(--text-main);
     font-size: 1.4rem;
     line-height: 1;
