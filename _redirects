@@ -10,4 +10,21 @@
 # con una redireccion permanente para no romper enlaces guardados.
 /mascotas.html /personajes.html 301
 
+# Carpetas y archivos de desarrollo: estan en el repo pero no son parte del
+# sitio. Netlify publica toda la raiz (no hay carpeta de publicacion), asi que
+# sin estas reglas cualquiera podia abrir prototipos, docs, el esquema SQL o los
+# tests. El "!" fuerza el 404 aunque el archivo exista.
+/tools/*            /404.html 404!
+/docs/*             /404.html 404!
+/viz/*              /404.html 404!
+/server/*           /404.html 404!
+/tests/*            /404.html 404!
+/code-map.json      /404.html 404!
+/package.json       /404.html 404!
+/package-lock.json  /404.html 404!
+/vitest.config.js   /404.html 404!
+/netlify.toml       /404.html 404!
+/vercel.json        /404.html 404!
+/js/core/config.template.js /404.html 404!
+
 /* /404.html 404

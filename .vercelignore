@@ -1,0 +1,13 @@
+# Archivos de desarrollo que no forman parte del sitio (equivalente a las
+# reglas "404!" de _redirects para Netlify).
+tools/
+docs/
+viz/
+server/
+tests/
+code-map.json
+package.json
+package-lock.json
+vitest.config.js
+netlify.toml
+js/core/config.template.js

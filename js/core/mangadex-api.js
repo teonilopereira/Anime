@@ -1,9 +1,7 @@
 (function () {
     "use strict";
 
-    var MD_BASE = 'https://api.mangadex.org';
     var MD_COVER_BASE = 'https://uploads.mangadex.org/covers';
-    var REQUEST_TIMEOUT = AnimeDestiny.Constants.REQUEST_TIMEOUT_MS || 12000;
 
     var NO_COVER_PLACEHOLDER =
         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect fill='%231a0a2e' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23a855f7' font-family='sans-serif' font-size='13' text-anchor='middle' dominant-baseline='middle'%3ESin portada%3C/text%3E%3C/svg%3E";
@@ -30,47 +28,13 @@
     }
 
     /**
-     * Cliente HTTP de MangaDex.
-     *
-     * Este archivo tenia su propia copia, practicamente identica a la de
-     * js/core/api.js (mismo AbortController, mismo timeout, mismo manejo de
-     * errores): dos implementaciones que habia que arreglar por duplicado.
-     * Ahora se usa la del bundle, que siempre esta cargada antes que este
-     * script. El fallback local queda por si alguien carga este archivo suelto.
+     * Cliente HTTP de MangaDex: la implementacion vive en js/core/api-mangadex.js
+     * (bundle), que siempre carga antes que este archivo y ademas reintenta por
+     * el proxy CORS cuando MangaDex bloquea el fetch directo. Antes aca habia una
+     * copia de respaldo sin ese proxy que nunca llegaba a usarse.
      */
     function mdFetch(path) {
-        if (typeof window.mdFetch === 'function') return window.mdFetch(path);
-
-        return new Promise(function (resolve, reject) {
-            var controller = new AbortController();
-            var timer = setTimeout(function () {
-                controller.abort();
-                reject(new Error('Timeout'));
-            }, REQUEST_TIMEOUT);
-
-            fetch(MD_BASE + path, {
-                method: 'GET',
-                headers: { 'Accept': 'application/json' },
-                signal: controller.signal
-            }).then(function (res) {
-                clearTimeout(timer);
-                if (!res.ok) {
-                    return res.text().then(function (text) {
-                        reject(new Error('MangaDex HTTP ' + res.status + ': ' + text.slice(0, 200)));
-                    });
-                }
-                return res.json();
-            }).then(function (json) {
-                if (json.errors) {
-                    reject(new Error('MangaDex error: ' + (json.errors[0]?.detail || 'Unknown')));
-                    return;
-                }
-                resolve(json);
-            }).catch(function (err) {
-                clearTimeout(timer);
-                reject(err);
-            });
-        });
+        return window.mdFetch(path);
     }
 
     function getUserLang() {
