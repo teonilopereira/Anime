@@ -3,7 +3,10 @@ const CACHE_NAME = 'anime-destiny-b336c418';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
-const IMG_CDN_HOSTS = ['uploads.mangadex.org', 'anilist.co', 'kitsu.io', 'kitsu.app'];
+// Deben coincidir con los hosts de portadas de connect-src en el CSP
+// (netlify.toml / vercel.json): el fetch() del service worker se rige por
+// connect-src, no por img-src, y sin ellos las portadas fallan.
+const IMG_CDN_HOSTS = ['uploads.mangadex.org', 's4.anilist.co', 'media.kitsu.io', 'media.kitsu.app'];
 
 // Cache-first con tope FIFO para portadas remotas.
 function cacheCover(request) {
@@ -132,10 +135,19 @@ self.addEventListener('fetch', (event) => {
   }
 
   var url = event.request.url;
+  var host = new URL(url).hostname;
 
   // Portadas remotas de los CDNs conocidos: cache-first en un cache aparte.
-  if (event.request.destination === 'image' && IMG_CDN_HOSTS.some((h) => url.includes(h))) {
+  if (event.request.destination === 'image' && IMG_CDN_HOSTS.includes(host)) {
     event.respondWith(cacheCover(event.request).catch(() => fetch(event.request)));
+    return;
+  }
+
+  // Cualquier otro recurso de otro dominio (portadas de MAL, miniaturas de
+  // YouTube, etc.) lo resuelve el navegador directamente. Si pasara por el
+  // fetch() del service worker quedaría bloqueado por connect-src del CSP y la
+  // imagen se rompería.
+  if (host !== self.location.hostname) {
     return;
   }
 
