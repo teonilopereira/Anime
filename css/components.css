@@ -113,64 +113,6 @@ main { padding-bottom: 24px; }
     background: rgba(0, 0, 0, 0.55);
 }
 
-.nav-filter-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: 1.5px solid rgba(168, 85, 247, 0.5);
-    border-radius: 8px;
-    background: linear-gradient(135deg, rgba(91, 33, 182, 0.25), rgba(168, 85, 247, 0.12));
-    color: #d4c8f0;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.12);
-}
-.nav-filter-btn:hover {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(168, 85, 247, 0.25));
-    border-color: #c084fc;
-    color: var(--text-main);
-    box-shadow: 0 0 18px rgba(168, 85, 247, 0.3);
-}
-.nav-filter-btn.is-active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.35));
-    border-color: #c084fc;
-    color: var(--text-main);
-    box-shadow: 0 0 18px rgba(168, 85, 247, 0.4);
-}
-.nav-filter-btn svg {
-    display: block;
-}
-
-.filter-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 1000;
-    min-width: 200px;
-    padding: 12px 0;
-    border: 1px solid rgba(168, 85, 247, 0.35);
-    border-radius: 12px;
-    background: linear-gradient(145deg, #140b28, #1c1035);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(168, 85, 247, 0.15);
-    backdrop-filter: blur(12px);
-}
-.filter-dropdown[hidden] {
-    display: none;
-}
-
-.filter-dropdown-header {
-    padding: 4px 16px 12px;
-    font-family: "Orbitron", sans-serif;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    color: rgba(var(--ink-rgb), 0.5);
-    text-transform: uppercase;
-}
-
 .filter-option {
     display: block;
     width: 100%;
@@ -197,42 +139,6 @@ main { padding-bottom: 24px; }
 .filter-option.is-active::before {
     content: "\2713 ";
     color: #c084fc;
-}
-
-.filter-dropdown-divider {
-    height: 1px;
-    margin: 8px 12px;
-    background: rgba(168, 85, 247, 0.2);
-}
-
-.filter-genres {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 4px 16px 8px;
-}
-.filter-genre-chip {
-    padding: 4px 10px;
-    border: 1px solid rgba(168, 85, 247, 0.3);
-    border-radius: 999px;
-    background: rgba(91, 33, 182, 0.15);
-    color: rgba(var(--ink-rgb), 0.7);
-    font-family: "Rajdhani", sans-serif;
-    font-size: 0.78rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    line-height: 1.2;
-}
-.filter-genre-chip:hover {
-    background: rgba(124, 58, 237, 0.3);
-    color: var(--text-main);
-}
-.filter-genre-chip.is-active {
-    background: rgba(168, 85, 247, 0.3);
-    border-color: #c084fc;
-    color: #c084fc;
-    font-weight: 700;
 }
 
 .catalog-suggestions {
@@ -307,12 +213,7 @@ main { padding-bottom: 24px; }
     display: grid;
     gap: 2px;
 }
-.catalog-suggestion-source {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    opacity: 0.5;
-}
+
 .catalog-suggestion-api-section {
     border-top: 1px solid rgba(0, 242, 255, 0.12);
     padding-top: 6px;
@@ -595,14 +496,6 @@ main { padding-bottom: 24px; }
     flex: 0 0 auto;
 }
 
-.nav-user.nav-user-fixed {
-    position: fixed;
-    right: 16px;
-    top: 16px;
-    transform: none;
-    z-index: 10000;
-}
-
 .nav-user-name {
     font-family: 'Orbitron', sans-serif;
     font-size: 0.85rem;
@@ -646,23 +539,6 @@ main { padding-bottom: 24px; }
     margin: 18px auto 0;
     padding: 0 16px;
     box-sizing: border-box;
-}
-
-.featured-title {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 0.88rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--accent-cyan);
-}
-
-.featured-subtitle {
-    margin: 6px 0 0;
-    opacity: 0.82;
-    font-size: 0.88rem;
-    line-height: 1.35;
 }
 
 /* ==========================================
@@ -1083,49 +959,6 @@ main { padding-bottom: 24px; }
     box-shadow: 0 0 18px var(--neon-purple-glow);
 }
 
-/* Fila de acciones bajo los controles: intercambiar lados y copiar enlace.
-   Botones discretos, centrados, que no compiten con el boton Comparar. */
-.compare-actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    max-width: 1280px;
-    margin: 0 auto 6px;
-    flex-wrap: wrap;
-}
-.compare-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 14px;
-    border-radius: var(--radius-pill);
-    background: rgba(var(--ink-rgb), 0.05);
-    border: 1px solid var(--neon-purple-15);
-    color: var(--text-muted);
-    font-family: var(--font-display);
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-.compare-action:hover,
-.compare-action:focus-visible {
-    color: var(--accent-cyan);
-    border-color: var(--accent-cyan-18);
-    background: var(--accent-cyan-10);
-}
-.compare-action i,
-.compare-action svg {
-    width: 15px;
-    height: 15px;
-}
-@media (prefers-reduced-motion: reduce) {
-    .compare-action {
-        transition: none;
-    }
-}
-
 /* En angosto la barra se apila: un lado arriba del otro, boton a lo ancho.
    El VS se oculta porque entre bloques apilados ya no separa nada. */
 @media (max-width: 900px) {
@@ -1524,13 +1357,6 @@ main { padding-bottom: 24px; }
         max-width: 300px;
         justify-self: center;
     }
-    .card-inner {
-        height: 360px;
-    }
-    .card-progress-overlay {
-        font-size: 0.68rem;
-        letter-spacing: 0.35px;
-    }
 
     .catalog-suggestions {
         max-height: 260px;
@@ -1719,9 +1545,6 @@ main { padding-bottom: 24px; }
 
 .menu-item:hover .icon { transform: scale(1.2) rotate(5deg); }
 
-.admin-btn { border-color: var(--accent-cyan); }
-.admin-btn:hover { border-color: var(--accent-cyan); box-shadow: 0 0 30px rgba(0, 242, 255, 0.4); }
-
 .border-glow {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -1731,7 +1554,6 @@ main { padding-bottom: 24px; }
 }
 
 .menu-item:hover .border-glow { box-shadow: inset 0 0 15px rgba(188, 19, 254, 0.5); }
-
 
 /* Infinite scroll sentinel */
 .scroll-sentinel {
@@ -1765,24 +1587,11 @@ main { padding-bottom: 24px; }
     display: inline-block;
 }
 
-.skeleton-text {
-    height: 14px;
-    width: 80%;
-    margin: 6px 0;
-}
-
 .skeleton-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
     vertical-align: middle;
-}
-
-.skeleton-row {
-    height: 48px;
-    width: 100%;
-    margin-bottom: 8px;
-    border-radius: 8px;
 }
 
 @keyframes skeleton-glow {
@@ -1939,40 +1748,6 @@ main { padding-bottom: 24px; }
     flex-shrink: 0;
 }
 
-.catalog-filter-wrap {
-    position: relative;
-}
-
-.catalog-filter-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 22px;
-    border-radius: 30px;
-    border: 1.5px solid rgba(188, 19, 254, 0.25);
-    background: rgba(var(--ink-rgb), 0.03);
-    color: var(--text-main);
-    cursor: pointer;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    transition: all 0.25s ease;
-}
-
-.catalog-filter-btn:hover, .catalog-filter-btn.is-active {
-    border-color: var(--nav-accent);
-    background: rgba(var(--ink-rgb), 0.08);
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-}
-
-.catalog-filter-wrap .filter-dropdown {
-    top: calc(100% + 12px);
-    right: 0;
-    width: 280px;
-}
-
 @media (max-width: 640px) {
     /* La barra de búsqueda + el panel de filtros se mantienen pegados
        (edge-to-edge) igual que en desktop: sin padding ni gap que los
@@ -1984,7 +1759,6 @@ main { padding-bottom: 24px; }
         font-size: 1rem;
     }
 }
-
 
 /* ==========================================
    CATALOG LAYOUT HELPERS
