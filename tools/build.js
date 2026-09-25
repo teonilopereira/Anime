@@ -222,12 +222,19 @@ for (const { entry, to, format } of VENDOR_BUNDLES) {
                 .toLowerCase()),
     );
 
+    // Todo el JS propio (no una lista a mano: js/pages/ranking-top.js quedo
+    // afuera y sus iconos wifi-off y list-ordered no se dibujaban). Se excluyen
+    // vendor/ y los bundles generados, que repiten las fuentes.
+    const jsPropios = (function walk(dir) {
+        return fs.readdirSync(abs(dir), { withFileTypes: true }).flatMap((e) => {
+            const rel = dir + '/' + e.name;
+            if (e.isDirectory()) return e.name === 'vendor' ? [] : walk(rel);
+            return e.name.endsWith('.js') && !/^core-bundle/.test(e.name) ? [rel] : [];
+        });
+    })('js');
     const archivos = [
         ...fs.readdirSync(ROOT).filter((f) => f.endsWith('.html')).map((f) => f),
-        ...JS_SOURCES,
-        'js/pages/script.js',
-        'js/detalle/render.js',
-        'js/detalle/themes.js',
+        ...jsPropios,
     ];
 
     const usados = new Set();

@@ -15,6 +15,16 @@ const SRC_DIRS = [
 ];
 const BUNDLE_PATH = path.join(ROOT, "js/core-bundle.js");
 
+// Mismo CSP que produccion (netlify.toml es la unica fuente): sin esto, en local
+// no se veria ninguna violacion del CSP hasta hacer deploy.
+const CSP = (function () {
+    try {
+        var m = fs.readFileSync(path.join(ROOT, "netlify.toml"), "utf8")
+            .match(/Content-Security-Policy = "([^"]*)"/);
+        return m ? m[1] : null;
+    } catch (_) { return null; }
+})();
+
 const MIME = {
     ".html": "text/html; charset=utf-8",
     ".js":   "application/javascript; charset=utf-8",
@@ -113,10 +123,12 @@ http.createServer((req, res) => {
             body = data.toString().replace("</body>",
                 '<script src="js/reload.js"></script></body>');
         }
-        res.writeHead(200, {
+        var headers = {
             "Content-Type": MIME[ext] || "application/octet-stream",
             "Cache-Control": "no-cache, no-store, must-revalidate"
-        });
+        };
+        if (ext === ".html" && CSP) headers["Content-Security-Policy"] = CSP;
+        res.writeHead(200, headers);
         res.end(body);
     });
 }).listen(PORT, () => {
