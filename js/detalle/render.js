@@ -142,6 +142,14 @@ function renderDetalle(item, nombreUrl, categoria) {
     const score = item.score ?? item.puntaje ?? item.calificacion ?? 'N/A';
     const countLabel = isMangaOrNovela ? 'Volúmenes' : isAnime ? 'Capítulos' : 'Capítulos';
     const countValue = isMangaOrNovela ? (volumenes || 'No especificado') : isAnime ? (item.capitulos || item.episodios || item.episodes || 'No especificado') : 'No especificado';
+    // Segunda tarjeta: antes decía "Vol." y repetía los volúmenes con un "1"
+    // de relleno cuando la API no los informaba (obras en curso), así que la
+    // ficha anunciaba un solo tomo aunque la grilla mostrara todos. Ahora el
+    // manga muestra sus capítulos y el anime sus temporadas.
+    const secondStatLabel = isMangaOrNovela ? 'Capítulos' : 'Temporadas';
+    const secondStatValue = isMangaOrNovela
+        ? (Number(item.chapters ?? item.capitulos) || '—')
+        : (isAnime ? (getAnimeStructure(item).temporadasCount || '—') : '—');
 
     const summaryText = resumen || item.sinopsis || item.descripcion || item.info || 'Sin sinopsis disponible.';
 
@@ -202,11 +210,11 @@ function renderDetalle(item, nombreUrl, categoria) {
         <div class="detail-stat-grid">
             <div class="detail-stat">
                 <div class="detail-stat-icon"><i data-lucide="book-open"></i></div>
-                <div class="detail-stat-content"><span>${escapeHtml(countLabel)}</span><strong>${escapeHtml(String(countValue))}</strong></div>
+                <div class="detail-stat-content"><span>${escapeHtml(countLabel)}</span><strong${isMangaOrNovela ? ' data-stat-vols' : ''}>${escapeHtml(String(countValue))}</strong></div>
             </div>
             <div class="detail-stat">
                 <div class="detail-stat-icon"><i data-lucide="book"></i></div>
-                <div class="detail-stat-content"><span>Vol.</span><strong>${isMangaOrNovela ? escapeHtml(String(volumenes || '1')) : '—'}</strong></div>
+                <div class="detail-stat-content"><span>${escapeHtml(secondStatLabel)}</span><strong>${escapeHtml(String(secondStatValue))}</strong></div>
             </div>
             <div class="detail-stat">
                 <div class="detail-stat-icon"><i data-lucide="check-circle"></i></div>
@@ -783,6 +791,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                     html += `<button type="button" class="vol-grid-more">Mostrar más (${count - firstChunk} restantes)</button>`;
                 }
                 grid.innerHTML = html;
+                const volsStat = localLayout.querySelector('[data-stat-vols]');
+                if (volsStat) volsStat.textContent = String(count);
                 const card = localLayout.querySelector('.detail-progress-card');
                 if (card) card.hidden = false;
                 const help = localLayout.querySelector('[data-vol-help]');
@@ -801,18 +811,27 @@ function renderDetalle(item, nombreUrl, categoria) {
                 const loadingEl = localLayout.querySelector('[data-vol-loading]');
                 const emptyEl = localLayout.querySelector('[data-vol-empty]');
                 (async () => {
+                    // Se toma el mayor número de tomo entre las portadas y el
+                    // aggregate (capítulos por tomo): muchas obras solo tienen
+                    // subida la portada del tomo 1, y contar solo portadas
+                    // dejaba la grilla con un único volumen.
                     let count = 0;
-                    try {
-                        if (typeof window.resolveMangaDexVolumeCoverMap === 'function') {
-                            const map = await window.resolveMangaDexVolumeCoverMap(item);
-                            if (map) {
-                                Object.keys(map).forEach((k) => {
-                                    const n = Number.parseInt(k, 10);
-                                    if (Number.isFinite(n) && n > count) count = n;
-                                });
-                            }
-                        }
-                    } catch (e) { /* silencioso */ }
+                    const maxVolKey = (obj) => {
+                        if (!obj) return;
+                        Object.keys(obj).forEach((k) => {
+                            const n = Number.parseInt(k, 10);
+                            if (Number.isFinite(n) && n > count) count = n;
+                        });
+                    };
+                    const safeCall = (fn) => (typeof fn === 'function'
+                        ? Promise.resolve().then(() => fn(item)).catch(() => null)
+                        : Promise.resolve(null));
+                    const [coverMap, details] = await Promise.all([
+                        safeCall(window.resolveMangaDexVolumeCoverMap),
+                        safeCall(window.resolveMangaDexVolumeDetails)
+                    ]);
+                    maxVolKey(coverMap);
+                    maxVolKey(details);
                     if (loadingEl) loadingEl.hidden = true;
                     if (count > 0) {
                         populateVols(count);

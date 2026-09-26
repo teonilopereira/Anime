@@ -27,4 +27,13 @@
 /vercel.json        /404.html 404!
 /js/core/config.template.js /404.html 404!
 
+# Proxy de la API de MangaDex en el mismo origen: MangaDex no manda CORS para
+# otros dominios y corsproxy.io ya no atiende gratis a sitios publicados, asi
+# que el navegador pide /mdapi/... y Netlify lo reenvia (con su query string).
+# Lo usa mdFetch en js/core/api-mangadex.js.
+/mdapi/*  https://api.mangadex.org/:splat  200
+# Las portadas tambien: uploads.mangadex.org responde un cartel en vez de la
+# imagen cuando la pide otro sitio.
+/mdcovers/*  https://uploads.mangadex.org/covers/:splat  200
+
 /* /404.html 404

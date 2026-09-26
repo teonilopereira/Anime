@@ -1,7 +1,9 @@
 (function () {
     "use strict";
 
-    var MD_COVER_BASE = 'https://uploads.mangadex.org/covers';
+    // Ruta de portadas (proxy propio en el sitio publicado): la define
+    // js/core/api-mangadex.js, que carga antes en el bundle.
+    var MD_COVER_BASE = window.MD_COVER_BASE || 'https://uploads.mangadex.org/covers';
 
     var NO_COVER_PLACEHOLDER =
         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect fill='%231a0a2e' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23a855f7' font-family='sans-serif' font-size='13' text-anchor='middle' dominant-baseline='middle'%3ESin portada%3C/text%3E%3C/svg%3E";
@@ -481,29 +483,55 @@
             return false;
         }
 
-        var fallbackId = null;
+        // Resultados sin coincidencia de ids, en orden de preferencia: primero
+        // los de título idéntico a uno de los buscados, después el resto.
+        var exact = [];
+        var others = [];
+        var seen = {};
+        var wanted = {};
+        candidates.forEach(function (c) { wanted[c.toLowerCase()] = 1; });
         for (var i = 0; i < candidates.length; i++) {
             try {
                 var results = await searchMangaDex(candidates[i], 10);
                 for (var j = 0; j < results.length; j++) {
-                    if (isMangaDexUuid(results[j].id) && linksMatch(results[j])) {
-                        safeCacheSet(cacheKey, results[j].id);
-                        return results[j].id;
+                    var r = results[j];
+                    if (!isMangaDexUuid(r.id)) continue;
+                    if (linksMatch(r)) {
+                        safeCacheSet(cacheKey, r.id);
+                        return r.id;
                     }
+                    if (seen[r.id]) continue;
+                    seen[r.id] = 1;
+                    (wanted[String(r.title || '').trim().toLowerCase()] ? exact : others).push(r.id);
                 }
-                if (!fallbackId && results.length > 0 && isMangaDexUuid(results[0].id)) {
-                    fallbackId = results[0].id;
-                }
-                // Sin ids externos no hay con qué desempatar: el primer
-                // resultado del primer título que responda es lo mejor posible.
-                if (fallbackId && !alId && !malId) break;
+                // Sin ids externos no hay con qué desempatar: alcanza con los
+                // resultados del primer título que responda.
+                if ((exact.length || others.length) && !alId && !malId) break;
             } catch (err) {
                 console.warn('resolveMangaDexId search error:', err);
             }
         }
-        // Coincidencia débil (por título): se usa pero NO se cachea, para que en
-        // la próxima carga se vuelva a intentar la coincidencia exacta.
-        return fallbackId;
+        var weak = exact.concat(others).slice(0, 3);
+        if (weak.length <= 1) return weak[0] || null;
+
+        // Coincidencia débil (por título): antes se tomaba el primer resultado,
+        // que en obras como Bleach es la edición a color ("Bleach (Official
+        // Colored)") y casi no tiene portadas por tomo, así que todos los tomos
+        // quedaban con la tapa principal. Entre los primeros candidatos se
+        // elige el que tiene portadas para más tomos (los mapas quedan en caché
+        // y se reusan). No se cachea el id, para que en la próxima carga se
+        // vuelva a intentar la coincidencia exacta.
+        var best = weak[0];
+        var bestCount = -1;
+        for (var k = 0; k < weak.length; k++) {
+            var count = 0;
+            try {
+                var map = await getCoverMapCached(weak[k]);
+                for (var key in map) { if (map.hasOwnProperty(key)) count++; }
+            } catch (_) { /* sin mapa: cuenta 0 */ }
+            if (count > bestCount) { best = weak[k]; bestCount = count; }
+        }
+        return best;
     }
 
     // Resuelve el manga en MangaDex (por UUID directo o por título) y devuelve el

@@ -72,5 +72,15 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/mdapi/:path*",
+      "destination": "https://api.mangadex.org/:path*"
+    },
+    {
+      "source": "/mdcovers/:path*",
+      "destination": "https://uploads.mangadex.org/covers/:path*"
+    }
   ]
 }

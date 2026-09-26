@@ -57,14 +57,36 @@
         'zombies':'631ef465-9aba-4afb-b0fc-ea10efe274a8'
     };
 
-    // MangaDex NO manda cabeceras CORS para todos los orígenes, así que el fetch
-    // directo desde el navegador falla con "Failed to fetch" en muchas redes
-    // (confirmado en producción). Cuando pasa, se reintenta a través de un proxy
-    // CORS y se recuerda el bloqueo para ir directo al proxy en las siguientes
-    // llamadas de la sesión (evita un fetch fallido por cada una).
+    // MangaDex NO manda cabeceras CORS para orígenes de terceros, así que el
+    // fetch directo desde el navegador falla con "Failed to fetch" (confirmado
+    // en producción). El proxy público corsproxy.io tampoco sirve ya: solo
+    // atiende gratis a localhost y a los dominios reales les responde 403, por
+    // eso en animedestiny.netlify.app ninguna llamada a MangaDex llegaba y cada
+    // tomo de la ficha se quedaba con la portada principal.
+    //
+    // La ruta buena es el proxy del propio sitio: /mdapi/* se reescribe a
+    // api.mangadex.org en _redirects (Netlify) y vercel.json (Vercel), así que
+    // la petición es del mismo origen y no hay CORS de por medio. Si esa ruta
+    // no existe (servidor local de desarrollo) se cae al fetch directo y, como
+    // último recurso, a corsproxy.io. La ruta que funciona se recuerda para el
+    // resto de la sesión y no se repiten los intentos fallidos.
     var MD_API = 'https://api.mangadex.org';
-    var MD_PROXY = 'https://corsproxy.io/?url=';
-    var _mdDirectBlocked = false;
+    var MD_ROUTES = [
+        function (path) { return '/mdapi' + path; },
+        function (path) { return MD_API + path; },
+        function (path) { return 'https://corsproxy.io/?url=' + encodeURIComponent(MD_API + path); }
+    ];
+    var _mdRoute = 0;
+
+    // Portadas: uploads.mangadex.org no sirve sus imágenes a otros sitios (en
+    // vez de la tapa devuelve un cartel "You can read this at MangaDex"), así
+    // que en el sitio publicado también van por el proxy propio: /mdcovers/* se
+    // reescribe a uploads.mangadex.org/covers en _redirects y vercel.json. En el
+    // servidor local esa ruta no existe y se usa el CDN directo.
+    var MD_COVER_CDN = 'https://uploads.mangadex.org/covers';
+    var host = String((window.location && window.location.hostname) || '');
+    var isLocalHost = !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+    window.MD_COVER_BASE = isLocalHost ? MD_COVER_CDN : '/mdcovers';
 
     function mdFetchUrl(fullUrl) {
         return new Promise(function (resolve, reject) {
@@ -83,18 +105,29 @@
         });
     }
 
+    // Un error propio de MangaDex (JSON con `errors`, o un 400 por parámetros)
+    // saldría igual por cualquier ruta, y un Timeout no se arregla cambiando de
+    // camino: esos se propagan. Lo demás (bloqueo CORS/red, 404 porque la ruta
+    // del proxy no existe, 403/5xx de un proxy) justifica probar la siguiente.
+    function mdShouldTryNextRoute(err) {
+        var msg = String((err && err.message) || '');
+        if (msg === 'Timeout' || msg.indexOf('MD error:') === 0 || msg === 'MD HTTP 400') return false;
+        return true;
+    }
+
     function mdFetch(path) {
-        var direct = MD_API + path;
-        var proxied = MD_PROXY + encodeURIComponent(direct);
-        if (_mdDirectBlocked) return mdFetchUrl(proxied);
-        return mdFetchUrl(direct).catch(function (err) {
-            // Solo el bloqueo de red/CORS justifica el proxy; un Timeout o un
-            // error HTTP real de MangaDex se propagan tal cual.
-            var msg = String((err && err.message) || '');
-            if (msg.indexOf('MD HTTP') === 0 || msg === 'Timeout') throw err;
-            _mdDirectBlocked = true;
-            return mdFetchUrl(proxied);
-        });
+        var route = _mdRoute;
+        function attempt() {
+            return mdFetchUrl(MD_ROUTES[route](path)).then(function (json) {
+                if (route > _mdRoute) _mdRoute = route;
+                return json;
+            }, function (err) {
+                if (route >= MD_ROUTES.length - 1 || !mdShouldTryNextRoute(err)) throw err;
+                route++;
+                return attempt();
+            });
+        }
+        return attempt();
     }
 
     var MD_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -143,7 +176,7 @@
         var coverUrl = '';
         var rels = data.relationships || [];
         var coverArt = rels.find(function (r) { return r.type === 'cover_art'; });
-        if (coverArt?.attributes?.fileName) coverUrl = 'https://uploads.mangadex.org/covers/' + id + '/' + coverArt.attributes.fileName;
+        if (coverArt?.attributes?.fileName) coverUrl = window.MD_COVER_BASE + '/' + id + '/' + coverArt.attributes.fileName;
         if (!coverUrl) coverUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect fill='%231a0a2e' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23a855f7' font-family='sans-serif' font-size='13' text-anchor='middle' dominant-baseline='middle'%3ESin portada%3C/text%3E%3C/svg%3E";
         var genres = (a.tags || []).filter(function (t) { return t.attributes?.group === 'genre' || t.attributes?.group === 'theme'; }).map(function (t) { return { name: (t.attributes?.name?.en || '') }; }).filter(function (g) { return g.name; });
         var chCnt = a.lastChapter ? Math.ceil(Number(a.lastChapter)) || 0 : 0;
