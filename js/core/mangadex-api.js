@@ -456,9 +456,11 @@
         // spin-offs, ediciones a color) ese primero solía ser otra obra sin
         // portadas por tomo, y todos los tomos mostraban la misma tapa. La clave
         // nueva descarta esas resoluciones viejas; si hay id de AniList va por él.
+        // v3: la v2 cacheaba la entrada vinculada a AniList aunque fuera la
+        // edición a color, casi sin portadas por tomo.
         var cacheKey = alId
-            ? 'md_id_v2_al_' + alId
-            : 'md_id_v2_' + candidates[0].replace(/\s+/g, '_').toLowerCase();
+            ? 'md_id_v3_al_' + alId
+            : 'md_id_v3_' + candidates[0].replace(/\s+/g, '_').toLowerCase();
         try {
             var cached = localStorage.getItem(cacheKey);
             if (cached) return cached;
@@ -483,10 +485,15 @@
             return false;
         }
 
-        // Resultados sin coincidencia de ids, en orden de preferencia: primero
-        // los de título idéntico a uno de los buscados, después el resto.
+        // Candidatos, en orden de preferencia: los que MangaDex vincula al id
+        // de AniList/MAL, los de título idéntico a uno de los buscados, los que
+        // lo contienen ("Demon Slayer: Kimetsu no Yaiba", "Bleach (Official
+        // Colored)") y el resto de los resultados.
+        var strong = [];
         var exact = [];
+        var related = [];
         var others = [];
+        var wantedList = candidates.map(function (c) { return c.toLowerCase(); });
         var seen = {};
         var wanted = {};
         candidates.forEach(function (c) { wanted[c.toLowerCase()] = 1; });
@@ -495,42 +502,47 @@
                 var results = await searchMangaDex(candidates[i], 10);
                 for (var j = 0; j < results.length; j++) {
                     var r = results[j];
-                    if (!isMangaDexUuid(r.id)) continue;
-                    if (linksMatch(r)) {
-                        safeCacheSet(cacheKey, r.id);
-                        return r.id;
-                    }
-                    if (seen[r.id]) continue;
+                    if (!isMangaDexUuid(r.id) || seen[r.id]) continue;
                     seen[r.id] = 1;
-                    (wanted[String(r.title || '').trim().toLowerCase()] ? exact : others).push(r.id);
+                    var t = String(r.title || '').trim().toLowerCase();
+                    if (linksMatch(r)) strong.push(r.id);
+                    else if (wanted[t]) exact.push(r.id);
+                    else if (wantedList.some(function (w) { return t.indexOf(w) >= 0; })) related.push(r.id);
+                    else others.push(r.id);
                 }
-                // Sin ids externos no hay con qué desempatar: alcanza con los
-                // resultados del primer título que responda.
-                if ((exact.length || others.length) && !alId && !malId) break;
+                // Con una coincidencia por id, o sin ids con qué desempatar,
+                // alcanza con los resultados del primer título que responda.
+                if (strong.length || ((exact.length || others.length) && !alId && !malId)) break;
             } catch (err) {
                 console.warn('resolveMangaDexId search error:', err);
             }
         }
-        var weak = exact.concat(others).slice(0, 3);
-        if (weak.length <= 1) return weak[0] || null;
+        var pool = strong.concat(exact, related).slice(0, 4);
+        if (!pool.length) pool = others.slice(0, 3);
+        if (pool.length <= 1) {
+            if (strong.length) safeCacheSet(cacheKey, strong[0]);
+            return pool[0] || null;
+        }
 
-        // Coincidencia débil (por título): antes se tomaba el primer resultado,
-        // que en obras como Bleach es la edición a color ("Bleach (Official
-        // Colored)") y casi no tiene portadas por tomo, así que todos los tomos
-        // quedaban con la tapa principal. Entre los primeros candidatos se
-        // elige el que tiene portadas para más tomos (los mapas quedan en caché
-        // y se reusan). No se cachea el id, para que en la próxima carga se
-        // vuelva a intentar la coincidencia exacta.
-        var best = weak[0];
+        // MangaDex suele tener varias entradas de la misma obra: la normal, la
+        // "Official Colored", la digital a color. Tomar la primera (o la única
+        // vinculada a AniList, que a veces es la edición a color) dejaba a
+        // Bleach y Kimetsu no Yaiba con portada solo para el tomo 1, y el resto
+        // de los tomos con la tapa principal. Entre los candidatos se elige el
+        // que tiene portadas para más tomos (los mapas quedan en caché y se
+        // reusan); a igualdad gana el de mayor preferencia. Solo se cachea el id
+        // si el elegido está vinculado por id.
+        var best = pool[0];
         var bestCount = -1;
-        for (var k = 0; k < weak.length; k++) {
+        for (var k = 0; k < pool.length; k++) {
             var count = 0;
             try {
-                var map = await getCoverMapCached(weak[k]);
+                var map = await getCoverMapCached(pool[k]);
                 for (var key in map) { if (map.hasOwnProperty(key)) count++; }
             } catch (_) { /* sin mapa: cuenta 0 */ }
-            if (count > bestCount) { best = weak[k]; bestCount = count; }
+            if (count > bestCount) { best = pool[k]; bestCount = count; }
         }
+        if (strong.indexOf(best) >= 0) safeCacheSet(cacheKey, best);
         return best;
     }
 
