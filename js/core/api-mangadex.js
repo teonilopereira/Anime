@@ -70,9 +70,29 @@
     // no existe (servidor local de desarrollo) se cae al fetch directo y, como
     // último recurso, a corsproxy.io. La ruta que funciona se recuerda para el
     // resto de la sesión y no se repiten los intentos fallidos.
+    //
+    // La copia de GitHub Pages (teonilopereira.github.io/Anime) no tiene esas
+    // reescrituras: ahí la API va por la función netlify/functions/mdapi-cors
+    // del sitio de Netlify (que agrega CORS para github.io) y las portadas por
+    // el /mdcovers de Netlify (una <img> no necesita CORS).
     var MD_API = 'https://api.mangadex.org';
+    var NETLIFY_ORIGIN = 'https://animedestiny.netlify.app';
+    var host = String((window.location && window.location.hostname) || '');
+    var isLocalHost = !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+    var isGitHubPages = /\.github\.io$/i.test(host);
+
+    function mdSplitPath(path) {
+        var i = path.indexOf('?');
+        return i < 0 ? { route: path, query: '' } : { route: path.slice(0, i), query: path.slice(i + 1) };
+    }
+
     var MD_ROUTES = [
-        function (path) { return '/mdapi' + path; },
+        isGitHubPages
+            ? function (path) {
+                var p = mdSplitPath(path);
+                return NETLIFY_ORIGIN + '/.netlify/functions/mdapi-cors?path=' + encodeURIComponent(p.route) + (p.query ? '&' + p.query : '');
+            }
+            : function (path) { return '/mdapi' + path; },
         function (path) { return MD_API + path; },
         function (path) { return 'https://corsproxy.io/?url=' + encodeURIComponent(MD_API + path); }
     ];
@@ -80,13 +100,12 @@
 
     // Portadas: uploads.mangadex.org no sirve sus imágenes a otros sitios (en
     // vez de la tapa devuelve un cartel "You can read this at MangaDex"), así
-    // que en el sitio publicado también van por el proxy propio: /mdcovers/* se
-    // reescribe a uploads.mangadex.org/covers en _redirects y vercel.json. En el
-    // servidor local esa ruta no existe y se usa el CDN directo.
+    // que también van por el proxy: /mdcovers/* se reescribe a
+    // uploads.mangadex.org/covers en _redirects y vercel.json. En el servidor
+    // local esa ruta no existe y se usa el CDN directo.
     var MD_COVER_CDN = 'https://uploads.mangadex.org/covers';
-    var host = String((window.location && window.location.hostname) || '');
-    var isLocalHost = !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
-    window.MD_COVER_BASE = isLocalHost ? MD_COVER_CDN : '/mdcovers';
+    window.MD_COVER_BASE = isLocalHost ? MD_COVER_CDN
+        : (isGitHubPages ? NETLIFY_ORIGIN + '/mdcovers' : '/mdcovers');
 
     function mdFetchUrl(fullUrl) {
         return new Promise(function (resolve, reject) {
