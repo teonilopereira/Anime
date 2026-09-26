@@ -710,6 +710,50 @@
     // se queda con el src que ya traía (la portada principal). Lo comparten el
     // modal de la card (chapters-modal.js) y la grilla de volúmenes del detalle
     // (render.js) para no duplicar la lógica ni la caché.
+    // MangaDex genera miniaturas de cada tapa (<archivo>.256.jpg / .512.jpg).
+    // En las grillas se usa la de 256 px (~15 KB contra 1-3 MB del original) y
+    // el original queda en data-full para verla en grande.
+    function mdThumbUrl(url) {
+        return /\.(jpe?g|png|webp)$/i.test(url) ? url + '.256.jpg' : url;
+    }
+
+    // Pinta las tapas de a una, en orden de volumen y con pocas descargas a la
+    // vez: cada cuadro cambia apenas su imagen terminó de bajar (sin quedar en
+    // blanco mientras tanto), en vez de esperar a que lleguen todas.
+    function paintCoversProgressively(targets, concurrency) {
+        var next = 0;
+        function worker() {
+            if (next >= targets.length) return Promise.resolve();
+            var t = targets[next++];
+            return new Promise(function (resolve) {
+                var thumb = mdThumbUrl(t.url);
+                var pre = new Image();
+                pre.referrerPolicy = 'no-referrer';
+                pre.onload = function () {
+                    t.img.src = thumb;
+                    t.img.setAttribute('data-full', t.url);
+                    resolve();
+                };
+                // Sin miniatura: se usa el original.
+                pre.onerror = function () {
+                    t.img.src = t.url;
+                    t.img.setAttribute('data-full', t.url);
+                    resolve();
+                };
+                pre.src = thumb;
+            }).then(worker);
+        }
+        var workers = [];
+        for (var w = 0; w < concurrency; w++) workers.push(worker());
+        return Promise.all(workers);
+    }
+
+    // Pinta la portada REAL de cada volumen (MangaDex) sobre las <img data-vol>
+    // que haya dentro de `grid`. Best-effort y silencioso: si el título no
+    // resuelve, MangaDex no responde o no tiene portada de ese tomo, cada imagen
+    // se queda con el src que ya traía (la portada principal). Lo comparten el
+    // modal de la card (chapters-modal.js) y la grilla de volúmenes del detalle
+    // (render.js) para no duplicar la lógica ni la caché.
     window.applyMangaDexVolumeCovers = async function (opts) {
         opts = opts || {};
         var grid = opts.grid;
@@ -726,10 +770,13 @@
             }
             if (!map) return;
             var imgs = grid.querySelectorAll(selector);
+            var targets = [];
             for (var i = 0; i < imgs.length; i++) {
                 var v = String(parseInt(imgs[i].getAttribute('data-vol'), 10));
-                if (map[v]) imgs[i].src = map[v];
+                // Ya pintada (p. ej. al volver a llamar tras "Mostrar más").
+                if (map[v] && imgs[i].getAttribute('data-full') !== map[v]) targets.push({ img: imgs[i], url: map[v] });
             }
+            await paintCoversProgressively(targets, 4);
         } catch (e) { /* silencioso: queda la portada principal */ }
     };
 

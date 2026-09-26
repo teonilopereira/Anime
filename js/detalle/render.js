@@ -898,7 +898,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     // La tapa ya cargada en el tomo (portada específica del
                     // volumen) se pasa como pista para mostrarla al instante.
                     const coverEl = btn.querySelector('img.vol-cover');
-                    const coverHint = coverEl ? coverEl.getAttribute('src') : '';
+                    const coverHint = coverEl ? (coverEl.getAttribute('data-full') || coverEl.getAttribute('src')) : '';
                     showEpisodeInfoModal(item, vol, false, categoria, coverHint);
                 }
             });
