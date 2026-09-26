@@ -57,14 +57,26 @@
         'zombies':'631ef465-9aba-4afb-b0fc-ea10efe274a8'
     };
 
-    // MangaDex NO manda cabeceras CORS para todos los orígenes, así que el fetch
-    // directo desde el navegador falla con "Failed to fetch" en muchas redes
-    // (confirmado en producción). Cuando pasa, se reintenta a través de un proxy
-    // CORS y se recuerda el bloqueo para ir directo al proxy en las siguientes
-    // llamadas de la sesión (evita un fetch fallido por cada una).
+    // MangaDex NO manda cabeceras CORS para orígenes de terceros, así que el
+    // fetch directo desde el navegador falla con "Failed to fetch" (confirmado
+    // en producción). El proxy público corsproxy.io tampoco sirve ya: solo
+    // atiende gratis a localhost y a los dominios reales les responde 403, por
+    // eso en animedestiny.netlify.app ninguna llamada a MangaDex llegaba y cada
+    // tomo de la ficha se quedaba con la portada principal.
+    //
+    // La ruta buena es el proxy del propio sitio: /mdapi/* se reescribe a
+    // api.mangadex.org en _redirects (Netlify) y vercel.json (Vercel), así que
+    // la petición es del mismo origen y no hay CORS de por medio. Si esa ruta
+    // no existe (servidor local de desarrollo) se cae al fetch directo y, como
+    // último recurso, a corsproxy.io. La ruta que funciona se recuerda para el
+    // resto de la sesión y no se repiten los intentos fallidos.
     var MD_API = 'https://api.mangadex.org';
-    var MD_PROXY = 'https://corsproxy.io/?url=';
-    var _mdDirectBlocked = false;
+    var MD_ROUTES = [
+        function (path) { return '/mdapi' + path; },
+        function (path) { return MD_API + path; },
+        function (path) { return 'https://corsproxy.io/?url=' + encodeURIComponent(MD_API + path); }
+    ];
+    var _mdRoute = 0;
 
     function mdFetchUrl(fullUrl) {
         return new Promise(function (resolve, reject) {
@@ -83,18 +95,29 @@
         });
     }
 
+    // Un error propio de MangaDex (JSON con `errors`, o un 400 por parámetros)
+    // saldría igual por cualquier ruta, y un Timeout no se arregla cambiando de
+    // camino: esos se propagan. Lo demás (bloqueo CORS/red, 404 porque la ruta
+    // del proxy no existe, 403/5xx de un proxy) justifica probar la siguiente.
+    function mdShouldTryNextRoute(err) {
+        var msg = String((err && err.message) || '');
+        if (msg === 'Timeout' || msg.indexOf('MD error:') === 0 || msg === 'MD HTTP 400') return false;
+        return true;
+    }
+
     function mdFetch(path) {
-        var direct = MD_API + path;
-        var proxied = MD_PROXY + encodeURIComponent(direct);
-        if (_mdDirectBlocked) return mdFetchUrl(proxied);
-        return mdFetchUrl(direct).catch(function (err) {
-            // Solo el bloqueo de red/CORS justifica el proxy; un Timeout o un
-            // error HTTP real de MangaDex se propagan tal cual.
-            var msg = String((err && err.message) || '');
-            if (msg.indexOf('MD HTTP') === 0 || msg === 'Timeout') throw err;
-            _mdDirectBlocked = true;
-            return mdFetchUrl(proxied);
-        });
+        var route = _mdRoute;
+        function attempt() {
+            return mdFetchUrl(MD_ROUTES[route](path)).then(function (json) {
+                if (route > _mdRoute) _mdRoute = route;
+                return json;
+            }, function (err) {
+                if (route >= MD_ROUTES.length - 1 || !mdShouldTryNextRoute(err)) throw err;
+                route++;
+                return attempt();
+            });
+        }
+        return attempt();
     }
 
     var MD_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

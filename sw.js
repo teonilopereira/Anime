@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-bf06f739';
+const CACHE_NAME = 'anime-destiny-a5c501cb';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -128,6 +128,7 @@ self.addEventListener('fetch', (event) => {
     event.request.url.includes('supabase.co') ||
     event.request.url.includes('graphql.anilist.co') ||
     event.request.url.includes('api.mangadex.org') ||
+    event.request.url.includes('/mdapi/') ||
     event.request.url.includes('animethemes.moe') ||
     event.request.url.includes('/__reload')
   ) {
