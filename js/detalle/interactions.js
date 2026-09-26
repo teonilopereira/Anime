@@ -275,19 +275,22 @@ const DETALLE_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-
 // dos casos que antes morían en "No encontrado":
 //   1. la ficha se abrió con un id que ya no existe (o de la fuente equivocada);
 //   2. la API que le tocaba por id está caída y la otra fuente sí la tiene.
-// Para manga/novelas se prueba MangaDex primero (aporta portadas por volumen y
-// aggregate); el anime solo vive en AniList. Devuelve el primer match o null.
+// Se prueba AniList primero: ordena por popularidad, así que "Kimetsu no
+// Yaiba" da la obra principal. MangaDex devolvía como primer resultado un
+// spin-off (otro género, un solo tomo) y la ficha mostraba la obra equivocada.
+// Las portadas por tomo salen igual de MangaDex a partir del id de AniList.
+// MangaDex queda de respaldo para manga/novelas si AniList no responde.
 async function buscarDetallePorTitulo(nombre, categoria) {
     const titulo = String(nombre || '').trim();
     if (titulo.length < 2) return null;
 
     const esBiblioteca = categoria === 'manga' || categoria === 'novelas';
     const fuentes = [];
-    if (esBiblioteca && typeof window.searchMangaDex === 'function') {
-        fuentes.push({ nombre: 'mangadex', buscar: () => window.searchMangaDex(titulo, 1) });
-    }
     if (typeof window.buscarEnApi === 'function') {
         fuentes.push({ nombre: 'anilist', buscar: () => window.buscarEnApi(titulo, categoria) });
+    }
+    if (esBiblioteca && typeof window.searchMangaDex === 'function') {
+        fuentes.push({ nombre: 'mangadex', buscar: () => window.searchMangaDex(titulo, 1) });
     }
 
     for (const fuente of fuentes) {

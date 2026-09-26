@@ -32,5 +32,8 @@
 # que el navegador pide /mdapi/... y Netlify lo reenvia (con su query string).
 # Lo usa mdFetch en js/core/api-mangadex.js.
 /mdapi/*  https://api.mangadex.org/:splat  200
+# Las portadas tambien: uploads.mangadex.org responde un cartel en vez de la
+# imagen cuando la pide otro sitio.
+/mdcovers/*  https://uploads.mangadex.org/covers/:splat  200
 
 /* /404.html 404

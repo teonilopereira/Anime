@@ -78,6 +78,16 @@
     ];
     var _mdRoute = 0;
 
+    // Portadas: uploads.mangadex.org no sirve sus imágenes a otros sitios (en
+    // vez de la tapa devuelve un cartel "You can read this at MangaDex"), así
+    // que en el sitio publicado también van por el proxy propio: /mdcovers/* se
+    // reescribe a uploads.mangadex.org/covers en _redirects y vercel.json. En el
+    // servidor local esa ruta no existe y se usa el CDN directo.
+    var MD_COVER_CDN = 'https://uploads.mangadex.org/covers';
+    var host = String((window.location && window.location.hostname) || '');
+    var isLocalHost = !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+    window.MD_COVER_BASE = isLocalHost ? MD_COVER_CDN : '/mdcovers';
+
     function mdFetchUrl(fullUrl) {
         return new Promise(function (resolve, reject) {
             var controller = new AbortController();
@@ -166,7 +176,7 @@
         var coverUrl = '';
         var rels = data.relationships || [];
         var coverArt = rels.find(function (r) { return r.type === 'cover_art'; });
-        if (coverArt?.attributes?.fileName) coverUrl = 'https://uploads.mangadex.org/covers/' + id + '/' + coverArt.attributes.fileName;
+        if (coverArt?.attributes?.fileName) coverUrl = window.MD_COVER_BASE + '/' + id + '/' + coverArt.attributes.fileName;
         if (!coverUrl) coverUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect fill='%231a0a2e' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23a855f7' font-family='sans-serif' font-size='13' text-anchor='middle' dominant-baseline='middle'%3ESin portada%3C/text%3E%3C/svg%3E";
         var genres = (a.tags || []).filter(function (t) { return t.attributes?.group === 'genre' || t.attributes?.group === 'theme'; }).map(function (t) { return { name: (t.attributes?.name?.en || '') }; }).filter(function (g) { return g.name; });
         var chCnt = a.lastChapter ? Math.ceil(Number(a.lastChapter)) || 0 : 0;

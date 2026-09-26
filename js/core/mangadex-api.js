@@ -1,7 +1,9 @@
 (function () {
     "use strict";
 
-    var MD_COVER_BASE = 'https://uploads.mangadex.org/covers';
+    // Ruta de portadas (proxy propio en el sitio publicado): la define
+    // js/core/api-mangadex.js, que carga antes en el bundle.
+    var MD_COVER_BASE = window.MD_COVER_BASE || 'https://uploads.mangadex.org/covers';
 
     var NO_COVER_PLACEHOLDER =
         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect fill='%231a0a2e' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23a855f7' font-family='sans-serif' font-size='13' text-anchor='middle' dominant-baseline='middle'%3ESin portada%3C/text%3E%3C/svg%3E";
