@@ -468,8 +468,15 @@
 
         // La ficha pide el id varias veces (portadas, conteo de tomos, "Mostrar
         // más"): se comparte la misma búsqueda en curso en vez de repetirla.
+        // Si la búsqueda no encontró nada (p. ej. MangaDex no respondió), no se
+        // guarda la promesa: el próximo pedido de la misma ficha vuelve a
+        // intentar en vez de heredar el null hasta recargar la página.
         if (!resolveIdInFlight[cacheKey]) {
-            resolveIdInFlight[cacheKey] = searchMangaDexIdByTitles(candidates, alId, malId, cacheKey);
+            resolveIdInFlight[cacheKey] = searchMangaDexIdByTitles(candidates, alId, malId, cacheKey)
+                .then(function (id) {
+                    if (!id) delete resolveIdInFlight[cacheKey];
+                    return id;
+                });
         }
         return resolveIdInFlight[cacheKey];
     }
@@ -711,6 +718,12 @@
         var selector = opts.selector || 'img[data-vol]';
         try {
             var map = await window.resolveMangaDexVolumeCoverMap(item);
+            // Primera carga con MangaDex saturado: un segundo intento a los
+            // pocos segundos evita tener que recargar la página.
+            if (!mapHasEntries(map) && !opts._retried) {
+                await new Promise(function (resolve) { setTimeout(resolve, 3000); });
+                return window.applyMangaDexVolumeCovers(Object.assign({}, opts, { _retried: true }));
+            }
             if (!map) return;
             var imgs = grid.querySelectorAll(selector);
             for (var i = 0; i < imgs.length; i++) {
