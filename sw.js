@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-0b464579';
+const CACHE_NAME = 'anime-destiny-0958b61d';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -139,9 +139,10 @@ self.addEventListener('fetch', (event) => {
   var host = new URL(url).hostname;
 
   // Portadas remotas de los CDNs conocidos: cache-first en un cache aparte.
-  // /mdcovers/ es el proxy propio de las portadas de MangaDex (ver _redirects):
-  // mismo origen, pero se cachea igual que las de los CDNs.
-  var isCoverProxy = host === self.location.hostname && new URL(url).pathname.startsWith('/mdcovers/');
+  // Portadas de MangaDex servidas por la función propia (ver
+  // netlify/functions/mdapi-cors.mjs): mismo origen, pero se cachean igual que
+  // las de los CDNs.
+  var isCoverProxy = host === self.location.hostname && url.includes('/.netlify/functions/mdapi-cors?cover=');
   if (event.request.destination === 'image' && (IMG_CDN_HOSTS.includes(host) || isCoverProxy)) {
     event.respondWith(cacheCover(event.request).catch(() => fetch(event.request)));
     return;

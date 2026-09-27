@@ -73,8 +73,8 @@
     //
     // La copia de GitHub Pages (teonilopereira.github.io/Anime) no tiene esas
     // reescrituras: ahí la API va por la función netlify/functions/mdapi-cors
-    // del sitio de Netlify (que agrega CORS para github.io) y las portadas por
-    // el /mdcovers de Netlify (una <img> no necesita CORS).
+    // del sitio de Netlify (que agrega CORS para github.io), igual que las
+    // portadas (una <img> no necesita CORS).
     var MD_API = 'https://api.mangadex.org';
     var NETLIFY_ORIGIN = 'https://animedestiny.netlify.app';
     var host = String((window.location && window.location.hostname) || '');
@@ -99,13 +99,17 @@
     var _mdRoute = 0;
 
     // Portadas: uploads.mangadex.org no sirve sus imágenes a otros sitios (en
-    // vez de la tapa devuelve un cartel "You can read this at MangaDex"), así
-    // que también van por el proxy: /mdcovers/* se reescribe a
-    // uploads.mangadex.org/covers en _redirects y vercel.json. En el servidor
-    // local esa ruta no existe y se usa el CDN directo.
+    // vez de la tapa devuelve un cartel "You can read this at MangaDex"). La
+    // reescritura /mdcovers de Netlify no alcanza: reenvía las cabeceras del
+    // navegador (Referer, Sec-Fetch-Site) y desde GitHub Pages, o en <img> sin
+    // referrerpolicy, MangaDex igual devuelve el cartel. Por eso las portadas
+    // van por la misma función de Netlify que la API, que las pide desde el
+    // servidor sin esas cabeceras. Quien arma la URL agrega "/<manga>/<archivo>"
+    // al final, que queda como valor de `cover`. En el servidor local se usa
+    // el CDN directo.
     var MD_COVER_CDN = 'https://uploads.mangadex.org/covers';
     window.MD_COVER_BASE = isLocalHost ? MD_COVER_CDN
-        : (isGitHubPages ? NETLIFY_ORIGIN + '/mdcovers' : '/mdcovers');
+        : (isGitHubPages ? NETLIFY_ORIGIN : '') + '/.netlify/functions/mdapi-cors?cover=';
 
     function mdFetchUrl(fullUrl) {
         return new Promise(function (resolve, reject) {
@@ -130,19 +134,37 @@
     // del proxy no existe, 403/5xx de un proxy) justifica probar la siguiente.
     function mdShouldTryNextRoute(err) {
         var msg = String((err && err.message) || '');
-        if (msg === 'Timeout' || msg.indexOf('MD error:') === 0 || msg === 'MD HTTP 400') return false;
+        if (msg === 'Timeout' || msg.indexOf('MD error:') === 0 || msg === 'MD HTTP 400' || msg === 'MD HTTP 429') return false;
         return true;
+    }
+
+    // MangaDex limita la cantidad de pedidos por segundo, y en el sitio todos
+    // salen de la misma IP (la de Netlify). La primera vez que se abre una
+    // ficha se piden de golpe la búsqueda, varios mapas de portadas y el
+    // aggregate, y algunos volvían con 429: la ficha quedaba con la tapa
+    // principal en todos los tomos hasta recargar (con lo ya cacheado alcanzaba
+    // con menos pedidos). Un 429 se reintenta por la misma ruta con espera.
+    var MD_RETRY_DELAYS = [800, 2000];
+
+    function mdWait(ms) {
+        return new Promise(function (resolve) { setTimeout(resolve, ms); });
     }
 
     function mdFetch(path) {
         var route = _mdRoute;
+        var retries = 0;
         function attempt() {
             return mdFetchUrl(MD_ROUTES[route](path)).then(function (json) {
                 if (route > _mdRoute) _mdRoute = route;
                 return json;
             }, function (err) {
+                var msg = String((err && err.message) || '');
+                if (msg === 'MD HTTP 429' && retries < MD_RETRY_DELAYS.length) {
+                    return mdWait(MD_RETRY_DELAYS[retries++]).then(attempt);
+                }
                 if (route >= MD_ROUTES.length - 1 || !mdShouldTryNextRoute(err)) throw err;
                 route++;
+                retries = 0;
                 return attempt();
             });
         }
