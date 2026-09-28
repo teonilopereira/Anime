@@ -13,6 +13,9 @@ import { beforeAll, describe, it, expect } from 'vitest';
 
 beforeAll(async () => {
   await import('../../js/core/i18n.js');
+  // El ingles va en su propio archivo (i18n.js lo pide solo si hace falta):
+  // al cargarse se registra en AppI18n.
+  await import('../../js/core/i18n-en.js');
 });
 
 describe('AppI18n API', () => {

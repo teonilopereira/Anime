@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-0958b61d';
+const CACHE_NAME = 'anime-destiny-f7841bbd';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -26,47 +26,50 @@ function cacheCover(request) {
     });
   });
 }
+// Rutas RELATIVAS a sw.js, no absolutas: en GitHub Pages el sitio vive en
+// /Anime/ y '/index.html' apuntaba a la raiz del dominio (404). Con un solo
+// 404, cache.addAll falla entero y el service worker no se instalaba.
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/anime.html',
-  '/manga.html',
-  '/novelas.html',
-  '/detalle.html',
-  '/volumenes.html',
-  '/personaje.html',
-  '/mis-listas.html',
-  '/top.html',
-  '/ranking.html',
-  '/Login.html',
-  '/configuracion.html',
-  '/usuario.html',
-  '/comparar.html',
-  '/privacidad.html',
-  '/terminos.html',
-  '/404.html',
-  '/offline.html',
-  '/css/bundle.min.css',
-  '/css/bundle-lite.min.css',
-  '/css/detalle.min.css',
-  '/css/volumenes.css',
-  '/css/fonts.css',
-  '/fonts/orbitron-latin.woff2',
-  '/fonts/rajdhani-300-latin.woff2',
-  '/fonts/rajdhani-300-latin-ext.woff2',
-  '/fonts/rajdhani-500-latin.woff2',
-  '/fonts/rajdhani-500-latin-ext.woff2',
-  '/fonts/rajdhani-600-latin.woff2',
-  '/fonts/rajdhani-600-latin-ext.woff2',
-  '/fonts/rajdhani-700-latin.woff2',
-  '/fonts/rajdhani-700-latin-ext.woff2',
-  '/js/core-bundle.min.js',
-  '/js/core/i18n.js',
-  '/js/core/theme.js',
-  '/js/core/mangadex-api.js',
-  '/js/pages/volumenes.js',
-  '/js/pages/offline.js',
-  '/manifest.json'
+  './',
+  'index.html',
+  'anime.html',
+  'manga.html',
+  'novelas.html',
+  'detalle.html',
+  'volumenes.html',
+  'personaje.html',
+  'mis-listas.html',
+  'top.html',
+  'ranking.html',
+  'Login.html',
+  'configuracion.html',
+  'usuario.html',
+  'comparar.html',
+  'privacidad.html',
+  'terminos.html',
+  '404.html',
+  'offline.html',
+  'css/bundle.min.css',
+  'css/bundle-lite.min.css',
+  'css/detalle.min.css',
+  'css/volumenes.css',
+  'css/fonts.css',
+  'fonts/orbitron-latin.woff2',
+  'fonts/rajdhani-300-latin.woff2',
+  'fonts/rajdhani-300-latin-ext.woff2',
+  'fonts/rajdhani-500-latin.woff2',
+  'fonts/rajdhani-500-latin-ext.woff2',
+  'fonts/rajdhani-600-latin.woff2',
+  'fonts/rajdhani-600-latin-ext.woff2',
+  'fonts/rajdhani-700-latin.woff2',
+  'fonts/rajdhani-700-latin-ext.woff2',
+  'js/core-bundle.min.js',
+  'js/core/i18n.min.js',
+  'js/core/theme.js',
+  'js/core/mangadex-api.js',
+  'js/pages/volumenes.js',
+  'js/pages/offline.js',
+  'manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -101,10 +104,10 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Anime Destiny';
   const options = {
     body: data.body || 'Hay novedades en tus animes.',
-    icon: '/images/icon-192.png',
-    badge: '/images/icon-192.png',
+    icon: 'images/icon-192.png',
+    badge: 'images/icon-192.png',
     tag: data.tag || undefined,
-    data: { url: data.url || '/index.html' },
+    data: { url: data.url || 'index.html' },
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
@@ -112,7 +115,9 @@ self.addEventListener('push', (event) => {
 // Al tocar la notificación: enfocar una pestaña ya abierta en esa URL o abrir una.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const target = (event.notification.data && event.notification.data.url) || '/index.html';
+  // Se resuelve contra el scope del service worker para que funcione igual en
+  // la raiz (Netlify) que en /Anime/ (GitHub Pages).
+  const target = new URL((event.notification.data && event.notification.data.url) || 'index.html', self.registration.scope).href;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsList) => {
       for (const client of clientsList) {
@@ -140,9 +145,11 @@ self.addEventListener('fetch', (event) => {
 
   // Portadas remotas de los CDNs conocidos: cache-first en un cache aparte.
   // Portadas de MangaDex servidas por la función propia (ver
-  // netlify/functions/mdapi-cors.mjs): mismo origen, pero se cachean igual que
-  // las de los CDNs.
-  var isCoverProxy = host === self.location.hostname && url.includes('/.netlify/functions/mdapi-cors?cover=');
+  // netlify/functions/mdapi-cors.mjs): se cachean igual que las de los CDNs.
+  // En Netlify es el mismo origen; en GitHub Pages la función se llama en
+  // animedestiny.netlify.app, así que se acepta ese host también.
+  var isCoverProxy = (host === self.location.hostname || host === 'animedestiny.netlify.app') &&
+    url.includes('/.netlify/functions/mdapi-cors?cover=');
   if (event.request.destination === 'image' && (IMG_CDN_HOSTS.includes(host) || isCoverProxy)) {
     event.respondWith(cacheCover(event.request).catch(() => fetch(event.request)));
     return;
@@ -159,6 +166,27 @@ self.addEventListener('fetch', (event) => {
   var isCSS = url.includes('.css');
   var isJS = url.includes('.js');
 
+  // CSS y JS con ?v=hash: el build cambia el hash cuando cambia el contenido,
+  // así que la copia cacheada nunca queda vieja. Cache-first evita esperar a la
+  // red en cada página (antes eran ~10 pedidos por visita aunque no cambiara nada).
+  if ((isCSS || isJS) && /[?&]v=[0-9a-f]+/.test(url)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.match(event.request).then((hit) => {
+          if (hit) return hit;
+          return fetch(event.request).then((response) => {
+            if (response && response.status === 200 && response.type === 'basic') {
+              cache.put(event.request, response.clone());
+            }
+            return response;
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // Sin versión (dev, sw.js, config.js): red primero, caché si no hay red.
   if (isCSS || isJS) {
     event.respondWith(
       fetch(event.request).then((response) => {
@@ -199,7 +227,7 @@ self.addEventListener('fetch', (event) => {
       // Sin red y sin copia en caché: mostramos la página de respaldo offline
       // en vez del 404 (que sugiere, erróneamente, que la ruta no existe).
       if (event.request.mode === 'navigate') {
-        return caches.match('/offline.html').then((res) => res || caches.match('/404.html'));
+        return caches.match('offline.html').then((res) => res || caches.match('404.html'));
       }
     })
   );

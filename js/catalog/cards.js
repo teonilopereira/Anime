@@ -363,7 +363,7 @@ function buildCatalogCardHtml(options) {
     return `
     <div class="card-container catalog-neon-card catalog-rail-card" data-item-id="${safeId}" data-category="${escapeHtml(categoria)}" data-title="${escapeHtml(title)}"${titleAltAttr} data-img="${escapeHtml(safeImg)}" data-search-index="${escapeHtml(searchIndex)}"${totalAttr}${genresAttr}${genresNormAttr}>
         <div class="crail-media">
-            <img src="${safeImg}" alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
+            <img src="${safeImg}"${coverSrcsetAttrs(safeImg)} alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
             <span class="crail-status" data-tone="${tone}"><span class="crail-dot" aria-hidden="true"></span><span class="cband-status">${escapeHtml(bandLabel)}</span></span>
             <div class="crail-quick">
                 <button class="action-btn fav-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.favorito', 'Favorito'))}" data-item-id="${safeId}" data-action="fav">

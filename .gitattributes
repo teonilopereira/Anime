@@ -8,3 +8,5 @@
 css/bundle.min.css      text eol=lf
 js/core-bundle.min.js   text eol=lf
 js/vendor/*.js          text eol=lf
+js/core/i18n.min.js     text eol=lf
+js/core/i18n-en.min.js  text eol=lf
