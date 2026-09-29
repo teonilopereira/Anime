@@ -5,12 +5,13 @@
 // README.md). Lee las suscripciones con la SERVICE ROLE KEY (bypasea RLS) y
 // firma el envío con la clave privada VAPID.
 //
-// Es una PLANTILLA: revisá los nombres de columnas de item_states contra tu
-// esquema y ajustá VENTANA_MIN al intervalo de tu cron. No se puede probar sin
-// desplegarla; seguí los pasos del README para activarla.
+// Desplegada en el proyecto de producción desde 2026-09-29, con el cron de
+// server/migrations/010_push_sent_and_cron.sql (cada 15 min).
 
-import webpush from 'https://esm.sh/web-push@3.6.7';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// npm: y no esm.sh: web-push usa el crypto de Node, que el runtime de Supabase
+// solo expone bien a los paquetes cargados como npm.
+import webpush from 'npm:web-push@3.6.7';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -88,12 +89,12 @@ Deno.serve(async () => {
   const ids = [...aired.keys()];
 
   // Usuarios que siguen ("Viendo") alguno de los anime que acaban de emitir.
-  // AJUSTAR: nombres de columnas de item_states a tu esquema (watch_status /
-  // status, item_id numérico de AniList, category = 'anime').
+  // 'listas' también: el estado puesto desde Mis listas puede guardarse con esa
+  // categoría (setWatchStatus en js/catalog/states.js).
   const { data: follows, error } = await supabase
     .from('item_states')
     .select('user_id, item_id')
-    .eq('category', 'anime')
+    .in('category', ['anime', 'listas'])
     .eq('watch_status', 'viendo')
     .in('item_id', ids);
 
@@ -130,6 +131,12 @@ Deno.serve(async () => {
         url: `detalle.html?cat=anime&id=${mid}`,
         tag: `anime-${mid}-ep-${info.episode}`,
       };
+      // Un aviso por usuario y episodio aunque el cron (o alguien con la
+      // clave anónima) llame dos veces dentro de la ventana.
+      const { error: dup } = await supabase
+        .from('push_sent')
+        .insert({ user_id: userId, tag: payload.tag });
+      if (dup) continue;
       for (const sub of subs) {
         if (await enviar(sub, payload)) notificados++;
       }

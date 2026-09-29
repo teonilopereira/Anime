@@ -59,7 +59,11 @@ const SUPABASE_ANON = env["VITE_SUPABASE_ANON_KEY"] || env["SUPABASE_ANON_KEY"] 
 // Clave PÚBLICA VAPID para Web Push (la privada vive solo en la edge function
 // como secreto). Si falta, las notificaciones push quedan desactivadas y la app
 // funciona igual: el toggle de "Notificaciones" avisa que no están configuradas.
-const VAPID_PUBLIC  = env["VITE_VAPID_PUBLIC_KEY"]  || env["VAPID_PUBLIC_KEY"]  || "";
+// Sin la variable en el .env se usa la del proyecto (es pública, su par privado
+// está en los secretos de la edge function), para que regenerar la config en
+// otra máquina no apague los avisos sin querer.
+const VAPID_PUBLIC_DEFAULT = "BMh75Ljps8ucfJpNhwn2P2UjGJRJJQHZANkfhSyH1fKvkojrrIYdxw2ir3nhk9MrIRk0ifcxLCvEOXSP3lnprYs";
+const VAPID_PUBLIC  = env["VITE_VAPID_PUBLIC_KEY"]  || env["VAPID_PUBLIC_KEY"]  || VAPID_PUBLIC_DEFAULT;
 
 if (!SUPABASE_URL || !SUPABASE_ANON) {
     console.error("❌  Faltan credenciales en el .env:");

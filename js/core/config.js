@@ -18,7 +18,7 @@
         maxCatalogItems: 40,
         debug:           false,
         cachePrefix:     "animeDestiny",
-        vapidPublicKey:  ""
+        vapidPublicKey:  "BMh75Ljps8ucfJpNhwn2P2UjGJRJJQHZANkfhSyH1fKvkojrrIYdxw2ir3nhk9MrIRk0ifcxLCvEOXSP3lnprYs"
     };
 
     window.AppConfig = Object.freeze(config);
