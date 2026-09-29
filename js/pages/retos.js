@@ -29,7 +29,11 @@
     var M = window.AppMissions;
 
     function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* lleno */ } }
+    function lsSet(k, v) {
+        try { localStorage.setItem(k, v); } catch (_) { /* lleno */ }
+        // Avisa a game-sync.js para subir el cambio a la nube.
+        if (window.AppGameSync) window.AppGameSync.touch();
+    }
     function readJson(k) { try { return JSON.parse(lsGet(k)) || null; } catch (_) { return null; } }
 
     function esc(s) {
@@ -930,6 +934,15 @@
         initQuiz();
         initChars();
         window.addEventListener('missions-updated', renderMissions);
+        // Otro dispositivo pudo haber jugado el reto de hoy o sumado partidas:
+        // al mezclar lo de la nube se recarga el estado del quiz.
+        window.addEventListener('game-sync-merged', function () {
+            if (quiz.day && quiz.answer) {
+                quiz.state = loadQuizState(quiz.day);
+                renderQuiz();
+            }
+            renderSummary();
+        });
         window.addEventListener('supabase-auth-changed', refreshSession);
         if (window.AppSupabaseReady && typeof window.AppSupabaseReady.then === 'function') {
             window.AppSupabaseReady.then(refreshSession).catch(function () { /* sin supabase */ });

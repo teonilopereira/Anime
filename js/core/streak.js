@@ -3,8 +3,8 @@
  *
  * Retención: premia volver cada día. La racha sube si el usuario estuvo
  * activo AYER, se mantiene si ya contó HOY, y se reinicia a 1 si faltó uno o
- * más días. Todo vive en localStorage por usuario (los datos de racha son
- * un contador local; no necesitan viajar al servidor para funcionar).
+ * más días. Vive en localStorage por usuario y game-sync.js lo copia a la
+ * nube para que el celu y la compu muestren la misma racha.
  *
  * No otorga EXP por sí solo: devuelve cuánto subió para que quien lo llama
  * (auth.grantDailyLoginBonus) sume el bonus con addUserPoints y evite premiar
@@ -23,7 +23,11 @@
     var K_DAY   = 'ad:streak:day:';
 
     function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* lleno/bloqueado */ } }
+    function lsSet(k, v) {
+        try { localStorage.setItem(k, v); } catch (_) { /* lleno/bloqueado */ }
+        // Avisa a game-sync.js para subir el cambio a la nube.
+        if (window.AppGameSync) window.AppGameSync.touch();
+    }
 
     // Fecha local en YYYY-MM-DD. Local a propósito: la racha se siente por el
     // "día del usuario", no por UTC; con UTC alguien en América perdería la

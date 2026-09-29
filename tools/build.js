@@ -109,6 +109,7 @@ const JS_SOURCES = [
     'js/core/common-ui.js',
     'js/core/reminders.js',
     'js/core/missions.js',
+    'js/core/game-sync.js',
 ];
 
 // Mascota: bundle aparte que mascot-loader.js pide cuando la pagina ya cargo.
