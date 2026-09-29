@@ -153,10 +153,37 @@
         return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
     }
 
+    // AniList sirve cada portada en tres tamaños con la misma ruta y distinta
+    // carpeta: cover/large (la "extraLarge", ~460 px de ancho), cover/medium
+    // (~230 px) y cover/small (~100 px). La app guarda la extraLarge; para
+    // miniaturas conviene pedir una carpeta más chica. Otras URLs vuelven igual.
+    const ANILIST_COVER_RE = /(\/anilistcdn\/media\/(?:anime|manga)\/cover\/)(?:large|medium|small)\//;
+
+    function anilistCover(url, folder) {
+        const s = String(url || '');
+        return ANILIST_COVER_RE.test(s) ? s.replace(ANILIST_COVER_RE, '$1' + folder + '/') : s;
+    }
+
+    // srcset para las cards de catálogo: el navegador baja la de ~230 px
+    // cuando alcanza y la de ~460 px en pantallas densas o cards anchas.
+    // "auto" (Chrome) usa el ancho real de la card lazy; el resto de los
+    // navegadores cae en la lista que sigue.
+    function coverSrcsetAttrs(url) {
+        const s = String(url || '');
+        if (!ANILIST_COVER_RE.test(s)) return '';
+        const esc = (v) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        return ' srcset="' + esc(anilistCover(s, 'medium')) + ' 230w, ' + esc(anilistCover(s, 'large')) + ' 460w"' +
+            ' sizes="auto, (max-width: 600px) 50vw, 300px"';
+    }
+
     function fallbackCatalogImage(imgEl) {
         if (!(imgEl instanceof HTMLImageElement)) return;
         if (imgEl.dataset.fallbackReady === '1') return;
         imgEl.dataset.fallbackReady = '1';
+        // Con srcset el navegador ignora src: hay que sacarlo para que el
+        // reemplazo se vea.
+        imgEl.removeAttribute('srcset');
+        imgEl.removeAttribute('sizes');
 
         const title = imgEl.dataset.title || imgEl.alt || 'Sin título';
         const subtitle = imgEl.dataset.subtitle || '';
@@ -201,6 +228,8 @@
         getCurrentUserId,
         getCurrentUserIdSafe: getCurrentUserId,
         fallbackCatalogImage,
+        anilistCover,
+        coverSrcsetAttrs,
         buildCatalogImageCandidates,
         createFallbackPosterDataUrl,
         episodeStorageKey,
@@ -214,6 +243,8 @@
     window.getCurrentUserIdSafe = getCurrentUserId;
     window.formatMediaStatus = formatMediaStatus;
     window.fallbackCatalogImage = fallbackCatalogImage;
+    window.anilistCover = anilistCover;
+    window.coverSrcsetAttrs = coverSrcsetAttrs;
     window.episodeStorageKey = episodeStorageKey;
     window.volumeStorageKey = volumeStorageKey;
 })(window);

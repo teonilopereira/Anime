@@ -502,508 +502,6 @@
             "general.hecho":     "Hecho",
             "general.cancelar":  "Cancelar",
             "general.cerrar":    "Cerrar"
-        },
-
-        en: {
-            // ── Navigation ───────────────────────────────────────────────────
-            "nav.inicio":         "Home",
-            "nav.anime":          "Anime",
-            "nav.manga":          "Manga",
-            "nav.novelas":        "Novels",
-            "nav.comparar":       "Compare",
-            "nav.top":            "Top",
-            "nav.top_jugadores":  "Player ranking",
-            "nav.ranking":        "Ranking",
-            "nav.calendario":     "Calendar",
-            "nav.mis_listas":     "My Lists",
-            "nav.listas":         "Lists",
-            "nav.mas":            "More",
-            "nav.configuracion":  "Settings",
-            "nav.cuenta":         "Account",
-            "nav.ingresar":       "Log In",
-            "nav.perfil":         "Profile",
-            "nav.cerrar_sesion":  "Log Out",
-            "nav.menu":           "Menu",
-            "nav.usuario_invitado": "Guest",
-            "nav.usuario": "User",
-
-            // ── Index / Home ─────────────────────────────────────────────────
-            "index.eyebrow":       "Database • v2026",
-            "index.subtitle":      "Browse the catalog, track your progress and build your lists.",
-            "index.card.anime":    "Series & movies",
-            "index.card.manga":    "Comics & tankobon",
-            "index.card.novelas":  "Light novels & more",
-            "index.card.listas":   "Favorites & watched",
-            "index.card.ranking":  "The highest rated titles",
-            "index.card.comparar": "Two titles side by side",
-            "index.destacados":    "Featured",
-            "index.populares":     "Most popular",
-            "index.continuar":     "Continue watching",
-            "index.recomendado":   "Recommended for you",
-
-            // ── Catalog ──────────────────────────────────────────────────────
-            "catalog.title.anime":    "ANIME CATALOG",
-            "catalog.title.manga":    "MANGA CATALOG",
-            "catalog.title.novelas":  "NOVEL CATALOG",
-            "catalog.subtitle.anime": "Browse, discover and save your favorite anime.",
-            "catalog.subtitle.manga": "Browse, discover and save your favorite manga.",
-            "catalog.subtitle.novelas": "Browse, discover and save your favorite novels.",
-            "catalog.buscar":         "Search...",
-            "catalog.buscar.anime":   "Search anime...",
-            "catalog.buscar.manga":   "Search manga...",
-            "catalog.buscar.novelas": "Search novel...",
-            "catalog.sin_resultados": "No results found.",
-            "catalog.cargando":       "Loading...",
-            "catalog.error":          "Error loading catalog.",
-            "catalog.continuar_viendo": "Continue watching",
-            "catalog.favoritos":      "Favorites",
-            "catalog.vistos":         "Watched",
-            "catalog.filtrar_estado": "Filter by status",
-            "catalog.filtros":        "ADDITIONAL FILTERS",
-            "catalog.limpiar":        "Clear Filters",
-            "catalog.nsfw.titulo":    "Show NSFW",
-            "catalog.nsfw.desc":      "Enable to show adult content.",
-            "catalog.genero":         "GENRE",
-            "catalog.refinar":        "REFINE",
-            "catalog.orden":          "Sort",
-            "catalog.orden.popularidad": "Popularity",
-            "catalog.orden.tendencia":   "Trending",
-            "catalog.orden.puntuados":   "Top rated",
-            "catalog.orden.recientes":   "Newest",
-            "catalog.orden.az":          "A – Z",
-            "catalog.anio":           "Year",
-            "catalog.todos":          "All",
-            "catalog.todas":          "All",
-            "catalog.temporada":      "Season",
-            "catalog.temporada.invierno":  "Winter",
-            "catalog.temporada.primavera": "Spring",
-            "catalog.temporada.verano":    "Summer",
-            "catalog.temporada.otono":     "Fall",
-            "catalog.formato":        "Format",
-            "catalog.formato.pelicula":  "Movie",
-            "catalog.formato.especial":  "Special",
-            "catalog.formato.tvcorta":   "TV short",
-            "catalog.formato.musical":   "Music",
-            "catalog.buscar_genero":  "Search genre...",
-            "catalog.abrir_filtros":  "Open filters",
-
-            // ── Catalog cards (cards.js, dynamic text) ───────────────────────
-            "card.type.anime":          "Anime",
-            "card.type.novela_ligera":  "Light novel",
-            "card.type.novela":         "Novel",
-            "card.type.manga":          "Manga",
-            "card.unit.eps":            "eps",
-            "card.unit.vol":            "vol.",
-            "card.unit.cap":            "ch.",
-            "card.label.capitulos":     "chapters",
-            "card.label.volumenes":     "volumes",
-            "card.progreso_libre":      "Free progress",
-            "card.progreso_libre_sub":  "Mark it as fully watched using the 👁 button",
-            "card.pct_visto":           "{pct}% WATCHED",
-            "card.status.releasing":    "Airing",
-            "card.status.publishing":   "Publishing",
-            "card.status.finished":     "Finished",
-            "card.status.upcoming":     "Upcoming",
-            "card.status.cancelled":    "Cancelled",
-            "card.status.hiatus":       "On hiatus",
-            "card.btn.detalle":         "DETAILS",
-            "card.btn.ver_episodios":   "View episodes",
-            "card.btn.ver_vols":        "View volumes and chapters",
-            "card.btn.episodios":       "EPISODES",
-            "card.btn.volumenes":       "VOLUMES",
-            "card.aria.ver_info":       "View info about {title}",
-            "card.aria.ver_info_short": "View info",
-            "card.aria.volver":         "Back to front",
-            "card.aria.volver_short":   "Back",
-            "card.aria.seguimiento":    "Tracking status",
-            "card.aria.favorito":       "Favorite",
-            "card.aria.visto":          "Watched",
-            "card.seguimiento.placeholder": "— Tracking —",
-            "card.seguimiento.viendo":      "Watching",
-            "card.seguimiento.pendiente":   "Pending",
-            "card.seguimiento.pausado":     "On hold",
-            "card.seguimiento.abandonado":  "Dropped",
-            "card.sin_titulo":          "Untitled",
-            "card.err.sin_conexion.kicker":  "No connection",
-            "card.err.sin_conexion.detalle": "Looks like you lost your internet. Reconnect and reload the page.",
-            "card.err.rate.kicker":     "Too many requests",
-            "card.err.rate.detalle":    "AniList is rate-limiting due to heavy use. Wait a minute and reload — it's not a problem with your connection.",
-            "card.err.timeout.kicker":  "The API took too long",
-            "card.err.timeout.detalle": "AniList didn't respond in time. It may be overloaded; try again in a few seconds.",
-            "card.err.generico.kicker": "API unavailable",
-            "card.err.generico.detalle": "Check your connection, wait a few seconds and reload the page.",
-            "card.loader.animes":       "anime",
-            "card.loader.novelas":      "novels",
-            "card.loader.mangas":       "manga",
-            "card.empty.kicker":        "No results",
-            "card.empty.titulo":        "The API returned no {tipo} for this page.",
-            "card.empty.detalle":       "Possible rate limit. Wait a few seconds and reload.",
-            "card.err.titulo":          "Couldn't load the {tipo} catalog.",
-
-            // ── Detail ───────────────────────────────────────────────────────
-            "detail.cargando":        "Fetching detail from the API...",
-            "detail.no_encontrado":   "This title was not found.",
-            "detail.sin_sinopsis":    "No synopsis available.",
-            "detail.sinopsis":        "SYNOPSIS",
-            "detail.generos":         "GENRES",
-            "detail.capitulos":       "CHAPTERS",
-            "detail.episodios":       "EPISODES",
-            "detail.volumenes":       "VOLUMES",
-            "detail.estado":          "Status",
-            "detail.puntaje":         "Score",
-            "detail.sin_capitulos":   "No chapters specified in the API.",
-            "detail.progreso_general": "OVERALL PROGRESS",
-            "detail.completados":     "{vistos}/{total} completed",
-            "detail.volver":          "Back to catalog",
-            "detail.compartir":       "Share with friends",
-            "detail.favorito":        "Add to favorites",
-            "detail.marcar_visto":    "Mark as watched",
-            "detail.ver_mas":         "See more",
-            "detail.perfil":          "PROFILE",
-            "detail.abrir":           "OPEN",
-            "detail.configuracion":   "SETTINGS",
-            "detail.cargando_kicker": "Loading",
-            "detail.no_encontrado_kicker": "Not found",
-            "detail.sinopsis_h3":     "SYNOPSIS",
-            "detail.generos_h3":      "GENRES",
-            "detail.capitulos_h3":    "CHAPTERS",
-            "detail.episodios_h3":    "EPISODES",
-            "detail.volumenes_h3":    "VOLUMES",
-            "detail.barra_capitulos": "OVERALL CHAPTERS",
-            "detail.barra_episodios": "OVERALL EPISODES",
-            "detail.barra_volumenes": "OVERALL VOLUMES",
-            "detail.modal.info":      "Information",
-            "detail.modal.cerrar":    "Close",
-
-            // ── Top / Ranking ────────────────────────────────────────────────
-            "rank.titulo":        "TOP RANKING",
-            "rank.subtitulo":     "The highest rated by the community.",
-            "rank.cargando":      "Loading ranking...",
-            "rank.cargar_mas":    "Load more",
-            "rank.no_resultados": "No results.",
-            "top.rank.title":     "RANKING",
-            "top.rank.subtitle":  "Players sorted by level and total experience.",
-
-            // ── My Lists ─────────────────────────────────────────────────────
-            "lists.cargando":   "Loading your lists...",
-            "lists.titulo":     "MY LISTS",
-            "lists.subtitulo":  "Your \"Likes\" and \"Watched\" separated by category.",
-            "lists.vacio":      "You have no items in this category.",
-            "lists.sidebar.mis_listas": "My Lists",
-            "lists.sidebar.actividad": "Activity",
-            "lists.sidebar.logros": "Achievements",
-            "lists.sidebar.estadisticas": "Statistics",
-            "lists.card.anime": "ANIME",
-            "lists.card.manga": "MANGA",
-            "lists.card.novelas": "NOVELS",
-            "lists.card.sublabel": "Saved titles",
-            "lists.card.ver_catalogo": "View catalog ➜",
-            "lists.card.actividad_reciente": "RECENT ACTIVITY",
-            "lists.card.ver_todo": "View all ➜",
-            "lists.card.sin_actividad": "No recent activity.",
-            "lists.filter.todo": "All",
-            "lists.filter.me_gusta": "Likes",
-            "lists.filter.vistos": "Watched",
-            "lists.filter.exportar": "Export JSON",
-            "lists.results.titulo": "RESULTS",
-            "lists.results.todos": "All",
-            "lists.results.anime": "Anime",
-            "lists.results.manga": "Manga",
-            "lists.results.novelas": "Novels",
-            "lists.recommend.titulo": "RECOMMENDED FOR YOU",
-            "lists.recommend.subtitulo": "Based on what you marked as watched.",
-            "lists.activity.titulo": "RECENT ACTIVITY",
-            "lists.activity.subtitulo": "Your latest anime, manga and novels tracked.",
-            "lists.activity.sin_actividad": "No activity",
-            "lists.activity.no_actividad_desc": "No recent activity.",
-            "lists.achievements.titulo": "ACHIEVEMENTS",
-            "lists.achievements.subtitulo": "Unlock achievements by liking, watching, and logging progress.",
-            "lists.stats.titulo": "STATISTICS",
-            "lists.stats.subtitulo": "Summary of your app activity.",
-
-            // ── Login ────────────────────────────────────────────────────────
-            "login.kicker":     "Your account",
-            "login.copy":       "Log in to save favorites, progress and lists to your profile.",
-            "login.titulo":     "Log In",
-            "login.tab.login":  "Log In",
-            "login.tab.crear":  "Create account",
-            "login.usuario":    "Username",
-            "login.email":      "Email",
-            "login.contrasena": "Password",
-            "login.ingresar":   "Enter",
-            "login.crear":      "Create Account",
-            "login.google":     "Continue with Google",
-            "login.cerrar":     "Log Out",
-            "login.volver":     "Back to home",
-            "login.mis_listas": "View my lists",
-            "login.placeholder.usuario":   "e.g. NarutoFan",
-            "login.placeholder.email":     "youruser@gmail.com",
-            "login.placeholder.password":  "********",
-
-            // ── Auth (auth.js: session and streak messages) ──────────────────
-            "auth.iniciar_sesion":     "Log in",
-            "auth.creando":            "Creating account...",
-            "auth.iniciando":          "Logging in...",
-            "auth.err.falta_usuario":  "Enter a username or email.",
-            "auth.err.usuario_corto":  "Username must be at least 3 characters.",
-            "auth.err.gmail":          "Use a valid @gmail.com email.",
-            "auth.err.pass_corta":     "Password must be at least 6 characters.",
-            "auth.err.sin_servidor":   "Couldn't connect to the server. Check your connection and try again.",
-            "auth.err.ya_existe":      "That email already has an account. Log in instead.",
-            "auth.err.email_invalido": "The email you entered is not valid.",
-            "auth.err.pass_debil":     "The password is too weak. Use at least 6 characters.",
-            "auth.err.crear":          "Error creating account. Try again.",
-            "auth.ok.confirmar":       "✅ Account created. Check your email to confirm it.",
-            "auth.ok.creada":          "✅ Account created successfully.",
-            "auth.ok.creada_login":    "Account created. Log in to continue.",
-            "auth.err.sin_conexion":   "No server connection. Check your internet and try again.",
-            "auth.err.falta_email":    "Enter your email to log in.",
-            "auth.err.credenciales":   "Incorrect email or password.",
-            "auth.err.no_confirmado":  "Confirm your email before logging in.",
-            "auth.err.login":          "Error logging in. Try again.",
-            "auth.err.no_login":       "Couldn't log in. Try again.",
-            "auth.racha":              "{count}-day streak! (+{delta} EXP)",
-            "auth.bienvenido":         "Welcome! (+{delta} EXP for daily login)",
-
-            // ── Login page (login.js: dynamic messages) ──────────────────────
-            "login.msg.crear_cuenta":    "Create account",
-            "login.msg.iniciar_sesion":  "Log in",
-            "login.msg.entrar":          "Enter",
-            "login.msg.tu_cuenta":       "Your account",
-            "login.msg.conectado":       "Connected as {name}.",
-            "login.msg.file_protocol":   "Open the page with a local server (node tools/serve.cjs). Supabase doesn't work well from file://.",
-            "login.msg.falta_config":    "The Supabase configuration is missing in js/core/config.js.",
-            "login.msg.sin_red":         "No network connection.",
-            "login.msg.no_cargo":        "Supabase didn't load. Check the connection or open the app from a local server.",
-            "login.msg.no_disponible":   "Supabase is unavailable. Check the connection and reload the page.",
-            "login.msg.correo_invalido": "Enter a valid email.",
-            "login.msg.pass_corta":      "Password must be at least 6 characters.",
-            "login.msg.usuario_corto":   "Username must be at least 3 characters.",
-            "login.msg.creando":         "Creating account...",
-            "login.msg.iniciando":       "Logging in...",
-            "login.msg.cuenta_entrando": "Account created. Entering...",
-            "login.msg.cuenta_confirmar": "Account created. Check your email to confirm it.",
-            "login.msg.sesion_iniciada": "Logged in.",
-            "login.msg.credenciales":    "Incorrect email or password.",
-            "login.msg.no_confirmado":   "Confirm your email before logging in.",
-            "login.msg.error":           "Error: {message}",
-            "login.msg.google_no":       "Google sign-in isn't enabled in this configuration.",
-            "login.msg.abriendo_google": "Opening Google...",
-            "login.msg.google_error":    "Couldn't sign in with Google: {message}",
-            "login.msg.sesion_cerrada":  "Logged out.",
-            "login.msg.file_warn":       "⚠️ You're using file://. Use a local server: node tools/serve.cjs",
-            "login.msg.volviendo":       "Logged in. Returning...",
-
-            // ── Settings ─────────────────────────────────────────────────────
-            "config.titulo":          "SETTINGS",
-            "config.subtitulo":       "Customize your experience, information and app preferences.",
-            "config.usuario_activo":  "Active user",
-            "config.volver_perfil":   "← Back to profile",
-            "config.mascota.elegir":     "🐾 Choose your character",
-            "personajes.titulo":         "CHOOSE YOUR CHARACTER",
-            "personajes.subtitulo":      "Tap a character to have it follow you around the app.",
-            "personajes.nota":           "The change applies instantly and is saved on this device.",
-            "personajes.volver":         "← Back to settings",
-            "config.idioma":          "Language",
-            "config.tema":            "Theme",
-            "config.tema.auto":       "🌗 Automatic (system)",
-            "config.tema.oscuro":     "🌙 Dark",
-            "config.tema.claro":      "☀️ Light",
-            "config.notif.titulo":    "Notifications",
-            "config.notif.desc":      "Receive alerts and app updates.",
-            "config.mascota.titulo":  "Rimuru character",
-            "config.mascota.desc":    "Rimuru the slime announces notifications by speaking on-screen.",
-            "config.roam.titulo":     "Roaming Rimuru",
-            "config.roam.desc":       "Rimuru wanders the screen and perches on cards and the bar.",
-            "config.sugerido.titulo": "Personalized suggested content",
-            "config.sugerido.desc":   "Recommendations based on your taste.",
-            "config.compact.titulo":  "Compact cards",
-            "config.compact.desc":    "Reduce card size to see more content.",
-            "config.motion.titulo":   "Reduce animations",
-            "config.motion.desc":     "Fewer visual effects for smoother navigation.",
-            "config.public.titulo":   "Public profile",
-            "config.public.desc":     "Allow other users to view your profile.",
-            "config.nsfw.titulo":     "Show NSFW content",
-            "config.nsfw.desc":       "Enable to see adult content in the catalog.",
-            "config.fondo":           "BACKGROUND",
-            "config.autoguardado":    "Changes are saved automatically.",
-            "config.cuenta":          "ACCOUNT",
-            "config.cuenta_nota":     "Your email and password are managed from the account you sign in with.",
-            "config.contenido_privacidad": "CONTENT AND PRIVACY",
-            "config.apariencia":      "APPEARANCE",
-            "config.cpr.titulo":      "Fix cards per row",
-            "config.cpr.desc":        "Without this they adjust to the screen width.",
-            "config.cpr.nota":        "Only applies on large screens; on mobile the responsive layout is kept.",
-            "config.sqsize.titulo":   "Detail squares size",
-            "config.sqsize.desc":     "Changes the size of the chapter, episode and volume squares on each title.",
-            "config.colores":         "COLORS",
-            "config.color.principal":    "Primary accent",
-            "config.color.navbar":       "Navbar accent",
-            "config.color.secundario":   "Secondary accent",
-            "config.color.fondo":        "Dark background",
-            "config.color.texto":        "Main text",
-            "config.color.texto2":       "Secondary text",
-            "config.color.reset":        "🔄 RESET COLORS",
-            "config.fondo.default":      "DEFAULT",
-            "config.fondo.color":        "COLOR",
-            "config.fondo.imagen":       "IMAGE",
-            "config.fondo.color_label":  "Background color",
-            "config.fondo.url":          "Image URL",
-            "config.fondo.archivo":      "Or upload an image from your device",
-            "config.datos":           "YOUR DATA",
-            "config.exportar":        "📥 EXPORT MY DATA (JSON)",
-            "config.restablecer":     "🔄 RESET APPEARANCE",
-            "config.cerrar_sesion":   "🚪 SIGN OUT",
-            "config.datos_nota":      "Resetting only affects how the app looks on this device. Your lists and progress are stored in your account and are not touched.",
-            "notification.levelup":    "Level Up! 🎉 You are now Level {level}! 🌟",
-
-            // ── User / Profile ───────────────────────────────────────────────
-            "user.perfil":    "Profile",
-            "user.puntos":    "Points",
-            "user.nivel":     "Level",
-            "user.vistos":    "Watched",
-            "user.favoritos": "Favorites",
-
-            // ── Compare ──────────────────────────────────────────────────────
-            "calendar.titulo":         "RELEASE CALENDAR",
-            "calendar.desc":           "Episodes airing this week. Follow an anime to see it highlighted.",
-            "calendar.solo_seguidos":  "Only what I follow",
-
-            "compare.titulo": "COMPARE",
-            "compare.desc":   "Compare two titles side by side.",
-
-            // ── States ───────────────────────────────────────────────────────
-            "state.visto":     "Watched",
-            "state.favorito":  "Favorite",
-            "state.pendiente": "Pending",
-
-            // ── Toasts / alerts (states.js) ──────────────────────────────────
-            "toast.session.pending":  "Session expired. Pending changes will retry automatically.",
-            "toast.session.progress": "Session expired. Your progress was saved and will sync on reconnect.",
-            "toast.session.exp":      "Session expired. Your experience will sync on reconnect.",
-            "toast.estado":           "Status: {label}",
-            "toast.estado_quitado":   "Tracking status removed",
-            "toast.fav_add":          "Added to Favorites! ❤️ (+{xp} EXP)",
-            "toast.visto_add":        "Marked as Watched! 👁️ (+{xp} EXP)",
-            "toast.fav_remove":       "Removed from Favorites (-{xp} EXP)",
-            "toast.visto_remove":     "Marked as not watched (-{xp} EXP)",
-
-            // ── Errors ───────────────────────────────────────────────────────
-            "error.generico":        "Something went wrong. Please try again in a few minutes.",
-            "error.conexion":        "No server connection. Check your internet.",
-            "error.online":          "Connection restored!",
-            "error.no_encontrado":   "Not found.",
-            "error.404.title":       "Route lost in the Grid",
-            "error.404.text":        "The link you entered does not exist, was moved or is temporarily down.",
-            "error.sesion_expirada": "Session expired. Your changes were saved and will sync on reconnect.",
-            "error.volver_inicio":   "Back to home",
-            "privacy.title":         "Privacy Policy",
-            "privacy.updated":       "Last updated: July 2026",
-            "terms.title":           "Terms of Service",
-            "terms.updated":         "Last updated: July 2026",
-
-            // ── Compare (comparar.html) ──────────────────────────────────────
-            "compare.label.catalogo": "Catalog",
-            "compare.label.primero":  "First title",
-            "compare.label.segundo":  "Second title",
-            "compare.buscar_ph":      "Search a title...",
-            "compare.boton":          "Compare",
-            "compare.opt.anime":      "Anime",
-            "compare.opt.manga":      "Manga",
-            "compare.opt.novelas":    "Novels",
-            "compare.aria.form":      "Choose titles to compare",
-            "compare.aria.resultado": "Comparison result",
-            "compare.sin_portada":    "No cover",
-            "compare.sin_sinopsis":   "No synopsis available.",
-            "compare.sin_titulo":     "Untitled",
-            "compare.stat.puntaje":    "Score",
-            "compare.stat.episodios":  "Episodes",
-            "compare.stat.por_ep":     "Per episode",
-            "compare.stat.duracion":   "Duration",
-            "compare.stat.usuarios":   "Users",
-            "compare.stat.volumenes":  "Volumes",
-            "compare.stat.capitulos":  "Chapters",
-            "compare.det.estudio":     "Studio",
-            "compare.det.basado":      "Based on",
-            "compare.det.emision":     "Airing",
-            "compare.det.favoritos":   "Favorites",
-            "compare.det.autor":       "Author",
-            "compare.det.origen":      "Origin",
-            "compare.det.publicacion": "Publication",
-            "compare.kind.anime":      "Anime",
-            "compare.kind.manga":      "Manga",
-            "compare.kind.novela":     "Novel",
-            "compare.abrir":           "Open details",
-            "compare.vacio":           "Pick a title to compare",
-            "compare.buscando":        "Searching…",
-            "compare.sin_resultados":  "No results",
-            "compare.error_busqueda":  "Couldn't search. Try again.",
-            "compare.link_copiado":    "Link copied",
-            "compare.intercambiar":    "Swap",
-            "compare.copiar":          "Copy link",
-            "compare.aria.intercambiar": "Swap the two sides",
-            "compare.aria.copiar":     "Copy comparison link",
-
-            // ── Title ranking (ranking.html) ─────────────────────────────────
-            "rank.tab.anime":         "Anime",
-            "rank.tab.manga":         "Manga",
-            "rank.tab.novelas":       "Novels",
-            "rank.aria.categoria":    "Ranking category",
-            "rank.ver_jugadores":     "See the player ranking",
-            "rank.error":             "The ranking could not be loaded. It may be a temporary API limit.",
-            "rank.reintentar":        "Retry",
-            "rank.en_ranking":        "{n} {cat} in the ranking",
-            "rank.sin_titulo":        "Untitled",
-
-            // ── Privacy (privacidad.html) ────────────────────────────────────
-            "privacy.intro":    "At Anime Destiny we value and respect your privacy. This policy describes how we collect, use and protect the personal information you provide when using our platform.",
-            "privacy.h1":       "1. Information we collect",
-            "privacy.s1.intro": "When you sign up and use our platform, we collect the following information:",
-            "privacy.s1.li1.k": "Registration information:",
-            "privacy.s1.li1.v": "Email and username provided through the Supabase authentication system.",
-            "privacy.s1.li2.k": "Activity data:",
-            "privacy.s1.li2.v": "Your reading or viewing progress, your favorites lists (“Likes”) and items marked as “Watched”.",
-            "privacy.s1.li3.k": "Basic statistics:",
-            "privacy.s1.li3.v": "Scores and levels earned through experience points (XP) interaction.",
-            "privacy.h2":       "2. Use of information",
-            "privacy.s2.intro": "We use the collected data solely to:",
-            "privacy.s2.li1":   "Allow secure access to your account and sync your progress across multiple devices.",
-            "privacy.s2.li2":   "Show your personalized profile statistics and global user ranking.",
-            "privacy.s2.li3":   "Improve the local recommendation system based on your history.",
-            "privacy.h3":       "3. Data storage and protection",
-            "privacy.s3.p":     "All your authentication data and lists are stored securely in Supabase databases. We do not sell or share your personal information with third parties under any circumstances.",
-            "privacy.h4":       "4. Cookies and local storage",
-            "privacy.s4.p":     "We use local storage (localStorage) to temporarily save your visual preferences (such as the theme color or card size) and to keep your session active securely through the authentication token provided by Supabase.",
-            "privacy.h5":       "5. Your rights",
-            "privacy.s5.p":     "You have the right at any time to request the complete deletion of your account and all associated data. You can do it directly from the profile settings section in our application.",
-            "privacy.h6":       "6. Contact",
-            "privacy.s6.p":     "If you have any questions about our privacy policy, you can contact us at:",
-
-            // ── Terms (terminos.html) ────────────────────────────────────────
-            "terms.intro":  "Welcome to Anime Destiny. By accessing and using this website, you agree to comply with the following terms and conditions of use.",
-            "terms.h1":     "1. Use of the Platform",
-            "terms.s1.p":   "Anime Destiny is an informational catalog of anime, manga and light novels that lets users personally track their progress and interact with lists. Any misuse of the site is prohibited, such as attempts to breach the database security systems or the use of bots to alter the experience (XP) ranking.",
-            "terms.h2":     "2. Intellectual Property and Third-Party Information",
-            "terms.s2.p":   "Covers, synopses and title data come from public third-party APIs (mainly AniList and MangaDex). Anime Destiny does not claim ownership of such materials and acknowledges the copyright of the respective studios and creators. The site's data is provided solely for educational and personal entertainment purposes.",
-            "terms.h3":     "3. Limitation of Liability",
-            "terms.s3.p":   "The platform is provided “as is” and “as available”. We do not guarantee that the service will be uninterrupted or error-free. Anime Destiny will not be liable for the temporary loss of progress data that may occur due to connection issues or failures in external APIs.",
-            "terms.h4":     "4. User Accounts and Modifications",
-            "terms.s4.p":   "We reserve the right to remove or suspend user accounts that engage in abusive or fraudulent practices in the system. Likewise, we reserve the right to modify these terms of service at any time, reporting the changes on this page.",
-            "terms.h5":     "5. Applicable Law",
-            "terms.s5.p":   "These terms shall be governed and interpreted in accordance with the laws in force in the territory where the main application is hosted.",
-
-            // ── Offline (offline.html) ───────────────────────────────────────
-            "offline.title": "No connection",
-            "offline.text":  "We couldn't load this page. Check your internet connection and try again.",
-            "offline.retry": "Retry",
-            "offline.home":  "Go to home",
-
-            // ── General ──────────────────────────────────────────────────────
-            "general.cargando":  "Loading...",
-            "general.guardando": "Saving...",
-            "general.hecho":     "Done",
-            "general.cancelar":  "Cancel",
-            "general.cerrar":    "Close"
         }
     };
 
@@ -1027,6 +525,48 @@
 
     function getCurrentLang() {
         return localStorage.getItem("pref:lang") || "es";
+    }
+
+    // ── Idiomas que no son el español ────────────────────────────────────
+    // Viven en su propio archivo (js/core/i18n-<lang>.min.js) y se piden solo
+    // si hacen falta: el español siempre esta porque es el fallback, y es lo
+    // que usa casi todo el mundo. El build reemplaza __I18N_EN_VERSION__ por el
+    // hash del diccionario para que el cache no sirva uno viejo.
+    var LAZY_LANGS = { en: "__I18N_EN_VERSION__" };
+    var scriptSrc = (document.currentScript && document.currentScript.src) || "";
+
+    function langUrl(lang) {
+        var base = scriptSrc ? scriptSrc.replace(/i18n(\.min)?\.js(\?.*)?$/, "") : "js/core/";
+        return base + "i18n-" + lang + ".min.js?v=" + LAZY_LANGS[lang];
+    }
+
+    // Toma un diccionario que ya se cargo (window.__i18nDicts, lo llena el
+    // archivo del idioma) y repinta.
+    function registerLang(lang) {
+        var dicts = window.__i18nDicts || {};
+        if (!dicts[lang]) return;
+        translations[lang] = dicts[lang];
+        if (getCurrentLang() !== lang) return;
+        if (document.readyState !== "loading") window.applyTranslations(lang);
+        try {
+            window.dispatchEvent(new CustomEvent("i18n:changed", { detail: { lang: lang } }));
+        } catch (e) { /* sin CustomEvent: sin repintado en vivo */ }
+    }
+
+    function loadLang(lang) {
+        if (translations[lang] || !LAZY_LANGS[lang]) return;
+        if (window.__i18nDicts && window.__i18nDicts[lang]) { registerLang(lang); return; }
+        var url = langUrl(lang);
+        if (document.readyState === "loading" && document.currentScript) {
+            // Mientras se parsea la pagina, document.write lo carga en orden,
+            // antes que los scripts defer: las paginas pintan en el idioma
+            // correcto desde el primer render, igual que cuando venia todo junto.
+            document.write('<script src="' + url + '"><\/script>');
+            return;
+        }
+        var el = document.createElement("script");
+        el.src = url;
+        document.head.appendChild(el);
     }
 
     var isTranslating = false;
@@ -1084,8 +624,11 @@
     window.AppI18n = {
         _translations: translations,
         setLang: function (lang) {
-            if (!translations[lang]) return;
+            if (!translations[lang] && !LAZY_LANGS[lang]) return;
             localStorage.setItem("pref:lang", lang);
+            // Si el diccionario todavia no bajo, registerLang repinta y avisa
+            // cuando llegue.
+            if (!translations[lang]) { loadLang(lang); return; }
             window.applyTranslations(lang);
             // Aviso para el contenido que las paginas pintan por JS (no via
             // data-i18n): esos no los alcanza applyTranslations y necesitan
@@ -1095,6 +638,7 @@
             } catch (e) { /* CustomEvent no disponible: sin repintado en vivo */ }
         },
         getLang: getCurrentLang,
+        _register: registerLang,
         t: function (key, args) {
             var lang = getCurrentLang();
             var dict = translations[lang] || translations["es"];
@@ -1104,6 +648,8 @@
             return interpolate(value, args);
         }
     };
+
+    loadLang(getCurrentLang());
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () { window.applyTranslations(); });

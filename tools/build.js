@@ -292,6 +292,26 @@ const mascotVersion = crypto.createHash('sha256')
     .update(mascotJsRes.code).update(mascotCssRes.code)
     .digest('hex').slice(0, 8);
 
+// ── Traducciones ─────────────────────────────────────────────────────────
+// i18n.js (motor + español) va en todas las paginas; el ingles viaja aparte y
+// i18n.js lo pide solo si pref:lang es "en". Ambos se minifican. La version
+// del diccionario ingles se estampa dentro de i18n.min.js (mismo esquema que
+// la mascota) para que un cambio de textos no quede tapado por el cache.
+const I18N = {
+    src: 'js/core/i18n.js',
+    out: 'js/core/i18n.min.js',
+    langs: [{ lang: 'en', src: 'js/core/i18n-en.js', out: 'js/core/i18n-en.min.js', marker: '__I18N_EN_VERSION__' }],
+};
+let i18nSource = readSource(I18N.src);
+for (const { src, out, marker } of I18N.langs) {
+    const min = (await esbuild.transform(readSource(src), { loader: 'js', minify: true })).code;
+    writeUtf8(out, min);
+    if (!i18nSource.includes(marker)) throw new Error(`${I18N.src} no tiene el marcador ${marker}`);
+    const v = crypto.createHash('sha256').update(min).digest('hex').slice(0, 8);
+    i18nSource = i18nSource.split(marker).join(v);
+}
+writeUtf8(I18N.out, (await esbuild.transform(i18nSource, { loader: 'js', minify: true })).code);
+
 const cssBundle = concatCss();
 const cssLiteBundle = concatCss(CSS_LITE_SOURCES);
 const jsBundle = concatJs();
@@ -359,6 +379,7 @@ for (const file of htmlFiles) {
 for (const { to } of VENDOR_BUNDLES) assetPaths.add(to);
 assetPaths.add(MASCOT.jsOut);
 assetPaths.add(MASCOT.cssOut);
+for (const { out } of I18N.langs) assetPaths.add(out);
 
 // Se hashea el contenido NORMALIZADO (CRLF -> LF), no los bytes crudos: los
 // saltos de linea dependen de como llego el archivo al disco (git checkout con

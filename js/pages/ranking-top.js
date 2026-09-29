@@ -90,6 +90,8 @@
     function filaHtml(cat, item, pos) {
         var titulo = item.title || tr("rank.sin_titulo", "Sin título");
         var poster = window.getApiPoster ? window.getApiPoster(item) : "";
+        // Miniatura de 46 px: alcanza con la portada chica de AniList.
+        if (window.anilistCover) poster = window.anilistCover(poster, 'small');
         var url = "detalle.html?cat=" + encodeURIComponent(cat) + "&id=" + encodeURIComponent(item.id);
 
         return '<a class="trk-fila' + (pos <= 3 ? " trk-fila--podio" : "") + '" href="' + url + '">' +

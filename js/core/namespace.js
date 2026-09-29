@@ -32,7 +32,8 @@
     // 1. Registro de Service Worker (PWA)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-            navigator.serviceWorker.register('/sw.js').then(function (reg) {
+            // Relativo: en GitHub Pages el sitio vive en /Anime/ y '/sw.js' daba 404.
+            navigator.serviceWorker.register('sw.js').then(function (reg) {
                 reg.update();
             }).catch(function (err) {
                 console.warn('[AnimeDestiny:PWA] Error al registrar Service Worker:', err);

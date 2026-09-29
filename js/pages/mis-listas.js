@@ -196,7 +196,7 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
             <article class="list-row-card">
                 <div class="row-rank">${index}</div>
                 <a href="${escapeHtml(link)}">
-                    <img class="row-cover" src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" width="42" height="60" decoding="async" loading="lazy" data-fallback-catalog="1">
+                    <img class="row-cover" src="${safeUrl(anilistCover(item.img, 'small'))}" alt="${escapeHtml(item.titulo)}" width="42" height="60" decoding="async" loading="lazy" data-fallback-catalog="1">
                 </a>
                 <div class="row-info">
                     <div class="row-title">${escapeHtml(item.titulo)}</div>
@@ -218,7 +218,7 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
     return `
     <a class="wcard recommend-card" href="${escapeHtml(link)}" data-item-id="${safeId}" data-category="${escapeHtml(item.__category)}">
         <span class="wcard-media">
-            <img src="${safeUrl(item.img)}" alt="${title}" width="230" height="345" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${title}">
+            <img src="${safeUrl(item.img)}"${coverSrcsetAttrs(safeUrl(item.img))} alt="${title}" width="230" height="345" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${title}">
             ${match ? `<span class="wcard-pill">${escapeHtml(match)}</span>` : ''}
         </span>
         <span class="wcard-text">
@@ -343,7 +343,7 @@ async function renderCalendario() {
                     const link = 'detalle.html?cat=anime&id=' + encodeURIComponent(ep.id);
                     return `
                     <a class="calendar-row" href="${escapeHtml(link)}">
-                        ${ep.img ? `<img class="calendar-cover" src="${safeUrl(ep.img)}" alt="" width="44" height="60" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${escapeHtml(ep.title || '')}">` : '<span class="calendar-cover calendar-cover--empty"></span>'}
+                        ${ep.img ? `<img class="calendar-cover" src="${safeUrl(anilistCover(ep.img, 'small'))}" alt="" width="44" height="60" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${escapeHtml(ep.title || '')}">` : '<span class="calendar-cover calendar-cover--empty"></span>'}
                         <span class="calendar-info">
                             <span class="calendar-title">${escapeHtml(ep.title)}</span>
                             <span class="calendar-meta">EP ${ep.episode || '?'} • ${escapeHtml(hora)} hs</span>
@@ -647,7 +647,7 @@ function renderActividad() {
     
     grid.innerHTML = actividadItems.map((entry, idx) => {
         const title = escapeHtml(entry.titulo);
-        const img = safeUrl(entry.img);
+        const img = safeUrl(anilistCover(entry.img, 'small'));
         const cat = escapeHtml(CATEGORY_LABELS[entry.__category] || entry.__category || '');
         const link = getItemLink(entry);
         const epsLabel = entry.__category === 'anime' ? 'eps' : 'vols';
