@@ -1,5 +1,9 @@
 # Notificaciones push de nuevos episodios
 
+> Estado en producción (2026-09-29): claves VAPID cargadas como secretos,
+> migraciones 003 y 008 aplicadas, función desplegada. Falta correr
+> `server/migrations/010_push_sent_and_cron.sql` (registro de enviados + cron).
+
 Avisa a cada usuario cuando un anime que sigue ("Viendo") estrena un episodio.
 
 - **Cliente** (ya en el repo): `js/core/push.js` pide permiso, suscribe al
