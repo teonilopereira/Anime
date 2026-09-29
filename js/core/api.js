@@ -1300,6 +1300,54 @@
             }
         }`;
 
+    // Pozo de "Adiviná el anime": los 150 anime más populares, con lo justo
+    // para las pistas. Se cachea un día; la elección del día no depende del
+    // orden (ver retos.js), así que un cambio de popularidad no la mueve.
+    var QUIZ_POOL_QUERY = `
+        query ($page: Int) {
+            Page(page: $page, perPage: 50) {
+                media(type: ANIME, sort: POPULARITY_DESC, isAdult: false, format_in: [TV, MOVIE, ONA]) {
+                    id
+                    title { romaji english }
+                    synonyms
+                    format
+                    episodes
+                    seasonYear
+                    genres
+                    coverImage { extraLarge large }
+                    studios(isMain: true) { nodes { name } }
+                }
+            }
+        }`;
+
+    window.getQuizPool = async function () {
+        return fetchCached('quizPool_v1', 24 * 60 * 60 * 1000, async function () {
+            var pages = await Promise.all([1, 2, 3].map(function (page) {
+                return anilistFetch(QUIZ_POOL_QUERY, { page: page });
+            }));
+            var out = [];
+            pages.forEach(function (json) {
+                (json?.data?.Page?.media || []).forEach(function (m) {
+                    if (!m || !m.id) return;
+                    out.push({
+                        id: m.id,
+                        title: m.title?.romaji || m.title?.english || '',
+                        english: m.title?.english || '',
+                        synonyms: (m.synonyms || []).slice(0, 6),
+                        format: m.format || '',
+                        episodes: m.episodes || 0,
+                        year: m.seasonYear || null,
+                        genres: m.genres || [],
+                        studio: (m.studios?.nodes || [])[0]?.name || '',
+                        image: m.coverImage?.extraLarge || m.coverImage?.large || ''
+                    });
+                });
+            });
+            if (!out.length) throw new Error('Pozo del reto vacío');
+            return out;
+        });
+    };
+
     window.getStudioIdByName = async function (name) {
         var q = String(name || '').trim();
         if (!q) return null;

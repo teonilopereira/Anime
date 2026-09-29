@@ -350,3 +350,41 @@ body.menu-page .menu-container {
 @media (prefers-reduced-motion: reduce) {
     .home-mini-track { scroll-behavior: auto; }
 }
+
+/* Acceso a Retos debajo de la racha (js/pages/inicio.js). */
+.streak-missions {
+    display: block;
+    margin-top: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid rgba(188, 19, 254, 0.35);
+    background: rgba(188, 19, 254, 0.08);
+    color: var(--text-main);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.streak-missions:hover { border-color: var(--neon-purple); }
+
+/* Franja de acceso al reto del día (index.html). */
+.home-reto {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: 1068px;
+    margin: 14px auto 0;
+    padding: 14px 20px;
+    box-sizing: border-box;
+    width: calc(100% - 32px);
+    border-radius: var(--radius-lg, 16px);
+    border: 1px solid rgba(188, 19, 254, 0.4);
+    background: linear-gradient(135deg, rgba(188, 19, 254, 0.16), rgba(0, 242, 255, 0.08));
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.home-reto:hover { border-color: var(--neon-purple); }
+.home-reto svg { flex: none; color: var(--accent-cyan); }
+.home-reto-copy { flex: 1; display: grid; }
+.home-reto-copy strong { font-family: var(--font-display); letter-spacing: 0.04em; }
+.home-reto-copy span { color: var(--text-muted); }
