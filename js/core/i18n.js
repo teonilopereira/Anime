@@ -374,6 +374,7 @@
             "retos.quiz":              "Adiviná el anime",
             "retos.cargando":          "Cargando el reto de hoy…",
             "retos.misiones":          "Misiones",
+            "retos.personajes":        "Adiviná el personaje",
             "retos.resumen":           "Tu mes en Anime Destiny",
             "retos.este_mes":          "Este mes",
             "retos.mes_pasado":        "Mes pasado",

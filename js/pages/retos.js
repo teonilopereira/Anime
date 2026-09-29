@@ -281,10 +281,9 @@
         return starts.concat(contains).slice(0, 6);
     }
 
-    function wireQuizInput() {
-        var input = document.getElementById('quizGuess');
-        var list = document.getElementById('quizSuggest');
-        var skip = document.getElementById('quizSkip');
+    // Autocompletado compartido por los dos juegos: search(texto) devuelve los
+    // candidatos, render(item) el HTML de cada fila y onPick(item) juega.
+    function attachSuggest(input, list, search, render, onPick) {
         var current = [];
         var active = -1;
 
@@ -292,31 +291,46 @@
             if (!current.length) { list.hidden = true; list.innerHTML = ''; return; }
             list.hidden = false;
             list.innerHTML = current.map(function (m, i) {
-                var alt = m.english && m.english !== m.title ? '<small>' + esc(m.english) + '</small>' : '';
                 return '<li role="option" data-i="' + i + '"' + (i === active ? ' class="is-active" aria-selected="true"' : '') + '>' +
-                    esc(m.title) + alt + '</li>';
+                    render(m) + '</li>';
             }).join('');
         }
 
         input.addEventListener('input', function () {
-            current = suggestions(input.value);
+            current = search(input.value);
             active = current.length ? 0 : -1;
             paint();
         });
         input.addEventListener('keydown', function (e) {
             if (e.key === 'ArrowDown' && current.length) { active = (active + 1) % current.length; paint(); e.preventDefault(); }
             else if (e.key === 'ArrowUp' && current.length) { active = (active - 1 + current.length) % current.length; paint(); e.preventDefault(); }
-            else if (e.key === 'Enter' && active >= 0) { guess(current[active]); e.preventDefault(); }
+            else if (e.key === 'Enter' && active >= 0) { onPick(current[active]); e.preventDefault(); }
+            else if (e.key === 'Escape') { current = []; active = -1; paint(); }
         });
+        // Al salir del campo se cierra la lista, que si no tapa el botón de saltar.
+        input.addEventListener('blur', function () { current = []; active = -1; paint(); });
         // pointerdown y no click: el click llega después del blur del input.
         list.addEventListener('pointerdown', function (e) {
             var li = e.target.closest('li[data-i]');
             if (!li) return;
             e.preventDefault();
-            guess(current[Number(li.getAttribute('data-i'))]);
+            onPick(current[Number(li.getAttribute('data-i'))]);
         });
-        skip.addEventListener('click', function () { guess(null); });
         if (window.matchMedia && window.matchMedia('(pointer: fine)').matches) input.focus();
+    }
+
+    function wireQuizInput() {
+        attachSuggest(
+            document.getElementById('quizGuess'),
+            document.getElementById('quizSuggest'),
+            suggestions,
+            function (m) {
+                var alt = m.english && m.english !== m.title ? '<small>' + esc(m.english) + '</small>' : '';
+                return esc(m.title) + alt;
+            },
+            guess
+        );
+        document.getElementById('quizSkip').addEventListener('click', function () { guess(null); });
     }
 
     function guess(m) {
@@ -359,6 +373,236 @@
         quiz.answer = pickAnswer(quiz.pool, quiz.day);
         quiz.state = loadQuizState(quiz.day);
         renderQuiz();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Adiviná el personaje (modo libre por serie)
+    // ─────────────────────────────────────────────────────────────
+    // Elegís un anime o manga y adivinás sus personajes, todas las veces que
+    // quieras. No da EXP: es ilimitado y se podría farmear.
+    var CHAR_TRIES = 4;
+    var CHAR_BLUR = [18, 11, 6, 3];
+    var K_CHAR_SERIES = 'ad:charquiz:series';
+
+    var chars = { series: null, cast: [], current: null, guesses: [], status: 'idle', seen: {}, played: 0, won: 0, streak: 0, cat: 'anime' };
+
+    function charHost() { return document.getElementById('charBody'); }
+
+    // AniList pone esta imagen genérica a los personajes sin foto: no sirven.
+    function hasRealImage(c) { return c.image && !/\/default\.(jpg|png)$/i.test(c.image); }
+
+    function renderCharPicker(results, loading) {
+        var host = charHost();
+        if (!host) return;
+        var last = readJson(K_CHAR_SERIES);
+        host.innerHTML =
+            '<p class="quiz-intro">Elegí un anime o manga y adiviná sus personajes por la imagen. Jugás todas las veces que quieras.</p>' +
+            '<div class="char-pick">' +
+                '<div class="summary-months" role="group" aria-label="Tipo">' +
+                    '<button type="button" class="reto-chip' + (chars.cat === 'anime' ? ' is-active' : '') + '" data-charcat="anime">Anime</button>' +
+                    '<button type="button" class="reto-chip' + (chars.cat === 'manga' ? ' is-active' : '') + '" data-charcat="manga">Manga</button>' +
+                '</div>' +
+                '<div class="quiz-input">' +
+                    '<input type="text" id="charSeries" autocomplete="off" placeholder="Buscá un ' + (chars.cat === 'manga' ? 'manga' : 'anime') + '…" aria-label="Buscar serie">' +
+                '</div>' +
+            '</div>' +
+            (loading ? '<p class="reto-loading">Buscando…</p>' : '') +
+            (results && results.length ? '<ul class="char-results">' + results.map(function (m, i) {
+                var poster = typeof window.getApiPoster === 'function' ? window.getApiPoster(m) : '';
+                return '<li><button type="button" data-pick="' + i + '">' +
+                    (poster ? '<img src="' + esc(poster) + '" alt="" loading="lazy">' : '') +
+                    '<span>' + esc(m.title) + (m.startYear ? ' <small>' + m.startYear + '</small>' : '') + '</span></button></li>';
+            }).join('') + '</ul>' : '') +
+            (results && !results.length && !loading ? '<p class="quiz-intro">No encontramos nada con ese nombre.</p>' : '') +
+            (last && last.id && !results ? '<div class="quiz-actions"><button type="button" class="reto-btn reto-btn--ghost" id="charLast">Seguir con ' + esc(last.title) + '</button></div>' : '');
+
+        host.querySelectorAll('[data-charcat]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                chars.cat = b.getAttribute('data-charcat');
+                renderCharPicker(null);
+            });
+        });
+        var input = document.getElementById('charSeries');
+        if (chars.lastQuery && results) input.value = chars.lastQuery;
+        var timer = null;
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            var q = input.value.trim();
+            if (q.length < 2) return;
+            // Espera a que deje de tipear: cada búsqueda es un pedido a AniList.
+            timer = setTimeout(async function () {
+                chars.lastQuery = q;
+                var list = typeof window.buscarEnApi === 'function' ? await window.buscarEnApi(q, chars.cat) : [];
+                if (chars.lastQuery !== q) return;
+                chars.results = (list || []).slice(0, 8);
+                renderCharPicker(chars.results);
+                var again = document.getElementById('charSeries');
+                if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+            }, 450);
+        });
+        host.querySelectorAll('[data-pick]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var m = results[Number(b.getAttribute('data-pick'))];
+                pickSeries({ id: m.id, title: m.title, cat: chars.cat });
+            });
+        });
+        var lastBtn = document.getElementById('charLast');
+        if (lastBtn) lastBtn.addEventListener('click', function () { pickSeries(last); });
+    }
+
+    async function pickSeries(series) {
+        var host = charHost();
+        host.innerHTML = '<p class="reto-loading">Cargando personajes de ' + esc(series.title) + '…</p>';
+        var cast = typeof window.getCharactersByMediaId === 'function' ? await window.getCharactersByMediaId(series.id) : [];
+        cast = (cast || []).filter(hasRealImage);
+        // Con muy pocos personajes el juego es adivinar entre dos.
+        if (cast.length < 4) {
+            chars.results = null;
+            renderCharPicker(null);
+            host.insertAdjacentHTML('afterbegin', '<p class="quiz-result is-lost">' + esc(series.title) + ' tiene muy pocos personajes con imagen. Probá con otra serie.</p>');
+            return;
+        }
+        lsSet(K_CHAR_SERIES, JSON.stringify(series));
+        chars.series = series;
+        chars.cast = cast;
+        chars.seen = {};
+        chars.played = 0;
+        chars.won = 0;
+        chars.streak = 0;
+        nextCharacter();
+    }
+
+    function nextCharacter() {
+        var pool = chars.cast.filter(function (c) { return !chars.seen[c.id]; });
+        // Primero los principales y secundarios; los de fondo solo cuando no queda otra.
+        var main = pool.filter(function (c) { return c.role !== 'BACKGROUND'; });
+        if (main.length) pool = main;
+        if (!pool.length) {
+            chars.seen = {};
+            pool = chars.cast;
+        }
+        chars.current = pool[Math.floor(Math.random() * pool.length)];
+        chars.seen[chars.current.id] = 1;
+        chars.guesses = [];
+        chars.status = 'playing';
+        renderCharGame();
+    }
+
+    function charHints() {
+        var c = chars.current;
+        var role = { MAIN: 'Principal', SUPPORTING: 'Secundario', BACKGROUND: 'De fondo' }[c.role] || 'Sin dato';
+        return [
+            { label: 'Rol', value: role },
+            {
+                label: 'Nombre',
+                value: String(c.name).split(/\s+/).map(function (w) {
+                    return w.charAt(0) + w.slice(1).replace(/[^\s]/g, '•');
+                }).join(' ')
+            },
+            { label: 'Voz japonesa', value: c.vaName || 'Sin dato' }
+        ];
+    }
+
+    function renderCharGame() {
+        var host = charHost();
+        var c = chars.current;
+        var over = chars.status !== 'playing';
+        var n = chars.guesses.length;
+        var blur = over ? 0 : CHAR_BLUR[Math.min(n, CHAR_BLUR.length - 1)];
+        var hints = over ? charHints() : charHints().slice(0, n);
+
+        var html = '<div class="char-top">' +
+                '<span class="reto-pill">' + esc(chars.series.title) + '</span>' +
+                '<span class="char-score">' + chars.won + ' de ' + chars.played + (chars.streak > 1 ? ' · racha ' + chars.streak : '') + '</span>' +
+            '</div>' +
+            '<div class="quiz-grid">' +
+                '<div class="quiz-cover' + (over ? ' is-revealed' : '') + '">' +
+                    '<img src="' + esc(c.image) + '" alt="' + (over ? esc(c.name) : 'Personaje misterioso') + '" style="filter: blur(' + blur + 'px)" draggable="false">' +
+                '</div>' +
+                '<div class="quiz-side">';
+        if (hints.length) {
+            html += '<ul class="quiz-hints">' + hints.map(function (h) {
+                return '<li><span>' + esc(h.label) + '</span><strong>' + esc(h.value) + '</strong></li>';
+            }).join('') + '</ul>';
+        } else {
+            html += '<p class="quiz-intro">Tenés ' + CHAR_TRIES + ' intentos. Cada error aclara la imagen y suma una pista.</p>';
+        }
+        if (n) {
+            html += '<ol class="quiz-guesses">' + chars.guesses.map(function (g) {
+                var ok = g.id === c.id;
+                return '<li class="' + (ok ? 'is-ok' : 'is-bad') + '">' + (ok ? '✓ ' : '✗ ') + esc(g.skip ? 'Salteado' : g.name) + '</li>';
+            }).join('') + '</ol>';
+        }
+        if (!over) {
+            html += '<div class="quiz-input">' +
+                '<input type="text" id="charGuess" autocomplete="off" placeholder="Escribí el nombre del personaje…" aria-label="Tu respuesta" aria-controls="charSuggest">' +
+                '<ul id="charSuggest" class="quiz-suggest" role="listbox" hidden></ul>' +
+                '<button type="button" class="reto-btn reto-btn--ghost" id="charSkip">Saltar y ver pista</button>' +
+            '</div>';
+        } else {
+            var won = chars.status === 'won';
+            html += '<div class="quiz-end">' +
+                '<p class="quiz-result ' + (won ? 'is-won' : 'is-lost') + '">' +
+                    (won ? '¡Bien! En ' + n + (n === 1 ? ' intento.' : ' intentos.') : 'Era este:') + '</p>' +
+                '<a class="quiz-answer" href="personaje.html?tipo=character&amp;id=' + encodeURIComponent(c.id) + '">' + esc(c.name) + '</a>' +
+                '<div class="quiz-actions">' +
+                    '<button type="button" class="reto-btn" id="charNext">Otro personaje</button>' +
+                    '<button type="button" class="reto-btn reto-btn--ghost" id="charChange">Cambiar de serie</button>' +
+                '</div>' +
+            '</div>';
+        }
+        html += '</div></div>';
+        host.innerHTML = html;
+
+        if (!over) {
+            attachSuggest(
+                document.getElementById('charGuess'),
+                document.getElementById('charSuggest'),
+                charSuggestions,
+                function (m) { return esc(m.name); },
+                charGuess
+            );
+            document.getElementById('charSkip').addEventListener('click', function () { charGuess(null); });
+        } else {
+            document.getElementById('charNext').addEventListener('click', nextCharacter);
+            document.getElementById('charChange').addEventListener('click', function () {
+                chars.results = null;
+                renderCharPicker(null);
+            });
+        }
+    }
+
+    function charSuggestions(q) {
+        var n = norm(q);
+        if (n.length < 2) return [];
+        var guessed = {};
+        chars.guesses.forEach(function (g) { if (g.id) guessed[g.id] = 1; });
+        var starts = [], contains = [];
+        chars.cast.forEach(function (c) {
+            if (guessed[c.id]) return;
+            var name = norm(c.name);
+            // "Luffy" tiene que encontrar a "Monkey D. Luffy": cualquier palabra vale.
+            if (name.indexOf(n) === 0 || name.split(' ').some(function (w) { return w.indexOf(n) === 0; })) starts.push(c);
+            else if (name.indexOf(n) !== -1) contains.push(c);
+        });
+        return starts.concat(contains).slice(0, 6);
+    }
+
+    function charGuess(c) {
+        if (chars.status !== 'playing') return;
+        chars.guesses.push(c ? { id: c.id, name: c.name } : { skip: true });
+        if (c && c.id === chars.current.id) chars.status = 'won';
+        else if (chars.guesses.length >= CHAR_TRIES) chars.status = 'lost';
+        if (chars.status !== 'playing') {
+            chars.played += 1;
+            if (chars.status === 'won') { chars.won += 1; chars.streak += 1; }
+            else chars.streak = 0;
+        }
+        renderCharGame();
+    }
+
+    function initChars() {
+        if (charHost()) renderCharPicker(null);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -684,6 +928,7 @@
         wireSummaryMonths();
         renderSummary();
         initQuiz();
+        initChars();
         window.addEventListener('missions-updated', renderMissions);
         window.addEventListener('supabase-auth-changed', refreshSession);
         if (window.AppSupabaseReady && typeof window.AppSupabaseReady.then === 'function') {

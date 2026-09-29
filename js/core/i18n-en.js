@@ -381,6 +381,7 @@
         "retos.quiz":              "Guess the anime",
         "retos.cargando":          "Loading today’s challenge…",
         "retos.misiones":          "Missions",
+        "retos.personajes":        "Guess the character",
         "retos.resumen":           "Your month on Anime Destiny",
         "retos.este_mes":          "This month",
         "retos.mes_pasado":        "Last month",

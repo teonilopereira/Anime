@@ -177,12 +177,9 @@
 
 .quiz-input input:focus { outline: 2px solid var(--neon-purple); outline-offset: 1px; }
 
+/* En el flujo y no flotando: si flotara taparía el botón de saltar, y un toque
+   ahí elegiría una sugerencia sin querer. */
 .quiz-suggest {
-    position: absolute;
-    top: calc(var(--control-height, 42px) + 4px);
-    left: 0;
-    right: 0;
-    z-index: var(--z-dropdown, 300);
     margin: 0;
     padding: 6px;
     list-style: none;
@@ -327,3 +324,47 @@
     .quiz-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ── Adiviná el personaje ─────────────────────────────────────── */
+.char-pick { display: grid; gap: 10px; margin-top: 12px; }
+
+.char-results {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: 8px;
+}
+
+.char-results button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px;
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid rgba(var(--ink-rgb), 0.14);
+    background: rgba(var(--ink-rgb), 0.04);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.char-results button:hover { border-color: var(--neon-purple); }
+.char-results img { width: 40px; height: 56px; object-fit: cover; border-radius: 6px; flex: none; }
+.char-results span { min-width: 0; overflow-wrap: anywhere; }
+.char-results small { color: var(--text-muted); }
+
+.char-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.char-score { color: var(--text-muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
