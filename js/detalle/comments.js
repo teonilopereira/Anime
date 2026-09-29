@@ -738,6 +738,7 @@
 
             renderAll();
             showToast("Comentario publicado.", "success");
+            if (window.AppMissions) window.AppMissions.track('comment');
         } catch (err) {
             console.error("Error enviando comentario:", err);
             showToast(err.message || "No se pudo enviar el comentario.", "error");

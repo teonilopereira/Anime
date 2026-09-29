@@ -1,0 +1,329 @@
+/* retos.css — Página de retos: Adiviná el anime, misiones y resumen del mes.
+   Se carga suelto (no entra al bundle); el build le estampa la versión.
+   Usa los tokens de base.css/theme.css, así el tema claro sale solo. */
+
+.retos-page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 16px 64px;
+    display: grid;
+    gap: 22px;
+}
+
+.reto-card {
+    border-radius: var(--radius-lg, 16px);
+    border: 1px solid var(--accent-cyan-18, rgba(0, 242, 255, 0.18));
+    background: linear-gradient(135deg, rgba(188, 19, 254, 0.10), rgba(0, 242, 255, 0.05)), var(--surface-card);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    padding: 20px;
+    min-width: 0;
+}
+
+.reto-card--slim { padding: 14px 18px; }
+
+.reto-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.reto-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    color: var(--accent-cyan);
+}
+
+.reto-title svg { width: 20px; height: 20px; }
+
+.reto-num { color: var(--text-muted); font-size: 0.85rem; }
+
+.reto-pill {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid rgba(var(--ink-rgb), 0.14);
+}
+
+.reto-loading { color: var(--text-muted); text-align: center; padding: 32px 0; margin: 0; }
+
+.reto-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--control-height, 42px);
+    padding: 0 18px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid transparent;
+    background: var(--neon-purple);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.reto-btn:hover { filter: brightness(1.1); }
+.reto-btn:disabled { opacity: 0.6; cursor: wait; }
+.reto-btn svg { width: 18px; height: 18px; }
+
+.reto-btn--ghost {
+    background: transparent;
+    color: var(--text-main);
+    border-color: rgba(var(--ink-rgb), 0.22);
+}
+
+.reto-link { color: var(--accent-cyan); font-weight: 600; }
+.reto-xp { color: #22c55e; font-weight: 700; margin-left: 6px; }
+
+.reto-chip {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid rgba(var(--ink-rgb), 0.18);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.reto-chip.is-active {
+    color: var(--text-main);
+    border-color: var(--neon-purple);
+    background: rgba(188, 19, 254, 0.14);
+}
+
+/* ── Adiviná el anime ─────────────────────────────────────────── */
+.quiz-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.quiz-cover {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-md, 12px);
+    overflow: hidden;
+    background: rgba(var(--ink-rgb), 0.08);
+}
+
+.quiz-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* El blur deja ver los bordes transparentes: se agranda un poco. */
+    transform: scale(1.12);
+    transition: filter 0.5s ease, transform 0.5s ease;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.quiz-cover.is-revealed img { transform: none; }
+
+.quiz-side { min-width: 0; display: grid; gap: 14px; }
+
+.quiz-intro { margin: 0; color: var(--text-muted); }
+
+.quiz-hints {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.quiz-hints li {
+    display: grid;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm, 10px);
+    background: rgba(var(--ink-rgb), 0.06);
+}
+
+.quiz-hints span { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.quiz-hints strong { color: var(--text-main); overflow-wrap: anywhere; }
+
+.quiz-guesses { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.quiz-guesses li { padding: 6px 12px; border-radius: var(--radius-sm, 10px); font-weight: 600; overflow-wrap: anywhere; }
+.quiz-guesses .is-bad { background: rgba(239, 68, 68, 0.14); color: #ef4444; }
+.quiz-guesses .is-ok { background: rgba(34, 197, 94, 0.16); color: #16a34a; }
+
+.quiz-input { position: relative; display: grid; gap: 10px; }
+
+.quiz-input input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: var(--control-height, 42px);
+    padding: 0 14px;
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid rgba(var(--ink-rgb), 0.22);
+    background: rgba(var(--surface-dark-rgb), 0.6);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 1rem;
+}
+
+.quiz-input input:focus { outline: 2px solid var(--neon-purple); outline-offset: 1px; }
+
+.quiz-suggest {
+    position: absolute;
+    top: calc(var(--control-height, 42px) + 4px);
+    left: 0;
+    right: 0;
+    z-index: var(--z-dropdown, 300);
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid rgba(var(--ink-rgb), 0.18);
+    background: rgb(var(--surface-panel-rgb));
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.quiz-suggest li {
+    display: grid;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm, 10px);
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+.quiz-suggest li small { color: var(--text-muted); }
+.quiz-suggest li:hover,
+.quiz-suggest li.is-active { background: rgba(188, 19, 254, 0.18); }
+
+.quiz-end { display: grid; gap: 12px; }
+.quiz-result { margin: 0; font-size: 1.1rem; font-weight: 700; }
+.quiz-result.is-won { color: #16a34a; }
+.quiz-result.is-lost { color: var(--text-muted); }
+
+.quiz-answer {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--text-main);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.quiz-answer:hover { color: var(--accent-cyan); }
+
+.quiz-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.quiz-stats,
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    text-align: center;
+}
+
+.quiz-stats div,
+.summary-grid div {
+    display: grid;
+    padding: 10px 6px;
+    border-radius: var(--radius-sm, 10px);
+    background: rgba(var(--ink-rgb), 0.06);
+}
+
+.quiz-stats strong,
+.summary-grid strong { font-family: var(--font-display); font-size: 1.3rem; color: var(--text-main); }
+.quiz-stats span,
+.summary-grid span { font-size: 0.8rem; color: var(--text-muted); }
+
+.quiz-dist { display: grid; gap: 4px; }
+.quiz-dist-row { display: grid; grid-template-columns: 16px 1fr; gap: 8px; align-items: center; font-size: 0.85rem; color: var(--text-muted); }
+.quiz-dist-row i {
+    font-style: normal;
+    text-align: right;
+    padding: 1px 8px;
+    border-radius: 6px;
+    background: rgba(var(--ink-rgb), 0.14);
+    color: var(--text-main);
+    min-width: 24px;
+    box-sizing: border-box;
+}
+.quiz-dist-row i.is-mine { background: #16a34a; color: #fff; }
+
+.quiz-next { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+
+/* ── Misiones ─────────────────────────────────────────────────── */
+.mission-group {
+    margin: 4px 0 10px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.mission-group small { color: var(--text-muted); font-weight: 400; }
+
+.mission-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; }
+
+.mission {
+    display: grid;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md, 12px);
+    background: rgba(var(--ink-rgb), 0.05);
+}
+
+.mission-top { display: flex; justify-content: space-between; gap: 10px; }
+.mission-label { color: var(--text-main); font-weight: 600; }
+.mission-xp { color: var(--accent-cyan); font-weight: 700; white-space: nowrap; }
+.mission-count { font-size: 0.8rem; color: var(--text-muted); }
+
+.mission-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(var(--ink-rgb), 0.12);
+    overflow: hidden;
+}
+
+.mission-bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-purple), var(--accent-cyan));
+    transition: width 0.4s ease;
+}
+
+.mission.is-done { opacity: 0.75; }
+.mission.is-done .mission-label { color: #16a34a; }
+.mission.is-done .mission-bar i { background: #22c55e; }
+
+.mission-bonus { margin: 0 0 16px; font-size: 0.9rem; color: var(--text-muted); }
+.mission-bonus.is-done { color: #16a34a; font-weight: 600; }
+.mission-login { margin: 0 0 14px; color: var(--text-muted); }
+
+/* ── Resumen del mes ──────────────────────────────────────────── */
+.summary-months { display: flex; gap: 6px; }
+.summary-body { display: grid; gap: 14px; }
+.summary-lead { margin: 0; color: var(--text-main); font-size: 1.05rem; }
+.summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.summary-note { margin: 0; font-size: 0.8rem; color: var(--text-faint); }
+.summary-image { display: grid; gap: 12px; justify-items: start; }
+.summary-image img { width: min(100%, 360px); border-radius: var(--radius-md, 12px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+
+/* ── Avisos push ──────────────────────────────────────────────── */
+.push-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.push-row svg { color: var(--accent-cyan); flex: none; }
+.push-row p { margin: 0; flex: 1 1 220px; color: var(--text-main); }
+
+@media (max-width: 640px) {
+    .reto-card { padding: 16px; }
+    .quiz-grid { grid-template-columns: 1fr; }
+    .quiz-cover { width: min(100%, 240px); justify-self: center; }
+    .quiz-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

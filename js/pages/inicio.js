@@ -70,6 +70,24 @@
             '</div>';
     }
 
+    // Debajo de la racha: cuántas misiones de hoy van, con acceso a Retos.
+    function renderMissionTeaser() {
+        var host = document.getElementById('streakWidget');
+        if (!host || host.hidden || !window.AppMissions) return;
+        var old = host.querySelector('.streak-missions');
+        if (old) old.remove();
+        var s = window.AppMissions.getState();
+        if (!s.signedIn) return;
+        var done = s.daily.filter(function (m) { return m.done; }).length;
+        var a = document.createElement('a');
+        a.className = 'streak-missions';
+        a.href = 'retos.html';
+        a.textContent = done >= s.daily.length
+            ? 'Misiones de hoy completas ✓ · Jugá el reto del día'
+            : 'Misiones de hoy: ' + done + ' de ' + s.daily.length + ' · Ver retos';
+        host.appendChild(a);
+    }
+
     // ─────────────────────────────────────────────────────────────
     // 2 + 3. Datos desde Supabase
     // ─────────────────────────────────────────────────────────────
@@ -235,19 +253,25 @@
     // ─────────────────────────────────────────────────────────────
     // Arranque
     // ─────────────────────────────────────────────────────────────
-    function start() {
+    function renderTop() {
         renderStreakWidget();
-        window.addEventListener('streak-updated', renderStreakWidget);
+        renderMissionTeaser();
+    }
+
+    function start() {
+        renderTop();
+        window.addEventListener('streak-updated', renderTop);
+        window.addEventListener('missions-updated', renderTop);
 
         if (window.AppSupabaseReady && typeof window.AppSupabaseReady.then === 'function') {
             window.AppSupabaseReady.then(function () {
-                renderStreakWidget();
+                renderTop();
                 loadHomeData();
             }).catch(function () { /* sin supabase: solo carruseles públicos */ });
         }
         // La sesión puede resolverse después del ready inicial.
         window.addEventListener('supabase-auth-changed', function () {
-            renderStreakWidget();
+            renderTop();
             loadHomeData();
         });
     }

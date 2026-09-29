@@ -40,10 +40,16 @@ npm run build
 Esto vuelca la clave a `js/core/config.js` (`vapidPublicKey`). Sin este paso el
 cliente no puede suscribirse.
 
-### 3. Tabla de suscripciones
+### 3. Tablas: estado "Viendo" y suscripciones
 
-Ejecutá `server/migrations/008_push_subscriptions.sql` en el **SQL Editor** de
-Supabase.
+Ejecutá en el **SQL Editor** de Supabase, en este orden:
+
+1. `server/migrations/003_watch_status.sql`: agrega la columna `watch_status`.
+   La función avisa solo de lo que el usuario marcó como **Viendo**, y sin esta
+   migración ese estado queda solo en el navegador (al 2026-09-29 la base de
+   producción todavía no la tenía).
+2. `server/migrations/008_push_subscriptions.sql`: la tabla donde el navegador
+   guarda su suscripción.
 
 ### 4. Secrets de la edge function
 
@@ -86,6 +92,9 @@ Ajustá `VENTANA_MIN` en `index.ts` para que cubra el intervalo del cron (con
 
 ## Notas / cosas a revisar
 
+- **GitHub Pages y Netlify**: la notificación manda una URL relativa
+  (`detalle.html?...`) y `sw.js` la resuelve contra su propio scope, así que
+  abre el mismo sitio donde el usuario activó los avisos.
 - **Columnas de `item_states`**: la función filtra por `category = 'anime'` y
   `watch_status = 'viendo'`. Verificá esos nombres contra tu esquema y ajustá si
   hace falta.

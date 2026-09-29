@@ -487,6 +487,7 @@
             UserStore.setItem(storageKey, '1');
             if (typeof window._invalidateProgressIndex === 'function') window._invalidateProgressIndex();
             addUserPoints(userId, xp);
+            if (window.AppMissions) window.AppMissions.track(type === 'fav' ? 'fav' : 'viewed');
             if (window.Toast) {
                 if (type === 'fav') window.Toast.success(stTr('toast.fav_add', `¡Agregado a Favoritos! ❤️ (+${xp} EXP)`, { xp: xp }));
                 if (type === 'viewed') window.Toast.success(stTr('toast.visto_add', `¡Marcado como Visto! 👁️ (+${xp} EXP)`, { xp: xp }));

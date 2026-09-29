@@ -35,6 +35,7 @@
     ];
 
     const NAV_SECUNDARIOS = [
+        { id: "retos", href: "retos.html", icon: "target", i18n: "nav.retos", def: "Retos" },
         { id: "calendario", href: "calendario.html", icon: "calendar-days", i18n: "nav.calendario", def: "Calendario" },
         { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking" },
         { id: "comparar", href: "comparar.html", icon: "columns-2", i18n: "nav.comparar", def: "Comparar" },

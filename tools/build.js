@@ -108,6 +108,7 @@ const JS_SOURCES = [
     'js/catalog/pagination.js',
     'js/core/common-ui.js',
     'js/core/reminders.js',
+    'js/core/missions.js',
 ];
 
 // Mascota: bundle aparte que mascot-loader.js pide cuando la pagina ya cargo.

@@ -22,8 +22,6 @@ const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') || 'mailto:admin@animedestin
 // intervalo del cron (si corre cada 15 min, dejá 20 de margen).
 const VENTANA_MIN = 20;
 
-const SITE_URL = 'https://animedestiny.netlify.app';
-
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
@@ -126,7 +124,10 @@ Deno.serve(async () => {
       const payload = {
         title: `Nuevo episodio de ${info.titulo}`,
         body: `Ya salió el episodio ${info.episode}. ¡Miralo!`,
-        url: `${SITE_URL}/detalle.html?cat=anime&id=${mid}`,
+        // Relativa a propósito: sw.js la resuelve contra su scope, así el aviso
+        // abre el mismo sitio donde el usuario se suscribió (Netlify o GitHub
+        // Pages en /Anime/), no siempre Netlify.
+        url: `detalle.html?cat=anime&id=${mid}`,
         tag: `anime-${mid}-ep-${info.episode}`,
       };
       for (const sub of subs) {

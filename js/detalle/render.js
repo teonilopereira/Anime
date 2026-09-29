@@ -37,7 +37,15 @@ function startNextEpCountdown(localLayout) {
     window.__nextEpTimer = setInterval(tick, 30000);
 }
 
+// Ficha ya contada para la mision "abri 3 fichas": renderDetalle puede correr
+// mas de una vez para el mismo titulo (recarga de datos) y eso no es otra ficha.
+let _missionDetailId = null;
+
 function renderDetalle(item, nombreUrl, categoria) {
+    if (window.AppMissions && item && item.id != null && String(item.id) !== _missionDetailId) {
+        _missionDetailId = String(item.id);
+        window.AppMissions.track('detail');
+    }
     window.__lastRenderedItem = AnimeDestiny.internals.__lastRenderedItem = item;
     window.__lastRenderedCategory = AnimeDestiny.internals.__lastRenderedCategory = categoria;
 
@@ -570,6 +578,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                         : (AnimeDestiny.Constants.XP_FAV || 5);
                     addUserPoints(uId, xp);
                 }
+                if (window.AppMissions) window.AppMissions.track(type === 'fav' ? 'fav' : 'viewed');
             } else {
                 UserStore.removeItem(key);
             }
@@ -635,6 +644,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         const uId = getCurrentUserIdSafe();
         if (uId === 'Invitado' || typeof addUserPoints !== 'function') return;
         addUserPoints(uId, AnimeDestiny.Constants.XP_PROGRESS || 2);
+        if (window.AppMissions) window.AppMissions.track('progress');
     }
 
     function maybeGrantCompletionBonus() {
@@ -680,6 +690,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     addUserPoints(uId, AnimeDestiny.Constants.XP_SHARE || 5);
                     if (window.Toast) window.Toast.success("¡Compartido! (+" + (AnimeDestiny.Constants.XP_SHARE || 5) + " EXP)");
                 }
+                if (window.AppMissions) window.AppMissions.track('share');
             }
             if (navigator.share) {
                 navigator.share(shareData).then(onShareDone).catch(err => console.warn('Error al compartir:', err));
