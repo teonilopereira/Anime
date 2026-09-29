@@ -5,12 +5,20 @@
     var PER_PAGE = AnimeDestiny.Constants.PER_PAGE || 40;
     var REQUEST_TIMEOUT = AnimeDestiny.Constants.REQUEST_TIMEOUT_MS || 12000;
 
+    // Marca cuándo AniList falló por red, timeout, rate limit o caída (no por
+    // "no existe"). El detalle lo usa para no decir "No encontrado" cuando en
+    // realidad lo que falló fue la conexión.
+    function marcarFalloDeApi() {
+        if (window.AnimeDestiny && AnimeDestiny.internals) AnimeDestiny.internals.anilistFalloEn = Date.now();
+    }
+
     function anilistFetch(query, variables, retries) {
         if (retries === undefined) retries = 2;
         return new Promise(function (resolve, reject) {
             var controller = new AbortController();
             var timer = setTimeout(function () {
                 controller.abort();
+                marcarFalloDeApi();
                 reject(new Error('Timeout'));
             }, REQUEST_TIMEOUT);
 
@@ -26,11 +34,13 @@
             }).then(function (res) {
                 done();
                 if (!res.ok) {
+                    if ((res.status === 429 && retries <= 0) || res.status >= 500) marcarFalloDeApi();
                     if (res.status === 429 && retries > 0) {
                         var retryAfter = res.headers.get('Retry-After');
                         var delay = retryAfter ? (parseInt(retryAfter, 10) * 1000) : Math.min(2000 * (4 - retries), 6000);
                         
                         if (delay > 15000) {
+                            marcarFalloDeApi();
                             return res.text().then(function (text) {
                                 reject(new Error('Límite de peticiones de AniList excedido. Espera unos minutos.'));
                             });
@@ -64,6 +74,7 @@
                 if (json) resolve(json);
             }).catch(function (err) {
                 done();
+                if (err && err.name !== 'AbortError') marcarFalloDeApi();
                 reject(err);
             });
         });

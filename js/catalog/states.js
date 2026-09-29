@@ -105,7 +105,7 @@
     function setWatchStatus(itemId, status, meta) {
         const userId = getCurrentUserId();
         if (userId === 'Invitado') {
-            window.location.href = 'Login.html';
+            if (typeof window.pedirLogin === 'function') window.pedirLogin(); else window.location.href = 'Login.html';
             return '';
         }
         const clean = WATCH_STATUSES.includes(status) ? status : '';
@@ -472,7 +472,7 @@
     function toggleStatus(btn, type, itemId) {
         const userId = getCurrentUserId();
         if (userId === 'Invitado') {
-            window.location.href = 'Login.html';
+            if (typeof window.pedirLogin === 'function') window.pedirLogin(); else window.location.href = 'Login.html';
             return;
         }
 

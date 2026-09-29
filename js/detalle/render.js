@@ -563,7 +563,7 @@ function renderDetalle(item, nombreUrl, categoria) {
 
             // Bug 2 fix: redirigir a login si el usuario es invitado
             if (uId === 'Invitado') {
-                window.location.href = 'Login.html';
+                if (typeof window.pedirLogin === 'function') window.pedirLogin(); else window.location.href = 'Login.html';
                 return;
             }
 

@@ -368,10 +368,43 @@ function renderApiDetalle(item, apiCat) {
         return;
     }
 
-    cargarDetalleDesdeApi(params.id, params.cat, params.nombre).then(function (found) {
-        if (!found) {
-            setDetailViewState('error', 'No encontrado', 'No se pudo encontrar el t\u00EDtulo en las APIs.');
+    var retryBtn = document.getElementById('detail-error-retry');
+    var intentoDesde = Date.now();
+
+    function mostrarFalloDeCarga() {
+        var falloEn = window.AnimeDestiny?.internals?.anilistFalloEn || 0;
+        var sinRed = typeof navigator !== 'undefined' && navigator.onLine === false;
+        if (sinRed || falloEn >= intentoDesde) {
+            // Fall\u00F3 la conexi\u00F3n o AniList, no es que el t\u00EDtulo no exista.
+            setDetailViewState('error',
+                trOr('detail.err_conexion', 'No se pudo cargar'),
+                trOr('detail.err_conexion_msg', 'Hubo un problema al conectar con AniList. Revis\u00E1 tu conexi\u00F3n y toc\u00E1 Reintentar.'));
+            var kicker = document.getElementById('detail-error-kicker');
+            if (kicker) kicker.textContent = trOr('detail.err_conexion_kicker', 'Error de conexi\u00F3n');
+            if (retryBtn) retryBtn.hidden = false;
+        } else {
+            setDetailViewState('error', trOr('detail.no_encontrado_kicker', 'No encontrado'), 'No se pudo encontrar el t\u00EDtulo en las APIs.');
+            if (retryBtn) retryBtn.hidden = true;
         }
+    }
+
+    function trOr(key, fallback) {
+        var out = window.AppI18n && typeof window.AppI18n.t === 'function' ? window.AppI18n.t(key) : '';
+        return out && out.charAt(0) !== '[' ? out : fallback;
+    }
+
+    if (retryBtn) {
+        retryBtn.addEventListener('click', function () {
+            retryBtn.hidden = true;
+            intentoDesde = Date.now();
+            cargarDetalleDesdeApi(params.id, params.cat, params.nombre).then(function (found) {
+                if (!found) mostrarFalloDeCarga();
+            });
+        });
+    }
+
+    cargarDetalleDesdeApi(params.id, params.cat, params.nombre).then(function (found) {
+        if (!found) mostrarFalloDeCarga();
         // Los comentarios se escopean por id: sin id (entrada por nombre) no se
         // cargan para no mezclar hilos bajo una clave vac\u00EDa.
         if (params.id && window.AnimeDestiny?.Comments?.load) {

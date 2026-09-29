@@ -403,13 +403,13 @@ function describirErrorDeApi(error) {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         return {
             kicker: catTr('card.err.sin_conexion.kicker', 'Sin conexión'),
-            detalle: catTr('card.err.sin_conexion.detalle', 'Parece que te quedaste sin internet. Reconectate y recargá la página.')
+            detalle: catTr('card.err.sin_conexion.detalle', 'Parece que te quedaste sin internet. Reconectate y tocá Reintentar.')
         };
     }
     if (msg.includes('429') || msg.includes('Límite de peticiones')) {
         return {
             kicker: catTr('card.err.rate.kicker', 'Demasiadas peticiones'),
-            detalle: catTr('card.err.rate.detalle', 'AniList está limitando las peticiones por exceso de uso. Esperá un minuto y recargá — no es un problema de tu conexión.')
+            detalle: catTr('card.err.rate.detalle', 'AniList está limitando las peticiones por exceso de uso. Esperá un minuto y tocá Reintentar, no es un problema de tu conexión.')
         };
     }
     if (msg.includes('Timeout')) {
@@ -420,7 +420,7 @@ function describirErrorDeApi(error) {
     }
     return {
         kicker: catTr('card.err.generico.kicker', 'API no disponible'),
-        detalle: catTr('card.err.generico.detalle', 'Revisá tu conexión, esperá unos segundos y recargá la página.')
+        detalle: catTr('card.err.generico.detalle', 'Revisá tu conexión y tocá Reintentar.')
     };
 }
 
@@ -587,8 +587,17 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
                     <span class="empty-state-kicker">${escapeHtml(causa.kicker)}</span>
                     <h2>${escapeHtml(catTr('card.err.titulo', 'No se pudo cargar el catálogo de {tipo}.', { tipo: loaderLabel }))}</h2>
                     <p>${escapeHtml(causa.detalle)}</p>
+                    <button type="button" class="empty-state-retry">${escapeHtml(catTr('card.err.reintentar', 'Reintentar'))}</button>
                 </section>
             `;
+            const retryBtn = mainContainer.querySelector('.empty-state-retry');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', function () {
+                    retryBtn.disabled = true;
+                    retryBtn.textContent = catTr('card.err.reintentando', 'Cargando…');
+                    cargarCatalogoDesdeApi(categoria, mainContainer, page, false);
+                });
+            }
             try { inicializarBusquedaCatalogo(); } catch (e) {}
             try { inicializarGeneroWidgets(); } catch (e) {}
         }
