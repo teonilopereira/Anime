@@ -9,9 +9,9 @@
  * 'progress' | 'share' | 'comment' | 'detail' | 'quiz_play' | 'quiz_win').
  * 'visit' lo registra este mismo archivo al detectar sesión, una vez por día.
  *
- * Todo vive en localStorage por usuario, igual que la racha: son contadores
- * locales que no necesitan viajar al servidor. Además se guarda un total por
- * mes que usa el resumen mensual de retos.html.
+ * Vive en localStorage por usuario, igual que la racha, y game-sync.js lo
+ * copia a la nube. Además se guarda un total por mes que usa el resumen
+ * mensual de retos.html.
  *
  * Claves:
  *   ad:mis:<uid>:d:<YYYY-MM-DD>  → { counts, done } del día (se borran los viejos)
@@ -44,7 +44,11 @@
     ];
 
     function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) { /* lleno/bloqueado */ } }
+    function lsSet(k, v) {
+        try { localStorage.setItem(k, v); } catch (_) { /* lleno/bloqueado */ }
+        // Avisa a game-sync.js para subir el cambio a la nube.
+        if (window.AppGameSync) window.AppGameSync.touch();
+    }
     function lsRemove(k) { try { localStorage.removeItem(k); } catch (_) { /* bloqueado */ } }
     function lsKeys() {
         try {
