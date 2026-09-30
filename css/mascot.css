@@ -454,4 +454,14 @@
     .mascot-bubble {
         font-size: 0.82rem;
     }
+    /* La mascota camina por el borde de abajo, justo encima de la barra, y al
+       llegar al final de la página tapaba el texto del pie. Este espacio extra
+       (solo cuando la mascota está en pantalla) deja que el pie suba por
+       encima de ella. */
+    body:has(.mascot-root) .app-footer::after {
+        content: "";
+        display: block;
+        /* barra inferior (~72px) + alto de la mascota (~72px) */
+        height: calc(150px + env(safe-area-inset-bottom, 0px));
+    }
 }

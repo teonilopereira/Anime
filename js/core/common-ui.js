@@ -421,7 +421,6 @@
         const lang = window.AppI18n ? window.AppI18n.getLang() : "es";
 
         // Translate static footer titles/links
-        const redesTitle = lang === "en" ? "Social" : "Redes";
         const privacidadText = lang === "en" ? "Privacy" : "Privacidad";
         const terminosText = lang === "en" ? "Terms" : "Términos";
 
@@ -499,17 +498,6 @@
             cols += `<div class="app-footer-col">
 <div class="app-footer-title">${title}</div>
 <p class="app-footer-text">${text}</p>
-</div>`;
-        }
-
-        if (!data.col3) {
-            cols += `<div class="app-footer-col">
-<div class="app-footer-title">${redesTitle}</div>
-<div class="app-footer-social">
-<a class="app-footer-icon" href="#" aria-label="X">\uD835\uDD4F</a>
-<a class="app-footer-icon" href="#" aria-label="Instagram">IG</a>
-<a class="app-footer-icon" href="#" aria-label="YouTube">YT</a>
-</div>
 </div>`;
         }
 

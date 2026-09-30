@@ -516,6 +516,12 @@
     letter-spacing: 0.06em;
     transition: all 0.2s ease;
 }
+.detail-retry {
+    margin: 0 8px 8px 0;
+    background: rgba(188,19,254,0.12);
+    cursor: pointer;
+}
+.detail-retry[hidden] { display: none; }
 .detail-back:hover {
     background: rgba(188,19,254,0.12);
     border-color: var(--neon-purple);
