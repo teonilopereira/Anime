@@ -368,3 +368,16 @@
 }
 
 .char-score { color: var(--text-muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+/* ── Modo del quiz (Del día / Libre) ──────────────────────────── */
+.quiz-modes {
+    display: flex;
+    align-items: center;
+    gap: 8px 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.quiz-modes .summary-months { flex-wrap: wrap; }
+.quiz-combo { color: var(--text-muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.char-progress { margin: -6px 0 14px; color: var(--text-muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.char-progress strong { color: var(--text-main); }
