@@ -923,6 +923,173 @@ body.reduce-motion .destiny-navbar {
     }
 }
 
+/* ── Hoja "Más" del celular ───────────────────────────────────────────────
+   El botón "Más" del bottom nav desplegaba la navbar de arriba entera: repetía
+   las cuatro pestañas que ya están abajo y escondía Retos, Calendario, etc.
+   detrás de un segundo "Más" cuyo panel se salía de la hoja. Ahora la navbar
+   sube desde abajo, pegada al botón que la abre, y muestra directo el usuario
+   y los destinos secundarios en grilla. Va prefijado con body.has-bottom-nav
+   para ganarle a los paddings de responsive.css, que viene después en el
+   bundle. */
+@media (max-width: 700px) {
+    body.has-bottom-nav .destiny-navbar,
+    body.has-bottom-nav .destiny-navbar.is-scrolled {
+        top: auto;
+        bottom: 0;
+        z-index: 999;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        max-height: calc(100dvh - 40px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 18px 16px calc(80px + env(safe-area-inset-bottom, 0px));
+        border-radius: 20px 20px 0 0;
+        border-bottom: 0;
+        transform: translateY(105%);
+        box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.5);
+    }
+
+    body.has-bottom-nav .destiny-navbar.is-open {
+        transform: translateY(0);
+    }
+
+    /* Esquinas HUD y barrido inferior: en una hoja que sube desde abajo
+       quedaban cortadas o tapadas por el bottom nav. */
+    body.has-bottom-nav .destiny-navbar::before,
+    body.has-bottom-nav .destiny-navbar::after {
+        display: none;
+    }
+
+    /* Fila superior: marca a la izquierda, usuario a la derecha. */
+    body.has-bottom-nav .destiny-navbar #nav-brand-container,
+    body.has-bottom-nav .destiny-navbar .nav-actions {
+        order: 0;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-actions {
+        position: absolute;
+        top: 18px;
+        right: 16px;
+        width: auto;
+        margin: 0;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-user {
+        padding: 0;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-links {
+        order: 1;
+        display: block;
+        min-height: 0;
+        padding: 0;
+        margin: 0;
+        background: none;
+        border: 0;
+    }
+
+    /* Las cuatro principales ya están en la barra de abajo. */
+    body.has-bottom-nav .destiny-navbar .nav-links > .nav-btn,
+    body.has-bottom-nav .destiny-navbar .nav-more-btn {
+        display: none;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more {
+        display: block;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more-menu,
+    body.has-bottom-nav .destiny-navbar .nav-more-menu[hidden] {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more-menu::before {
+        display: none;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more-item {
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+        min-height: 84px;
+        padding: 12px 6px;
+        border: 1px solid rgba(77, 134, 255, 0.18);
+        border-radius: 14px;
+        background: rgba(var(--ink-rgb), 0.04);
+        font-size: 0.78rem;
+        line-height: 1.2;
+        text-align: center;
+        white-space: normal;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more-item:active {
+        background: rgba(77, 134, 255, 0.2);
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more-item.is-active {
+        border-color: rgba(77, 134, 255, 0.6);
+        box-shadow: 0 0 14px rgba(77, 134, 255, 0.25);
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more-icon {
+        width: 26px;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-more-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Fondo oscuro detrás de la hoja: tocarlo la cierra. */
+    .nav-sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 998;
+        background: rgba(2, 4, 12, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    body.nav-sheet-open .nav-sheet-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    body.nav-sheet-open {
+        overflow: hidden;
+    }
+
+    /* La mascota vive por encima de todo (z-index de toast) y se paseaba
+       sobre los botones de la hoja. */
+    body.nav-sheet-open .mascot-root {
+        visibility: hidden;
+    }
+}
+
+.nav-sheet-backdrop {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    .nav-sheet-backdrop {
+        display: block;
+    }
+}
+
 /* Mismas reglas que el bloque de abajo, pero para el ajuste "Reducir
    animaciones" de la pagina de configuracion: states.js pone esta clase en el
    body y hasta ahora ningun CSS la miraba, asi que el toggle no hacia nada.
