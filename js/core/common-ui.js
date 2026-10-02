@@ -298,41 +298,50 @@
         document.body.appendChild(nav);
         document.body.classList.add('has-bottom-nav');
 
-        // Cerrar navbar top al hacer click en cualquier link del bottom bar
-        nav.addEventListener('click', (e) => {
-            const link = e.target.closest('.bottom-tab');
-            if (!link) return;
+        // "Más": sube la navbar desde abajo como hoja, con el usuario y los
+        // destinos secundarios a la vista (las cuatro principales ya están en
+        // esta barra, así que la hoja no las repite).
+        const moreBtn = nav.querySelector('.bottom-tab-more');
+        moreBtn.setAttribute('aria-expanded', 'false');
+        moreBtn.setAttribute('aria-controls', 'nav-more-menu');
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'nav-sheet-backdrop';
+        backdrop.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(backdrop);
+
+        const abrirHoja = (estado) => {
             const navbar = document.querySelector('.destiny-navbar');
-            if (navbar) navbar.classList.remove('is-open');
-            const moreBtn = nav.querySelector('.bottom-tab-more');
-            if (moreBtn) moreBtn.classList.remove('is-open');
+            if (!navbar) return;
+            navbar.classList.toggle('is-open', estado);
+            moreBtn.classList.toggle('is-open', estado);
+            moreBtn.setAttribute('aria-expanded', String(estado));
+            document.body.classList.toggle('nav-sheet-open', estado);
+        };
+        const hojaAbierta = () => moreBtn.classList.contains('is-open');
+
+        moreBtn.addEventListener('click', (e) => {
+            // Sin esto el click sigue subiendo hasta el listener que cierra
+            // el desplegable al tocar afuera.
+            e.stopPropagation();
+            abrirHoja(!hojaAbierta());
         });
 
-        // "Más": despliega la navbar superior, que en mobile entra desde arriba
-        // y trae el buscador, el usuario y el menú secundario.
-        const moreBtn = nav.querySelector('.bottom-tab-more');
-        if (moreBtn) {
-            moreBtn.addEventListener('click', (e) => {
-                const navbar = document.querySelector('.destiny-navbar');
-                if (!navbar) return;
-                // Sin esto el click sigue subiendo hasta el listener que cierra
-                // el desplegable al tocar afuera, y el menú se abriría y
-                // cerraría en el mismo gesto.
-                e.stopPropagation();
-                const isOpen = navbar.classList.toggle('is-open');
-                moreBtn.classList.toggle('is-open', isOpen);
-                // Al cerrar la hoja se contrae también el menú secundario, para
-                // que la próxima vez que se abra no aparezca ya desplegado.
-                if (typeof window.__navMoreClose === 'function') window.__navMoreClose();
-                if (isOpen) {
-                    // El menú secundario arranca contraído: la hoja muestra las
-                    // pestañas principales y el botón "Más", y quien busca
-                    // Calendario/Comparar/Ranking lo toca para desplegarlo.
-                    const input = navbar.querySelector('.nav-search-input');
-                    if (input) setTimeout(() => input.focus(), 100);
-                }
-            });
-        }
+        // Tocar una pestaña, el fondo o apretar Escape cierra la hoja.
+        nav.addEventListener('click', (e) => {
+            if (e.target.closest('.bottom-tab')) abrirHoja(false);
+        });
+        backdrop.addEventListener('click', () => abrirHoja(false));
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && hojaAbierta()) {
+                abrirHoja(false);
+                moreBtn.focus();
+            }
+        });
+
+        // Al volver con el botón "atrás" el navegador puede restaurar la
+        // página desde caché con la hoja todavía abierta.
+        window.addEventListener('pageshow', () => abrirHoja(false));
     };
 
     // ── LOGIN / USER AREA ──
