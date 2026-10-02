@@ -1326,6 +1326,7 @@
                     episodes
                     seasonYear
                     genres
+                    popularity
                     coverImage { extraLarge large }
                     studios(isMain: true) { nodes { name } }
                     __MAIN__
@@ -1334,7 +1335,7 @@
         }`;
 
     window.getQuizPool = async function () {
-        return fetchCached('quizPool_v2', 24 * 60 * 60 * 1000, async function () {
+        return fetchCached('quizPool_v3', 24 * 60 * 60 * 1000, async function () {
             function load(withMain) {
                 var q = QUIZ_POOL_QUERY.replace('__MAIN__', withMain ? QUIZ_POOL_FIELDS_MAIN : '');
                 return Promise.all([1, 2, 3].map(function (page) {
@@ -1362,6 +1363,7 @@
                         episodes: m.episodes || 0,
                         year: m.seasonYear || null,
                         genres: m.genres || [],
+                        popularity: m.popularity || 0,
                         studio: (m.studios?.nodes || [])[0]?.name || '',
                         image: m.coverImage?.extraLarge || m.coverImage?.large || '',
                         // Foto del protagonista para la última pista; la genérica
