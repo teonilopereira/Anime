@@ -474,3 +474,38 @@
     .deque-options .game-cover { aspect-ratio: 3 / 4; }
     .deque-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ── Pestañas de Retos ────────────────────────────────────────── */
+.retos-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+}
+.retos-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    padding: 9px 16px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid rgba(var(--ink-rgb), 0.18);
+    background: rgba(var(--ink-rgb), 0.04);
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.retos-tab svg { width: 16px; height: 16px; }
+.retos-tab:hover { color: var(--text-main); }
+.retos-tab.is-active {
+    color: #fff;
+    background: var(--neon-purple);
+    border-color: var(--neon-purple);
+}
+.retos-tab[hidden] { display: none; }
+.is-off-tab { display: none !important; }
+.game-help { margin: 0 0 12px; }
