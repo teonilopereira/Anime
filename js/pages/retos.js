@@ -395,6 +395,13 @@
         return starts.concat(contains).slice(0, 6);
     }
 
+    // Miniatura de cada sugerencia (portada o foto del personaje).
+    function suggestThumb(src) {
+        return src
+            ? '<img class="quiz-suggest-img" src="' + esc(src) + '" alt="" loading="lazy" draggable="false">'
+            : '<span class="quiz-suggest-img" aria-hidden="true"></span>';
+    }
+
     // Autocompletado compartido por los dos juegos: search(texto) devuelve los
     // candidatos, render(item) el HTML de cada fila y onPick(item) juega.
     function attachSuggest(input, list, search, render, onPick) {
@@ -440,7 +447,7 @@
             suggestions,
             function (m) {
                 var alt = m.english && m.english !== m.title ? '<small>' + esc(m.english) + '</small>' : '';
-                return esc(m.title) + alt;
+                return suggestThumb(m.image) + '<span class="quiz-suggest-text">' + esc(m.title) + alt + '</span>';
             },
             guess
         );
@@ -710,7 +717,7 @@
                 document.getElementById('charGuess'),
                 document.getElementById('charSuggest'),
                 charSuggestions,
-                function (m) { return esc(m.name); },
+                function (m) { return suggestThumb(m.image) + '<span class="quiz-suggest-text">' + esc(m.name) + '</span>'; },
                 charGuess
             );
             document.getElementById('charSkip').addEventListener('click', function () { charGuess(null); });
