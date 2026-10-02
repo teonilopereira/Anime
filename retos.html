@@ -22,17 +22,17 @@
     <meta property="og:image" content="https://animedestiny.netlify.app/images/icon-512.png">
     <meta name="twitter:card" content="summary">
 
-    <link rel="stylesheet" href="css/bundle.min.css?v=e4c5576a">
-    <link rel="stylesheet" href="css/retos.css?v=e4c5576a">
+    <link rel="stylesheet" href="css/bundle.min.css?v=d3e539e5">
+    <link rel="stylesheet" href="css/retos.css?v=d3e539e5">
 
     <link rel="preconnect" href="https://graphql.anilist.co" crossorigin>
     <link rel="preconnect" href="https://s4.anilist.co">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=e4c5576a">
+    <link rel="stylesheet" href="css/fonts.css?v=d3e539e5">
 
-    <script src="js/vendor/lucide.min.js?v=e4c5576a" defer></script>
-    <script src="js/core/theme.js?v=e4c5576a"></script>
+    <script src="js/vendor/lucide.min.js?v=d3e539e5" defer></script>
+    <script src="js/core/theme.js?v=d3e539e5"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="retos">
@@ -50,8 +50,17 @@
     </header>
 
     <main class="retos-page" id="main-content">
+        <!-- Pestañas: una por juego y una para misiones y resumen (retos-juegos.js) -->
+        <div class="retos-tabs" role="tablist" aria-label="Retos">
+            <button type="button" role="tab" class="retos-tab" id="tab-anime" data-tab="anime" aria-controls="quiz"><i data-lucide="target"></i> <span data-i18n="retos.tab_anime">Del día</span></button>
+            <button type="button" role="tab" class="retos-tab" id="tab-personajes" data-tab="personajes" aria-controls="chars"><i data-lucide="users"></i> <span data-i18n="retos.tab_personajes">Personajes</span></button>
+            <button type="button" role="tab" class="retos-tab" id="tab-popular" data-tab="popular" aria-controls="versus"><i data-lucide="arrow-left-right"></i> <span data-i18n="retos.tab_popular">Más popular</span></button>
+            <button type="button" role="tab" class="retos-tab" id="tab-deque" data-tab="deque" aria-controls="deque"><i data-lucide="clapperboard"></i> <span data-i18n="retos.tab_deque">¿De qué anime?</span></button>
+            <button type="button" role="tab" class="retos-tab" id="tab-misiones" data-tab="misiones" aria-controls="missions"><i data-lucide="swords"></i> <span data-i18n="retos.tab_misiones">Misiones</span></button>
+        </div>
+
         <!-- Adiviná el anime (js/pages/retos.js) -->
-        <section class="reto-card quiz" id="quiz" aria-labelledby="quizTitle">
+        <section class="reto-card quiz" id="quiz" data-tab-panel="anime" role="tabpanel" aria-labelledby="quizTitle">
             <div class="reto-head">
                 <h2 id="quizTitle" class="reto-title"><i data-lucide="target"></i> <span data-i18n="retos.quiz">Adiviná el anime</span> <span id="quizNumber" class="reto-num"></span></h2>
                 <span id="quizTries" class="reto-pill"></span>
@@ -62,7 +71,7 @@
         </section>
 
         <!-- Adiviná el personaje, modo libre por serie (js/pages/retos.js) -->
-        <section class="reto-card" id="chars" aria-labelledby="charsTitle">
+        <section class="reto-card" id="chars" data-tab-panel="personajes" role="tabpanel" aria-labelledby="charsTitle">
             <div class="reto-head">
                 <h2 id="charsTitle" class="reto-title"><i data-lucide="users"></i> <span data-i18n="retos.personajes">Adiviná el personaje</span></h2>
             </div>
@@ -70,7 +79,7 @@
         </section>
 
         <!-- ¿Cuál es más popular? (js/pages/retos-juegos.js) -->
-        <section class="reto-card" id="versus" aria-labelledby="versusTitle">
+        <section class="reto-card" id="versus" data-tab-panel="popular" role="tabpanel" aria-labelledby="versusTitle">
             <div class="reto-head">
                 <h2 id="versusTitle" class="reto-title"><i data-lucide="arrow-left-right"></i> <span data-i18n="retos.versus">¿Cuál es más popular?</span></h2>
             </div>
@@ -80,7 +89,7 @@
         </section>
 
         <!-- ¿De qué anime es? (js/pages/retos-juegos.js) -->
-        <section class="reto-card" id="deque" aria-labelledby="dequeTitle">
+        <section class="reto-card" id="deque" data-tab-panel="deque" role="tabpanel" aria-labelledby="dequeTitle">
             <div class="reto-head">
                 <h2 id="dequeTitle" class="reto-title"><i data-lucide="clapperboard"></i> <span data-i18n="retos.deque">¿De qué anime es?</span></h2>
             </div>
@@ -90,7 +99,7 @@
         </section>
 
         <!-- Misiones -->
-        <section class="reto-card" id="missions" aria-labelledby="missionsTitle">
+        <section class="reto-card" id="missions" data-tab-panel="misiones" role="tabpanel" aria-labelledby="missionsTitle">
             <div class="reto-head">
                 <h2 id="missionsTitle" class="reto-title"><i data-lucide="swords"></i> <span data-i18n="retos.misiones">Misiones</span></h2>
                 <span id="missionsReset" class="reto-pill"></span>
@@ -99,7 +108,7 @@
         </section>
 
         <!-- Resumen del mes -->
-        <section class="reto-card" id="summary" aria-labelledby="summaryTitle">
+        <section class="reto-card" id="summary" data-tab-panel="misiones" aria-labelledby="summaryTitle">
             <div class="reto-head">
                 <h2 id="summaryTitle" class="reto-title"><i data-lucide="sparkles"></i> <span data-i18n="retos.resumen">Tu mes en Anime Destiny</span></h2>
                 <div class="summary-months" role="group" aria-label="Mes">
@@ -111,7 +120,7 @@
         </section>
 
         <!-- Avisos push (solo si están configurados en el servidor) -->
-        <section class="reto-card reto-card--slim" id="pushCard" hidden>
+        <section class="reto-card reto-card--slim" id="pushCard" data-tab-panel="misiones" hidden>
             <div class="push-row">
                 <i data-lucide="bell"></i>
                 <p data-i18n="retos.push">¿Querés que te avisemos cuando salga un episodio de lo que estás viendo?</p>
@@ -121,14 +130,14 @@
     </main>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=e4c5576a"></script>
-    <script src="js/core/i18n.min.js?v=e4c5576a"></script>
-    <script src="js/core/namespace.js?v=e4c5576a"></script>
-    <script type="module" src="api/supabase-config.js?v=e4c5576a" async></script>
-    <script src="js/core-bundle.min.js?v=e4c5576a" defer></script>
-    <script src="js/pages/script.js?v=e4c5576a" defer></script>
-    <script src="js/core/push.js?v=e4c5576a" defer></script>
-    <script src="js/pages/retos.js?v=e4c5576a" defer></script>
-    <script src="js/pages/retos-juegos.js?v=e4c5576a" defer></script>
+    <script src="js/core/config.js?v=d3e539e5"></script>
+    <script src="js/core/i18n.min.js?v=d3e539e5"></script>
+    <script src="js/core/namespace.js?v=d3e539e5"></script>
+    <script type="module" src="api/supabase-config.js?v=d3e539e5" async></script>
+    <script src="js/core-bundle.min.js?v=d3e539e5" defer></script>
+    <script src="js/pages/script.js?v=d3e539e5" defer></script>
+    <script src="js/core/push.js?v=d3e539e5" defer></script>
+    <script src="js/pages/retos.js?v=d3e539e5" defer></script>
+    <script src="js/pages/retos-juegos.js?v=d3e539e5" defer></script>
 </body>
 </html>

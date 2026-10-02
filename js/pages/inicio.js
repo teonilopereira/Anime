@@ -81,7 +81,7 @@
         var done = s.daily.filter(function (m) { return m.done; }).length;
         var a = document.createElement('a');
         a.className = 'streak-missions';
-        a.href = 'retos.html';
+        a.href = 'retos.html#misiones';
         a.textContent = done >= s.daily.length
             ? 'Misiones de hoy completas ✓ · Jugá el reto del día'
             : 'Misiones de hoy: ' + done + ' de ' + s.daily.length + ' · Ver retos';
