@@ -149,6 +149,11 @@
         out.push({ label: 'Año y formato', value: (a.year || '¿?') + ' · ' + fmt + (a.episodes && a.format !== 'MOVIE' ? ' · ' + a.episodes + ' episodios' : '') });
         out.push({ label: 'Géneros', value: (a.genres || []).slice(0, 3).join(', ') || '¿?' });
         out.push({ label: 'Estudio', value: a.studio || 'Desconocido' });
+        // Última pista: el protagonista. El título tapado queda solo si no hay foto.
+        if (a.mainImage) {
+            out.push({ label: 'Protagonista', img: a.mainImage });
+            return out;
+        }
         out.push({
             label: 'Título',
             value: String(a.title).split(/\s+/).map(function (w) {
@@ -186,6 +191,10 @@
 
         if (shownHints.length) {
             html += '<ul class="quiz-hints">' + shownHints.map(function (h) {
+                if (h.img) {
+                    return '<li class="quiz-hint-img"><span>' + esc(h.label) + '</span>' +
+                        '<img src="' + esc(h.img) + '" alt="Protagonista del anime" draggable="false"></li>';
+                }
                 return '<li><span>' + esc(h.label) + '</span><strong>' + esc(h.value) + '</strong></li>';
             }).join('') + '</ul>';
         } else {
@@ -386,6 +395,13 @@
         return starts.concat(contains).slice(0, 6);
     }
 
+    // Miniatura de cada sugerencia (portada o foto del personaje).
+    function suggestThumb(src) {
+        return src
+            ? '<img class="quiz-suggest-img" src="' + esc(src) + '" alt="" loading="lazy" draggable="false">'
+            : '<span class="quiz-suggest-img" aria-hidden="true"></span>';
+    }
+
     // Autocompletado compartido por los dos juegos: search(texto) devuelve los
     // candidatos, render(item) el HTML de cada fila y onPick(item) juega.
     function attachSuggest(input, list, search, render, onPick) {
@@ -431,7 +447,7 @@
             suggestions,
             function (m) {
                 var alt = m.english && m.english !== m.title ? '<small>' + esc(m.english) + '</small>' : '';
-                return esc(m.title) + alt;
+                return suggestThumb(m.image) + '<span class="quiz-suggest-text">' + esc(m.title) + alt + '</span>';
             },
             guess
         );
@@ -701,7 +717,7 @@
                 document.getElementById('charGuess'),
                 document.getElementById('charSuggest'),
                 charSuggestions,
-                function (m) { return esc(m.name); },
+                function (m) { return suggestThumb(m.image) + '<span class="quiz-suggest-text">' + esc(m.name) + '</span>'; },
                 charGuess
             );
             document.getElementById('charSkip').addEventListener('click', function () { charGuess(null); });
