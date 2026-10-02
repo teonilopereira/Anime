@@ -1314,6 +1314,7 @@
     // Pozo de "Adiviná el anime": los 150 anime más populares, con lo justo
     // para las pistas. Se cachea un día; la elección del día no depende del
     // orden (ver retos.js), así que un cambio de popularidad no la mueve.
+    var QUIZ_POOL_FIELDS_MAIN = 'characters(role: MAIN, sort: [ROLE, RELEVANCE], perPage: 1) { nodes { image { large } } }';
     var QUIZ_POOL_QUERY = `
         query ($page: Int) {
             Page(page: $page, perPage: 50) {
@@ -1327,15 +1328,27 @@
                     genres
                     coverImage { extraLarge large }
                     studios(isMain: true) { nodes { name } }
+                    __MAIN__
                 }
             }
         }`;
 
     window.getQuizPool = async function () {
-        return fetchCached('quizPool_v1', 24 * 60 * 60 * 1000, async function () {
-            var pages = await Promise.all([1, 2, 3].map(function (page) {
-                return anilistFetch(QUIZ_POOL_QUERY, { page: page });
-            }));
+        return fetchCached('quizPool_v2', 24 * 60 * 60 * 1000, async function () {
+            function load(withMain) {
+                var q = QUIZ_POOL_QUERY.replace('__MAIN__', withMain ? QUIZ_POOL_FIELDS_MAIN : '');
+                return Promise.all([1, 2, 3].map(function (page) {
+                    return anilistFetch(q, { page: page });
+                }));
+            }
+            var pages;
+            try {
+                pages = await load(true);
+                if (!pages.every(function (j) { return j?.data?.Page?.media?.length; })) throw new Error('sin datos');
+            } catch (_) {
+                // Si AniList rechaza la foto del protagonista, el reto sigue sin esa pista.
+                pages = await load(false);
+            }
             var out = [];
             pages.forEach(function (json) {
                 (json?.data?.Page?.media || []).forEach(function (m) {
@@ -1350,7 +1363,12 @@
                         year: m.seasonYear || null,
                         genres: m.genres || [],
                         studio: (m.studios?.nodes || [])[0]?.name || '',
-                        image: m.coverImage?.extraLarge || m.coverImage?.large || ''
+                        image: m.coverImage?.extraLarge || m.coverImage?.large || '',
+                        // Foto del protagonista para la última pista; la genérica
+                        // de AniList (default.jpg) no sirve.
+                        mainImage: (function (img) {
+                            return img && !/\/default\.(jpg|png)$/i.test(img) ? img : '';
+                        })(((m.characters?.nodes || [])[0] || {}).image?.large)
                     });
                 });
             });

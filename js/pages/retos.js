@@ -149,6 +149,11 @@
         out.push({ label: 'Año y formato', value: (a.year || '¿?') + ' · ' + fmt + (a.episodes && a.format !== 'MOVIE' ? ' · ' + a.episodes + ' episodios' : '') });
         out.push({ label: 'Géneros', value: (a.genres || []).slice(0, 3).join(', ') || '¿?' });
         out.push({ label: 'Estudio', value: a.studio || 'Desconocido' });
+        // Última pista: el protagonista. El título tapado queda solo si no hay foto.
+        if (a.mainImage) {
+            out.push({ label: 'Protagonista', img: a.mainImage });
+            return out;
+        }
         out.push({
             label: 'Título',
             value: String(a.title).split(/\s+/).map(function (w) {
@@ -186,6 +191,10 @@
 
         if (shownHints.length) {
             html += '<ul class="quiz-hints">' + shownHints.map(function (h) {
+                if (h.img) {
+                    return '<li class="quiz-hint-img"><span>' + esc(h.label) + '</span>' +
+                        '<img src="' + esc(h.img) + '" alt="Protagonista del anime" draggable="false"></li>';
+                }
                 return '<li><span>' + esc(h.label) + '</span><strong>' + esc(h.value) + '</strong></li>';
             }).join('') + '</ul>';
         } else {

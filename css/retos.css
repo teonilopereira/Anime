@@ -381,3 +381,11 @@
 .quiz-combo { color: var(--text-muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
 .char-progress { margin: -6px 0 14px; color: var(--text-muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
 .char-progress strong { color: var(--text-main); }
+.quiz-hints .quiz-hint-img img {
+    width: 96px;
+    max-width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 4px;
+}
