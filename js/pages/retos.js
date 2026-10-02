@@ -25,6 +25,13 @@
         'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     var K_QUIZ = 'ad:quiz:day:';
     var K_STATS = 'ad:quiz:stats';
+    var K_FREE = 'ad:quiz:free';
+    // Modo libre: rangos del pozo (ordenado por popularidad) para cada nivel.
+    var LEVELS = {
+        facil: { label: 'Fácil', from: 0, to: 50 },
+        normal: { label: 'Normal', from: 0, to: 150 },
+        dificil: { label: 'Difícil', from: 50, to: 150 }
+    };
 
     var M = window.AppMissions;
 
@@ -81,7 +88,13 @@
     // ─────────────────────────────────────────────────────────────
     // Adiviná el anime
     // ─────────────────────────────────────────────────────────────
-    var quiz = { pool: [], answer: null, day: '', state: null };
+    // quiz guarda el reto del día; free, el modo libre (rondas sin límite, sin
+    // EXP ni misiones para que no se pueda farmear). Los dos tienen answer y
+    // state, y cur() devuelve el que se está mostrando.
+    var quiz = { pool: [], answer: null, day: '', state: null, mode: 'daily' };
+    var free = { level: 'normal', answer: null, state: null, combo: 0, seen: {} };
+
+    function cur() { return quiz.mode === 'free' ? free : quiz; }
 
     function loadQuizState(day) {
         var s = readJson(K_QUIZ + day);
@@ -130,7 +143,7 @@
     }
 
     function hints() {
-        var a = quiz.answer;
+        var a = cur().answer;
         var out = [];
         var fmt = { TV: 'Serie', MOVIE: 'Película', ONA: 'ONA' }[a.format] || a.format;
         out.push({ label: 'Año y formato', value: (a.year || '¿?') + ' · ' + fmt + (a.episodes && a.format !== 'MOVIE' ? ' · ' + a.episodes + ' episodios' : '') });
@@ -145,17 +158,18 @@
         return out;
     }
 
-    function tries() { return quiz.state.guesses.length; }
+    function tries() { return cur().state.guesses.length; }
 
     function renderQuiz() {
         var body = document.getElementById('quizBody');
         var triesEl = document.getElementById('quizTries');
         var numEl = document.getElementById('quizNumber');
         if (!body) return;
-        var a = quiz.answer;
-        var st = quiz.state;
+        var isFree = quiz.mode === 'free';
+        var a = cur().answer;
+        var st = cur().state;
         var over = st.status !== 'playing';
-        numEl.textContent = '#' + quizNumber(quiz.day);
+        numEl.textContent = isFree ? '' : '#' + quizNumber(quiz.day);
         triesEl.textContent = over
             ? (st.status === 'won' ? '¡Adivinado!' : 'Terminado')
             : 'Intento ' + (tries() + 1) + ' de ' + MAX_TRIES;
@@ -163,7 +177,7 @@
         var blur = over ? 0 : BLUR_PX[Math.min(tries(), BLUR_PX.length - 1)];
         var shownHints = over ? hints() : hints().slice(0, tries());
 
-        var html = '<div class="quiz-grid">' +
+        var html = quizModes() + '<div class="quiz-grid">' +
             '<div class="quiz-cover' + (over ? ' is-revealed' : '') + '">' +
                 '<img src="' + esc(a.image) + '" alt="' + (over ? esc(a.title) : 'Portada misteriosa') + '" ' +
                 'style="filter: blur(' + blur + 'px)" draggable="false">' +
@@ -193,13 +207,103 @@
                 '<button type="button" class="reto-btn reto-btn--ghost" id="quizSkip">Saltar y ver pista</button>' +
             '</div>';
         } else {
-            html += renderQuizEnd();
+            html += isFree ? renderFreeEnd() : renderQuizEnd();
         }
         html += '</div></div>';
         body.innerHTML = html;
 
+        wireQuizModes();
         if (!over) wireQuizInput();
+        else if (isFree) wireFreeEnd();
         else wireQuizEnd();
+    }
+
+    // Selector Del día / Libre y, en libre, el nivel.
+    function quizModes() {
+        var isFree = quiz.mode === 'free';
+        var html = '<div class="quiz-modes">' +
+            '<div class="summary-months" role="group" aria-label="Modo">' +
+                '<button type="button" class="reto-chip' + (isFree ? '' : ' is-active') + '" data-qmode="daily">Del día</button>' +
+                '<button type="button" class="reto-chip' + (isFree ? ' is-active' : '') + '" data-qmode="free">Libre</button>' +
+            '</div>';
+        if (isFree) {
+            html += '<div class="summary-months" role="group" aria-label="Nivel">' + Object.keys(LEVELS).map(function (k) {
+                return '<button type="button" class="reto-chip' + (k === free.level ? ' is-active' : '') + '" data-qlevel="' + k + '">' + LEVELS[k].label + '</button>';
+            }).join('') + '</div>' +
+            '<span class="quiz-combo">Racha ' + free.combo + ' · Récord ' + freeBest(free.level) + '</span>';
+        }
+        return html + '</div>';
+    }
+
+    function wireQuizModes() {
+        document.querySelectorAll('[data-qmode]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var mode = b.getAttribute('data-qmode');
+                if (mode === quiz.mode) return;
+                quiz.mode = mode;
+                if (mode === 'free' && !free.answer) newFreeRound();
+                renderQuiz();
+            });
+        });
+        document.querySelectorAll('[data-qlevel]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var level = b.getAttribute('data-qlevel');
+                if (level === free.level) return;
+                free.level = level;
+                free.combo = 0;
+                free.seen = {};
+                saveFree();
+                newFreeRound();
+                renderQuiz();
+            });
+        });
+    }
+
+    // ── Modo libre ──
+    function readFree() {
+        var f = readJson(K_FREE) || {};
+        return { level: LEVELS[f.level] ? f.level : 'normal', best: f.best && typeof f.best === 'object' ? f.best : {} };
+    }
+
+    function freeBest(level) { return readFree().best[level] || 0; }
+
+    function saveFree(best) {
+        var f = readFree();
+        f.level = free.level;
+        if (best != null) f.best[free.level] = best;
+        lsSet(K_FREE, JSON.stringify(f));
+    }
+
+    function newFreeRound() {
+        var lv = LEVELS[free.level];
+        // Nunca sale el anime del día: sería regalar la respuesta.
+        var pool = quiz.pool.slice(lv.from, lv.to).filter(function (m) { return m.id !== (quiz.answer && quiz.answer.id); });
+        var fresh = pool.filter(function (m) { return !free.seen[m.id]; });
+        if (!fresh.length) { free.seen = {}; fresh = pool; }
+        free.answer = fresh[Math.floor(Math.random() * fresh.length)];
+        free.seen[free.answer.id] = 1;
+        free.state = { guesses: [], status: 'playing' };
+    }
+
+    function renderFreeEnd() {
+        var a = free.answer;
+        var won = free.state.status === 'won';
+        var msg = won
+            ? (free.record ? '¡Nuevo récord! ' + free.combo + ' seguidos.' : '¡Bien! Llevás ' + free.combo + (free.combo === 1 ? ' seguido.' : ' seguidos.'))
+            : 'Era este. La racha vuelve a cero.';
+        return '<div class="quiz-end">' +
+            '<p class="quiz-result ' + (won ? 'is-won' : 'is-lost') + '">' + msg + '</p>' +
+            '<a class="quiz-answer" href="detalle.html?cat=anime&amp;id=' + encodeURIComponent(a.id) + '">' + esc(a.title) + '</a>' +
+            '<div class="quiz-actions">' +
+                '<button type="button" class="reto-btn" id="freeNext">Siguiente anime</button>' +
+            '</div>' +
+            '<p class="quiz-next">El modo libre no da EXP. El reto del día sí.</p>' +
+        '</div>';
+    }
+
+    function wireFreeEnd() {
+        var btn = document.getElementById('freeNext');
+        if (btn) btn.addEventListener('click', function () { newFreeRound(); renderQuiz(); });
     }
 
     function renderQuizEnd() {
@@ -220,6 +324,7 @@
             '<a class="quiz-answer" href="detalle.html?cat=anime&amp;id=' + encodeURIComponent(a.id) + '">' + esc(a.title) + '</a>' +
             '<div class="quiz-actions">' +
                 '<button type="button" class="reto-btn" id="quizShare"><i data-lucide="share-2"></i> Compartir resultado</button>' +
+                '<button type="button" class="reto-btn reto-btn--ghost" data-qmode="free">Seguir en modo libre</button>' +
             '</div>' +
             '<div class="quiz-stats">' +
                 '<div><strong>' + s.played + '</strong><span>Jugados</span></div>' +
@@ -270,7 +375,7 @@
         var n = norm(q);
         if (n.length < 2) return [];
         var guessed = {};
-        quiz.state.guesses.forEach(function (g) { if (g.id) guessed[g.id] = 1; });
+        cur().state.guesses.forEach(function (g) { if (g.id) guessed[g.id] = 1; });
         var starts = [], contains = [];
         quiz.pool.forEach(function (m) {
             if (guessed[m.id]) return;
@@ -334,12 +439,24 @@
     }
 
     function guess(m) {
-        var st = quiz.state;
+        var st = cur().state;
         if (st.status !== 'playing') return;
         st.guesses.push(m ? { id: m.id, title: m.title } : { skip: true });
-        var won = !!m && m.id === quiz.answer.id;
+        var won = !!m && m.id === cur().answer.id;
         if (won) st.status = 'won';
         else if (st.guesses.length >= MAX_TRIES) st.status = 'lost';
+
+        if (quiz.mode === 'free') {
+            if (st.status === 'won') {
+                free.combo += 1;
+                free.record = free.combo > 1 && free.combo > freeBest(free.level);
+                if (free.combo > freeBest(free.level)) saveFree(free.combo);
+            } else if (st.status === 'lost') {
+                free.combo = 0;
+            }
+            renderQuiz();
+            return;
+        }
 
         if (st.status !== 'playing') {
             // Se guarda el final ANTES de dar EXP: recargar no vuelve a premiar.
@@ -372,6 +489,7 @@
         quiz.day = today();
         quiz.answer = pickAnswer(quiz.pool, quiz.day);
         quiz.state = loadQuizState(quiz.day);
+        free.level = readFree().level;
         renderQuiz();
     }
 
@@ -383,6 +501,20 @@
     var CHAR_TRIES = 4;
     var CHAR_BLUR = [18, 11, 6, 3];
     var K_CHAR_SERIES = 'ad:charquiz:series';
+    // Progreso por serie: { <id>: { got: [ids adivinados], best: mejor racha } }.
+    var K_CHAR_PROG = 'ad:charquiz:prog';
+
+    function readCharProg(seriesId) {
+        var all = readJson(K_CHAR_PROG) || {};
+        var p = all[seriesId] || {};
+        return { got: Array.isArray(p.got) ? p.got : [], best: p.best || 0 };
+    }
+
+    function saveCharProg(seriesId, prog) {
+        var all = readJson(K_CHAR_PROG) || {};
+        all[seriesId] = prog;
+        lsSet(K_CHAR_PROG, JSON.stringify(all));
+    }
 
     var chars = { series: null, cast: [], current: null, guesses: [], status: 'idle', seen: {}, played: 0, won: 0, streak: 0, cat: 'anime' };
 
@@ -477,6 +609,10 @@
         // Primero los principales y secundarios; los de fondo solo cuando no queda otra.
         var main = pool.filter(function (c) { return c.role !== 'BACKGROUND'; });
         if (main.length) pool = main;
+        // Y antes que nada los que todavía no adivinaste nunca.
+        var got = readCharProg(chars.series.id).got;
+        var missing = pool.filter(function (c) { return got.indexOf(c.id) === -1; });
+        if (missing.length) pool = missing;
         if (!pool.length) {
             chars.seen = {};
             pool = chars.cast;
@@ -511,10 +647,16 @@
         var blur = over ? 0 : CHAR_BLUR[Math.min(n, CHAR_BLUR.length - 1)];
         var hints = over ? charHints() : charHints().slice(0, n);
 
+        var prog = readCharProg(chars.series.id);
+        var known = {};
+        chars.cast.forEach(function (x) { known[x.id] = 1; });
+        var gotCount = prog.got.filter(function (id) { return known[id]; }).length;
         var html = '<div class="char-top">' +
                 '<span class="reto-pill">' + esc(chars.series.title) + '</span>' +
                 '<span class="char-score">' + chars.won + ' de ' + chars.played + (chars.streak > 1 ? ' · racha ' + chars.streak : '') + '</span>' +
             '</div>' +
+            '<p class="char-progress">Adivinaste <strong>' + gotCount + ' de ' + chars.cast.length + '</strong> personajes de esta serie' +
+                (prog.best > 1 ? ' · récord ' + prog.best + ' seguidos' : '') + '</p>' +
             '<div class="quiz-grid">' +
                 '<div class="quiz-cover' + (over ? ' is-revealed' : '') + '">' +
                     '<img src="' + esc(c.image) + '" alt="' + (over ? esc(c.name) : 'Personaje misterioso') + '" style="filter: blur(' + blur + 'px)" draggable="false">' +
@@ -597,6 +739,10 @@
             chars.played += 1;
             if (chars.status === 'won') { chars.won += 1; chars.streak += 1; }
             else chars.streak = 0;
+            var prog = readCharProg(chars.series.id);
+            if (chars.status === 'won' && prog.got.indexOf(chars.current.id) === -1) prog.got.push(chars.current.id);
+            prog.best = Math.max(prog.best, chars.streak);
+            saveCharProg(chars.series.id, prog);
         }
         renderCharGame();
     }
