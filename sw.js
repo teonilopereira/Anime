@@ -75,7 +75,10 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      // cache: 'reload' saltea la caché HTTP del navegador. GitHub Pages manda
+      // max-age=600: sin esto, si el SW nuevo se instalaba en los 10 minutos
+      // siguientes a un deploy, guardaba los HTML viejos y los seguía sirviendo.
+      return cache.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })));
     }).then(() => self.skipWaiting())
   );
 });
@@ -199,6 +202,26 @@ self.addEventListener('fetch', (event) => {
         return response;
       }).catch(() => {
         return caches.match(event.request);
+      })
+    );
+    return;
+  }
+
+  // Páginas (HTML): red primero, así cada deploy se ve en la siguiente visita.
+  // La copia en caché queda solo para cuando no hay conexión.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-cache' }).then((response) => {
+        if (response && response.status === 200 && response.type === 'basic' && !url.includes('?')) {
+          var responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      }).catch(() => {
+        return caches.match(event.request).then((res) =>
+          res || caches.match('offline.html').then((off) => off || caches.match('404.html')));
       })
     );
     return;
