@@ -1,13 +1,13 @@
 # MAPEO DE ARCHIVOS — Anime Destiny
 
-> Referencia del árbol real del repositorio. Sitio **estático** desplegado en
-> Netlify/Vercel **sin paso de build remoto**: los artefactos (`css/bundle*.css`,
+> Referencia del árbol real del repositorio (actualizada el 2026-10-03). Sitio
+> **estático** publicado en GitHub Pages y Netlify **sin paso de build remoto**: los artefactos (`css/bundle*.css`,
 > `js/core-bundle*.js`, `js/vendor/*`) se generan con `npm run build` y **se
 > versionan en git** a propósito. El CI verifica que estén al día.
 
 ---
 
-## Raíz — HTML (15 páginas)
+## Raíz — HTML (22 páginas)
 
 Cada página lleva `data-page="…"`; el navbar y el footer los inyecta
 `js/core/common-ui.js`.
@@ -29,6 +29,13 @@ Cada página lleva `data-page="…"`; el navbar y el footer los inyecta
 | `privacidad.html` | `privacidad` | Política de privacidad. |
 | `terminos.html` | `terminos` | Términos y condiciones. |
 | `404.html` | `404` | Página de error 404. |
+| `volumenes.html` | `volumenes` | Volúmenes / capítulos / episodios de una obra con su portada. |
+| `personaje.html` | `personaje` | Ficha de personaje o de su actor de voz (`js/personaje/render.js`). |
+| `estudio.html` | `estudio` | Ficha de un estudio de animación (`js/estudio/render.js`). |
+| `personajes.html` | `personajes` | Selector de personaje / mascota. |
+| `calendario.html` | `calendario` | Calendario semanal de estrenos. |
+| `retos.html` | `retos` | Retos: adiviná el anime/personaje, ¿cuál es más popular?, misiones, resumen del mes. |
+| `offline.html` | `offline` | Respaldo sin conexión que sirve el service worker. |
 
 ---
 
@@ -39,14 +46,14 @@ Cada página lleva `data-page="…"`; el navbar y el footer los inyecta
 | `manifest.json` | Manifest PWA: nombre, iconos 192/512, color tema morado neón. |
 | `sw.js` | Service worker (caché offline de la PWA). |
 | `netlify.toml` | Cabeceras de seguridad (CSP, HSTS, etc.). **Sin comando de build.** |
-| `vercel.json` | Config de Vercel: rutas y cabeceras (espejo de `netlify.toml`). |
-| `_redirects` | Reglas de redirección de Netlify. |
+| `vercel.json` / `.vercelignore` | Config de Vercel (espejo de `netlify.toml`). Hoy no se usa para publicar. |
+| `_redirects` | Reglas de redirección de Netlify (incluye el proxy `/mdapi/*` a MangaDex). |
 | `robots.txt` | Directivas para crawlers. Bloquea `/api/`, `/tools/`, `/viz/`, `/scratch/`. |
 | `sitemap.xml` | Mapa del sitio para SEO. |
 | `code-map.json` | Mapa del código (archivos, exports, métricas). Generado por `tools/code-map.js`. |
 | `package.json` | Scripts (`build`, `map`, `test`) y dependencias (`@supabase/supabase-js`, `lucide`). |
 | `vitest.config.js` | Configuración de Vitest (entorno jsdom). |
-| `.gitattributes` / `.gitignore` | `.gitignore` excluye `.env`, `js/core/config.js`, `node_modules/`, `dist/`, etc. |
+| `.gitattributes` / `.gitignore` | `.gitignore` excluye `.env`, `node_modules/`, `dist/`, `scratch/`, etc. `js/core/config.js` **sí** se versiona (solo claves públicas). |
 
 ---
 
@@ -61,7 +68,7 @@ Cada página lleva `data-page="…"`; el navbar y el footer los inyecta
 
 ## `css/` — Hojas de estilo
 
-**Generado por build (no editar a mano):** `bundle.min.css`.
+**Generado por build (no editar a mano):** `bundle.min.css`, `bundle-lite.min.css` (sin cards), `detalle.min.css`, `mascot.min.css`.
 El resto son las fuentes que el build concatena.
 
 | Archivo | Propósito |
@@ -79,6 +86,9 @@ El resto son las fuentes que el build concatena.
 | `configuracion.css` | Página de configuración (toggles, selector de tamaño). |
 | `login.css` | Página de login. |
 | `mascot.css` | Mascota / pet interactivo (ver `js/ui/mascot.js`). |
+| `fonts.css` | Fuentes auto-hospedadas (Orbitron, Rajdhani) desde `fonts/`. |
+| `chapters-modal.css` | Vista rápida de episodios/volúmenes desde el dorso de la card. |
+| `volumenes.css`, `personaje.css`, `personajes.css`, `estudio.css`, `calendario.css`, `retos.css` | Estilos de cada página; se cargan sueltos (no entran al bundle). |
 | `bundle.min.css` | **Generado.** Concatenación minificada de las fuentes anteriores. |
 
 ---
@@ -86,7 +96,8 @@ El resto son las fuentes que el build concatena.
 ## `js/` — Raíz
 
 **Generado por build:** `core-bundle.min.js` (concatena los
-módulos de `js/core/`; las páginas cargan el `.min`).
+módulos de `js/core/`, `js/catalog/`, `js/security/` y parte de `js/ui/`; las
+páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 
 | Archivo | Propósito |
 |---|---|
@@ -100,7 +111,7 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 
 | Archivo | Propósito |
 |---|---|
-| `config.js` | **Generado** (gitignored). `window.AppConfig` con credenciales de Supabase. Lo produce `tools/generate-config.cjs`. |
+| `config.js` | `window.AppConfig`: URL y clave anónima de Supabase + clave VAPID pública. **Versionado** a propósito (sin secretos). Se regenera con `tools/generate-config.cjs`. |
 | `config.template.js` | Template versionado que muestra la estructura esperada. |
 | `constants.js` | `window.AnimeDestiny.Constants` (timeouts, límites). |
 | `namespace.js` | Crea `window.AnimeDestiny`, `reportError`, toast de estado de conexión. |
@@ -109,7 +120,13 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | `mangadex-api.js` | Cliente MangaDex de alto nivel (caché de portadas, placeholder, agregados). Cargado suelto en manga/novelas/detalle/comparar. |
 | `auth.js` | Autenticación sobre Supabase: `getCurrentUser`, `refreshUserUi`, login/logout, bonus diario. |
 | `common-ui.js` | Inyecta navbar y footer en todas las páginas. Último `defer`. |
-| `i18n.js` | Internacionalización: `applyTranslations`, `setLang`, `t`, `window.AppI18n`. |
+| `i18n.js` | Internacionalización: `applyTranslations`, `setLang`, `t`, `window.AppI18n`. Se publica como `i18n.min.js`. |
+| `i18n-en.js` | Diccionario en inglés, cargado solo si hace falta (`i18n-en.min.js`). |
+| `theme.js` | Tema automático / claro / oscuro. Se carga sincrónico en `<head>`. |
+| `streak.js` | Racha diaria (`window.AppStreak`). |
+| `missions.js` | Misiones diarias y semanales (`window.AppMissions`). |
+| `reminders.js` | Recordatorios dentro de la app (`window.AppReminders`). |
+| `push.js` | Notificaciones push de nuevos episodios (lado del navegador). |
 | `storage.js` | Wrapper sobre `window.UserStore` (`read`/`write`/`readJson`/`remove`). |
 | `user-store.js` | `PersistentStore` (Map en memoria + localStorage). Expuesto como `window.UserStore`. |
 
@@ -122,6 +139,7 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | `cards.js` | Renderizado de tarjetas, skeletons, flip 3D, barras de progreso. |
 | `pagination.js` | Scroll infinito con `IntersectionObserver`; memoria de posición. |
 | `search.js` | Búsqueda en vivo (debounce), sugerencias, chips de género, age-gate NSFW. |
+| `chapters-modal.js` | Vista rápida de episodios/volúmenes de una card. |
 | `states.js` | Favoritos/vistos, cola de sincronización con Supabase, XP/niveles, watch-status. |
 
 ---
@@ -138,6 +156,16 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | `comments.js` | Sistema de comentarios (spoilers, referencias, ordenamiento, filtros). |
 | `seasons.js` | Cadena de temporadas/relaciones (`window.DetalleTemporadas`). |
 | `themes.js` | Openings/endings vía AnimeThemes (caché, reproductor de audio). |
+| `watch-links.js` | Sección "Dónde ver / Dónde leer" (solo fuentes oficiales). |
+
+---
+
+## `js/personaje/` y `js/estudio/`
+
+| Archivo | Propósito |
+|---|---|
+| `personaje/render.js` | Ficha de personaje o actor de voz (`personaje.html`). |
+| `estudio/render.js` | Ficha de estudio (`estudio.html`). |
 
 ---
 
@@ -157,6 +185,13 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | `comparar.js` | Comparación de dos items (parseo de params, stats, columnas). |
 | `login.js` | Formulario de login, estados de auth, redirección. |
 | `import-mal.js` | Importación de listas de MyAnimeList (parseo XML, lookup AniList, progreso). |
+| `inicio.js` | Bloques de retención de la portada (solo con sesión y datos). |
+| `volumenes.js` | Página de volúmenes. |
+| `personajes.js` | Selector de personaje / mascota. |
+| `calendario.js` | Calendario semanal (AniList `airingSchedule`). |
+| `retos.js` | Retos: adiviná el anime/personaje, misiones, resumen del mes. |
+| `retos-juegos.js` | Juegos "¿Cuál es más popular?" y "¿De qué anime es?". |
+| `offline.js` | Lógica de `offline.html`. |
 
 ---
 
@@ -166,6 +201,8 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 |---|---|
 | `toast.js` | Sistema de toasts (`window.Toast`: `showToast`, `dismissToast`). |
 | `mascot.js` | Mascota / pet interactivo 2D (sprite animado). |
+| `mascot-loader.js` | Carga la mascota después del contenido (fuera del bundle principal). |
+| `mascots.js` / `characters.js` | Registros de mascotas y personajes. **Generados** por `tools/generate-mascots.js` y `tools/slice-characters.py`. |
 
 ---
 
@@ -200,6 +237,10 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | `fix_encoding.js` | Corrige caracteres corruptos (mojibake). |
 | `auto-html.js` | Consistencia entre HTML (footer, `common-ui.js`, iconos). |
 | `add_missing_manga_entries.js` | Agrega entradas de manga faltantes a los datos. |
+| `generate-seo-titles.mjs` / `seo-titles.json` | Refresca los títulos para SEO desde AniList. |
+| `generate-mascots.js` | Genera mascotas en pixel art con PixelLab. |
+| `slice-mascots.py` / `slice-characters.py` | Recortan sprites desde `mascot-sheets/` y `character-sheets/`. |
+| `agentes.html` | Panel privado de agentes para revisar código e ideas (no es parte de la app). |
 
 ---
 
@@ -208,7 +249,16 @@ módulos de `js/core/`; las páginas cargan el `.min`).
 | Archivo | Propósito |
 |---|---|
 | `schema.sql` | Schema consolidado v2 (reemplaza versiones anteriores). Ejecutar en el SQL Editor. |
-| `migrations/001_…` a `007_…` | Migraciones incrementales: comentarios, referencias, watch-status, apodos, ranking, spoilers, hardening. |
+| `migrations/001_…` a `010_…` | Migraciones incrementales: comentarios, referencias, watch-status, apodos, ranking, spoilers, hardening, push, social, cron de push. |
+| `functions/notify-new-episodes/` | Edge function de Supabase que manda los push de nuevos episodios (ver su README). |
+
+---
+
+## `netlify/` — Funciones de Netlify
+
+| Archivo | Propósito |
+|---|---|
+| `functions/mdapi-cors.mjs` | Proxy de MangaDex con CORS para las copias fuera de Netlify (GitHub Pages). |
 
 ---
 
@@ -239,7 +289,9 @@ No forman parte de la app de usuario; están excluidas del indexado en `robots.t
 ## `tests/` — Vitest
 
 `tests/setup.js` + `tests/unit/*.test.js` (seasons, themes, sanitizer, toast,
-validator, ranking-top, storage, i18n, user-store, api-multipage, utils).
+validator, ranking-top, storage, i18n, user-store, api-multipage, utils,
+import-mal, missions, push, streak, supabase-client, supabase-config,
+watch-links).
 Se ejecutan con `npm test`.
 
 ---
