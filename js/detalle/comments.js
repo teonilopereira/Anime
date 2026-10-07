@@ -665,8 +665,13 @@
     }
 
     function confirmDelete(commentId) {
-        if (!confirm("¿Borrar este comentario?")) return;
-        handleDelete(commentId);
+        window.Dialog.confirm({
+            message: "¿Borrar este comentario?",
+            okLabel: "Borrar",
+            danger: true,
+        }).then(function (ok) {
+            if (ok) handleDelete(commentId);
+        });
     }
 
     // ─── Acciones ─────────────────────────────────────────────────

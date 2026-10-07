@@ -403,6 +403,11 @@
             "state.favorito":  "Favorito",
             "state.pendiente": "Pendiente",
 
+            // ── Interfaz común (ui-extras.js) ────────────────────────────────
+            "ui.volver_arriba": "Volver arriba",
+            "ui.aceptar":       "Aceptar",
+            "ui.cancelar":      "Cancelar",
+
             // ── Toasts / avisos (states.js) ──────────────────────────────────
             "toast.session.pending":  "Sesión expirada. Los cambios pendientes se reintentarán automáticamente.",
             "toast.session.progress": "Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.",

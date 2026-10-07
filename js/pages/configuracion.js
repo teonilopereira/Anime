@@ -455,8 +455,13 @@ $('exportData').addEventListener('click', async () => {
 });
 
 /* ── Restablecer apariencia ── */
-$('resetAll').addEventListener('click', () => {
-    if (!confirm('¿Restablecer la apariencia a los valores por defecto? Tus listas y tu progreso no se tocan.')) return;
+$('resetAll').addEventListener('click', async () => {
+    const ok = await window.Dialog.confirm({
+        title: 'Restablecer apariencia',
+        message: '¿Restablecer la apariencia a los valores por defecto? Tus listas y tu progreso no se tocan.',
+        okLabel: 'Restablecer',
+    });
+    if (!ok) return;
     PREF_KEYS.forEach(k => localStorage.removeItem(k));
     aplicarCprEnPagina('auto');
     aplicarSqSizeEnPagina('auto');
@@ -471,7 +476,12 @@ $('logoutBtn').addEventListener('click', async () => {
     const supaUser = await window.AppSupabase?.getCurrentUser?.();
     if (!supaUser) { toast('No hay usuario activo', true); return; }
     const username = supaUser.user_metadata?.username || supaUser.email?.split('@')[0] || 'usuario';
-    if (!confirm(`¿Cerrar sesión de "${username}"? Tus datos quedan guardados en tu cuenta.`)) return;
+    const ok = await window.Dialog.confirm({
+        title: 'Cerrar sesión',
+        message: `¿Cerrar sesión de "${username}"? Tus datos quedan guardados en tu cuenta.`,
+        okLabel: 'Cerrar sesión',
+    });
+    if (!ok) return;
     try {
         await window.logoutUser?.();
         toast('✅ Sesión cerrada');

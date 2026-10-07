@@ -392,7 +392,7 @@ async function saveProfile() {
         }
     } catch (e) {
         console.error('[usuario] Error guardando perfil:', e);
-        alert('Error al guardar: ' + e.message);
+        window.Dialog.alert({ title: 'No se pudo guardar', message: e.message });
     }
 }
 
@@ -423,7 +423,7 @@ async function saveInfo() {
         await supabase.saveUserProfile(_currentUser, { email: newEmail });
     } catch (e) {
         console.error('[usuario] Error guardando email:', e);
-        alert('Error al guardar: ' + e.message);
+        window.Dialog.alert({ title: 'No se pudo guardar', message: e.message });
     }
 }
 

@@ -696,12 +696,10 @@ function renderDetalle(item, nombreUrl, categoria) {
                 navigator.share(shareData).then(onShareDone).catch(err => console.warn('Error al compartir:', err));
             } else {
                 navigator.clipboard.writeText(window.location.href).then(() => {
-                    if (window.Toast) window.Toast.success('Enlace copiado al portapapeles. ¡Pegalo para compartir!');
-                    else alert('Enlace copiado al portapapeles. ¡Pegalo para compartir!');
+                    window.Toast.success('Enlace copiado al portapapeles. ¡Pegalo para compartir!');
                     onShareDone();
                 }).catch(() => {
-                    if (window.Toast) window.Toast.error('No se pudo copiar el enlace.');
-                    else alert('No se pudo copiar el enlace.');
+                    window.Toast.error('No se pudo copiar el enlace.');
                 });
             }
         });
