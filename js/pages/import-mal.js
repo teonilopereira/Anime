@@ -139,7 +139,7 @@
 
         previewBtn.addEventListener('click', function () {
             var file = fileInput.files[0];
-            if (!file) { alert('Seleccioná un archivo XML primero.'); return; }
+            if (!file) { window.Toast.warning('Seleccioná un archivo XML primero.'); return; }
 
             var reader = new FileReader();
             reader.onload = function (e) {

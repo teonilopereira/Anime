@@ -410,6 +410,11 @@
         "state.favorito":  "Favorite",
         "state.pendiente": "Pending",
 
+        // ── Interfaz común (ui-extras.js) ────────────────────────────────
+        "ui.volver_arriba": "Back to top",
+        "ui.aceptar":       "OK",
+        "ui.cancelar":      "Cancel",
+
         // ── Toasts / alerts (states.js) ──────────────────────────────────
         "toast.session.pending":  "Session expired. Pending changes will retry automatically.",
         "toast.session.progress": "Session expired. Your progress was saved and will sync on reconnect.",
