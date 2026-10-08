@@ -1,6 +1,7 @@
 /* sw.js - Service Worker for Mirudoku */
-const CACHE_NAME = 'anime-destiny-6033397f';
-const IMG_CACHE_NAME = 'anime-destiny-img-v1';
+const CACHE_NAME = 'anime-destiny-fa755962';
+// v2: descarta las respuestas de error opacas que guardaba la v1.
+const IMG_CACHE_NAME = 'anime-destiny-img-v2';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
 // Deben coincidir con los hosts de portadas de connect-src en el CSP
@@ -9,19 +10,37 @@ const IMG_CACHE_MAX = 120;
 const IMG_CDN_HOSTS = ['uploads.mangadex.org', 's4.anilist.co', 'media.kitsu.io', 'media.kitsu.app'];
 
 // Cache-first con tope FIFO para portadas remotas.
+// Las <img> piden en modo no-cors y la respuesta es opaca (status 0): no se
+// distingue un 200 de un 404 o un 429, y cachearla guardaba también los
+// errores, con lo que la portada quedaba rota en cada visita hasta que el tope
+// la desalojara. Por eso se pide con CORS (los CDNs de portadas lo habilitan)
+// y solo se cachea lo que vuelve ok. Si un CDN no lo habilitara, se cae al
+// pedido original y se cachea la opaca como antes. Se respeta la política de
+// referrer del pedido: MangaDex reemplaza la tapa si recibe un referrer ajeno.
+function putCover(cache, request, response) {
+  cache.put(request, response.clone());
+  cache.keys().then((keys) => {
+    if (keys.length > IMG_CACHE_MAX) cache.delete(keys[0]);
+  });
+}
+
 function cacheCover(request) {
   return caches.open(IMG_CACHE_NAME).then((cache) => {
     return cache.match(request).then((hit) => {
       if (hit) return hit;
-      return fetch(request).then((response) => {
-        // Respuestas opacas (no-cors) tienen status 0 pero son cacheables.
-        if (response && (response.ok || response.type === 'opaque')) {
-          cache.put(request, response.clone());
-          cache.keys().then((keys) => {
-            if (keys.length > IMG_CACHE_MAX) cache.delete(keys[0]);
-          });
-        }
+      return fetch(request.url, {
+        mode: 'cors',
+        credentials: 'omit',
+        referrer: request.referrer,
+        referrerPolicy: request.referrerPolicy
+      }).then((response) => {
+        if (response.ok) putCover(cache, request, response);
         return response;
+      }, () => {
+        return fetch(request).then((response) => {
+          if (response && response.type === 'opaque') putCover(cache, request, response);
+          return response;
+        });
       });
     });
   });

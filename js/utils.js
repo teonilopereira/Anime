@@ -47,43 +47,6 @@
         );
     }
 
-    function normalizeImageTitle(text) {
-        return String(text || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/\p{Diacritic}/gu, '')
-            .replace(/[^a-z0-9]+/g, ' ')
-            .trim();
-    }
-
-    function slugifyImageTitle(text, separator = '-') {
-        return normalizeImageTitle(text).replace(/\s+/g, separator);
-    }
-
-    function buildCatalogImageCandidates(title, currentSrc = '') {
-        const cleanTitle = String(title || '').trim();
-        const current = String(currentSrc || '').trim();
-        const variants = new Set([current]);
-        const slug = slugifyImageTitle(cleanTitle);
-        const compact = slugifyImageTitle(cleanTitle, '');
-        const rawNoSymbols = cleanTitle
-            .replace(/[\u2018\u2019\u201C\u201D\u2122']/g, '')
-            .replace(/[:!?.,]/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        const dashed = slugifyImageTitle(rawNoSymbols);
-        const noSpaces = slugifyImageTitle(rawNoSymbols, '');
-
-        const bases = [cleanTitle, rawNoSymbols, slug, dashed, compact, noSpaces];
-        bases.forEach(b => {
-            if (!b) return;
-            variants.add(`images/posters/${slugifyImageTitle(b)}.jpg`);
-            variants.add(`images/posters/${slugifyImageTitle(b)}.png`);
-            variants.add(`images/posters/${slugifyImageTitle(b)}.webp`);
-        });
-        return Array.from(variants);
-    }
-
     function createFallbackPosterDataUrl(title, subtitle) {
         const rawTitle = String(title || 'Sin título').slice(0, 60);
         const safeSubtitle = String(subtitle || '').slice(0, 45);
@@ -119,7 +82,7 @@
         const lineHeight = Math.round(fontSize * 1.18);
         const blockHeight = lines.length * lineHeight;
         // Centrado vertical del bloque de título alrededor de la mitad del poster.
-        const firstBaseline = Math.round(400 - blockHeight / 2 + fontSize * 0.75);
+        const firstBaseline = Math.round(450 - blockHeight / 2 + fontSize * 0.75);
 
         const titleTspans = lines.map((line, i) =>
             `<text x="300" y="${firstBaseline + i * lineHeight}" text-anchor="middle" fill="#00f2ff" font-size="${fontSize}" font-family="Orbitron, Arial, sans-serif" font-weight="700">${esc(line)}</text>`
@@ -127,7 +90,7 @@
         const subtitleY = firstBaseline + blockHeight + 12;
 
         const svg = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="100%" height="100%">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="100%" height="100%">
                 <defs>
                     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stop-color="#0a051b"/>
@@ -142,10 +105,10 @@
                         <stop offset="100%" stop-color="#bc13fe" stop-opacity="0"/>
                     </radialGradient>
                 </defs>
-                <rect width="600" height="800" fill="url(#bg)"/>
-                <rect width="600" height="800" fill="url(#glow1)"/>
-                <rect width="600" height="800" fill="url(#glow2)"/>
-                <rect x="36" y="36" width="528" height="728" rx="42" fill="none" stroke="#bc13fe" stroke-width="3"/>
+                <rect width="600" height="900" fill="url(#bg)"/>
+                <rect width="600" height="900" fill="url(#glow1)"/>
+                <rect width="600" height="900" fill="url(#glow2)"/>
+                <rect x="36" y="36" width="528" height="828" rx="42" fill="none" stroke="#bc13fe" stroke-width="3"/>
                 ${titleTspans}
                 ${safeSubtitle ? `<text x="300" y="${subtitleY}" text-anchor="middle" fill="#ffffff" font-size="24" font-family="Rajdhani, Arial, sans-serif">${esc(safeSubtitle)}</text>` : ''}
             </svg>
@@ -176,42 +139,24 @@
             ' sizes="auto, (max-width: 600px) 50vw, 300px"';
     }
 
+    // Respaldo de portadas rotas (lo dispara el listener de 'error' de
+    // common-ui.js). Si la <img> tenía srcset, primero se lo saca: el navegador
+    // vuelve a pedir el src (la portada grande), así una variante chica que no
+    // exista no tira abajo una portada que sí está. Si eso también falla, o no
+    // había srcset, va el póster generado con el título.
     function fallbackCatalogImage(imgEl) {
         if (!(imgEl instanceof HTMLImageElement)) return;
+        if (imgEl.hasAttribute('srcset')) {
+            imgEl.removeAttribute('srcset');
+            imgEl.removeAttribute('sizes');
+            if (imgEl.getAttribute('src')) return;
+        }
         if (imgEl.dataset.fallbackReady === '1') return;
         imgEl.dataset.fallbackReady = '1';
-        // Con srcset el navegador ignora src: hay que sacarlo para que el
-        // reemplazo se vea.
-        imgEl.removeAttribute('srcset');
-        imgEl.removeAttribute('sizes');
 
         const title = imgEl.dataset.title || imgEl.alt || 'Sin título';
         const subtitle = imgEl.dataset.subtitle || '';
-        const currentSrc = imgEl.getAttribute('src') || '';
-        const candidates = buildCatalogImageCandidates(title, currentSrc);
-
-        let index = 0;
-        const tryNext = () => {
-            if (index >= candidates.length) {
-                imgEl.src = createFallbackPosterDataUrl(title, subtitle);
-                return;
-            }
-
-            const candidate = candidates[index++];
-            if (!candidate || candidate === currentSrc) {
-                tryNext();
-                return;
-            }
-
-            const probe = new Image();
-            probe.onload = () => {
-                imgEl.src = candidate;
-            };
-            probe.onerror = tryNext;
-            probe.src = candidate;
-        };
-
-        tryNext();
+        imgEl.src = createFallbackPosterDataUrl(title, subtitle);
     }
 
     function episodeStorageKey(userId, itemId, seasonIdx, ep) {
@@ -230,7 +175,6 @@
         fallbackCatalogImage,
         anilistCover,
         coverSrcsetAttrs,
-        buildCatalogImageCandidates,
         createFallbackPosterDataUrl,
         episodeStorageKey,
         volumeStorageKey
