@@ -251,32 +251,19 @@
     }
 
     // ── Dynamic query builder ──
-    // AniList genre_in only accepts their official genre list.
-    // Tags like Isekai, Mecha etc. go into tag_in.
-    var ANILIST_OFFICIAL_GENRES = [
-        'Action','Adventure','Comedy','Drama','Ecchi','Fantasy','Horror',
-        'Mahou Shoujo','Mecha','Music','Mystery','Psychological','Romance',
-        'Sci-Fi','Slice of Life','Sports','Supernatural','Thriller'
-    ];
+    // AniList genre_in solo acepta sus géneros oficiales; el resto (Isekai,
+    // Wuxia...) va en tag_in. La lista y el nombre exacto de cada tag salen de
+    // js/core/genres.js.
 
     // ── MangaDex: cliente y helpers ──
     // Movidos a js/core/api-mangadex.js (va en el bundle junto a este archivo).
     // getTopMangas/getTopNovelas los consumen vía window.mdTagUuidsFromKeys,
     // window.fetchMangaDexPage y window.mergeAnilistAndMd.
 
+    // Las claves de los chips llegan normalizadas ("girls' love"); a AniList
+    // hay que mandarle el nombre tal cual lo conoce ("Girls' Love").
     function splitGenresAndTags(genreKeys) {
-        var genres = [];
-        var tags = [];
-        (genreKeys || []).forEach(function(g) {
-            // Always use case-insensitive comparison — genre keys arrive normalized
-            // (lowercase, no diacritics), while ANILIST_OFFICIAL_GENRES has proper casing
-            var found = ANILIST_OFFICIAL_GENRES.find(function(og) {
-                return og.toLowerCase().replace(/[\s-]/g, '') === String(g).toLowerCase().replace(/[\s-]/g, '');
-            });
-            if (found) genres.push(found);
-            else tags.push(g);
-        });
-        return { genres: genres, tags: tags };
+        return AnimeDestiny.Genres.separar(genreKeys);
     }
 
     // Partes sueltas de una consulta de catalogo: declaraciones de variables,

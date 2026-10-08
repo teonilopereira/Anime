@@ -22,11 +22,7 @@ const CATEGORY_LABELS = Object.freeze({
 });
 
 // Géneros oficiales de AniList (para filtrar del campo info lo que sí es un género)
-const KNOWN_GENRES = Object.freeze([
-    'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Fantasy', 'Horror',
-    'Mahou Shoujo', 'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance',
-    'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller'
-]);
+const KNOWN_GENRES = AnimeDestiny.Genres.OFICIALES;
 
 function extractGenresFromInfo(info) {
     if (!info) return [];

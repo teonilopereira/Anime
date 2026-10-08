@@ -88,6 +88,7 @@ const CSS_LITE_SOURCES = CSS_SOURCES.filter((rel) => !CSS_LITE_EXCLUDE.has(rel))
 // las páginas los cargan sueltos y temprano, antes del bundle.
 const JS_SOURCES = [
     'js/core/constants.js',
+    'js/core/genres.js',
     'js/core/api.js',
     'js/core/api-mangadex.js',
     'js/datos.js',

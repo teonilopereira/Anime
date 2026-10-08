@@ -826,7 +826,7 @@ function inicializarGeneroWidgets() {
     // (catalogo vacio o con error) se llamaba a obtenerItemsCategoria, que hoy
     // siempre dispara un pedido a AniList y devuelve una Promise: el resultado
     // se descartaba (no es un array) y, si la red fallaba, el rechazo quedaba
-    // sin manejar. La lista fija de abajo cubre ese caso.
+    // sin manejar. La lista de js/core/genres.js cubre ese caso.
     cardGenreRows.forEach((genres) => {
         genres.forEach((g) => {
             const key = normalizeText(g);
@@ -835,145 +835,27 @@ function inicializarGeneroWidgets() {
         });
     });
 
-    var fixedGenres = (function () {
-        var base = [
-            'Action','Adventure','Comedy','Drama','Fantasy','Horror',
-            'Mystery','Romance','Sci-Fi','Slice of Life','Sports',
-            'Supernatural','Thriller','Psychological','Tragedy',
-            'Magic','Mythology','Parody','Satire',
-            'Superhero','Demons','Vampire','Zombie','Ghost','Aliens',
-            'Post-Apocalyptic','Cyberpunk','Steampunk',
-            'Reincarnation','Time Travel',
-            'Harem','School','Military','Martial Arts',
-            'Ninja','Samurai','Pirates','Mafia','Survival',
-            'Music','Idol','Band',
-            'Detective','Espionage','Noir','Crime',
-            'War','Guns','Swordplay',
-            'Revenge','Amnesia','Gambling',
-            'Cultivation','Villainess','Anti-Hero',
-            'Work','Medicine','Politics',
-            'Family Life','Love Triangle',
-            'Battle Royale','Dystopian',
-            'Female Protagonist','Male Protagonist',
-            'Ensemble Cast',
-            'Food','Historical'
-        ];
-        var animes = base.concat([
-            'Shounen','Shoujo','Seinen','Josei',
-            'Ecchi','Gore',
-            'Isekai','Mecha',
-            'Police',
-            'Mahou Shoujo',
-            'Monster Girl','Animals',
-            'Space','Space Opera','Urban Fantasy',
-            'Crossdressing','Gender Bending',
-            'Fairy Tale',
-            'Fitness','Swimming',
-            'Video Games','Virtual World',
-            'Tokusatsu',
-            'Delinquents','Gyaru',
-            'Rehabilitation','Fugitive',
-            'Trains','Ships','Motorcycles','Tanks',
-            'Photography','Drawing','Calligraphy',
-            'Incest',
-            'Hikikomori','Otaku Culture','Chuunibyou',
-            'Chibi','Nekomimi','Youkai','Kaiju',
-            'Iyashikei','Denpa',
-            'Real Robot','Super Robot','Robots',
-            'Lost Civilization','Rural','Urban',
-            'Witch','Werewolf','Dragon','Skeleton',
-            'Primarily Adult Cast',
-            'Slavery',
-            'Boys\' Love','LGBTQ+ Themes',
-            'Girls\' Love','Reverse Harem',
-            'Wuxia',
-            'Office','Economics','Philosophy',
-            'Surreal Comedy','Time Manipulation',
-            'Found Family',
-            'Card Battle','Traditional Games',
-            'Award Winning'
-        ]);
-        var mangas = base.concat([
-            'Shounen','Shoujo','Seinen','Josei',
-            'Ecchi','Gore',
-            'Isekai','Mecha',
-            'Police',
-            'Medical','Wuxia',
-            'Mahou Shoujo',
-            'Monster Girl','Monster Girls','Animals',
-            'Space','Space Opera','Urban Fantasy',
-            'Crossdressing','Gender Bending','Genderswap',
-            'Fairy Tale',
-            'Fitness','Swimming',
-            'Video Games','Virtual World','Virtual Reality',
-            'Tokusatsu',
-            'Delinquents','Gyaru',
-            'Rehabilitation','Fugitive',
-            'Trains','Ships','Motorcycles','Tanks',
-            'Photography','Drawing','Calligraphy',
-            'Incest','Loli','Shota',
-            'Hikikomori','Otaku Culture','Chuunibyou',
-            'Chibi','Nekomimi','Youkai','Kaiju',
-            'Iyashikei','Denpa',
-            'Real Robot','Super Robot','Robots',
-            'Lost Civilization','Rural','Urban',
-            'Witch','Werewolf','Dragon','Skeleton',
-            'Primarily Adult Cast',
-            'Slavery',
-            '4-koma','Full Color','Long Strip','Anthology',
-            'Doujinshi','Web Comic','Self-Published',
-            'Award Winning','Adaptation',
-            'School Life',
-            'Reverse Harem',
-            'Boys\' Love','Girls\' Love','LGBTQ+ Themes',
-            'Cooking',
-            'Office Workers','Office','Economics','Philosophy',
-            'Surreal Comedy','Time Manipulation',
-            'Found Family',
-            'Card Battle','Traditional Games'
-        ]);
-        var novelas = base.concat([
-            'Shounen','Shoujo','Seinen','Josei',
-            'Ecchi','Gore',
-            'Isekai','Mecha','Wuxia',
-            'Police','Medical',
-            'Mahou Shoujo',
-            'Monster Girl','Monster Girls','Animals',
-            'Space','Space Opera','Urban Fantasy',
-            'Crossdressing','Gender Bending',
-            'Fairy Tale','Youkai',
-            'Delinquents','Gyaru',
-            'Witch','Werewolf','Dragon',
-            'Slavery','Rehabilitation','Fugitive',
-            'Hikikomori','Otaku Culture',
-            'Iyashikei','Primarily Adult Cast',
-            'Boys\' Love','Girls\' Love','LGBTQ+ Themes',
-            'Office Workers','Office','Economics','Philosophy',
-            'Time Manipulation',
-            'Found Family',
-            'Card Battle',
-            'Video Games','Virtual World','Virtual Reality',
-            'School Life',
-            'Reverse Harem',
-            'Award Winning','Adaptation',
-            'Cooking'
-        ]);
-        if (categoria === 'anime') return animes;
-        if (categoria === 'novelas') return novelas;
-        return mangas;
-    })();
-    fixedGenres.forEach(function(g) {
-        var key = normalizeText(g);
-        if (!counts.has(key)) {
-            counts.set(key, { label: g, count: 0 });
-        }
+    // Chips del catálogo: los de AniList validados (genres.js) más los géneros
+    // que traen las cards ya pintadas. Primero los géneros oficiales y después
+    // los tags, en orden alfabético: ordenar por cuántas cards los tienen daba
+    // un orden casi al azar con pocas cards cargadas.
+    const Genres = AnimeDestiny.Genres;
+    const adulto = !!(window.__catalogFilters && window.__catalogFilters.isAdult);
+    const catalogo = Genres ? Genres.paraCategoria(categoria, adulto) : [];
+    catalogo.forEach(function (g) {
+        const key = normalizeText(g.label);
+        const previo = counts.get(key);
+        counts.set(key, { label: g.label, count: previo ? previo.count : 0 });
     });
 
-    const sorted = [...counts.entries()]
-        .map(([key, v]) => ({ key, label: v.label, count: v.count }))
-        .sort((a, b) => b.count - a.count);
-
-    const filterGenres = sorted;
+    if (Genres && !Genres.listo()) {
+        // La colección real de AniList (se pide una vez por semana) trae los
+        // nombres exactos y descarta chips que filtrarían a cero: cuando
+        // llega, se rearman los chips.
+        Genres.cargar().then(function (ok) {
+            if (ok) { try { inicializarGeneroWidgets(); } catch (e) { /* quedan los de respaldo */ } }
+        });
+    }
 
     const selectedKey = `ui:selectedGenres:${categoria}`;
     const selectedGenres = (() => {
@@ -986,12 +868,25 @@ function inicializarGeneroWidgets() {
 
     window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = selectedGenres;
 
+    // Un género elegido que ya no está en la lista (p. ej. un tag que AniList
+    // no conoce) se sigue mostrando, para poder destildarlo.
+    selectedGenres.forEach(function (key) {
+        if (key && !counts.has(key)) counts.set(key, { label: Genres ? Genres.nombre(key) : key, count: 0 });
+    });
+
+    const filterGenres = [...counts.entries()].map(([key, v]) => ({
+        key,
+        label: v.label,
+        oficial: Genres ? Genres.esOficial(v.label) : false
+    }));
+    if (Genres) filterGenres.splice(0, filterGenres.length, ...Genres.ordenar(filterGenres));
+
     // ── Populate dropdown genre chips ──
     const filterGenresContainer = document.getElementById('filterGenres');
     const genreSearchInput = document.getElementById('filterGenreSearch');
     const genreToggleBtn = document.getElementById('toggleGenresBtn');
-    // Con >100 géneros, mostrar todos de golpe abruma. Colapsamos a los más
-    // populares (ya vienen ordenados por conteo desc) y ofrecemos "Ver todos".
+    // Con >100 géneros, mostrar todos de golpe abruma. Colapsamos a los
+    // primeros (los géneros oficiales van adelante) y ofrecemos "Ver todos".
     const GENRE_COLLAPSED_COUNT = 24;
 
     function renderDropdownGenres() {
@@ -1016,7 +911,7 @@ function inicializarGeneroWidgets() {
         }
 
         if (!visible.length) {
-            filterGenresContainer.innerHTML = '<div class="ff-genre-empty">Sin géneros que coincidan.</div>';
+            filterGenresContainer.innerHTML = '<div class="ff-genre-empty">' + escapeHtml(catTr('catalog.generos_vacio', 'Sin géneros que coincidan.')) + '</div>';
         } else {
             filterGenresContainer.innerHTML = visible.map((g) => {
                 const active = arr.includes(g.key) ? ' is-active' : '';
@@ -1030,8 +925,8 @@ function inicializarGeneroWidgets() {
             } else {
                 genreToggleBtn.hidden = false;
                 genreToggleBtn.textContent = window.__genreExpanded
-                    ? 'Ver menos ▲'
-                    : 'Ver todos · ' + list.length + ' géneros ▼';
+                    ? catTr('catalog.generos_menos', 'Ver menos ▲')
+                    : catTr('catalog.generos_todos', 'Ver todos · ' + list.length + ' géneros ▼', { n: list.length });
             }
         }
     }
@@ -1048,9 +943,15 @@ function inicializarGeneroWidgets() {
     _genreWidgetsListenersAdded = true;
 
     if (genreSearchInput) {
+        // Con un respiro entre teclas: rearmar los ~150 chips en cada letra no
+        // hace falta.
+        let genreSearchTimer = null;
         genreSearchInput.addEventListener('input', () => {
-            window.__genreQuery = genreSearchInput.value || '';
-            if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
+            clearTimeout(genreSearchTimer);
+            genreSearchTimer = setTimeout(() => {
+                window.__genreQuery = genreSearchInput.value || '';
+                if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
+            }, 120);
         });
     }
 

@@ -58,6 +58,7 @@ function stubFetch(porLlamada) {
 
 beforeAll(async () => {
   await import('../../js/core/constants.js');
+  await import('../../js/core/genres.js');
   await import('../../js/core/api.js');
   // MangaDex se movió a su propio archivo; getTopMangas/getTopNovelas lo
   // consumen vía window.*, así que hay que cargarlo también en el test.
@@ -121,9 +122,10 @@ describe('getTopMangas: consulta agrupada', () => {
     expect(decls.match(/\$search: String/g)).toHaveLength(1);
     expect(decls.match(/\$genre_in: \[String\]/g)).toHaveLength(1);
     expect(decls.match(/\$tag_in: \[String\]/g)).toHaveLength(1);
-    // 'action' es género oficial de AniList; 'isekai' es tag.
+    // 'action' es género oficial de AniList; 'isekai' es tag y viaja con el
+    // nombre que AniList conoce, no con la clave normalizada del chip.
     expect(peticiones[0].variables.genre_in).toEqual(['Action']);
-    expect(peticiones[0].variables.tag_in).toEqual(['isekai']);
+    expect(peticiones[0].variables.tag_in).toEqual(['Isekai']);
   });
 
   it('comparte page y perPage entre los tres alias', async () => {

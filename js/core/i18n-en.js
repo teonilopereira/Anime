@@ -93,6 +93,9 @@
         "catalog.formato.tvcorta":   "TV short",
         "catalog.formato.musical":   "Music",
         "catalog.buscar_genero":  "Search genre...",
+        "catalog.generos_todos":  "Show all · {n} genres ▼",
+        "catalog.generos_menos":  "Show less ▲",
+        "catalog.generos_vacio":  "No matching genres.",
         "catalog.abrir_filtros":  "Open filters",
 
         // ── Catalog cards (cards.js, dynamic text) ───────────────────────
