@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Mirudoku */
-const CACHE_NAME = 'anime-destiny-c91e7d1a';
+const CACHE_NAME = 'anime-destiny-94cc1328';
 // v2: descarta las respuestas de error opacas que guardaba la v1.
 const IMG_CACHE_NAME = 'anime-destiny-img-v2';
 const IMG_CACHE_MAX = 120;
@@ -126,8 +126,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'Mirudoku';
   const options = {
     body: data.body || 'Hay novedades en tus animes.',
-    icon: 'images/icon-192.png',
-    badge: 'images/icon-192.png',
+    icon: 'images/brand/mirudoku-icon-192.png',
+    badge: 'images/brand/mirudoku-icon-192.png',
     tag: data.tag || undefined,
     data: { url: data.url || 'index.html' },
   };

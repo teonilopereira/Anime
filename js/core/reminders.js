@@ -40,8 +40,8 @@
             navigator.serviceWorker.ready.then(function (reg) {
                 reg.showNotification(title, {
                     body: body,
-                    icon: '/images/icon-192.png',
-                    badge: '/images/icon-192.png',
+                    icon: '/images/brand/mirudoku-icon-192.png',
+                    badge: '/images/brand/mirudoku-icon-192.png',
                     tag: url || 'anime-destiny-reminder',
                     data: { url: url || '/index.html' }
                 });
