@@ -6,7 +6,8 @@
  *  - normalizeText:           normalización de texto (lowercase + sin tildes)
  *  - episodeStorageKey:       formato de clave de localStorage para episodios
  *  - volumeStorageKey:        formato de clave de localStorage para volúmenes
- *  - buildCatalogImageCandidates: genera rutas de imágenes candidatas
+ *  - createFallbackPosterDataUrl: póster generado en proporción 2:3
+ *  - fallbackCatalogImage:   respaldo de portadas rotas (srcset → src → póster)
  */
 
 import { beforeAll, describe, it, expect } from 'vitest';
@@ -87,36 +88,61 @@ describe('AppUtils.volumeStorageKey', () => {
   });
 });
 
-// ─── buildCatalogImageCandidates ──────────────────────────────────────────────
+// ─── createFallbackPosterDataUrl ──────────────────────────────────────────────
 
-describe('AppUtils.buildCatalogImageCandidates', () => {
-  it('devuelve un array', () => {
-    const candidates = window.AppUtils.buildCatalogImageCandidates('Naruto');
-    expect(Array.isArray(candidates)).toBe(true);
+describe('AppUtils.createFallbackPosterDataUrl', () => {
+  it('genera un SVG 2:3, la misma proporción que las portadas', () => {
+    const url = window.AppUtils.createFallbackPosterDataUrl('Naruto');
+    expect(url.startsWith('data:image/svg+xml')).toBe(true);
+    expect(decodeURIComponent(url)).toContain('viewBox="0 0 600 900"');
   });
 
-  it('contiene rutas .jpg, .png y .webp', () => {
-    const candidates = window.AppUtils.buildCatalogImageCandidates('One Piece');
-    const exts = ['.jpg', '.png', '.webp'];
-    exts.forEach(ext => {
-      expect(candidates.some(c => c.endsWith(ext))).toBe(true);
-    });
+  it('escapa el título', () => {
+    const svg = decodeURIComponent(window.AppUtils.createFallbackPosterDataUrl('<b>&'));
+    expect(svg).toContain('&lt;b&gt;&amp;');
+  });
+});
+
+// ─── fallbackCatalogImage ─────────────────────────────────────────────────────
+
+describe('AppUtils.fallbackCatalogImage', () => {
+  const COVER = 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1.png';
+
+  function makeImg(attrs) {
+    const img = document.createElement('img');
+    Object.entries(attrs).forEach(([k, v]) => img.setAttribute(k, v));
+    return img;
+  }
+
+  it('con srcset, primero lo saca y deja que el navegador reintente el src', () => {
+    const img = makeImg({ src: COVER, srcset: COVER + ' 460w', sizes: '300px', alt: 'Naruto' });
+    window.AppUtils.fallbackCatalogImage(img);
+    expect(img.hasAttribute('srcset')).toBe(false);
+    expect(img.hasAttribute('sizes')).toBe(false);
+    expect(img.getAttribute('src')).toBe(COVER);
+    expect(img.dataset.fallbackReady).toBeUndefined();
   });
 
-  it('slug del título aparece en los candidatos', () => {
-    const candidates = window.AppUtils.buildCatalogImageCandidates('Dragon Ball Z');
-    expect(candidates.some(c => c.includes('dragon-ball-z'))).toBe(true);
+  it('si el src también falla, pone el póster generado una sola vez', () => {
+    const img = makeImg({ src: COVER, srcset: COVER + ' 460w', alt: 'Naruto' });
+    window.AppUtils.fallbackCatalogImage(img);
+    window.AppUtils.fallbackCatalogImage(img);
+    expect(img.getAttribute('src').startsWith('data:image/svg+xml')).toBe(true);
+    const placeholder = img.getAttribute('src');
+    window.AppUtils.fallbackCatalogImage(img);
+    expect(img.getAttribute('src')).toBe(placeholder);
   });
 
-  it('no incluye cadenas vacías cuando el título y src son no vacíos', () => {
-    const candidates = window.AppUtils.buildCatalogImageCandidates('Naruto', 'images/posters/naruto.jpg');
-    expect(candidates.every(c => c.length > 0)).toBe(true);
+  it('sin src va directo al póster con el título de data-title', () => {
+    const img = makeImg({ src: '', 'data-title': 'One Piece' });
+    window.AppUtils.fallbackCatalogImage(img);
+    expect(decodeURIComponent(img.getAttribute('src'))).toContain('One Piece');
   });
 
-  it('maneja caracteres especiales y comillas tipográficas', () => {
-    // No debe lanzar error con títulos como "Hunter×Hunter" o "Fullmetal Alchemist: Brotherhood"
-    expect(() =>
-      window.AppUtils.buildCatalogImageCandidates("Fullmetal Alchemist: Brotherhood")
-    ).not.toThrow();
+  it('no hace pedidos a rutas locales de pósters', () => {
+    const img = makeImg({ src: COVER, alt: 'Naruto' });
+    window.AppUtils.fallbackCatalogImage(img);
+    expect(img.getAttribute('src')).not.toContain('images/posters');
+    expect(window.AppUtils.buildCatalogImageCandidates).toBeUndefined();
   });
 });
