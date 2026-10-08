@@ -128,6 +128,9 @@
     // Ruta del sprite de proyectil del personaje activo (si trae 'attack' con
     // efecto propio); "" cuando no tiene y el golpe usa la marca de corte CSS.
     var MASCOT_PROJECTILE = "";
+    // Personajes 'frames' sin fotogramas de ataque (Hikari, Luna): atacan igual,
+    // con su pose de reposo y una estocada hecha en CSS (.mascot-css-attack).
+    var CSS_ATTACK = false;
 
     // Deriva un mapa ANIMS (índice+fps por estado) desde las listas de frames.
     function framesToAnims(f) {
@@ -150,15 +153,32 @@
         var c = findChar(id);
         MASCOT_PROJECTILE = c.projectile || "";
         MASCOT_MODE = c.mode === "frames" ? "frames" : "sheet";
+        CSS_ATTACK = false;
         if (MASCOT_MODE === "frames") {
             FRAME_IMGS = c.frames || {};
             ANIMS = c.anims || framesToAnims(FRAME_IMGS);
+            if (!ANIMS.attack) {
+                // Copia: no tocar el registro compartido. setFrame cae a los
+                // fotogramas de 'idle' cuando no hay lista de 'attack'.
+                var a = {};
+                for (var k in ANIMS) if (ANIMS.hasOwnProperty(k)) a[k] = ANIMS[k];
+                a.attack = { f: ANIMS.idle.f, fps: ANIMS.idle.fps };
+                ANIMS = a;
+                CSS_ATTACK = true;
+            }
         } else {
             SHEET_SRC  = c.src  || RIMURU.src;
             SHEET_COLS = c.cols || 8;
             SHEET_ROWS = c.rows || 5;
             ANIMS = c.anims || RIMURU.anims;
         }
+        if (root) {
+            // Las expresiones de los personajes 'frames' se simulan en CSS (ver
+            // mascot.css): Rimuru las trae dibujadas en su hoja.
+            root.classList.toggle("mascot-frames", MASCOT_MODE === "frames");
+            root.classList.toggle("mascot-css-attack", CSS_ATTACK);
+        }
+        if (pet) pet.setAttribute("aria-label", c.name + " — tu mascota. Tocá para saludar.");
         if (sprite) {
             if (MASCOT_MODE === "frames") {
                 sprite.style.backgroundSize = "100% 100%";
@@ -224,7 +244,11 @@
         animRAF = requestAnimationFrame(animTick);
         var name = activeAnim();
         var a = ANIMS[name] || ANIMS.idle;
-        if (name !== animName) { animName = name; animStart = ts; }
+        if (name !== animName) {
+            animName = name; animStart = ts;
+            // El CSS de expresiones (modo 'frames') se engancha de este atributo.
+            if (root) root.setAttribute("data-anim", name);
+        }
         // Con movimiento reducido, congelamos en el primer fotograma del estado.
         var i = reducedMotion() ? 0 : Math.floor((ts - animStart) * a.fps / 1000) % a.f.length;
         var frame = a.f[i];
@@ -342,7 +366,6 @@
         pet = document.createElement("button");
         pet.className = "mascot-pet";
         pet.type = "button";
-        pet.setAttribute("aria-label", "Rimuru — tu mascota slime. Tocá para saludar.");
         sprite = document.createElement("div");
         sprite.className = "mascot-sprite";
         sprite.setAttribute("aria-hidden", "true");
@@ -587,7 +610,12 @@
     // las animaciones de la mascota (talk/land viven en .mascot-pet; el flip, en
     // .mascot-sprite).
     function applyFace() {
-        if (sprite && sprite.style) sprite.style.transform = "scaleX(" + ((phys && phys.face) || 1) + ")";
+        var face = (phys && phys.face) || 1;
+        if (sprite && sprite.style) {
+            sprite.style.transform = "scaleX(" + face + ")";
+            // La estocada CSS (.mascot-css-attack) inclina hacia donde mira.
+            sprite.style.setProperty("--face", face);
+        }
     }
 
     // Reacción contextual al posarse sobre un elemento real de la página.
@@ -698,7 +726,9 @@
         kurenai:   ["¡Corte carmesí! ⚔️", "¡Silencio!", "¡Hyah!"],
         kazuha:    ["¡Filo del viento! 🍃", "¡Rápido como el viento!", "¡Toma!"],
         diablilla: ["¡Travesura! 😈", "¡Jiji!", "¡Toma esto!"],
-        valkiria:  ["¡Alas de guerra! 🪽", "¡Cae!", "¡Hyah!"]
+        valkiria:  ["¡Alas de guerra! 🪽", "¡Cae!", "¡Hyah!"],
+        hikari:    ["¡Filo de luz! ✨", "¡En guardia!", "¡Hyah!"],
+        luna:      ["¡Lluvia de estrellas! 🌙", "¡Abracadabra!", "¡Toma esto!"]
     };
     function attackLine() {
         return pick(ATTACK_LINES[readChar()] || ["¡Hyah!"]);
@@ -800,6 +830,10 @@
         setTimeout(function () { img.remove(); }, travelMs + 140);
     }
 
+    // Color de la marca de corte: rojo Getsuga para Ichigo, luz dorada para
+    // Hikari, magia violeta para Luna; blanco (el corte de Kenpachi) al resto.
+    var SLASH_COLORS = { ichigo: "#ff2d55", hikari: "#ffd166", luna: "#c08bff" };
+
     // Impacto: sacude el elemento golpeado y dibuja una marca de corte encima.
     // Si el personaje trae proyectil, el efecto de corte se omite (ya voló el
     // sprite del proyectil desde startAttack) y solo se aplica la sacudida.
@@ -818,7 +852,7 @@
         var slash = document.createElement("div");
         slash.className = "mascot-slash";
         // Rojo Getsuga para Ichigo; blanco para el corte de Kenpachi.
-        slash.style.setProperty("--slash-color", readChar() === "ichigo" ? "#ff2d55" : "#eafff8");
+        slash.style.setProperty("--slash-color", SLASH_COLORS[readChar()] || "#eafff8");
         slash.style.left = (r.left + r.width / 2 - size / 2) + "px";
         slash.style.top = (r.top + r.height / 2 - size / 2) + "px";
         slash.style.width = size + "px";
@@ -1180,14 +1214,115 @@
     }
 
     // ── Interacción: tocar la mascota ──────────────────────────────────────
+    // Saludos genéricos: sirven para cualquier personaje. Lo propio de cada uno
+    // (presentación, mimos, quejas) va en CHAR_LINES.
     var GREETINGS = [
-        "¡Hola! Soy Rimuru. ¿Qué vas a ver hoy?",
-        "¡Blop! Estoy aquí si me necesitás.",
+        "¡Estoy aquí si me necesitás!",
         "¿Sumamos algo a tus listas?",
         "¡Ánimo con tu maratón! ✨",
-        "Toca una noti y te la leo.",
-        "¡Soy Rimuru, tu slime de confianza!"
+        "Tocá una noti y te la leo."
     ];
+
+    // Personalidad de cada personaje: hello (al tocarlo), love (mimos
+    // seguidos) y hurt (cuando el rival le pega). Lo que falte cae en las
+    // frases genéricas de abajo.
+    var CHAR_LINES = {
+        rimuru: {
+            hello: ["¡Hola! Soy Rimuru. ¿Qué vas a ver hoy?", "¡Blop! Soy Rimuru, tu slime de confianza."],
+            love:  ["¡Blop blop! 💕", "¡Me hacés cosquillas! 😆", "¡Soy todo gelatina de amor! 🥰"],
+            hurt:  ["¡Blop! 💥", "¡Eso no se le hace a un slime! 😖"]
+        },
+        ichigo: {
+            hello: ["Soy Ichigo. ¿Qué serie te ataja hoy?", "Shinigami sustituto, a tu servicio."],
+            love:  ["¡E-eh, pará! 😳", "Bueno… gracias, supongo."],
+            hurt:  ["¡Tch! Eso dolió.", "¡No me subestimes!"]
+        },
+        kenpachi: {
+            hello: ["Kenpachi Zaraki. ¿Buscamos algo con peleas fuertes?", "¿Peleás o mirás anime? Mejor las dos."],
+            love:  ["Jeh. Raro que no me tengas miedo.", "Yachiru también hace eso…"],
+            hurt:  ["¡Jajaja! ¡Eso es, más!", "¡Por fin alguien que pega!"]
+        },
+        hikari: {
+            hello: ["Soy Hikari. ¡Mi espada y yo te cuidamos! ⚔️", "¿Qué aventura elegimos hoy?"],
+            love:  ["¡Eso me da fuerzas! ✨", "¡Jeje, gracias! 💛"],
+            hurt:  ["¡Una guerrera no se rinde!", "¡Ugh! ¡Nada más un rasguño!"]
+        },
+        luna: {
+            hello: ["Soy Luna. Las estrellas dicen que hoy toca maratón 🌙", "¿Te leo la suerte… o una sinopsis?"],
+            love:  ["¡Hechizo de cariño activado! 💜", "Jiji, me sonrojás 🌙"],
+            hurt:  ["¡Mi sombrero! 😵", "¡Eso merece un maleficio!"]
+        },
+        aurora: {
+            hello: ["Soy Aurora 🌸 ¿Florecemos con un buen anime?", "¡Qué lindo día para descubrir algo!"],
+            love:  ["¡Me florecen los cachetes! 🌸", "¡Gracias! 💐"],
+            hurt:  ["¡Ay, mis pétalos! 🥀", "¡Eso no fue amable!"]
+        },
+        escarlata: {
+            hello: ["Escarlata, la tormenta. ¿Qué buscamos?", "Decime qué ver y lo encontramos volando 🌪️"],
+            love:  ["…No está mal. Seguí.", "¡Hm! Bueno, un poquito más."],
+            hurt:  ["¡Vas a pagar por esto!", "¡Tch! Suerte de principiante."]
+        },
+        nix: {
+            hello: ["Nix reportándose. Objetivo: tu próximo anime 🎯", "Radar listo. ¿Qué rastreamos?"],
+            love:  ["Afirmativo… me gusta 😊", "¡Moral del equipo al 100%!"],
+            hurt:  ["¡Me dieron! 💢", "¡Cubrime!"]
+        },
+        corvina: {
+            hello: ["Corvina. Traigo noticias rápidas como el rayo ⚡", "¿Algo nuevo para tus listas?"],
+            love:  ["¡Me cargás las pilas! ⚡", "¡Bzzt! Eso me gustó."],
+            hurt:  ["¡Cortocircuito! 😵", "¡Ey, con cuidado!"]
+        },
+        kitsune: {
+            hello: ["¡Kon kon! Soy Kitsune 🦊", "¿Te muestro algún anime con zorros? Jiji."],
+            love:  ["¡Kon~! 💕", "¡Mis colas se mueven solas! 🦊"],
+            hurt:  ["¡Mi cola! 😿", "¡Kon! ¡Eso dolió!"]
+        },
+        vampi: {
+            hello: ["Buenas noches… soy Vampi 🦇", "¿Maratón de madrugada? Mi horario favorito."],
+            love:  ["Mmm, sos más dulce que la sangre 🦇", "¡Ay, me derrito como al sol! 😳"],
+            hurt:  ["¡Grr! ¡Mis colmillos!", "¡Mordida pendiente!"]
+        },
+        marea: {
+            hello: ["¡Soy Marea! Fluyamos con un buen anime 🌊", "¿Nos tiramos de cabeza a un catálogo?"],
+            love:  ["¡Ola de cariño! 🌊💙", "¡Splash! Me gustó."],
+            hurt:  ["¡Glub! 😵", "¡Me revolviste las olas!"]
+        },
+        infernal: {
+            hello: ["Infernal. ¿Algo que me prenda fuego? 🔥", "Decime un anime y lo encendemos."],
+            love:  ["¡Me estás derritiendo! 🔥", "¡Uf, qué calor! 😳"],
+            hurt:  ["¡Ahora sí me calenté! 🔥", "¡Vas a arder!"]
+        },
+        kurenai: {
+            hello: ["…Kurenai.", "Elegí. Yo me encargo del resto."],
+            love:  ["……Gracias.", "…No le cuentes a nadie."],
+            hurt:  ["…Error tuyo.", "Nada mal."]
+        },
+        kazuha: {
+            hello: ["Kazuha. El viento me trajo hasta acá 🍃", "¿Paseamos por el catálogo?"],
+            love:  ["Como una brisa tibia 🍃", "¡Gracias! Me alegraste el día."],
+            hurt:  ["¡Uf! Me sacaste el aire.", "El viento devuelve todo…"]
+        },
+        diablilla: {
+            hello: ["¡Jiji! Soy Diablilla 😈", "¿Hacemos travesuras con tus listas?"],
+            love:  ["¡Ey! ¡Los diablos no se derriten! 😳", "Bueno… un poquito sí 💕"],
+            hurt:  ["¡Eso es trampa! 😤", "¡Me las vas a pagar, jiji!"]
+        },
+        valkiria: {
+            hello: ["¡Valkiria en guardia! 🪽", "¿Qué batalla vemos hoy?"],
+            love:  ["¡Honor y cariño! 🪽", "¡Mi escudo se ablanda!"],
+            hurt:  ["¡Una valkiria no cae!", "¡Golpe aceptado!"]
+        }
+    };
+    var GENERIC_LINES = {
+        hello: ["¡Hola! ¿Qué vas a ver hoy?"],
+        love:  ["¡Me hacés cosquillas! 😆", "¡Te quiero! ❤", "¡Más mimos, más! 🥰"],
+        hurt:  ["¡Auch! 😖", "¡Ey! 😵", "¡No vale! 😤"]
+    };
+    // Frases del personaje activo para 'kind' (o las genéricas si no tiene).
+    function charLines(kind) {
+        var c = CHAR_LINES[readChar()];
+        return (c && c[kind] && c[kind].length) ? c[kind] : GENERIC_LINES[kind];
+    }
 
     // Saludos según la página: el slime "sabe" dónde estás y lo comenta.
     var PAGE_GREETINGS = {
@@ -1212,15 +1347,13 @@
         } catch (_) { return "index"; }
     }
 
-    // Pool de saludos: los de la página + los genéricos, sin repetir.
+    // Pool de saludos: la presentación del personaje, los de la página y los
+    // genéricos, sin repetir.
     function greetingPool() {
         var page = PAGE_GREETINGS[currentPage()] || [];
-        return page.concat(GREETINGS);
+        return charLines("hello").concat(page, GREETINGS);
     }
     var greetIdx = 0;
-
-    // Frases de cariño cuando lo miman varias veces seguidas.
-    var LOVE_LINES = ["¡Me hacés cosquillas! 😆", "¡Te quiero! ❤", "¡Blop blop! 💕", "¡Más mimos, más! 🥰"];
 
     function onPetClick() {
         // Si el click viene de terminar un arrastre, no saludar.
@@ -1235,7 +1368,7 @@
         if (petStreak >= 3) {
             setExpr("love");
             emitHearts(Math.min(3 + petStreak, 7));
-            showBubble(pick(LOVE_LINES), DURATION());
+            showBubble(pick(charLines("love")), DURATION());
             clearTimeout(loveTimer);
             loveTimer = setTimeout(function () {
                 if (currentExpr === "love") setExpr("normal");
@@ -1484,7 +1617,6 @@
     }
 
     // La mascota fija acusa el golpe: se sacude, pone cara triste y se queja.
-    var RIVAL_HURT_LINES = ["¡Auch! 😖", "¡Ey! 😵", "¡Blop! 💥", "¡No vale! 😤"];
     function mascotTakeHit() {
         if (pet) {
             pet.classList.remove("mascot-flinch"); void pet.offsetWidth;
@@ -1494,7 +1626,7 @@
         slashOverMascot();
         setExpr("sad");
         setTimeout(function () { if (currentExpr === "sad" && !sleeping) setExpr("normal"); }, 1100);
-        if (Math.random() < 0.6) speak(pick(RIVAL_HURT_LINES), "sad");
+        if (Math.random() < 0.6) speak(pick(charLines("hurt")), "sad");
     }
 
     function rivalBeginAttack(ts) {

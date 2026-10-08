@@ -416,14 +416,87 @@
     100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
 }
 
+/* ── Expresiones de los personajes 'frames' ──
+   Rimuru trae festejo, tristeza, sorpresa y sueño dibujados en su hoja; los
+   personajes de imágenes sueltas solo tienen reposo/caminar/ataque. Acá se
+   simulan con CSS a partir de [data-anim], que fija mascot.js. Se usan las
+   propiedades sueltas translate/scale/rotate para no pisar el transform
+   inline del sprite (el scaleX que lo da vuelta según hacia dónde mira). */
+.mascot-root.mascot-frames .mascot-sprite {
+    transition: filter 0.25s ease;
+}
+/* Festejo: saltitos contentos. */
+.mascot-root.mascot-frames[data-anim="happy"] .mascot-sprite {
+    animation: mascot-expr-hop 0.5s ease-in-out 3;
+    filter: brightness(1.08) saturate(1.15);
+}
+@keyframes mascot-expr-hop {
+    0%, 100% { translate: 0 0; scale: 1 1; }
+    35%      { translate: 0 -12%; scale: 0.95 1.06; }
+    70%      { translate: 0 0; scale: 1.06 0.94; }
+}
+/* Mimos: late y brilla en rosa. */
+.mascot-root.mascot-frames[data-anim="love"] .mascot-sprite {
+    animation: mascot-expr-beat 0.7s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(255, 105, 180, 0.85)) saturate(1.2);
+}
+@keyframes mascot-expr-beat {
+    0%, 100% { scale: 1; }
+    20%      { scale: 1.08; }
+    40%      { scale: 0.98; }
+    60%      { scale: 1.05; }
+}
+/* Sorpresa: respingo. */
+.mascot-root.mascot-frames[data-anim="surprised"] .mascot-sprite {
+    animation: mascot-expr-pop 0.4s cubic-bezier(0.3, 1.6, 0.6, 1) 1;
+}
+@keyframes mascot-expr-pop {
+    0%   { translate: 0 0; scale: 1; }
+    40%  { translate: 0 -8%; scale: 1.12 1.14; }
+    100% { translate: 0 0; scale: 1; }
+}
+/* Tristeza: se achica, se apaga y se tiñe de azul. */
+.mascot-root.mascot-frames[data-anim="sad"] .mascot-sprite {
+    animation: mascot-expr-droop 1.4s ease-in-out infinite;
+    filter: saturate(0.45) brightness(0.88) sepia(0.25) hue-rotate(170deg);
+    scale: 1.03 0.93;
+}
+@keyframes mascot-expr-droop {
+    0%, 100% { rotate: -2deg; }
+    50%      { rotate: 2deg; }
+}
+/* Dormido: respira lento y se oscurece un poco (el "Zzz" ya es común). */
+.mascot-root.mascot-frames[data-anim="sleep"] .mascot-sprite {
+    animation: mascot-expr-breathe 3s ease-in-out infinite;
+    filter: brightness(0.82) saturate(0.85);
+}
+@keyframes mascot-expr-breathe {
+    0%, 100% { scale: 1 1; }
+    50%      { scale: 1.04 0.96; }
+}
+/* Ataque sin fotogramas propios (Hikari, Luna): estocada hacia donde mira. */
+.mascot-root.mascot-css-attack[data-anim="attack"] .mascot-sprite {
+    animation: mascot-expr-lunge 0.72s cubic-bezier(0.3, 0.8, 0.4, 1) 1;
+    filter: brightness(1.15) drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+}
+@keyframes mascot-expr-lunge {
+    0%   { translate: 0 0; rotate: 0deg; }
+    25%  { translate: calc(var(--face, 1) * -6%) 0; rotate: calc(var(--face, 1) * -10deg); }
+    55%  { translate: calc(var(--face, 1) * 14%) 0; rotate: calc(var(--face, 1) * 14deg); }
+    100% { translate: 0 0; rotate: 0deg; }
+}
+
 /* ── Accesibilidad / rendimiento: sin movimiento ── */
 .mascot-reduced .mascot-pet,
-.mascot-reduced .mascot-pet.mascot-talking {
+.mascot-reduced .mascot-pet.mascot-talking,
+.mascot-root.mascot-reduced .mascot-sprite {
+    /* Las expresiones se siguen notando por el color (filter), sin moverse. */
     animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
     .mascot-pet,
-    .mascot-pet.mascot-talking {
+    .mascot-pet.mascot-talking,
+    .mascot-root .mascot-sprite {
         animation: none;
     }
     /* Sin sacudida del objeto golpeado (la marca de corte no se crea en JS). */
