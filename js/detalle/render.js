@@ -105,7 +105,7 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     // El titulo va con el nombre de la obra primero: es lo que se lee en la
     // pestana, en el resultado de Google y al compartir el link.
-    const pageTitle = `${item.titulo} | Anime Destiny`;
+    const pageTitle = `${item.titulo} | Mirudoku`;
     document.title = pageTitle;
 
     const isManga = categoria === 'manga' || !categoria;

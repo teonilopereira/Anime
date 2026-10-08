@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anime Destiny — Árbol Diagnóstico</title>
+<title>Mirudoku — Árbol Diagnóstico</title>
 <style>
   :root{--ink:#eaf0ff;--muted:#8a97ba;--gold:#e8cf94;--line:rgba(150,170,210,.16)}
   *{box-sizing:border-box}
@@ -78,7 +78,7 @@
 <canvas id="sky"></canvas>
 
 <div class="panel" id="hud">
-  <h1>🩺 ANIME DESTINY · DIAGNÓSTICO</h1>
+  <h1>🩺 MIRUDOKU · DIAGNÓSTICO</h1>
   <div class="sub">Mapa de calor de riesgo del código. El color y el tamaño de cada
     hexágono marcan dónde mirar primero. Buscá una función o abrí un área.</div>
 </div>
@@ -152,7 +152,7 @@ function metricVal(m,mode){return mode==='grupo'?0.5:mode==='size'?m._size:mode=
 /* ===== construir árbol ===== */
 let uid=0;
 function node(o){return Object.assign({id:uid++,children:[],expanded:false,x:null,y:null,tx:0,ty:0,tang:0,trad:0,r:0,val:0,mdx:0,mdy:0},o);}
-const root=node({label:'ANIME DESTINY',kind:'root',group:'root',desc:'PWA de catálogo de anime, manga, novelas y juegos.',depth:0,expanded:true});
+const root=node({label:'MIRUDOKU',kind:'root',group:'root',desc:'PWA de catálogo de anime, manga, novelas y juegos.',depth:0,expanded:true});
 for(const g of ORDER){
   const fol=node({label:FOLDERS[g].label,kind:'folder',group:g,desc:'Carpeta '+FOLDERS[g].label,depth:1,parent:root});
   root.children.push(fol);

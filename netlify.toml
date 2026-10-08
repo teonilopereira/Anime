@@ -1,4 +1,4 @@
-# Configuracion de Netlify para Anime Destiny.
+# Configuracion de Netlify para Mirudoku.
 #
 # Define cabeceras de seguridad y de cache. NO se define un comando de build a
 # proposito: los artefactos (css/bundle.min.css, js/core-bundle.min.js,

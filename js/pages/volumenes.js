@@ -117,7 +117,7 @@
         var isManga = !isAnime;
         var isChapter = isManga && prefix === 'CH';
 
-        document.title = 'Anime Destiny | ' + title;
+        document.title = 'Mirudoku | ' + title;
 
         var q = function (sel) { return document.querySelector(sel); };
 

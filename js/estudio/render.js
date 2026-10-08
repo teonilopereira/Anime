@@ -124,7 +124,7 @@
         var metaHost = document.getElementById('estudio-meta');
         if (metaHost) metaHost.innerHTML = meta;
 
-        document.title = 'Anime Destiny | ' + data.name;
+        document.title = 'Mirudoku | ' + data.name;
         setCanonical(data);
         setState('content');
         if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();

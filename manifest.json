@@ -1,6 +1,6 @@
 {
-    "name": "Anime Destiny",
-    "short_name": "AnimeDestiny",
+    "name": "Mirudoku",
+    "short_name": "Mirudoku",
     "description": "Catálogo de anime, manga y novelas con detalle, progreso y listas por usuario.",
     "start_url": "index.html",
     "display": "standalone",

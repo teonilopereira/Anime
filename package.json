@@ -1,7 +1,7 @@
 {
   "name": "anime-destiny",
   "version": "1.0.0",
-  "description": "Anime Destiny - App de seguimiento de anime, manga y novelas",
+  "description": "Mirudoku - App de seguimiento de anime, manga y novelas",
   "type": "module",
   "scripts": {
     "build": "node tools/build.js",

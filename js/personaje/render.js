@@ -306,7 +306,7 @@
             '<div class="persona-back"><a class="detail-back" href="index.html">Volver al inicio</a></div>';
 
         document.getElementById('persona-meta').innerHTML = built.meta;
-        document.title = 'Anime Destiny | ' + data.name;
+        document.title = 'Mirudoku | ' + data.name;
         setCanonical(data);
         setState('content');
         if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();

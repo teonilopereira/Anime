@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════
--- MIGRACIÓN COMPLETA — Anime Destiny
+-- MIGRACIÓN COMPLETA — Mirudoku
 -- Fecha: 2026-07-10
 -- Ejecutar en SQL Editor de Supabase
 -- ══════════════════════════════════════════════════════════════

@@ -389,7 +389,7 @@
             "retos.versus":            "¿Cuál es más popular?",
             "retos.deque":             "¿De qué anime es?",
             "retos.cargando_juego":    "Cargando…",
-            "retos.resumen":           "Tu mes en Anime Destiny",
+            "retos.resumen":           "Tu mes en Mirudoku",
             "retos.este_mes":          "Este mes",
             "retos.mes_pasado":        "Mes pasado",
             "retos.push":              "¿Querés que te avisemos cuando salga un episodio de lo que estás viendo?",
@@ -482,7 +482,7 @@
             "rank.sin_titulo":        "Sin título",
 
             // ── Privacidad (privacidad.html) ─────────────────────────────────
-            "privacy.intro":    "En Anime Destiny valoramos y respetamos tu privacidad. Esta política describe cómo recopilamos, utilizamos y protegemos la información personal que nos proporcionas al usar nuestra plataforma.",
+            "privacy.intro":    "En Mirudoku valoramos y respetamos tu privacidad. Esta política describe cómo recopilamos, utilizamos y protegemos la información personal que nos proporcionas al usar nuestra plataforma.",
             "privacy.h1":       "1. Información que recopilamos",
             "privacy.s1.intro": "Al registrarte y utilizar nuestra plataforma, recopilamos la siguiente información:",
             "privacy.s1.li1.k": "Información de registro:",
@@ -506,13 +506,13 @@
             "privacy.s6.p":     "Si tienes alguna consulta sobre nuestra política de privacidad, puedes contactarnos en:",
 
             // ── Términos (terminos.html) ─────────────────────────────────────
-            "terms.intro":  "Bienvenido a Anime Destiny. Al acceder y utilizar este sitio web, aceptas cumplir con los siguientes términos y condiciones de uso.",
+            "terms.intro":  "Bienvenido a Mirudoku. Al acceder y utilizar este sitio web, aceptas cumplir con los siguientes términos y condiciones de uso.",
             "terms.h1":     "1. Uso de la Plataforma",
-            "terms.s1.p":   "Anime Destiny es un catálogo informativo de anime, manga y novelas ligeras que permite a los usuarios registrar de forma personal su progreso e interactuar con listas. Queda prohibido cualquier uso indebido del sitio, como intentos de vulnerar los sistemas de seguridad de la base de datos o el uso de bots para alterar el ranking de experiencia (XP).",
+            "terms.s1.p":   "Mirudoku es un catálogo informativo de anime, manga y novelas ligeras que permite a los usuarios registrar de forma personal su progreso e interactuar con listas. Queda prohibido cualquier uso indebido del sitio, como intentos de vulnerar los sistemas de seguridad de la base de datos o el uso de bots para alterar el ranking de experiencia (XP).",
             "terms.h2":     "2. Propiedad Intelectual e Información de Terceros",
-            "terms.s2.p":   "Las portadas, sinopsis y datos de los títulos provienen de APIs públicas de terceros (principalmente AniList y MangaDex). Anime Destiny no se adjudica la propiedad de dichos materiales y reconoce los derechos de autor de las respectivas productoras y creadores. Los datos del sitio se proveen únicamente con fines educativos y de entretenimiento personal.",
+            "terms.s2.p":   "Las portadas, sinopsis y datos de los títulos provienen de APIs públicas de terceros (principalmente AniList y MangaDex). Mirudoku no se adjudica la propiedad de dichos materiales y reconoce los derechos de autor de las respectivas productoras y creadores. Los datos del sitio se proveen únicamente con fines educativos y de entretenimiento personal.",
             "terms.h3":     "3. Limitación de Responsabilidad",
-            "terms.s3.p":   "La plataforma se proporciona «tal cual» y «según disponibilidad». No garantizamos que el servicio sea ininterrumpido o libre de errores. Anime Destiny no será responsable por la pérdida temporal de datos de progreso que pueda ocurrir debido a problemas de conexión o fallos en las APIs externas.",
+            "terms.s3.p":   "La plataforma se proporciona «tal cual» y «según disponibilidad». No garantizamos que el servicio sea ininterrumpido o libre de errores. Mirudoku no será responsable por la pérdida temporal de datos de progreso que pueda ocurrir debido a problemas de conexión o fallos en las APIs externas.",
             "terms.h4":     "4. Cuentas de Usuario y Modificaciones",
             "terms.s4.p":   "Nos reservamos el derecho de dar de baja o suspender cuentas de usuario que realicen prácticas abusivas o fraudulentas en el sistema. Asimismo, nos reservamos el derecho de modificar estos términos de servicio en cualquier momento, informando de los cambios en esta página.",
             "terms.h5":     "5. Legislación Aplicable",

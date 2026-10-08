@@ -14,7 +14,7 @@ const APODOS = Object.freeze([
     { id: 'primer_paso',   nick: 'Un Pasito',           desc: 'Marcá tu primer capítulo o episodio.', test: function (s) { return s.eps >= 1; } },
     { id: 'maratonista',   nick: 'Maratonista',         desc: 'Marcá 100 capítulos o episodios.',     test: function (s) { return s.eps >= 100; } },
     { id: 'veterano',      nick: 'Veterano',            desc: 'Alcanzá el nivel 5.',                  test: function (s) { return s.level >= 5; } },
-    { id: 'leyenda',       nick: 'Leyenda Destiny',     desc: 'Alcanzá el nivel 10.',                 test: function (s) { return s.level >= 10; } },
+    { id: 'leyenda',       nick: 'Leyenda Mirudoku',     desc: 'Alcanzá el nivel 10.',                 test: function (s) { return s.level >= 10; } },
 
     // — Apodos de franquicia: se ganan viendo obras concretas —
     { id: 'hechicero_actual',   nick: 'El Hechicero Más Fuerte Actual',        desc: 'Marcá Jujutsu Kaisen (anime) como "Visto".',                test: function (s) { return franquiciaVista(s.vistos, 'jjk_anime'); } },

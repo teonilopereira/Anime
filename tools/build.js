@@ -1,5 +1,5 @@
 /**
- * build.js — Pipeline de build unificado de Anime Destiny.
+ * build.js — Pipeline de build unificado de Mirudoku.
  *
  * Un solo comando (`npm run build`) que:
  *   1. Concatena los CSS compartidos y los minifica → css/bundle.min.css
@@ -183,7 +183,7 @@ function concatCss(fuentes = CSS_SOURCES) {
 }
 
 function concatJs() {
-    let out = '/* === Anime Destiny Core Bundle === */\n';
+    let out = '/* === Mirudoku Core Bundle === */\n';
     for (const rel of JS_SOURCES) {
         out += '\n/* ========================================== */\n';
         out += `/* === FILE: ${rel} === */\n`;

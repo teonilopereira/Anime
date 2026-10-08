@@ -355,7 +355,7 @@
         var squares = st.guesses.map(function (g) { return g.id === quiz.answer.id ? '🟩' : '🟥'; });
         while (squares.length < MAX_TRIES) squares.push('⬛');
         var score = st.status === 'won' ? tries() + '/' + MAX_TRIES : 'X/' + MAX_TRIES;
-        return 'Anime Destiny · Adiviná el anime #' + quizNumber(quiz.day) + ' ' + score + '\n' +
+        return 'Mirudoku · Adiviná el anime #' + quizNumber(quiz.day) + ' ' + score + '\n' +
             squares.join('') + '\n' + location.origin + location.pathname;
     }
 
@@ -942,7 +942,7 @@
 
         ctx.fillStyle = '#00f2ff';
         ctx.font = '700 34px Orbitron, sans-serif';
-        ctx.fillText('ANIME DESTINY', 80, 120);
+        ctx.fillText('MIRUDOKU', 80, 120);
         ctx.fillStyle = '#ffffff';
         ctx.font = '700 72px Orbitron, sans-serif';
         ctx.fillText('MI ' + d.month.name.toUpperCase(), 80, 215);
@@ -1026,7 +1026,7 @@
             var share = document.getElementById('summaryShare');
             if (share) {
                 share.addEventListener('click', function () {
-                    navigator.share({ files: [file], text: 'Mi mes en Anime Destiny' }).then(function () {
+                    navigator.share({ files: [file], text: 'Mi mes en Mirudoku' }).then(function () {
                         if (M) M.track('share');
                     }).catch(function () { /* cancelado */ });
                 });

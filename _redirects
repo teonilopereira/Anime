@@ -1,4 +1,4 @@
-# Anime Destiny es un sitio estatico multipagina, no una SPA: cada seccion es
+# Mirudoku es un sitio estatico multipagina, no una SPA: cada seccion es
 # su propio .html y no hay routing en cliente. Netlify sirve primero el archivo
 # que exista, asi que esta regla solo alcanza a las URLs inexistentes.
 #

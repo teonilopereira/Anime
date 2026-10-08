@@ -1,5 +1,5 @@
-/* sw.js - Service Worker for Anime Destiny */
-const CACHE_NAME = 'anime-destiny-956d2cd8';
+/* sw.js - Service Worker for Mirudoku */
+const CACHE_NAME = 'anime-destiny-3b00925b';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -104,7 +104,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (e) { data = {}; }
-  const title = data.title || 'Anime Destiny';
+  const title = data.title || 'Mirudoku';
   const options = {
     body: data.body || 'Hay novedades en tus animes.',
     icon: 'images/icon-192.png',

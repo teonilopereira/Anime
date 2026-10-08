@@ -1,5 +1,5 @@
 /**
- * code-map.js — Mapa del código de Anime Destiny (para triage rápido de bugs).
+ * code-map.js — Mapa del código de Mirudoku (para triage rápido de bugs).
  *
  * Escanea el proyecto y escribe `code-map.json` en la raíz con, por cada archivo:
  *   - métricas de riesgo: líneas, tests (sí/no), fragilidad (catch/console.error),

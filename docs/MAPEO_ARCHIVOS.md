@@ -1,4 +1,4 @@
-# MAPEO DE ARCHIVOS — Anime Destiny
+# MAPEO DE ARCHIVOS — Mirudoku
 
 > Referencia del árbol real del repositorio (actualizada el 2026-10-03). Sitio
 > **estático** publicado en GitHub Pages y Netlify **sin paso de build remoto**: los artefactos (`css/bundle*.css`,
@@ -300,5 +300,5 @@ Se ejecutan con `npm test`.
 
 | Archivo | Propósito |
 |---|---|
-| `Logo.png` | Logo de "Anime Destiny" (navbar). |
+| `Logo.png` | Logo anterior ("Anime Destiny"), ya no se usa. La navbar usa `brand/mirudoku-mark.svg`. |
 | `icon-192.png` / `icon-512.png` | Iconos PWA. |

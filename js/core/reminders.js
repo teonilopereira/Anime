@@ -99,7 +99,7 @@
                 ? '🔔 Nuevo episodio: ' + item.title + ' (ep. ' + item.episode + ')'
                 : '📅 Hoy sale ' + item.title + ' (ep. ' + item.episode + ')';
             toast('info', msg);
-            systemNotify('Anime Destiny', msg, '/detalle.html?cat=anime&id=' + item.id);
+            systemNotify('Mirudoku', msg, '/detalle.html?cat=anime&id=' + item.id);
         });
     }
 
@@ -118,7 +118,7 @@
         } else if (s.atRisk) {
             var msg = '🔥 Tu racha de ' + s.count + ' días termina hoy. ¡Entrá para no perderla!';
             toast('info', msg);
-            systemNotify('Anime Destiny', msg, '/index.html');
+            systemNotify('Mirudoku', msg, '/index.html');
         }
     }
 

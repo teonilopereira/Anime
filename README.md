@@ -1,4 +1,4 @@
-# Anime Destiny
+# Mirudoku
 
 App web para seguir anime, manga y novelas ligeras: catálogo, fichas de detalle,
 listas personales, ranking de usuarios, retos diarios y notificaciones de nuevos
