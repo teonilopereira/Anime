@@ -142,7 +142,14 @@
         var isNovel = String(type).toLowerCase() === 'novelas' || item.format === 'NOVEL';
         var friendlyType = item.format || 'Manga';
         if (isNovel) {
-            friendlyType = 'Novela';
+            // AniList no separa novela ligera de novela web (todas son NOVEL):
+            // el pais de origen es la mejor senal disponible. cards.js y
+            // comparar.js traducen estos valores a la etiqueta visible.
+            var novelOrigin = String(item.countryOfOrigin || '').toUpperCase();
+            if (novelOrigin === 'JP') friendlyType = 'Novela ligera';
+            else if (novelOrigin === 'KR') friendlyType = 'Novela coreana';
+            else if (novelOrigin === 'CN' || novelOrigin === 'TW') friendlyType = 'Novela china';
+            else friendlyType = 'Novela';
         } else if (isAnime) {
             friendlyType = item.format || 'TV';
         } else {

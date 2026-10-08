@@ -48,11 +48,16 @@ function getApiCatalogInfo(categoria, item) {
         return parts.join(' / ') || catTr('card.type.anime', 'Anime');
     }
 
-    const typeLabel = String(item?.type || '').toLowerCase().includes('light')
+    const rawType = String(item?.type || '').toLowerCase();
+    const typeLabel = (rawType.includes('light') || rawType === 'novela ligera')
         ? catTr('card.type.novela_ligera', 'Novela ligera')
-        : (String(item?.type || '').toLowerCase() === 'novel'
-            ? catTr('card.type.novela', 'Novela')
-            : (item?.type || catTr('card.type.manga', 'Manga')));
+        : rawType === 'novela coreana'
+            ? catTr('card.type.novela_coreana', 'Novela coreana')
+            : rawType === 'novela china'
+                ? catTr('card.type.novela_china', 'Novela china')
+                : (rawType === 'novel' || rawType === 'novela')
+                    ? catTr('card.type.novela', 'Novela')
+                    : (item?.type || catTr('card.type.manga', 'Manga'));
     const volcap = item?.volumes
         ? `${item.volumes} ${catTr('card.unit.vol', 'vol.')}`
         : (item?.chapters ? `${item.chapters} ${catTr('card.unit.cap', 'cap.')}` : '');

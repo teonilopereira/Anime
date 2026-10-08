@@ -92,6 +92,8 @@
             "card.type.anime":          "Anime",
             "card.type.novela_ligera":  "Novela ligera",
             "card.type.novela":         "Novela",
+            "card.type.novela_coreana": "Novela coreana",
+            "card.type.novela_china":   "Novela china",
             "card.type.manga":          "Manga",
             "card.unit.eps":            "eps",
             "card.unit.vol":            "vol.",
