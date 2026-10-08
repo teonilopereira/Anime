@@ -242,6 +242,9 @@ function renderDetalle(item, nombreUrl, categoria) {
     // ── Dónde ver / Dónde leer ── (ver js/detalle/watch-links.js)
     const watchLinksHtml = window.DetalleWatchLinks ? window.DetalleWatchLinks.html(item, isAnime) : '';
 
+    // ── Información y etiquetas ── (ver js/detalle/info.js)
+    const infoHtml = window.DetalleInfo ? window.DetalleInfo.html(item, categoria) : '';
+
     let extraBlockHtml = '';
     let progressPanelHtml = '';
 
@@ -417,6 +420,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <div class="detail-chips">${generosHtml}</div>
                 </div>
                 ${studiosHtml}
+                ${infoHtml}
                 ${isMangaOrNovela ? progressPanelHtml : ''}
                 ${extraBlockHtml}
 
