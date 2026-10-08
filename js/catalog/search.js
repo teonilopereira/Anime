@@ -856,7 +856,8 @@ function inicializarGeneroWidgets() {
             'Battle Royale','Dystopian',
             'Female Protagonist','Male Protagonist',
             'Ensemble Cast',
-            'Food','Historical'
+            'Food','Historical',
+            'Coming of Age','Super Power','Elf'
         ];
         var animes = base.concat([
             'Shounen','Shoujo','Seinen','Josei',
@@ -888,7 +889,9 @@ function inicializarGeneroWidgets() {
             'Office','Economics','Philosophy',
             'Surreal Comedy','Time Manipulation',
             'Found Family',
-            'Card Battle'
+            'Card Battle',
+            'Girls\' Love','Reverse Harem','Wuxia',
+            'Award Winning','Kids','Cute Girls Doing Cute Things'
         ]);
         var mangas = base.concat([
             'Shounen','Shoujo','Seinen','Josei',
@@ -922,7 +925,8 @@ function inicializarGeneroWidgets() {
             'Award Winning','Adaptation',
             'School Life',
             'Reverse Harem',
-            'Girls\' Love',
+            'Girls\' Love','Boys\' Love','LGBTQ+ Themes',
+            'Kids','Cute Girls Doing Cute Things',
             'Cooking',
             'Office Workers','Office','Economics','Philosophy',
             'Surreal Comedy','Time Manipulation',
@@ -930,31 +934,26 @@ function inicializarGeneroWidgets() {
             'Card Battle','Traditional Games'
         ]);
         var novelas = base.concat([
-            'Gore','Isekai',
+            'Shounen','Shoujo','Seinen','Josei',
+            'Ecchi','Gore','Isekai','Mecha','Wuxia',
+            'Mahou Shoujo',
             'Police',
-            'Monster Girl','Monster Girls',
+            'Monster Girl','Monster Girls','Animals',
             'Space','Space Opera','Urban Fantasy',
-            'Demons','Vampire','Ghost','Aliens',
-            'Survival',
-            'Crime',
-            'Revenge','Amnesia','Gambling',
-            'Superhero',
-            'School','Martial Arts',
-            'Ninja',
+            'Crossdressing','Gender Bending',
+            'Fairy Tale','Youkai',
             'Delinquents','Gyaru',
             'Witch','Werewolf','Dragon',
             'Slavery','Rehabilitation','Fugitive',
-            'Hikikomori','Otaku Culture',
+            'Hikikomori','Otaku Culture','Chuunibyou',
+            'Iyashikei','Robots','Lost Civilization',
+            'Primarily Adult Cast',
             'Boys\' Love','Girls\' Love','LGBTQ+ Themes',
             'Office Workers','Office','Economics','Philosophy',
+            'Surreal Comedy','Time Manipulation',
             'Found Family',
             'Card Battle',
-            'Idol','Band',
             'Video Games','Virtual World','Virtual Reality',
-            'Female Protagonist','Male Protagonist',
-            'Family Life','Love Triangle',
-            'Dystopian',
-            'Historical',
             'School Life',
             'Reverse Harem',
             'Award Winning','Adaptation',
