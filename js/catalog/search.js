@@ -461,7 +461,8 @@ function inicializarBusquedaCatalogo() {
             } else if (typeof window.buscarEnApi === 'function') {
                 resultados = await window.buscarEnApi(rawQuery, categoria);
             }
-            if ((categoria === 'manga' || categoria === 'novelas') && typeof window.fetchMangaDexPage === 'function') {
+            // MangaDex no tiene novelas: solo suplementa el catalogo de manga.
+            if (categoria === 'manga' && typeof window.fetchMangaDexPage === 'function') {
                 try {
                     var mdResults = await window.fetchMangaDexPage(1, 5, [], rawQuery);
                     if (mdResults.length) {
