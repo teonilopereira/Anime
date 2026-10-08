@@ -1498,10 +1498,15 @@ main { padding-bottom: 24px; }
 
 .hero-brand h1 {
     margin: 0;
+    /* El letter-spacing deja aire después de la última letra: se compensa
+       para que el conjunto logo + nombre quede centrado. */
+    margin-right: -0.14em;
 }
 
+/* Misma escala que el h1: el marcador acompaña la altura de las letras en
+   vez de duplicarla. */
 .hero-logo {
-    height: clamp(56px, 7vw, 92px);
+    height: clamp(2.4rem, 5vw, 4rem);
     width: auto;
     flex-shrink: 0;
     filter: drop-shadow(0 0 16px rgba(0, 242, 255, 0.35));
