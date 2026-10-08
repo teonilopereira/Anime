@@ -142,7 +142,14 @@
         var isNovel = String(type).toLowerCase() === 'novelas' || item.format === 'NOVEL';
         var friendlyType = item.format || 'Manga';
         if (isNovel) {
-            friendlyType = 'Novela';
+            // AniList no separa novela ligera de novela web (todas son NOVEL):
+            // el pais de origen es la mejor senal disponible. cards.js y
+            // comparar.js traducen estos valores a la etiqueta visible.
+            var novelOrigin = String(item.countryOfOrigin || '').toUpperCase();
+            if (novelOrigin === 'JP') friendlyType = 'Novela ligera';
+            else if (novelOrigin === 'KR') friendlyType = 'Novela coreana';
+            else if (novelOrigin === 'CN' || novelOrigin === 'TW') friendlyType = 'Novela china';
+            else friendlyType = 'Novela';
         } else if (isAnime) {
             friendlyType = item.format || 'TV';
         } else {
@@ -721,13 +728,9 @@
             var media = json?.data?.Page?.media || [];
             var mapped = media.map(function (m) { return anilistItemToLocal(m, 'novelas'); });
 
-            // Supplement with MangaDex (omitido con filtro de año: ver getTopMangas).
-            var mdTagUuids = window.mdTagUuidsFromKeys(filters.genres);
-            if ((mdTagUuids.length || filters.search) && !filters.year) {
-                var pg = page || 1;
-                var mdPage = await window.fetchMangaDexPage(pg, PER_PAGE, mdTagUuids, filters.search);
-                if (mdPage.length) mapped = window.mergeAnilistAndMd(mapped, mdPage);
-            }
+            // Sin suplemento de MangaDex: MangaDex solo aloja historietas
+            // (manga/manhwa/manhua), asi que mezclarlo colaba mangas en el
+            // catalogo de novelas al buscar o filtrar por genero.
 
             return mapped;
         });

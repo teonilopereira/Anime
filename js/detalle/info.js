@@ -124,7 +124,17 @@
         }
 
         var fmt = String(item.format || '').toUpperCase();
-        push('Formato', FORMATOS[fmt] || (isAnime ? '' : item.type) || '');
+        var formato = FORMATOS[fmt];
+        if (fmt === 'NOVEL') {
+            // Misma regla que los catalogos (api.js): AniList no distingue
+            // novela ligera de novela web, se deriva del pais de origen.
+            var origenNovela = String(item.countryOfOrigin || '').toUpperCase();
+            formato = origenNovela === 'JP' ? 'Novela ligera'
+                : origenNovela === 'KR' ? 'Novela coreana'
+                : (origenNovela === 'CN' || origenNovela === 'TW') ? 'Novela china'
+                : 'Novela';
+        }
+        push('Formato', formato || (isAnime ? '' : item.type) || '');
 
         var alt = titulosAlternativos(item);
         push('Otros títulos', alt.join(' · '));

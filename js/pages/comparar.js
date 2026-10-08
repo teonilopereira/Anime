@@ -169,6 +169,9 @@ const FORMATOS = {
     MANGA: { es: 'Manga', en: 'Manga' },
     NOVEL: { es: 'Novela', en: 'Novel' },
     NOVELA: { es: 'Novela', en: 'Novel' },
+    NOVELA_LIGERA: { es: 'Novela ligera', en: 'Light novel' },
+    NOVELA_COREANA: { es: 'Novela coreana', en: 'Korean novel' },
+    NOVELA_CHINA: { es: 'Novela china', en: 'Chinese novel' },
     ONE_SHOT: { es: 'One-shot', en: 'One-shot' },
     MANHWA: { es: 'Manhwa', en: 'Manhwa' },
     MANHUA: { es: 'Manhua', en: 'Manhua' },
@@ -536,7 +539,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (typeof window.buscarEnApi === 'function') {
                 resultados = await window.buscarEnApi(query, cat);
             }
-            if ((cat === 'manga' || cat === 'novelas') && typeof window.fetchMangaDexPage === 'function') {
+            // MangaDex no tiene novelas: solo suplementa el catalogo de manga.
+            if (cat === 'manga' && typeof window.fetchMangaDexPage === 'function') {
                 try {
                     const md = await window.fetchMangaDexPage(1, 5, [], query);
                     if (md.length) resultados = window.mergeAnilistAndMd(Array.isArray(resultados) ? resultados : [], md);
