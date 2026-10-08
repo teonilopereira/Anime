@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { leerCspCabecera, cspParaMeta } from './csp.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -97,11 +98,12 @@ for (const file of jsFiles) {
   }
 }
 
-// CSP: una sola definicion, en las cabeceras de netlify.toml y vercel.json. Un
-// <meta> en un HTML se suma a la cabecera (el navegador aplica ambas) y cualquier
-// diferencia bloquea recursos solo en esa pagina, asi que no se permiten.
-const netlifyCsp = (fs.readFileSync(path.join(ROOT, 'netlify.toml'), 'utf8')
-  .match(/Content-Security-Policy = "([^"]*)"/) || [])[1];
+// CSP: una sola definicion, en netlify.toml (vercel.json debe coincidir). Los
+// HTML llevan un <meta> que el build genera desde ahi para GitHub Pages, que no
+// manda cabeceras; como el navegador aplica ambas, cualquier diferencia
+// bloquearia recursos en esa pagina, asi que tiene que ser exactamente la
+// version generada (ver tools/csp.js).
+const netlifyCsp = leerCspCabecera(ROOT);
 const vercelCsp = (JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8')).headers || [])
   .flatMap((rule) => rule.headers || [])
   .find((h) => h.key === 'Content-Security-Policy')?.value;
@@ -110,11 +112,14 @@ if (!netlifyCsp || netlifyCsp !== vercelCsp) {
   issueCount += 1;
   console.log('CSP netlify.toml y vercel.json no coinciden (o falta en alguno).');
 }
+const cspMetaEsperado = netlifyCsp ? cspParaMeta(netlifyCsp) : null;
 for (const name of fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'))) {
-  if (/http-equiv=["']Content-Security-Policy["']/i.test(fs.readFileSync(path.join(ROOT, name), 'utf8'))) {
+  const metas = [...fs.readFileSync(path.join(ROOT, name), 'utf8')
+    .matchAll(/<meta http-equiv=["']Content-Security-Policy["'] content="([^"]*)"/gi)].map((m) => m[1]);
+  if (metas.length !== 1 || metas[0] !== cspMetaEsperado) {
     failed = true;
     issueCount += 1;
-    console.log(`CSP ${name}: tiene un <meta> de CSP; el CSP va solo en netlify.toml/vercel.json.`);
+    console.log(`CSP ${name}: el <meta> de CSP falta, esta repetido o no coincide con netlify.toml. Corré 'npm run build'.`);
   }
 }
 

@@ -19,6 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { leerCspCabecera, cspParaMeta, CSP_META_RE } from './csp.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -417,6 +418,9 @@ const version = hash.digest('hex').slice(0, 8);
 // ── Estampar versión en los HTML ─────────────────────────────────────────
 
 let stampedHtml = 0;
+const CSP_CABECERA = leerCspCabecera(ROOT);
+if (!CSP_CABECERA) throw new Error('No se encontro el Content-Security-Policy en netlify.toml');
+const CSP_META = cspParaMeta(CSP_CABECERA);
 
 for (const file of htmlFiles) {
     const p = abs(file);
@@ -481,6 +485,16 @@ for (const file of htmlFiles) {
         src = src.replace(/script-src 'self'/, `script-src 'self' ${ANALYTICS.host}`);
         src = src.replace(/connect-src 'self'/, `connect-src 'self' ${ANALYTICS.host}`);
     }
+
+    // ── CSP en <meta> ──
+    // Va despues de la analitica para que el <meta> sea siempre identico a la
+    // cabecera de netlify.toml (ver tools/csp.js). Justo despues del charset:
+    // el <meta> solo protege lo que viene despues de el en el documento.
+    src = src.replace(CSP_META_RE, '');
+    src = src.replace(
+        /(<meta charset="UTF-8">)/,
+        `$1\n    <meta http-equiv="Content-Security-Policy" content="${CSP_META}">`,
+    );
 
     if (src !== before) {
         fs.writeFileSync(p, src, 'utf8');

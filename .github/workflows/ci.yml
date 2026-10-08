@@ -22,6 +22,14 @@ jobs:
       - name: Tests
         run: npm test
 
+      # Humo en navegador: cada pagina carga sin excepciones de JS ni
+      # violaciones del CSP, con la red externa cortada (ver tests/e2e/).
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Tests e2e
+        run: npm run test:e2e
+
       # Muro de calidad: detecta mojibake en los HTML y errores de sintaxis en el
       # JS del navegador antes de que lleguen a produccion.
       - name: Verificar calidad

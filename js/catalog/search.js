@@ -822,20 +822,12 @@ function inicializarGeneroWidgets() {
         .map((card) => String(card.getAttribute('data-genres') || '').split('|').map((genre) => genre.trim()).filter(Boolean))
         .filter((genres) => genres.length);
 
-    const localList = (() => {
-        if (cardGenreRows.length) return [];
-        if (typeof obtenerItemsCategoria === 'function') {
-            var result = obtenerItemsCategoria(categoria);
-            return Array.isArray(result) ? result : [];
-        }
-        return [];
-    })();
-
-    const rows = cardGenreRows.length
-        ? cardGenreRows
-        : localList.map((item) => String(item?.info || '').split('/').map(s => s.trim()).filter(Boolean));
-
-    rows.forEach((genres) => {
+    // Solo cuentan los generos de las cards ya renderizadas. Antes, sin cards
+    // (catalogo vacio o con error) se llamaba a obtenerItemsCategoria, que hoy
+    // siempre dispara un pedido a AniList y devuelve una Promise: el resultado
+    // se descartaba (no es un array) y, si la red fallaba, el rechazo quedaba
+    // sin manejar. La lista fija de abajo cubre ese caso.
+    cardGenreRows.forEach((genres) => {
         genres.forEach((g) => {
             const key = normalizeText(g);
             if (!key) return;
