@@ -1,5 +1,5 @@
 /**
- * build.js — Pipeline de build unificado de Anime Destiny.
+ * build.js — Pipeline de build unificado de Mirudoku.
  *
  * Un solo comando (`npm run build`) que:
  *   1. Concatena los CSS compartidos y los minifica → css/bundle.min.css
@@ -25,7 +25,7 @@ const ROOT = path.resolve(__dirname, '..');
 const abs = (...p) => path.join(ROOT, ...p);
 
 // Dominio publico: se usa para las URLs canonicas y para generar el sitemap.
-const SITE_URL = 'https://animedestiny.netlify.app';
+const SITE_URL = 'https://mirudoku.netlify.app';
 
 // Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
 // de busqueda). El resto se agrega solo, asi no hay que mantener una lista.
@@ -183,7 +183,7 @@ function concatCss(fuentes = CSS_SOURCES) {
 }
 
 function concatJs() {
-    let out = '/* === Anime Destiny Core Bundle === */\n';
+    let out = '/* === Mirudoku Core Bundle === */\n';
     for (const rel of JS_SOURCES) {
         out += '\n/* ========================================== */\n';
         out += `/* === FILE: ${rel} === */\n`;

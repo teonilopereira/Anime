@@ -1191,7 +1191,7 @@
 
     // Saludos según la página: el slime "sabe" dónde estás y lo comenta.
     var PAGE_GREETINGS = {
-        "index":         ["¡Bienvenido a Anime Destiny! ✨", "¿Descubrimos algo nuevo hoy?"],
+        "index":         ["¡Bienvenido a Mirudoku! ✨", "¿Descubrimos algo nuevo hoy?"],
         "anime":         ["¿Qué anime maratoneamos? 🍿", "¡Buenísimo el catálogo de hoy!"],
         "manga":         ["¿Un buen manga para leer? 📖", "Pasá página conmigo 📚"],
         "novelas":       ["¿Nos clavamos una novela? 📓", "Historias largas, las mejores ✨"],

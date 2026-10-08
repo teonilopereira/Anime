@@ -396,7 +396,7 @@
         "retos.versus":            "Which is more popular?",
         "retos.deque":             "Which anime is it from?",
         "retos.cargando_juego":    "Loading…",
-        "retos.resumen":           "Your month on Anime Destiny",
+        "retos.resumen":           "Your month on Mirudoku",
         "retos.este_mes":          "This month",
         "retos.mes_pasado":        "Last month",
         "retos.push":              "Want a heads-up when a new episode of what you’re watching comes out?",
@@ -489,7 +489,7 @@
         "rank.sin_titulo":        "Untitled",
 
         // ── Privacy (privacidad.html) ────────────────────────────────────
-        "privacy.intro":    "At Anime Destiny we value and respect your privacy. This policy describes how we collect, use and protect the personal information you provide when using our platform.",
+        "privacy.intro":    "At Mirudoku we value and respect your privacy. This policy describes how we collect, use and protect the personal information you provide when using our platform.",
         "privacy.h1":       "1. Information we collect",
         "privacy.s1.intro": "When you sign up and use our platform, we collect the following information:",
         "privacy.s1.li1.k": "Registration information:",
@@ -513,13 +513,13 @@
         "privacy.s6.p":     "If you have any questions about our privacy policy, you can contact us at:",
 
         // ── Terms (terminos.html) ────────────────────────────────────────
-        "terms.intro":  "Welcome to Anime Destiny. By accessing and using this website, you agree to comply with the following terms and conditions of use.",
+        "terms.intro":  "Welcome to Mirudoku. By accessing and using this website, you agree to comply with the following terms and conditions of use.",
         "terms.h1":     "1. Use of the Platform",
-        "terms.s1.p":   "Anime Destiny is an informational catalog of anime, manga and light novels that lets users personally track their progress and interact with lists. Any misuse of the site is prohibited, such as attempts to breach the database security systems or the use of bots to alter the experience (XP) ranking.",
+        "terms.s1.p":   "Mirudoku is an informational catalog of anime, manga and light novels that lets users personally track their progress and interact with lists. Any misuse of the site is prohibited, such as attempts to breach the database security systems or the use of bots to alter the experience (XP) ranking.",
         "terms.h2":     "2. Intellectual Property and Third-Party Information",
-        "terms.s2.p":   "Covers, synopses and title data come from public third-party APIs (mainly AniList and MangaDex). Anime Destiny does not claim ownership of such materials and acknowledges the copyright of the respective studios and creators. The site's data is provided solely for educational and personal entertainment purposes.",
+        "terms.s2.p":   "Covers, synopses and title data come from public third-party APIs (mainly AniList and MangaDex). Mirudoku does not claim ownership of such materials and acknowledges the copyright of the respective studios and creators. The site's data is provided solely for educational and personal entertainment purposes.",
         "terms.h3":     "3. Limitation of Liability",
-        "terms.s3.p":   "The platform is provided “as is” and “as available”. We do not guarantee that the service will be uninterrupted or error-free. Anime Destiny will not be liable for the temporary loss of progress data that may occur due to connection issues or failures in external APIs.",
+        "terms.s3.p":   "The platform is provided “as is” and “as available”. We do not guarantee that the service will be uninterrupted or error-free. Mirudoku will not be liable for the temporary loss of progress data that may occur due to connection issues or failures in external APIs.",
         "terms.h4":     "4. User Accounts and Modifications",
         "terms.s4.p":   "We reserve the right to remove or suspend user accounts that engage in abusive or fraudulent practices in the system. Likewise, we reserve the right to modify these terms of service at any time, reporting the changes on this page.",
         "terms.h5":     "5. Applicable Law",

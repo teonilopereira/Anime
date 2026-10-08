@@ -1,6 +1,6 @@
 # Fase 1 — Capa social
 
-Primer paso para convertir Anime Destiny de una app de tracking a una comunidad.
+Primer paso para convertir Mirudoku de una app de tracking a una comunidad.
 Todo se apoya en tablas que **ya existían** (`comments`, `user_activity_log`,
 `profiles`), sin romper nada del flujo actual.
 

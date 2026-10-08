@@ -88,10 +88,10 @@ function fixSocialIcons(content) {
 
 function fixMangaAltText(content) {
     if (!content.includes('manga.html')) return content;
-    // Fix alt="Anime Destiny logo" vs alt=""
+    // Fix alt="Mirudoku logo" vs alt=""
     return content.replace(
-        '<img src="images/Logo.png" alt="" aria-hidden="true">',
-        '<img src="images/Logo.png" alt="Anime Destiny logo" aria-hidden="true">'
+        '<img src="images/brand/mirudoku-mark.svg" alt="" aria-hidden="true">',
+        '<img src="images/brand/mirudoku-mark.svg" alt="Mirudoku logo" aria-hidden="true">'
     );
 }
 

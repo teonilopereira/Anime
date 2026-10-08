@@ -1,4 +1,4 @@
-# Anime Destiny
+# Mirudoku
 
 App web para seguir anime, manga y novelas ligeras: catálogo, fichas de detalle,
 listas personales, ranking de usuarios, retos diarios y notificaciones de nuevos
@@ -6,7 +6,7 @@ episodios. Los datos vienen de AniList y MangaDex; las cuentas y el progreso, de
 Supabase.
 
 - Sitio: GitHub Pages (`teonilopereira.github.io/Anime`) y Netlify
-  (`animedestiny.netlify.app`).
+  (`mirudoku.netlify.app`).
 - Es un sitio **estático**: no hay build en el servidor. Lo que se publica es
   exactamente lo que está en `main`.
 

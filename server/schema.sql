@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════
--- SCHEMA OPTIMIZADO — Anime Destiny v2
+-- SCHEMA OPTIMIZADO — Mirudoku v2
 -- ────────────────────────────────────────────────────────────────
 -- Este script reemplaza TODAS las versiones anteriores de SQL.
 -- Ejecutar en SQL Editor de Supabase (proyecto nuevo o existente).

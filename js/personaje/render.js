@@ -306,7 +306,7 @@
             '<div class="persona-back"><a class="detail-back" href="index.html">Volver al inicio</a></div>';
 
         document.getElementById('persona-meta').innerHTML = built.meta;
-        document.title = 'Anime Destiny | ' + data.name;
+        document.title = 'Mirudoku | ' + data.name;
         setCanonical(data);
         setState('content');
         if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
@@ -349,7 +349,7 @@
     // Canonical con tipo + id: el contenido depende del query string, igual que
     // el detalle, así que la URL canónica se arma en runtime (el build no la pisa).
     function setCanonical(data) {
-        var href = 'https://animedestiny.netlify.app/personaje.html?tipo=' +
+        var href = 'https://mirudoku.netlify.app/personaje.html?tipo=' +
             (data.kind === 'staff' ? 'staff' : 'character') + '&id=' + data.id;
         var link = document.querySelector('link[rel="canonical"]');
         if (!link) {

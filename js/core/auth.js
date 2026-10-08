@@ -85,7 +85,7 @@ async function waitForSupabase() {
         primer_paso: 'Un Pasito',
         maratonista: 'Maratonista',
         veterano: 'Veterano',
-        leyenda: 'Leyenda Destiny',
+        leyenda: 'Leyenda Mirudoku',
         hechicero_actual: 'El Hechicero Más Fuerte Actual',
         hechicero_historia: 'El Hechicero Más Fuerte de la Historia',
         rey_piratas: 'El Próximo Rey de los Piratas',

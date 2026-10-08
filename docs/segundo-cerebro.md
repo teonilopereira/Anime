@@ -1,4 +1,4 @@
-# 🧠 Segundo Cerebro — Anime Destiny
+# 🧠 Segundo Cerebro — Mirudoku
 
 > Mapa del proyecto por **dominios** (carpetas) y **archivos** reales. Generado a partir de `code-map.json`.
 > Versión interactiva: [`viz/segundo-cerebro.html`](../viz/segundo-cerebro.html) — tocá cualquier nodo para ver qué hace y qué contiene.

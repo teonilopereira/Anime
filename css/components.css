@@ -1488,6 +1488,25 @@ main { padding-bottom: 24px; }
     margin: 0 0 12px;
 }
 
+.hero-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 2vw, 22px);
+    margin: 0 0 12px;
+}
+
+.hero-brand h1 {
+    margin: 0;
+}
+
+.hero-logo {
+    height: clamp(56px, 7vw, 92px);
+    width: auto;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 16px rgba(0, 242, 255, 0.35));
+}
+
 .hero-subtitle {
     margin: 0 auto;
     max-width: 620px;

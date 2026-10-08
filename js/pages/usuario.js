@@ -88,7 +88,7 @@ var APODO_LABELS = {
     primer_paso: 'Un Pasito',
     maratonista: 'Maratonista',
     veterano: 'Veterano',
-    leyenda: 'Leyenda Destiny'
+    leyenda: 'Leyenda Mirudoku'
 };
 
 /* ── Init ── */

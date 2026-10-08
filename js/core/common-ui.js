@@ -78,12 +78,11 @@
     const injectNavBrand = () => {
         const el = document.getElementById("nav-brand-container");
         if (!el) return;
-        el.innerHTML = `<a class="nav-brand" href="index.html" aria-label="Anime Destiny">
-<span class="nav-brand-mark"><img src="images/Logo.png" alt="Anime Destiny logo" aria-hidden="true"></span>
+        el.innerHTML = `<a class="nav-brand" href="index.html" aria-label="Mirudoku">
+<span class="nav-brand-mark"><img src="images/brand/mirudoku-mark.svg" alt="Mirudoku logo" aria-hidden="true"></span>
 <span class="nav-brand-copy">
-<span class="nav-brand-anime">Anime</span>
-<span class="nav-brand-destiny">Destiny</span>
-<span class="nav-brand-jp">&gt; \u30A2\u30CB\u30E1\u306E\u904B\u547D &lt;</span>
+<span class="nav-brand-name"><span class="nav-brand-anime">Miru</span><span class="nav-brand-destiny">doku</span></span>
+<span class="nav-brand-jp">&gt; \u898B\u308B\u30FB\u8AAD\u3080 &lt;</span>
 </span>
 </a>`;
     };
@@ -389,8 +388,8 @@
             col2: { title: "Cuenta", text: 'Inici\u00E1 sesi\u00F3n para guardar tus "Me gusta" y "Vistos".' }
         },
         index: {
-            col1: { title: "Anime Destiny", text: "Cat\u00E1logo de anime, manga y novelas con detalle, progreso y listas por usuario." },
-            col2: { title: "Contacto", text: "Soporte: contacto@animedestiny.local<br>Buenos Aires, AR" }
+            col1: { title: "Mirudoku", text: "Cat\u00E1logo de anime, manga y novelas con detalle, progreso y listas por usuario." },
+            col2: { title: "Contacto", text: "Soporte: contacto@mirudoku.local<br>Buenos Aires, AR" }
         },
         comparar: {
             col1: { title: "Tip", text: "Pod\u00E9s comparar t\u00EDtulos de distintas categor\u00EDas." },
@@ -473,8 +472,8 @@
                     text = "Log in to save your \"Likes\" and \"Watched\" items.";
                 } else if (text.includes("Cat\u00E1logo de anime")) {
                     text = "Anime, manga and novel catalog with detail, progress and lists per user.";
-                } else if (text.includes("contacto@animedestiny")) {
-                    text = "Support: contacto@animedestiny.local<br>Buenos Aires, AR";
+                } else if (text.includes("contacto@mirudoku")) {
+                    text = "Support: contacto@mirudoku.local<br>Buenos Aires, AR";
                 } else if (text.includes("comparar t\u00EDtulos de distintas")) {
                     text = "You can compare titles of different categories.";
                 } else if (text.includes("comparaci\u00F3n pod\u00E9s abrir")) {
@@ -513,7 +512,7 @@
         el.innerHTML = `<footer class="app-footer">
 <div class="app-footer-inner">${cols}</div>
 <div class="app-footer-bottom">
-    <span>© 2026 Anime Destiny</span>
+    <span>© 2026 Mirudoku</span>
     <span style="margin: 0 10px;">•</span>
     <a class="app-footer-link app-footer-link-cyan" href="privacidad.html">${privacidadText}</a>
     <span style="margin: 0 10px;">•</span>
