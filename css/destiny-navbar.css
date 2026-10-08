@@ -227,6 +227,10 @@ body.reduce-motion .destiny-navbar {
     text-transform: uppercase;
 }
 
+.nav-brand-name {
+    white-space: nowrap;
+}
+
 .nav-brand-anime,
 .nav-brand-destiny {
     font-family: "Orbitron", sans-serif;

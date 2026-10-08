@@ -81,8 +81,7 @@
         el.innerHTML = `<a class="nav-brand" href="index.html" aria-label="Mirudoku">
 <span class="nav-brand-mark"><img src="images/brand/mirudoku-mark.svg" alt="Mirudoku logo" aria-hidden="true"></span>
 <span class="nav-brand-copy">
-<span class="nav-brand-anime">Miru</span>
-<span class="nav-brand-destiny">doku</span>
+<span class="nav-brand-name"><span class="nav-brand-anime">Miru</span><span class="nav-brand-destiny">doku</span></span>
 <span class="nav-brand-jp">&gt; \u898B\u308B\u30FB\u8AAD\u3080 &lt;</span>
 </span>
 </a>`;
