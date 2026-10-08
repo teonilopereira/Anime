@@ -181,6 +181,18 @@
             // sin startDate no habia forma de mostrarle el año.
             startYear: item.startDate?.year || item.seasonYear || null,
             endYear: item.endDate?.year || null,
+            // Los campos de abajo solo vienen en MEDIA_BY_ID_QUERY: alimentan la
+            // seccion "Informacion" de la ficha (js/detalle/info.js), que omite
+            // cada fila que falte (catalogo, MangaDex o cache viejo).
+            startDate: item.startDate || null,
+            endDate: item.endDate || null,
+            format: item.format || null,
+            title_native: item.title?.native || null,
+            title_romaji: item.title?.romaji || null,
+            synonyms: item.synonyms || [],
+            meanScore: item.meanScore != null ? (item.meanScore / 10) : null,
+            rankings: item.rankings || [],
+            tags: item.tags || [],
             // Solo viene en la query por id, igual que popularity: lo usa la
             // pagina de comparar para mostrar el autor de un manga o novela.
             staff: (item.staff?.edges || []).map(function (e) {
@@ -381,10 +393,12 @@
     var MEDIA_BY_ID_QUERY = `
         query ($id: Int) {
             Media(id: $id) {
-                id idMal title { romaji english } coverImage { extraLarge large }
-                episodes chapters volumes status genres averageScore description type format
+                id idMal title { romaji english native } synonyms coverImage { extraLarge large }
+                episodes chapters volumes status genres averageScore meanScore description type format
                 season seasonYear source duration countryOfOrigin popularity favourites
-                startDate { year } endDate { year }
+                startDate { year month day } endDate { year month day }
+                rankings { rank type allTime context }
+                tags { name rank isMediaSpoiler }
                 staff(perPage: 6) { edges { role node { name { full } } } }
                 nextAiringEpisode { airingAt timeUntilAiring episode }
                 streamingEpisodes { title thumbnail url site }

@@ -307,3 +307,48 @@ a.char-side:hover .char-name {
     color: var(--text-muted, rgba(var(--ink-rgb),0.75));
     line-height: 1.5;
 }
+
+/* ── Información (js/detalle/info.js) ── */
+.detail-info-list {
+    margin: 0;
+    display: grid;
+    gap: 0;
+    border: 1px solid rgba(var(--ink-rgb),0.06);
+    border-radius: var(--radius-sm);
+    background: rgba(var(--ink-rgb),0.03);
+    overflow: hidden;
+}
+.detail-info-row {
+    display: grid;
+    grid-template-columns: minmax(110px, 30%) 1fr;
+    gap: 12px;
+    padding: 8px 12px;
+}
+.detail-info-row + .detail-info-row {
+    border-top: 1px solid rgba(var(--ink-rgb),0.06);
+}
+.detail-info-row dt {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+    align-self: center;
+}
+.detail-info-row dd {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+.detail-chip-tag {
+    background: rgba(var(--ink-rgb),0.04);
+    border-color: rgba(var(--ink-rgb),0.12);
+    color: inherit;
+    opacity: 0.85;
+}
+@media (max-width: 480px) {
+    .detail-info-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+}
