@@ -980,6 +980,46 @@ body.reduce-motion .destiny-navbar {
         padding: 0;
     }
 
+    /* Marca de la hoja: "Anime Destiny" en una sola línea (DESTINY baja sola
+       si no entra) y el lema debajo, sin pisarse con el botón de cuenta. */
+    body.has-bottom-nav .destiny-navbar #nav-brand-container {
+        max-width: calc(100% - 150px);
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-brand {
+        gap: 10px;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-brand-mark {
+        flex-shrink: 0;
+        width: 44px;
+        height: 40px;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-brand-copy {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 0.35em;
+        row-gap: 2px;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-brand-anime,
+    body.has-bottom-nav .destiny-navbar .nav-brand-destiny {
+        font-size: clamp(0.78rem, 3.6vw, 0.95rem);
+        line-height: 1.1;
+    }
+
+    body.has-bottom-nav .destiny-navbar .nav-brand-jp {
+        flex-basis: 100%;
+        margin-top: 3px;
+        font-size: 0.62rem;
+        letter-spacing: 0.14em;
+    }
+
     body.has-bottom-nav .destiny-navbar .nav-links {
         order: 1;
         display: block;
