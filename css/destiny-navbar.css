@@ -987,8 +987,8 @@ body.reduce-motion .destiny-navbar {
         padding: 0;
     }
 
-    /* Marca de la hoja: "Anime Destiny" en una sola línea (DESTINY baja sola
-       si no entra) y el lema debajo, sin pisarse con el botón de cuenta. */
+    /* Marca de la hoja: "Mirudoku" en una sola línea y el lema
+       debajo, sin pisarse con el botón de cuenta. */
     body.has-bottom-nav .destiny-navbar #nav-brand-container {
         max-width: calc(100% - 150px);
         min-height: 48px;
