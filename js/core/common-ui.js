@@ -390,7 +390,7 @@
         },
         index: {
             col1: { title: "Mirudoku", text: "Cat\u00E1logo de anime, manga y novelas con detalle, progreso y listas por usuario." },
-            col2: { title: "Contacto", text: "Soporte: contacto@animedestiny.local<br>Buenos Aires, AR" }
+            col2: { title: "Contacto", text: "Soporte: contacto@mirudoku.local<br>Buenos Aires, AR" }
         },
         comparar: {
             col1: { title: "Tip", text: "Pod\u00E9s comparar t\u00EDtulos de distintas categor\u00EDas." },
@@ -473,8 +473,8 @@
                     text = "Log in to save your \"Likes\" and \"Watched\" items.";
                 } else if (text.includes("Cat\u00E1logo de anime")) {
                     text = "Anime, manga and novel catalog with detail, progress and lists per user.";
-                } else if (text.includes("contacto@animedestiny")) {
-                    text = "Support: contacto@animedestiny.local<br>Buenos Aires, AR";
+                } else if (text.includes("contacto@mirudoku")) {
+                    text = "Support: contacto@mirudoku.local<br>Buenos Aires, AR";
                 } else if (text.includes("comparar t\u00EDtulos de distintas")) {
                     text = "You can compare titles of different categories.";
                 } else if (text.includes("comparaci\u00F3n pod\u00E9s abrir")) {

@@ -133,7 +133,7 @@
     // Canonical con id: el contenido depende del query string, así que la URL
     // canónica se arma en runtime (el build no la pisa).
     function setCanonical(data) {
-        var href = 'https://animedestiny.netlify.app/estudio.html?id=' + data.id;
+        var href = 'https://mirudoku.netlify.app/estudio.html?id=' + data.id;
         var link = document.querySelector('link[rel="canonical"]');
         if (!link) {
             link = document.createElement('link');

@@ -6,4 +6,4 @@ Disallow: /tools/
 Disallow: /viz/
 Disallow: /docs/
 
-Sitemap: https://animedestiny.netlify.app/sitemap.xml
+Sitemap: https://mirudoku.netlify.app/sitemap.xml

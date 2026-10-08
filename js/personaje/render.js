@@ -349,7 +349,7 @@
     // Canonical con tipo + id: el contenido depende del query string, igual que
     // el detalle, así que la URL canónica se arma en runtime (el build no la pisa).
     function setCanonical(data) {
-        var href = 'https://animedestiny.netlify.app/personaje.html?tipo=' +
+        var href = 'https://mirudoku.netlify.app/personaje.html?tipo=' +
             (data.kind === 'staff' ? 'staff' : 'character') + '&id=' + data.id;
         var link = document.querySelector('link[rel="canonical"]');
         if (!link) {

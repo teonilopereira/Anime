@@ -25,7 +25,7 @@ const ROOT = path.resolve(__dirname, '..');
 const abs = (...p) => path.join(ROOT, ...p);
 
 // Dominio publico: se usa para las URLs canonicas y para generar el sitemap.
-const SITE_URL = 'https://animedestiny.netlify.app';
+const SITE_URL = 'https://mirudoku.netlify.app';
 
 // Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
 // de busqueda). El resto se agrega solo, asi no hay que mantener una lista.

@@ -61,7 +61,7 @@
     // fetch directo desde el navegador falla con "Failed to fetch" (confirmado
     // en producción). El proxy público corsproxy.io tampoco sirve ya: solo
     // atiende gratis a localhost y a los dominios reales les responde 403, por
-    // eso en animedestiny.netlify.app ninguna llamada a MangaDex llegaba y cada
+    // eso en mirudoku.netlify.app ninguna llamada a MangaDex llegaba y cada
     // tomo de la ficha se quedaba con la portada principal.
     //
     // La ruta buena es el proxy del propio sitio: /mdapi/* se reescribe a
@@ -76,7 +76,7 @@
     // del sitio de Netlify (que agrega CORS para github.io), igual que las
     // portadas (una <img> no necesita CORS).
     var MD_API = 'https://api.mangadex.org';
-    var NETLIFY_ORIGIN = 'https://animedestiny.netlify.app';
+    var NETLIFY_ORIGIN = 'https://mirudoku.netlify.app';
     var host = String((window.location && window.location.hostname) || '');
     var isLocalHost = !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
     var isGitHubPages = /\.github\.io$/i.test(host);

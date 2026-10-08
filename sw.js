@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Mirudoku */
-const CACHE_NAME = 'anime-destiny-3b00925b';
+const CACHE_NAME = 'anime-destiny-883a507c';
 const IMG_CACHE_NAME = 'anime-destiny-img-v1';
 const IMG_CACHE_MAX = 120;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
@@ -150,8 +150,8 @@ self.addEventListener('fetch', (event) => {
   // Portadas de MangaDex servidas por la función propia (ver
   // netlify/functions/mdapi-cors.mjs): se cachean igual que las de los CDNs.
   // En Netlify es el mismo origen; en GitHub Pages la función se llama en
-  // animedestiny.netlify.app, así que se acepta ese host también.
-  var isCoverProxy = (host === self.location.hostname || host === 'animedestiny.netlify.app') &&
+  // mirudoku.netlify.app, así que se acepta ese host también.
+  var isCoverProxy = (host === self.location.hostname || host === 'mirudoku.netlify.app') &&
     url.includes('/.netlify/functions/mdapi-cors?cover=');
   if (event.request.destination === 'image' && (IMG_CDN_HOSTS.includes(host) || isCoverProxy)) {
     event.respondWith(cacheCover(event.request).catch(() => fetch(event.request)));

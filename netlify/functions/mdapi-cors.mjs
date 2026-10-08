@@ -4,7 +4,7 @@
 // En Netlify la app usa /mdapi/* (una reescritura de _redirects, mismo origen).
 // Desde GitHub Pages esa ruta no existe y MangaDex no manda CORS para otros
 // dominios, así que la app llama acá:
-//   https://animedestiny.netlify.app/.netlify/functions/mdapi-cors?path=/manga&title=...
+//   https://mirudoku.netlify.app/.netlify/functions/mdapi-cors?path=/manga&title=...
 // `path` es la ruta de la API y el resto de la query se reenvía tal cual. La
 // función hace el GET a api.mangadex.org y agrega Access-Control-Allow-Origin
 // solo para los orígenes permitidos.
@@ -23,7 +23,7 @@ const COVER_RE = /^\/[0-9a-f-]{36}\/[A-Za-z0-9._-]+$/i;
 // Solo rutas de lectura que usa la app (manga, portadas, aggregate, estadísticas).
 const PATH_RE = /^\/(manga|cover|statistics)(\/[A-Za-z0-9-]+)*\/?$/;
 
-const UA = 'AnimeDestiny/1.0 (+https://animedestiny.netlify.app)';
+const UA = 'Mirudoku/1.0 (+https://mirudoku.netlify.app)';
 
 function corsHeaders(origin) {
     return ALLOWED_ORIGINS.has(origin)
