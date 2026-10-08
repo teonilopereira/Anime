@@ -68,3 +68,7 @@ scratch/
 # Python (tools/slice-mascots.py)
 __pycache__/
 *.pyc
+
+# Playwright (tests e2e)
+test-results/
+playwright-report/

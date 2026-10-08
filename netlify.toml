@@ -10,9 +10,10 @@
   [headers.values]
     # Muro anti-XSS/inyeccion: solo se ejecuta script propio; las conexiones
     # salientes quedan limitadas a Supabase y las APIs que la app realmente usa.
-    # Es la UNICA definicion del CSP: los HTML ya no llevan <meta> propio (las
-    # copias se habian desincronizado y, como el navegador aplica ambas, la mas
-    # estricta bloqueaba cosas como el proxy de MangaDex o el trailer de YouTube).
+    # Es la UNICA definicion del CSP. Los HTML llevan un <meta> que `npm run build`
+    # genera desde aca (para GitHub Pages, que no manda cabeceras); nunca se edita
+    # a mano: las copias manuales se habian desincronizado y, como el navegador
+    # aplica ambas, la mas estricta bloqueaba el proxy de MangaDex o el trailer.
     # Debe mantenerse en sincronia con vercel.json; tools/check-quality.js lo verifica.
     Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://llytokoztnjuczuppzgs.supabase.co wss://llytokoztnjuczuppzgs.supabase.co https://graphql.anilist.co https://api.mangadex.org https://corsproxy.io https://api.mymemory.translated.net https://api.animethemes.moe https://api.jikan.moe https://kitsu.io https://s4.anilist.co https://uploads.mangadex.org https://media.kitsu.io https://media.kitsu.app; media-src 'self' https://a.animethemes.moe; font-src 'self' data:; frame-src https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none';"
     # Forzar HTTPS por 2 anios (incluye subdominios).

@@ -16,6 +16,7 @@ Supabase.
 npm install
 node tools/serve.cjs      # servidor estático local
 npm test                  # tests (Vitest)
+npm run test:e2e          # humo en navegador (Playwright): cada página carga sin errores ni violaciones del CSP
 npm run check             # mojibake en HTML y sintaxis del JS
 npm run build             # regenera bundles y estampa versiones
 ```
@@ -41,6 +42,10 @@ generados no coinciden con las fuentes.
 | `viz/` | Visualizaciones internas del código (no son parte de la app). |
 
 ## Configuración
+
+El CSP se define una sola vez, en `netlify.toml` (y `vercel.json` debe coincidir).
+`npm run build` lo copia como `<meta>` en cada HTML para que también rija en
+GitHub Pages, que no manda cabeceras; ese `<meta>` no se edita a mano.
 
 `js/core/config.js` se versiona a propósito: solo tiene la URL y la clave
 anónima de Supabase y la clave VAPID pública. Los permisos reales los controla
