@@ -509,3 +509,36 @@
 .retos-tab[hidden] { display: none; }
 .is-off-tab { display: none !important; }
 .game-help { margin: 0 0 12px; }
+
+/* Atajos de teclado en las opciones (solo con mouse; ver retos-juegos.js) */
+.game-pick { position: relative; }
+.game-kbd {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    min-width: 22px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font: 700 0.75rem/1.5 var(--font-body);
+    text-align: center;
+    pointer-events: none;
+}
+
+/* Celular: las cuatro opciones de ¿De qué anime? como filas con miniatura, así
+   el resultado y "Jugar de nuevo" entran en pantalla sin tener que bajar. */
+@media (max-width: 640px) {
+    .deque-options { grid-template-columns: 1fr; gap: 8px; }
+    .deque-options .game-pick {
+        grid-template-columns: 44px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px 6px 6px;
+        text-align: left;
+    }
+    .deque-options .game-cover { aspect-ratio: 2 / 3; border-radius: 6px; }
+    .deque-char { width: min(100%, 150px); }
+    /* Que el scroll al final de partida no lo deje debajo de la barra de abajo. */
+    .quiz-end { scroll-margin-bottom: 96px; }
+}
