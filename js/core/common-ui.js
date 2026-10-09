@@ -39,6 +39,7 @@
         { id: "calendario", href: "calendario.html", icon: "calendar-days", i18n: "nav.calendario", def: "Calendario" },
         { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking" },
         { id: "comparar", href: "comparar.html", icon: "columns-2", i18n: "nav.comparar", def: "Comparar" },
+        { id: "escena", href: "escena.html", icon: "scan-search", i18n: "nav.escena", def: "\u00BFQu\u00E9 anime es?" },
         { id: "top", href: "top.html", icon: "crown", i18n: "nav.top_jugadores", def: "Top de jugadores" },
         { id: "configuracion", href: "configuracion.html", icon: "settings", i18n: "nav.configuracion", def: "Configuración" }
     ];
