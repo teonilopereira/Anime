@@ -1,6 +1,17 @@
 // Sinopsis por episodio desde Jikan (MyAnimeList). Cachea también el
 // "sin datos" para no repetir requests (límite Jikan: 3 req/s, 60/min).
 var JIKAN_EP_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+// Sin timeout, un Jikan caído que cuelga la conexión (su forma típica de fallar)
+// deja el modal en "Cargando..." y nunca llega al fallback de Kitsu.
+var EP_FETCH_TIMEOUT_MS = 8000;
+
+function fetchConTimeout(url, opts) {
+    var o = Object.assign({}, opts);
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+        o.signal = AbortSignal.timeout(EP_FETCH_TIMEOUT_MS);
+    }
+    return fetch(url, o);
+}
 
 async function fetchJikanEpisode(malId, ep) {
     if (!malId || !ep) return null;
@@ -14,7 +25,7 @@ async function fetchJikanEpisode(malId, ep) {
     } catch (_) {}
 
     try {
-        var resp = await fetch('https://api.jikan.moe/v4/anime/' + encodeURIComponent(malId) + '/episodes/' + encodeURIComponent(ep));
+        var resp = await fetchConTimeout('https://api.jikan.moe/v4/anime/' + encodeURIComponent(malId) + '/episodes/' + encodeURIComponent(ep));
         if (!resp.ok) return null;
         var json = await resp.json();
         var d = json?.data || null;
@@ -41,17 +52,26 @@ async function resolveKitsuAnimeId(anilistId) {
     var cacheKey = 'kitsu_id_' + anilistId;
     try {
         var cached = localStorage.getItem(cacheKey);
-        if (cached) return cached === 'null' ? null : cached;
+        if (cached) {
+            // El "sin mapeo" vence: Kitsu agrega mapeos de AniList con el tiempo
+            // (sobre todo de anime en emisión) y antes quedaba negado para siempre.
+            // Un id real no cambia, así que ese se guarda sin vencimiento.
+            // 'null' es el formato viejo del negativo (sin vencimiento): se reintenta.
+            if (cached !== 'null' && cached.charAt(0) !== '{') return cached;
+            if (cached !== 'null' && Date.now() < JSON.parse(cached).expiry) return null;
+        }
     } catch (_) {}
 
     try {
-        var resp = await fetch('https://kitsu.app/api/edge/mappings?filter%5BexternalSite%5D=anilist/anime&filter%5BexternalId%5D=' + encodeURIComponent(anilistId) + '&include=item', {
+        var resp = await fetchConTimeout('https://kitsu.app/api/edge/mappings?filter%5BexternalSite%5D=anilist/anime&filter%5BexternalId%5D=' + encodeURIComponent(anilistId) + '&include=item', {
             headers: { 'Accept': 'application/vnd.api+json' }
         });
         if (!resp.ok) return null;
         var json = await resp.json();
         var kitsuId = json?.included?.[0]?.type === 'anime' ? String(json.included[0].id) : null;
-        try { localStorage.setItem(cacheKey, kitsuId || 'null'); } catch (_) {}
+        try {
+            localStorage.setItem(cacheKey, kitsuId || JSON.stringify({ expiry: Date.now() + JIKAN_EP_CACHE_TTL }));
+        } catch (_) {}
         return kitsuId;
     } catch (err) {
         console.warn('resolveKitsuAnimeId error:', err);
@@ -74,7 +94,7 @@ async function fetchKitsuEpisode(anilistId, ep) {
     } catch (_) {}
 
     try {
-        var resp = await fetch('https://kitsu.app/api/edge/anime/' + encodeURIComponent(kitsuId) + '/episodes?filter%5Bnumber%5D=' + encodeURIComponent(ep), {
+        var resp = await fetchConTimeout('https://kitsu.app/api/edge/anime/' + encodeURIComponent(kitsuId) + '/episodes?filter%5Bnumber%5D=' + encodeURIComponent(ep), {
             headers: { 'Accept': 'application/vnd.api+json' }
         });
         if (!resp.ok) return null;
