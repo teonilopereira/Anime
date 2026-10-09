@@ -214,6 +214,11 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
     ` : '';
 
+    // Puntaje de MyAnimeList debajo del de AniList: sale de Jikan con el idMal
+    // que ya trae la ficha (ver js/detalle/mal-stats.js). Se pinta después.
+    const Mal = window.DetalleMal;
+    const mostrarMal = !!(Mal && item.mal_id);
+
     const detailStatsHtml = `
         <div class="detail-stat-grid">
             <div class="detail-stat">
@@ -230,7 +235,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
             <div class="detail-stat">
                 <div class="detail-stat-icon"><i data-lucide="star"></i></div>
-                <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong></div>
+                <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong>${mostrarMal ? '<span id="detailMalScore" class="detail-stat-mal-wrap" hidden></span>' : ''}</div>
             </div>
             ${followsHtml}
         </div>
@@ -379,6 +384,7 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     // ── Related items ── (ver buildRelatedHtml en js/detalle/render-sections.js)
     var relatedHtml = buildRelatedHtml(item, cadenaTemporadas);
+    var recommendationsHtml = buildRecommendationsHtml(item, cadenaTemporadas);
 
     // ── Personajes y seiyuus ── (ver buildCharactersHtml en js/detalle/render-sections.js)
     var charactersHtml = buildCharactersHtml(item);
@@ -447,6 +453,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         ${temporadasHtml}
         ${themesHtml}
         ${relatedHtml}
+        ${recommendationsHtml}
         <div id="comments-section"></div>
     `;
 
@@ -457,6 +464,7 @@ function renderDetalle(item, nombreUrl, categoria) {
     // Los openings salen de otra API (AnimeThemes) y tampoco se esperan: si
     // tarda o no hay nada, el resto de la ficha ya está pintado.
     if (mostrarThemes) Themes.hidratar(item);
+    if (mostrarMal) Mal.hidratar(item, isAnime ? 'anime' : 'manga');
 
     startNextEpCountdown(localLayout);
 

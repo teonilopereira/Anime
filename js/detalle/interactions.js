@@ -45,7 +45,7 @@ async function resolveKitsuAnimeId(anilistId) {
     } catch (_) {}
 
     try {
-        var resp = await fetch('https://kitsu.io/api/edge/mappings?filter%5BexternalSite%5D=anilist/anime&filter%5BexternalId%5D=' + encodeURIComponent(anilistId) + '&include=item', {
+        var resp = await fetch('https://kitsu.app/api/edge/mappings?filter%5BexternalSite%5D=anilist/anime&filter%5BexternalId%5D=' + encodeURIComponent(anilistId) + '&include=item', {
             headers: { 'Accept': 'application/vnd.api+json' }
         });
         if (!resp.ok) return null;
@@ -74,7 +74,7 @@ async function fetchKitsuEpisode(anilistId, ep) {
     } catch (_) {}
 
     try {
-        var resp = await fetch('https://kitsu.io/api/edge/anime/' + encodeURIComponent(kitsuId) + '/episodes?filter%5Bnumber%5D=' + encodeURIComponent(ep), {
+        var resp = await fetch('https://kitsu.app/api/edge/anime/' + encodeURIComponent(kitsuId) + '/episodes?filter%5Bnumber%5D=' + encodeURIComponent(ep), {
             headers: { 'Accept': 'application/vnd.api+json' }
         });
         if (!resp.ok) return null;

@@ -222,6 +222,24 @@
                     img: node.coverImage?.large || ''
                 };
             }),
+            // Solo viene en MEDIA_BY_ID_QUERY: "Si te gustó esto" de la ficha
+            // (buildRecommendationsHtml). Se descartan las recomendaciones con
+            // votos netos negativos y las +18, que el catalogo oculta por defecto.
+            recommendations: (item.recommendations?.nodes || []).map(function (n) {
+                var m = n && n.mediaRecommendation;
+                if (!m || m.isAdult || (n.rating != null && n.rating <= 0)) return null;
+                return {
+                    id: m.id,
+                    type: m.type || null,
+                    title: extractTitle(m.title),
+                    format: m.format || null,
+                    seasonYear: m.seasonYear || null,
+                    episodes: m.episodes || 0,
+                    chapters: m.chapters || 0,
+                    volumes: m.volumes || 0,
+                    img: m.coverImage?.large || ''
+                };
+            }).filter(function (r) { return r && r.id != null && r.title; }),
             season: item.season || null,
             seasonYear: item.seasonYear || null,
             source: item.source || null,
@@ -398,6 +416,16 @@
                         role
                         node { id name { full } image { large } }
                         voiceActors(language: JAPANESE, sort: [RELEVANCE]) { id name { full } image { large } }
+                    }
+                }
+                recommendations(sort: [RATING_DESC], perPage: 12) {
+                    nodes {
+                        rating
+                        mediaRecommendation {
+                            id type format seasonYear episodes chapters volumes isAdult
+                            title { romaji english }
+                            coverImage { large }
+                        }
                     }
                 }
                 relations {

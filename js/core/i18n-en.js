@@ -16,6 +16,7 @@
         "nav.manga":          "Manga",
         "nav.novelas":        "Novels",
         "nav.comparar":       "Compare",
+        "nav.escena":         "Which anime is it?",
         "nav.top":            "Top",
         "nav.top_jugadores":  "Player ranking",
         "nav.ranking":        "Ranking",
