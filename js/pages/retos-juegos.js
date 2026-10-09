@@ -68,6 +68,73 @@
 
     function fans(n) { return Number(n || 0).toLocaleString('es-AR') + ' fans'; }
 
+    function reducedMotion() {
+        return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+    function finePointer() {
+        return !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
+    }
+
+    // Los fans del rival suben de 0 a su número: el momento de la revelación.
+    function countUp(el, to) {
+        if (!el || reducedMotion() || !window.requestAnimationFrame) return;
+        var t0 = null, dur = 650;
+        function step(t) {
+            if (t0 == null) t0 = t;
+            var k = Math.min(1, (t - t0) / dur);
+            el.textContent = fans(Math.round(to * (1 - Math.pow(1 - k, 3))));
+            if (k < 1 && el.isConnected) requestAnimationFrame(step);
+        }
+        el.textContent = fans(0);
+        requestAnimationFrame(step);
+    }
+
+    var LEVEL_LABEL = { facil: 'Fácil', normal: 'Normal', dificil: 'Difícil' };
+
+    // Cierre de partida común a los dos juegos: resultado, ficha del anime,
+    // jugar de nuevo y compartir la racha (como el reto del día).
+    function endPanel(game, msg, answer) {
+        return '<div class="quiz-end">' +
+            '<p class="quiz-result is-lost">' + msg + '</p>' +
+            (answer ? '<a class="quiz-answer" href="detalle.html?cat=anime&amp;id=' + encodeURIComponent(answer.id) + '">' + esc(answer.title) + '</a>' : '') +
+            '<div class="quiz-actions">' +
+                '<button type="button" class="reto-btn" id="' + game + 'Again">Jugar de nuevo</button>' +
+                '<button type="button" class="reto-btn reto-btn--ghost" id="' + game + 'Share">Compartir racha</button>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function wireEnd(host, game, onAgain, text) {
+        var again = document.getElementById(game + 'Again');
+        if (!again) return;
+        again.addEventListener('click', onAgain);
+        document.getElementById(game + 'Share').addEventListener('click', function () {
+            var t = text();
+            if (navigator.share) {
+                navigator.share({ text: t }).catch(function () { /* cancelado */ });
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(t).then(function () {
+                    if (window.Toast) window.Toast.success('Resultado copiado. ¡Pegalo donde quieras!');
+                });
+            }
+        });
+        // En el celular el final queda debajo de las portadas: que se vea.
+        var end = host.querySelector('.quiz-end');
+        var r = end.getBoundingClientRect();
+        if (r.bottom > window.innerHeight || r.top < 0) {
+            end.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
+        }
+        if (finePointer()) again.focus({ preventScroll: true });
+    }
+
+    function shareLine(name, level, streak, tab) {
+        return 'Mirudoku · ' + name + ' (' + LEVEL_LABEL[level] + '): ' + streak +
+            (streak === 1 ? ' acierto seguido' : ' aciertos seguidos') + ' 🔥\n' +
+            location.origin + location.pathname + '#' + tab;
+    }
+
+    function kbd(k) { return finePointer() ? '<kbd class="game-kbd" aria-hidden="true">' + k + '</kbd>' : ''; }
+
     var pool = [];
 
     // ─────────────────────────────────────────────────────────────
@@ -141,6 +208,7 @@
                 '<span class="game-cover"><img src="' + esc(m.image) + '" alt="" draggable="false"></span>' +
                 '<span class="game-title">' + esc(m.title) + '</span>' +
                 '<span class="game-num">' + (showNum ? fans(m.popularity) : '¿?') + '</span>' +
+                (vs.picked ? '' : kbd(side === 'left' ? '←' : '→')) +
             '</button>';
     }
 
@@ -159,12 +227,9 @@
                 vsCard(vs.right, 'right', !!vs.picked) +
             '</div>';
         if (vs.over) {
-            html += '<div class="quiz-end">' +
-                '<p class="quiz-result is-lost">' + (vs.newRecord
-                    ? '¡Nuevo récord! ' + vs.streak + ' seguidos.'
-                    : 'Fin del juego. Hiciste ' + vs.streak + (vs.streak === 1 ? ' acierto.' : ' aciertos.')) + '</p>' +
-                '<div class="quiz-actions"><button type="button" class="reto-btn" id="vsAgain">Jugar de nuevo</button></div>' +
-            '</div>';
+            html += endPanel('vs', vs.newRecord
+                ? '¡Nuevo récord! ' + vs.streak + ' aciertos seguidos.'
+                : 'Fin del juego. Hiciste ' + vs.streak + (vs.streak === 1 ? ' acierto.' : ' aciertos.'));
         }
         host.innerHTML = html;
 
@@ -180,8 +245,14 @@
                 vsStart();
             });
         });
-        var again = document.getElementById('vsAgain');
-        if (again) again.addEventListener('click', vsStart);
+        wireEnd(host, 'vs', vsStart, function () {
+            return shareLine('¿Cuál es más popular?', vs.level, vs.streak, 'popular');
+        });
+    }
+
+    function vsReveal() {
+        var host = vsHost();
+        countUp(host && host.querySelector('[data-vs="right"] .game-num'), vs.right.popularity);
     }
 
     function vsPick(side) {
@@ -197,6 +268,7 @@
             var round = vs.round;
             preload(next.image);
             vsRender();
+            vsReveal();
             setTimeout(function () {
                 // Si mientras tanto cambió el nivel o empezó otra partida, no se toca nada.
                 if (round !== vs.round) return;
@@ -208,9 +280,12 @@
             }, NEXT_MS);
         } else {
             vs.over = true;
-            vs.newRecord = vs.streak > best(K_VERSUS, vs.level);
-            if (vs.newRecord) saveBest(K_VERSUS, vs.level, vs.streak);
+            var prevBest = best(K_VERSUS, vs.level);
+            // Con un solo acierto no se festeja récord (igual que el modo libre).
+            vs.newRecord = vs.streak > 1 && vs.streak > prevBest;
+            if (vs.streak > prevBest) saveBest(K_VERSUS, vs.level, vs.streak);
             vsRender();
+            vsReveal();
         }
     }
 
@@ -287,16 +362,14 @@
                         ' aria-label="' + esc(m.title) + '">' +
                             '<span class="game-cover"><img src="' + esc(m.image) + '" alt="" draggable="false"></span>' +
                             '<span class="game-title">' + esc(m.title) + '</span>' +
+                            (dq.picked != null ? '' : kbd(i + 1)) +
                         '</button>';
                 }).join('') + '</div>' +
             '</div>';
         if (dq.over) {
-            html += '<div class="quiz-end">' +
-                '<p class="quiz-result is-lost">' + (dq.newRecord
-                    ? '¡Nuevo récord! ' + dq.streak + ' seguidos.'
-                    : 'Era de ' + esc(dq.answer.title) + '. Hiciste ' + dq.streak + (dq.streak === 1 ? ' acierto.' : ' aciertos.')) + '</p>' +
-                '<div class="quiz-actions"><button type="button" class="reto-btn" id="dqAgain">Jugar de nuevo</button></div>' +
-            '</div>';
+            html += endPanel('dq', (dq.newRecord
+                ? '¡Nuevo récord! ' + dq.streak + ' aciertos seguidos.'
+                : 'Hiciste ' + dq.streak + (dq.streak === 1 ? ' acierto.' : ' aciertos.')) + ' Era de:', dq.answer);
         }
         host.innerHTML = html;
 
@@ -312,8 +385,9 @@
                 dqStart();
             });
         });
-        var again = document.getElementById('dqAgain');
-        if (again) again.addEventListener('click', dqStart);
+        wireEnd(host, 'dq', dqStart, function () {
+            return shareLine('¿De qué anime es?', dq.level, dq.streak, 'deque');
+        });
     }
 
     function dqPick(i) {
@@ -326,10 +400,37 @@
             setTimeout(function () { if (round === dq.round) dqRound(); }, NEXT_MS);
         } else {
             dq.over = true;
-            dq.newRecord = dq.streak > best(K_DEQUE, dq.level);
-            if (dq.newRecord) saveBest(K_DEQUE, dq.level, dq.streak);
+            var prevBest = best(K_DEQUE, dq.level);
+            // Con un solo acierto no se festeja récord (igual que el modo libre).
+            dq.newRecord = dq.streak > 1 && dq.streak > prevBest;
+            if (dq.streak > prevBest) saveBest(K_DEQUE, dq.level, dq.streak);
             dqRender();
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Teclado: ← / → (o 1 / 2) en Más popular, 1 a 4 en ¿De qué anime?
+    // ─────────────────────────────────────────────────────────────
+    function onScreen(host) {
+        var panel = host && host.closest('[data-tab-panel]');
+        return !!panel && !panel.classList.contains('is-off-tab') && !panel.hidden;
+    }
+
+    function initKeys() {
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+            var t = e.target;
+            // Sin pisar lo que se escribe ni las flechas de las pestañas.
+            if (t && t.closest && t.closest('input, textarea, select, [contenteditable], [role="tab"]')) return;
+            var vh = vsHost(), dh = dqHost();
+            if (onScreen(vh) && vs.left && !vs.picked && !vs.over) {
+                var side = { ArrowLeft: 'left', '1': 'left', ArrowRight: 'right', '2': 'right' }[e.key];
+                if (side) { vsPick(side); e.preventDefault(); }
+            } else if (onScreen(dh) && dq.answer && dq.picked == null && !dq.over) {
+                var n = Number(e.key);
+                if (n >= 1 && n <= dq.options.length) { dqPick(n - 1); e.preventDefault(); }
+            }
+        });
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -392,6 +493,7 @@
     // ─────────────────────────────────────────────────────────────
     async function start() {
         initTabs();
+        initKeys();
         var vh = vsHost(), dh = dqHost();
         if (!vh && !dh) return;
         vs.level = readLevel(K_VERSUS);
