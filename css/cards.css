@@ -1079,7 +1079,7 @@ body.reduce-motion .catalog-neon-card {
     color: rgba(var(--ink-rgb, 232, 234, 246), 0.7);
     line-height: 1.5;
 }
-.gallery .empty-state-retry {
+.gallery .empty-state .empty-state-retry {
     margin-top: 18px;
     min-height: 40px;
     padding: 0 20px;
@@ -1094,11 +1094,21 @@ body.reduce-motion .catalog-neon-card {
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease;
 }
-.gallery .empty-state-retry:hover:not(:disabled) {
+.gallery .empty-state .empty-state-retry:hover:not(:disabled) {
     background: rgba(188, 19, 254, 0.22);
     border-color: var(--neon-purple, #bc13fe);
 }
-.gallery .empty-state-retry:disabled {
+.gallery .empty-state .empty-state-retry:disabled {
     opacity: 0.6;
     cursor: progress;
+}
+
+/* El aviso de error del catálogo (.q-banner, components.css) vive en la
+   grilla: ocupa todas las columnas. */
+.gallery .catalog-error {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 760px;
+    margin: 24px auto;
+    box-sizing: border-box;
 }

@@ -2210,3 +2210,198 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
     animation: none;
     transform: translateX(75%);
 }
+
+/* QChip: etiqueta redondeada; con __remove se quita con la ×. Se usa para
+   los géneros elegidos en el catálogo (js/catalog/search.js). */
+.q-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.q-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    max-width: 100%;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: var(--neon-purple-15);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.2;
+    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.q-chip--removable {
+    padding-right: 4px;
+}
+
+.q-chip__remove {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(var(--ink-rgb), 0.14);
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.q-chip__remove:hover,
+.q-chip__remove:focus-visible {
+    background: #e11d48;
+    color: #ffffff;
+}
+
+.q-chip__remove svg {
+    width: 12px;
+    height: 12px;
+}
+
+.q-chip--flat {
+    background: transparent;
+    color: rgba(var(--ink-rgb), 0.65);
+    cursor: pointer;
+}
+
+.q-chip--flat:hover {
+    color: var(--text-main);
+    border-color: rgba(var(--ink-rgb), 0.2);
+}
+
+/* QBanner: aviso con ícono, texto y acciones a la derecha (abajo en celular).
+   Tonos: --warning (hay que esperar) y --negative (falló). */
+.q-banner {
+    --q-banner-color: #e11d48;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px 16px;
+    padding: 16px 18px;
+    border: 1px solid color-mix(in srgb, var(--q-banner-color) 40%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--q-banner-color) 10%, rgba(var(--surface-card-rgb), 0.85));
+    color: var(--text-main);
+}
+
+.q-banner--warning {
+    --q-banner-color: #d97706;
+}
+
+.q-banner--negative {
+    --q-banner-color: #e11d48;
+}
+
+.q-banner__icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--q-banner-color);
+    color: #ffffff;
+}
+
+.q-banner__icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.q-banner__content {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.q-banner__kicker {
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--q-banner-color);
+}
+
+.q-banner__title {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.3;
+}
+
+.q-banner__content p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+.q-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.q-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    font-family: var(--font-display);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s;
+}
+
+.q-btn--flat {
+    background: transparent;
+    color: var(--q-banner-color, var(--neon-purple));
+}
+
+.q-btn--flat:hover {
+    background: color-mix(in srgb, var(--q-banner-color, var(--neon-purple)) 14%, transparent);
+}
+
+.q-btn--unelevated {
+    background: var(--q-banner-color, var(--neon-purple));
+    color: #ffffff;
+}
+
+.q-btn--unelevated:hover:not(:disabled) {
+    filter: brightness(1.1);
+}
+
+.q-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.q-btn:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .q-banner {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .q-banner__actions {
+        grid-column: 1 / -1;
+    }
+}

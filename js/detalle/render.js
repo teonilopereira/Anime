@@ -359,7 +359,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             ? temporadas.map((t, idx) => {
                 const active = idx === 0 ? ' is-active' : '';
                 const name = t.nombre || `Temporada ${idx + 1}`;
-                return `<button class="season-tab${active}" type="button" data-season="${idx}">${escapeHtml(name)}</button>`;
+                return `<button class="season-tab q-tab${active}" type="button" role="tab" data-season="${idx}">${escapeHtml(name)}</button>`;
             }).join('')
             : '';
 
@@ -367,7 +367,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             <div class="detail-section">
                 <h2 class="detail-h2">Capítulos</h2>
                 ${progressPanelHtml}
-                ${tabs ? `<div class="season-tabs" role="tablist" aria-label="Temporadas">${tabs}</div>` : ""}
+                ${tabs ? `<div class="season-tabs q-tabs" role="tablist" aria-label="Temporadas">${tabs}</div>` : ""}
                 <p class="detail-help">Tocá un capítulo para marcarlo en verde (guardado por usuario).</p>
                 <div class="ep-grid" id="epGrid"></div>
             </div>
@@ -1034,6 +1034,9 @@ function renderDetalle(item, nombreUrl, categoria) {
         });
 
         if (tabsEl) {
+            // Las pestañas se pintan después de cargar la página: el indicador
+            // deslizante (js/ui/tabs.js) se engancha a mano.
+            if (window.QTabs) window.QTabs.attach(tabsEl);
             tabsEl.addEventListener('click', (e) => {
                 const btn = e.target instanceof HTMLElement ? e.target.closest('button.season-tab') : null;
                 if (!btn) return;

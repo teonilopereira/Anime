@@ -402,23 +402,27 @@ function describirErrorDeApi(error) {
 
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         return {
+            tono: 'warning',
             kicker: catTr('card.err.sin_conexion.kicker', 'Sin conexión'),
             detalle: catTr('card.err.sin_conexion.detalle', 'Parece que te quedaste sin internet. Reconectate y tocá Reintentar.')
         };
     }
     if (msg.includes('429') || msg.includes('Límite de peticiones')) {
         return {
+            tono: 'warning',
             kicker: catTr('card.err.rate.kicker', 'Demasiadas peticiones'),
             detalle: catTr('card.err.rate.detalle', 'AniList está limitando las peticiones por exceso de uso. Esperá un minuto y tocá Reintentar, no es un problema de tu conexión.')
         };
     }
     if (msg.includes('Timeout')) {
         return {
+            tono: 'warning',
             kicker: catTr('card.err.timeout.kicker', 'La API tardó demasiado'),
             detalle: catTr('card.err.timeout.detalle', 'AniList no respondió a tiempo. Puede estar saturada; probá de nuevo en unos segundos.')
         };
     }
     return {
+        tono: 'negative',
         kicker: catTr('card.err.generico.kicker', 'API no disponible'),
         detalle: catTr('card.err.generico.detalle', 'Revisá tu conexión y tocá Reintentar.')
     };
@@ -487,7 +491,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
         });
     }).join('');
 
-    mainContainer.querySelector('.empty-state')?.remove();
+    mainContainer.querySelector('.empty-state, .catalog-error')?.remove();
     if (append) {
         mainContainer.insertAdjacentHTML('beforeend', cardsHtml);
     } else {
@@ -582,12 +586,20 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
         }
         if (!append) {
             const causa = describirErrorDeApi(error);
+            // Aviso estilo QBanner de Quasar: ícono, causa y acciones. Amarillo
+            // cuando hay que esperar (límite, demora, sin red); rojo si falló.
             mainContainer.innerHTML = `
-                <section class="empty-state">
-                    <span class="empty-state-kicker">${escapeHtml(causa.kicker)}</span>
-                    <h2>${escapeHtml(catTr('card.err.titulo', 'No se pudo cargar el catálogo de {tipo}.', { tipo: loaderLabel }))}</h2>
-                    <p>${escapeHtml(causa.detalle)}</p>
-                    <button type="button" class="empty-state-retry">${escapeHtml(catTr('card.err.reintentar', 'Reintentar'))}</button>
+                <section class="q-banner q-banner--${causa.tono} catalog-error" role="alert">
+                    <span class="q-banner__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 16.5h.01"/></svg></span>
+                    <div class="q-banner__content">
+                        <span class="q-banner__kicker">${escapeHtml(causa.kicker)}</span>
+                        <h2 class="q-banner__title">${escapeHtml(catTr('card.err.titulo', 'No se pudo cargar el catálogo de {tipo}.', { tipo: loaderLabel }))}</h2>
+                        <p>${escapeHtml(causa.detalle)}</p>
+                    </div>
+                    <div class="q-banner__actions">
+                        <a class="q-btn q-btn--flat" href="mis-listas.html">${escapeHtml(catTr('card.err.mis_listas', 'Ver mis listas'))}</a>
+                        <button type="button" class="q-btn q-btn--unelevated empty-state-retry">${escapeHtml(catTr('card.err.reintentar', 'Reintentar'))}</button>
+                    </div>
                 </section>
             `;
             const retryBtn = mainContainer.querySelector('.empty-state-retry');

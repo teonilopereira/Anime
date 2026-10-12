@@ -96,6 +96,9 @@
         "catalog.buscar_genero":  "Search genre...",
         "catalog.generos_todos":  "Show all · {n} genres ▼",
         "catalog.generos_menos":  "Show less ▲",
+        "catalog.generos_activos": "Selected genres",
+        "catalog.quitar_genero":  "Remove {genero}",
+        "catalog.quitar_todos":   "Remove all",
         "catalog.generos_vacio":  "No matching genres.",
         "catalog.abrir_filtros":  "Open filters",
 
@@ -146,6 +149,7 @@
         "card.err.generico.detalle": "Check your connection and tap Retry.",
         "card.err.reintentar":      "Retry",
         "card.err.reintentando":    "Loading…",
+        "card.err.mis_listas":      "See my lists",
         "card.loader.animes":       "anime",
         "card.loader.novelas":      "novels",
         "card.loader.mangas":       "manga",
