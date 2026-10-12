@@ -1599,14 +1599,48 @@ main { padding-bottom: 24px; }
 /* ==========================================
    SKELETON LOADER ANIMATIONS & STYLES     
    ========================================== */
+/* Estilo QSkeleton de Quasar, animación "wave": un brillo que cruza de
+   izquierda a derecha sobre una base quieta. Lo comparten el skeleton
+   genérico, las cards del catálogo y el carrusel del inicio, y sigue al tema
+   (claro u oscuro) por --ink-rgb. */
+.skeleton,
+.skeleton-card-poster,
+.skeleton-card-bar-line,
+.skeleton-card-bar-icon,
+.home-carousel-skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(var(--ink-rgb), 0.08);
+}
+
+.skeleton::after,
+.skeleton-card-poster::after,
+.skeleton-card-bar-line::after,
+.skeleton-card-bar-icon::after,
+.home-carousel-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(var(--ink-rgb), 0.10), transparent);
+    transform: translateX(-100%);
+    animation: q-skeleton-wave 1.5s linear 0.5s infinite;
+}
+
+@keyframes q-skeleton-wave {
+    100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton::after,
+    .skeleton-card-poster::after,
+    .skeleton-card-bar-line::after,
+    .skeleton-card-bar-icon::after,
+    .home-carousel-skeleton::after {
+        animation: none;
+    }
+}
+
 .skeleton {
-    background: linear-gradient(90deg, 
-        rgba(var(--ink-rgb), 0.03) 25%, 
-        rgba(var(--ink-rgb), 0.08) 37%, 
-        rgba(var(--ink-rgb), 0.03) 63%
-    );
-    background-size: 400% 100%;
-    animation: skeleton-glow 1.4s ease infinite;
     border-radius: 4px;
     display: inline-block;
 }
@@ -1618,14 +1652,6 @@ main { padding-bottom: 24px; }
     vertical-align: middle;
 }
 
-@keyframes skeleton-glow {
-    0% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
 
 /* ==========================================
    UNIFIED CATALOG SEARCH & FILTER BAR
@@ -2404,4 +2430,54 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
     .q-banner__actions {
         grid-column: 1 / -1;
     }
+}
+
+/* QRating de solo lectura: cinco estrellas rellenas en proporción a
+   --q-rating-pct (0–100%). Una sola caja con una máscara de estrella
+   repetida; el relleno es un degradado cortado en el porcentaje. */
+.q-rating--readonly {
+    --q-rating-size: 16px;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: calc(var(--q-rating-size) * 5);
+    height: var(--q-rating-size);
+    background: linear-gradient(90deg, #f5b301 var(--q-rating-pct, 0%), rgba(var(--ink-rgb), 0.22) var(--q-rating-pct, 0%));
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l2.94 5.96 6.56.95-4.75 4.63 1.12 6.54L12 17.5l-5.87 3.08 1.12-6.54L2.5 9.41l6.56-.95z'/%3E%3C/svg%3E") repeat-x 0 0 / var(--q-rating-size) var(--q-rating-size);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l2.94 5.96 6.56.95-4.75 4.63 1.12 6.54L12 17.5l-5.87 3.08 1.12-6.54L2.5 9.41l6.56-.95z'/%3E%3C/svg%3E") repeat-x 0 0 / var(--q-rating-size) var(--q-rating-size);
+}
+
+/* QBadge: etiqueta chica de estado. Sólida con el color del estado de
+   seguimiento (los mismos que el selector del detalle) o con contorno. */
+.q-badge {
+    --q-badge-color: var(--primary-purple);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--q-badge-color);
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.6;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.q-badge--viendo     { --q-badge-color: #0e7490; }
+.q-badge--pendiente  { --q-badge-color: #9333ea; }
+.q-badge--pausado    { --q-badge-color: #b45309; }
+.q-badge--abandonado { --q-badge-color: #e11d48; }
+
+.q-badge--outline {
+    --q-badge-color: var(--accent-cyan);
+    background: transparent;
+    color: var(--q-badge-color);
+    box-shadow: inset 0 0 0 1px var(--q-badge-color);
+}
+
+.q-badge--outline.q-badge--fav {
+    --q-badge-color: var(--neon-purple);
 }

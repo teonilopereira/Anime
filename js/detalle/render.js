@@ -148,6 +148,12 @@ function renderDetalle(item, nombreUrl, categoria) {
         : 0;
     const airedCount = nextEpNum > 0 ? nextEpNum - 1 : 0;
     const score = item.score ?? item.puntaje ?? item.calificacion ?? 'N/A';
+    // Puntaje de AniList (0–10) también en estrellas, estilo QRating de solo
+    // lectura: cinco estrellas rellenas en proporción (9,1 → 4,55 estrellas).
+    const scoreNum = Number(score);
+    const scoreStarsHtml = Number.isFinite(scoreNum) && scoreNum > 0
+        ? `<span class="q-rating q-rating--readonly" role="img" aria-label="${escapeHtml(String(scoreNum))} de 10" style="--q-rating-pct:${Math.min(100, Math.round(scoreNum * 10))}%"></span>`
+        : '';
     const countLabel = isMangaOrNovela ? 'Volúmenes' : isAnime ? 'Capítulos' : 'Capítulos';
     const countValue = isMangaOrNovela ? (volumenes || 'No especificado') : isAnime ? (item.capitulos || item.episodios || item.episodes || 'No especificado') : 'No especificado';
     // Segunda tarjeta: antes decía "Vol." y repetía los volúmenes con un "1"
@@ -235,7 +241,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
             <div class="detail-stat">
                 <div class="detail-stat-icon"><i data-lucide="star"></i></div>
-                <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong>${mostrarMal ? '<span id="detailMalScore" class="detail-stat-mal-wrap" hidden></span>' : ''}</div>
+                <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong>${scoreStarsHtml}${mostrarMal ? '<span id="detailMalScore" class="detail-stat-mal-wrap" hidden></span>' : ''}</div>
             </div>
             ${followsHtml}
         </div>

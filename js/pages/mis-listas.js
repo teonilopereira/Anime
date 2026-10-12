@@ -177,11 +177,13 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
     const link = getItemLink(item);
     const category = CATEGORY_LABELS[item.__category] || item.__category || 'Lista';
     const wsBadge = WSTATUS_BADGES[wstatus];
+    // Etiquetas estilo QBadge: el estado de seguimiento con el mismo color que
+    // el selector del detalle; favorito, visto y match con contorno.
     const badges = [
-        wsBadge ? `<span style="color:${wsBadge.color};">${wsBadge.label}</span>` : '',
-        fav ? '<span style="color:#bc13fe;">❤ Me gusta</span>' : '',
-        viewed ? '<span style="color:#00f2ff;">👁 Visto</span>' : '',
-        match ? `<span style="color:#00f2ff;">${escapeHtml(match)} match</span>` : ''
+        wsBadge ? `<span class="q-badge q-badge--${escapeHtml(wstatus)}">${escapeHtml(wsBadge.label.replace(/^\S+\s/, ''))}</span>` : '',
+        fav ? '<span class="q-badge q-badge--outline q-badge--fav">Me gusta</span>' : '',
+        viewed ? '<span class="q-badge q-badge--outline">Visto</span>' : '',
+        match ? `<span class="q-badge q-badge--outline">${escapeHtml(match)} match</span>` : ''
     ].filter(Boolean).join(' ');
     
     if (isRow) {

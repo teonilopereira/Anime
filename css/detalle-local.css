@@ -478,3 +478,10 @@ a.detail-stat-mal:hover { opacity: 1; text-decoration: underline; }
     letter-spacing: 0;
 }
 .detail-stat-content .detail-stat-mal-wrap { opacity: 1; }
+
+/* Estrellas del puntaje (.q-rating--readonly, components.css). Anula el
+   estilo de etiqueta que .detail-stat-content le da a todo <span>. */
+.detail-stat-content .q-rating--readonly {
+    opacity: 1;
+    margin-top: 2px;
+}

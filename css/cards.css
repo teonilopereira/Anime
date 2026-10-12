@@ -18,14 +18,7 @@
     gap: 10px;
 }
 
-.skeleton-card-poster,
-.skeleton-card-bar-line,
-.skeleton-card-bar-icon {
-    background: linear-gradient(110deg, #090b14 30%, #11172a 50%, #090b14 70%);
-    background-size: 200% 100%;
-    animation: skeleton-shimmer 1.8s ease-in-out infinite;
-}
-
+/* Fondo y animación: ver el bloque QSkeleton en components.css. */
 .skeleton-card-poster {
     aspect-ratio: 2 / 3;
     border-radius: 14px;
@@ -51,11 +44,6 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-}
-
-@keyframes skeleton-shimmer {
-    0% { background-position: 100% 0; }
-    100% { background-position: -100% 0; }
 }
 
 .card-container:not(.catalog-neon-card) {
