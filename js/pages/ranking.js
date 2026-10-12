@@ -127,7 +127,7 @@
                     '</div>' +
                 '</div>' +
                 '<div class="rank-progress">' +
-                    '<div class="rank-progress-track"><div class="rank-progress-fill" style="width:' + pct + '%"></div></div>' +
+                    '<div class="rank-progress-track q-linear"><div class="rank-progress-fill q-linear__bar" style="width:' + pct + '%"></div></div>' +
                     '<div class="rank-progress-text">EXP para siguiente nivel: ' + falta.toLocaleString() + '</div>' +
                 '</div>' +
                 '<div class="rank-exp">' +

@@ -126,7 +126,7 @@ function buildCatalogProgressHtml(categoria, total, volCount, chCount) {
         <div class="crail-progress" data-progress data-total="${safeTotal}" data-label="${label}" data-prefix="${prefix}">
             <span class="crail-progress-label" data-meta-text>${prefix} 0/${safeTotal}</span>
             <div class="crail-line" aria-hidden="true">
-                <div class="card-back-progress-fill crail-line-fill" style="width:0%"></div>
+                <div class="card-back-progress-fill crail-line-fill q-linear__bar" style="width:0%"></div>
             </div>
         </div>`;
 }

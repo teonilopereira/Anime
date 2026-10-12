@@ -1635,50 +1635,10 @@ main { padding-bottom: 24px; }
    SEARCH BAR — wide container, flat inner layout
    Structure: container > wrap (row) + dropdown
    ============================================= */
-/* ── Tabs de descubrimiento del catálogo ── */
+/* ── Tabs de descubrimiento del catálogo ──
+   El aspecto viene de .q-tabs / .q-tab (más abajo, estilo Quasar). */
 .catalog-browse-tabs {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 18px 0 0;
-}
-
-.browse-tab {
-    display: inline-flex;
-    align-items: center;
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(var(--ink-rgb), 0.12);
-    background: rgba(var(--ink-rgb), 0.04);
-    color: rgba(var(--ink-rgb), 0.65);
-    font-family: var(--font-display);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.browse-tab:hover {
-    border-color: rgba(77, 134, 255, 0.5);
-    color: #7ea8ff;
-    background: rgba(77, 134, 255, 0.08);
-}
-
-.browse-tab.is-active {
-    border-color: rgba(77, 134, 255, 0.65);
-    background: rgba(77, 134, 255, 0.14);
-    color: #7ea8ff;
-    box-shadow: 0 0 12px rgba(77, 134, 255, 0.18);
-}
-
-@media (max-width: 640px) {
-    .browse-tab {
-        padding: 6px 11px;
-        font-size: 0.58rem;
-    }
+    margin-top: 18px;
 }
 
 .catalog-search-filter-container {
@@ -2012,4 +1972,241 @@ body.reduce-motion .toast-item {
     .tooltip {
         transition: none;
     }
+}
+
+/* ── Componentes estilo Quasar ──────────────────────────────────────────────
+   Adaptados de Quasar Framework (MIT) sin Vue: QTabs, QLinearProgress y
+   QBtnToggle. Misma geometría y curvas (cubic-bezier(0.4, 0, 0.2, 1)), con los
+   colores del tema. El indicador de las pestañas lo mueve js/ui/tabs.js. */
+
+/* QTabs: fila de pestañas con una línea que se desliza a la elegida. Si no
+   entran, la fila se desplaza de costado en vez de partirse en dos renglones. */
+.q-tabs {
+    position: relative;
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    max-width: 100%;
+    margin-inline: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    border-bottom: 1px solid rgba(var(--ink-rgb), 0.10);
+}
+
+.q-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.q-tab {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(var(--ink-rgb), 0.6);
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.q-tab:hover {
+    color: var(--text-main);
+    background: rgba(var(--ink-rgb), 0.04);
+}
+
+.q-tab.is-active,
+.q-tab[aria-selected="true"] {
+    color: var(--nav-accent);
+}
+
+/* Los acentos por página (--nav-accent) son neón pensado para fondo oscuro;
+   en claro la pestaña elegida usa el texto principal y la línea lleva el color. */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .q-tab.is-active,
+    :root:not([data-theme="dark"]) .q-tab[aria-selected="true"] {
+        color: var(--text-main);
+    }
+}
+:root[data-theme="light"] .q-tab.is-active,
+:root[data-theme="light"] .q-tab[aria-selected="true"] {
+    color: var(--text-main);
+}
+
+.q-tab:focus-visible {
+    outline: 2px solid var(--nav-accent);
+    outline-offset: -2px;
+}
+
+.q-tabs__indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: var(--nav-accent);
+    box-shadow: 0 0 10px var(--nav-accent);
+    pointer-events: none;
+    opacity: 0;
+}
+
+.q-tabs--ready .q-tabs__indicator {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+@media (max-width: 640px) {
+    .q-tab {
+        min-height: 40px;
+        padding: 0 12px;
+        font-size: 0.58rem;
+    }
+}
+
+/* QLinearProgress: pista + relleno, con capa opcional de "buffer" (lo emitido
+   o disponible, detrás de lo visto) y variantes rayada e indeterminada. */
+.q-linear {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    border-radius: var(--radius-pill);
+    background: rgba(var(--ink-rgb), 0.10);
+    overflow: hidden;
+}
+
+.q-linear__buffer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: inherit;
+    background: rgba(var(--ink-rgb), 0.14);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.q-linear__bar {
+    position: relative;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--neon-purple), var(--accent-cyan));
+    box-shadow: 0 0 10px var(--neon-purple-18);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.q-linear--stripe .q-linear__bar {
+    background-image:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.22) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.22) 50%, rgba(255, 255, 255, 0.22) 75%, transparent 75%),
+        linear-gradient(90deg, var(--neon-purple), var(--accent-cyan));
+    background-size: 14px 14px, 100% 100%;
+    animation: q-linear-stripe 1s linear infinite;
+}
+
+.q-linear--indeterminate .q-linear__bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40% !important;
+    animation: q-linear-indeterminate 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes q-linear-stripe {
+    to { background-position: 14px 0, 0 0; }
+}
+
+@keyframes q-linear-indeterminate {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+}
+
+/* QBtnToggle: botones unidos donde se elige uno. Cada opción puede traer su
+   color en --q-toggle-color (se usa al estar elegida). El texto va en blanco,
+   así que el color tiene que dar contraste con blanco en los dos temas. */
+.q-btn-toggle {
+    display: inline-flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(var(--ink-rgb), 0.16);
+}
+
+.q-btn-toggle__btn {
+    flex: 1 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(var(--ink-rgb), 0.65);
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.q-btn-toggle__btn + .q-btn-toggle__btn {
+    box-shadow: inset 1px 0 0 rgba(var(--ink-rgb), 0.16);
+}
+
+.q-btn-toggle__btn:hover {
+    background: rgba(var(--ink-rgb), 0.06);
+    color: var(--text-main);
+}
+
+.q-btn-toggle__btn:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: -2px;
+}
+
+.q-btn-toggle__btn.is-active,
+.q-btn-toggle__btn[aria-pressed="true"] {
+    background: var(--q-toggle-color, var(--primary-purple));
+    color: #ffffff;
+    box-shadow: 0 0 14px rgba(var(--ink-rgb), 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .q-tabs--ready .q-tabs__indicator,
+    .q-linear__bar,
+    .q-linear__buffer,
+    .q-btn-toggle__btn {
+        transition: none;
+    }
+    .q-linear--stripe .q-linear__bar {
+        animation: none;
+    }
+    /* Sin movimiento, la indeterminada queda como un tramo fijo al centro. */
+    .q-linear--indeterminate .q-linear__bar {
+        animation: none;
+        transform: translateX(75%);
+    }
+}
+body.reduce-motion .q-tabs--ready .q-tabs__indicator,
+body.reduce-motion .q-linear__bar,
+body.reduce-motion .q-linear__buffer {
+    transition: none;
+}
+body.reduce-motion .q-linear--stripe .q-linear__bar {
+    animation: none;
+}
+body.reduce-motion .q-linear--indeterminate .q-linear__bar {
+    animation: none;
+    transform: translateX(75%);
 }

@@ -289,8 +289,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <span>Progreso</span>
                     <strong>${pct}% visto</strong>
                 </div>
-                <div class="detail-progress-track">
-                    <div class="detail-progress-fill" style="width:${pct}%"></div>
+                <div class="detail-progress-track q-linear">
+                    <div class="detail-progress-fill q-linear__bar" style="width:${pct}%"></div>
                 </div>
                 <div class="detail-progress-meta">${markedVolumes} de ${totalVols} volúmenes marcados</div>
             </div>
@@ -334,14 +334,22 @@ function renderDetalle(item, nombreUrl, categoria) {
             }
         });
         const pct = totalEps > 0 ? Math.round((watchedEpisodes / totalEps) * 100) : 0;
+        // En emisión con total conocido: detrás de lo visto, en gris claro, lo
+        // que ya salió (el "buffer" de QLinearProgress).
+        const airedPct = totalEps > 0 && airedCount > 0 && airedCount < totalEps
+            ? Math.round((airedCount / totalEps) * 100) : 0;
+        const bufferHtml = airedPct
+            ? `<div class="q-linear__buffer" style="width:${airedPct}%" title="${airedCount} de ${totalEps} emitidos"></div>`
+            : '';
         progressPanelHtml = `
             <div class="detail-progress-card">
                 <div class="detail-progress-head">
                     <span>Progreso</span>
                     <strong>${pct}% visto</strong>
                 </div>
-                <div class="detail-progress-track">
-                    <div class="detail-progress-fill" style="width:${pct}%"></div>
+                <div class="detail-progress-track q-linear">
+                    ${bufferHtml}
+                    <div class="detail-progress-fill q-linear__bar" style="width:${pct}%"></div>
                 </div>
                 <div class="detail-progress-meta">${watchedEpisodes} de ${totalEps || 0} capítulos marcados</div>
             </div>
@@ -436,11 +444,11 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <button class="action-btn viewed-btn" type="button" aria-label="Marcar como visto"><i data-lucide="eye"></i></button>
                 </div>
 
-                <div class="watch-status-bar" role="group" aria-label="Estado de seguimiento">
-                    <button class="watch-status-pill" type="button" data-wstatus="viendo">Viendo</button>
-                    <button class="watch-status-pill" type="button" data-wstatus="pendiente">Pendiente</button>
-                    <button class="watch-status-pill" type="button" data-wstatus="pausado">En pausa</button>
-                    <button class="watch-status-pill" type="button" data-wstatus="abandonado">Abandonado</button>
+                <div class="watch-status-bar q-btn-toggle" role="group" aria-label="Estado de seguimiento">
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="viendo" aria-pressed="false">Viendo</button>
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pendiente" aria-pressed="false">Pendiente</button>
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pausado" aria-pressed="false">En pausa</button>
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="abandonado" aria-pressed="false">Abandonado</button>
                 </div>
 
                 <div class="detail-actions">
@@ -493,7 +501,9 @@ function renderDetalle(item, nombreUrl, categoria) {
         const syncPills = () => {
             const current = window.getWatchStatus(getCurrentUserIdSafe(), item.id);
             wsBar.querySelectorAll('.watch-status-pill').forEach(p => {
-                p.classList.toggle('is-active', p.getAttribute('data-wstatus') === current);
+                const on = p.getAttribute('data-wstatus') === current;
+                p.classList.toggle('is-active', on);
+                p.setAttribute('aria-pressed', on ? 'true' : 'false');
             });
         };
         syncPills();
