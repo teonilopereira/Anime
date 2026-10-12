@@ -342,6 +342,8 @@
         pet = document.createElement("button");
         pet.className = "mascot-pet";
         pet.type = "button";
+        // Una onda rectangular sobre el sprite queda mal (ver js/ui/ripple.js).
+        pet.setAttribute("data-no-ripple", "");
         pet.setAttribute("aria-label", "Rimuru — tu mascota slime. Tocá para saludar.");
         sprite = document.createElement("div");
         sprite.className = "mascot-sprite";
