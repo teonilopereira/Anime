@@ -218,7 +218,7 @@
     function runImport(data, progressArea, resultArea, onDone) {
         progressArea.hidden = false;
         resultArea.hidden = true;
-        progressArea.innerHTML = '<div class="mal-progress"><div class="mal-progress-bar"><div class="mal-progress-fill" style="width:0%"></div></div><div class="mal-progress-text">Preparando...</div></div>';
+        progressArea.innerHTML = '<div class="mal-progress"><div class="mal-progress-bar q-linear q-linear--indeterminate"><div class="mal-progress-fill q-linear__bar" style="width:0%"></div></div><div class="mal-progress-text">Preparando...</div></div>';
 
         var supabase = window.AppSupabase;
         if (!supabase || !supabase.saveItemState) {
@@ -227,10 +227,17 @@
             return;
         }
 
+        var bar = progressArea.querySelector('.mal-progress-bar');
         var fill = progressArea.querySelector('.mal-progress-fill');
         var text = progressArea.querySelector('.mal-progress-text');
 
+        // Hasta tener IDs de AniList no se sabe cuánto falta: barra indeterminada.
+        // Mientras guarda, rayada; al terminar (o con error), quieta.
         function setProgress(pct, msg) {
+            if (bar) {
+                bar.classList.toggle('q-linear--indeterminate', pct > 0 && pct < 20);
+                bar.classList.toggle('q-linear--stripe', pct >= 20 && pct < 100);
+            }
             if (fill) fill.style.width = pct + '%';
             if (text) text.textContent = msg;
         }

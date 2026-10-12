@@ -181,42 +181,31 @@
     box-shadow: 0 0 12px rgba(77, 134, 255, 0.2);
 }
 
-/* ── Estado de seguimiento (pills en detalle) ── */
+/* ── Estado de seguimiento (QBtnToggle en detalle) ──
+   El aspecto viene de .q-btn-toggle (components.css). Cada estado tiene su
+   color al estar elegido; tocar el elegido lo quita. */
 .watch-status-bar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    width: 100%;
     margin: 10px 0 4px;
 }
 
-.watch-status-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 7px 14px;
-    border-radius: 999px;
-    border: 1px solid rgba(var(--ink-rgb), 0.14);
-    background: rgba(var(--ink-rgb), 0.04);
-    color: rgba(var(--ink-rgb), 0.65);
-    font-family: var(--font-display);
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+.watch-status-pill[data-wstatus="viendo"]     { --q-toggle-color: #0e7490; }
+.watch-status-pill[data-wstatus="pendiente"]  { --q-toggle-color: #9333ea; }
+.watch-status-pill[data-wstatus="pausado"]    { --q-toggle-color: #b45309; }
+.watch-status-pill[data-wstatus="abandonado"] { --q-toggle-color: #e11d48; }
 
-.watch-status-pill:hover {
-    border-color: rgba(77, 134, 255, 0.5);
-    color: #7ea8ff;
-    background: rgba(77, 134, 255, 0.08);
-}
-
-.watch-status-pill.is-active {
-    border-color: rgba(77, 134, 255, 0.65);
-    background: rgba(77, 134, 255, 0.14);
-    color: #7ea8ff;
-    box-shadow: 0 0 12px rgba(77, 134, 255, 0.18);
+@media (max-width: 420px) {
+    /* Cuatro opciones no entran en una fila: van de a dos. */
+    .watch-status-bar .q-btn-toggle__btn {
+        flex-basis: 50%;
+    }
+    .watch-status-bar .q-btn-toggle__btn:nth-child(3) {
+        box-shadow: inset 0 1px 0 rgba(var(--ink-rgb), 0.16);
+    }
+    .watch-status-bar .q-btn-toggle__btn:nth-child(4) {
+        box-shadow: inset 1px 0 0 rgba(var(--ink-rgb), 0.16), inset 0 1px 0 rgba(var(--ink-rgb), 0.16);
+    }
 }
 
 /* ── Cuadraditos de episodios en emisión ── */
@@ -489,3 +478,10 @@ a.detail-stat-mal:hover { opacity: 1; text-decoration: underline; }
     letter-spacing: 0;
 }
 .detail-stat-content .detail-stat-mal-wrap { opacity: 1; }
+
+/* Estrellas del puntaje (.q-rating--readonly, components.css). Anula el
+   estilo de etiqueta que .detail-stat-content le da a todo <span>. */
+.detail-stat-content .q-rating--readonly {
+    opacity: 1;
+    margin-top: 2px;
+}

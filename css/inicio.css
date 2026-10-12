@@ -185,14 +185,7 @@ body.menu-page .menu-container {
     height: 268px;
     border-radius: var(--radius-lg, 12px);
     border: 1px solid rgba(0, 242, 255, 0.1);
-    background: linear-gradient(110deg, #090b14 30%, #11172a 50%, #090b14 70%);
-    background-size: 200% 100%;
-    animation: home-carousel-shimmer 1.8s ease-in-out infinite;
-}
-
-@keyframes home-carousel-shimmer {
-    0%   { background-position: 100% 0; }
-    100% { background-position: -100% 0; }
+    /* Fondo y animación: bloque QSkeleton en components.css. */
 }
 
 .home-carousel-empty {
@@ -249,9 +242,6 @@ body.menu-page .menu-container {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .home-carousel-skeleton {
-        animation: none;
-    }
     .home-carousel-track {
         scroll-behavior: auto;
     }

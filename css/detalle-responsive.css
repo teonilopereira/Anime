@@ -318,10 +318,6 @@ a.season-chain-item:hover {
         height: 36px;
         font-size: 0.85rem;
     }
-    .season-tab {
-        padding: 4px 10px;
-        font-size: 0.72rem;
-    }
     .progreso-general-section {
         padding: 12px 14px;
     }
@@ -362,10 +358,6 @@ a.season-chain-item:hover {
     .ep-btn {
         min-height: 44px;
         font-size: 0.68rem;
-    }
-    .season-tab {
-        padding: 3px 8px;
-        font-size: 0.65rem;
     }
     .progreso-general-section {
         padding: 10px 12px;

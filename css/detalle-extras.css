@@ -268,44 +268,93 @@ a.char-side:hover .char-name {
     white-space: nowrap;
 }
 
-/* ── Preguntas frecuentes ── */
+/* ── Preguntas frecuentes ──
+   Estilo QExpansionItem de Quasar: lista unida, chevron que gira y el cuerpo
+   que se despliega con animación donde el navegador lo permite
+   (::details-content); en los demás abre igual, sin animar. */
 .detail-faq {
     margin-top: 2rem;
 }
 .detail-faq-item {
-    border: 1px solid rgba(var(--ink-rgb),0.1);
-    border-radius: var(--radius-md);
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.6rem;
-    background: rgba(var(--ink-rgb),0.03);
+    border: 1px solid rgba(var(--ink-rgb), 0.1);
+    background: rgba(var(--ink-rgb), 0.03);
+    overflow: hidden;
+}
+.detail-faq-item + .detail-faq-item {
+    border-top: 0;
+}
+.detail-faq-item:first-of-type {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+.detail-faq-item:last-of-type {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 .detail-faq-item > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 48px;
+    padding: 0.7rem 1rem;
     cursor: pointer;
     font-weight: 600;
     color: var(--text-main);
     list-style: none;
-    position: relative;
-    padding-right: 1.5rem;
+    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.detail-faq-item > summary:hover {
+    background: rgba(var(--ink-rgb), 0.05);
+}
+.detail-faq-item > summary:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: -2px;
 }
 .detail-faq-item > summary::-webkit-details-marker {
     display: none;
 }
+/* Chevron dibujado con bordes: no depende de íconos ni de fuentes. */
 .detail-faq-item > summary::after {
-    content: '+';
-    position: absolute;
-    right: 0;
-    top: 0;
-    font-size: 1.1rem;
-    color: var(--accent-cyan);
-    transition: transform 0.2s ease;
+    content: '';
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    border-right: 2px solid rgba(var(--ink-rgb), 0.55);
+    border-bottom: 2px solid rgba(var(--ink-rgb), 0.55);
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s;
 }
 .detail-faq-item[open] > summary::after {
-    content: '−';
+    border-color: var(--accent-cyan);
+    transform: translateY(2px) rotate(225deg);
+}
+.detail-faq-item[open] > summary {
+    color: var(--accent-cyan);
 }
 .detail-faq-item > p {
-    margin: 0.6rem 0 0;
+    margin: 0;
+    padding: 0 1rem 0.9rem;
     color: var(--text-muted, rgba(var(--ink-rgb),0.75));
     line-height: 1.5;
+}
+@supports selector(::details-content) {
+    .detail-faq {
+        interpolate-size: allow-keywords;
+    }
+    .detail-faq-item::details-content {
+        height: 0;
+        overflow: hidden;
+        transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), content-visibility 0.3s allow-discrete;
+    }
+    .detail-faq-item[open]::details-content {
+        height: auto;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .detail-faq-item > summary::after,
+    .detail-faq-item::details-content {
+        transition: none;
+    }
 }
 
 /* ── Información (js/detalle/info.js) ── */

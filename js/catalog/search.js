@@ -929,6 +929,57 @@ function inicializarGeneroWidgets() {
                     : catTr('catalog.generos_todos', 'Ver todos · ' + list.length + ' géneros ▼', { n: list.length });
             }
         }
+
+        renderActiveGenreChips();
+    }
+
+    // Géneros elegidos, como chips que se quitan con la × (QChip de Quasar).
+    // Van debajo del buscador, a la vista aunque el panel de filtros esté
+    // cerrado. Se rearman cada vez que cambia la selección.
+    const genreLabels = new Map(filterGenres.map((g) => [g.key, g.label]));
+    const CHIP_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+    function getActiveGenreRow() {
+        let row = document.getElementById('activeGenreChips');
+        if (row) return row;
+        const dropdown = document.getElementById('filterDropdown');
+        if (!dropdown || !dropdown.parentNode) return null;
+        row = document.createElement('div');
+        row.id = 'activeGenreChips';
+        row.className = 'q-chip-row catalog-active-genres';
+        row.setAttribute('aria-label', catTr('catalog.generos_activos', 'Géneros elegidos'));
+        row.hidden = true;
+        dropdown.parentNode.insertBefore(row, dropdown.nextSibling);
+        row.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-remove-genre], [data-clear-genres]');
+            if (!btn) return;
+            const next = btn.hasAttribute('data-clear-genres')
+                ? []
+                : (Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [])
+                    .filter((k) => k !== btn.getAttribute('data-remove-genre'));
+            window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = next;
+            UserStore.setItem(selectedKey, JSON.stringify(next));
+            renderDropdownGenres();
+            if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+        });
+        return row;
+    }
+
+    function renderActiveGenreChips() {
+        const arr = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
+        const row = arr.length ? getActiveGenreRow() : document.getElementById('activeGenreChips');
+        if (!row) return;
+        row.hidden = !arr.length;
+        if (!arr.length) { row.innerHTML = ''; return; }
+        let html = arr.map((key) => {
+            const label = escapeHtml(genreLabels.get(key) || key);
+            const quitar = escapeHtml(catTr('catalog.quitar_genero', 'Quitar ' + (genreLabels.get(key) || key), { genero: genreLabels.get(key) || key }));
+            return `<span class="q-chip q-chip--removable">${label}<button class="q-chip__remove" type="button" data-remove-genre="${escapeHtml(key)}" aria-label="${quitar}">${CHIP_X}</button></span>`;
+        }).join('');
+        if (arr.length > 1) {
+            html += `<button class="q-chip q-chip--flat" type="button" data-clear-genres>${escapeHtml(catTr('catalog.quitar_todos', 'Quitar todos'))}</button>`;
+        }
+        row.innerHTML = html;
     }
 
     // Expose globally so external code (e.g. on scroll-append) can sync chips

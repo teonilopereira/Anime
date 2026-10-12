@@ -148,6 +148,12 @@ function renderDetalle(item, nombreUrl, categoria) {
         : 0;
     const airedCount = nextEpNum > 0 ? nextEpNum - 1 : 0;
     const score = item.score ?? item.puntaje ?? item.calificacion ?? 'N/A';
+    // Puntaje de AniList (0–10) también en estrellas, estilo QRating de solo
+    // lectura: cinco estrellas rellenas en proporción (9,1 → 4,55 estrellas).
+    const scoreNum = Number(score);
+    const scoreStarsHtml = Number.isFinite(scoreNum) && scoreNum > 0
+        ? `<span class="q-rating q-rating--readonly" role="img" aria-label="${escapeHtml(String(scoreNum))} de 10" style="--q-rating-pct:${Math.min(100, Math.round(scoreNum * 10))}%"></span>`
+        : '';
     const countLabel = isMangaOrNovela ? 'Volúmenes' : isAnime ? 'Capítulos' : 'Capítulos';
     const countValue = isMangaOrNovela ? (volumenes || 'No especificado') : isAnime ? (item.capitulos || item.episodios || item.episodes || 'No especificado') : 'No especificado';
     // Segunda tarjeta: antes decía "Vol." y repetía los volúmenes con un "1"
@@ -235,7 +241,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             </div>
             <div class="detail-stat">
                 <div class="detail-stat-icon"><i data-lucide="star"></i></div>
-                <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong>${mostrarMal ? '<span id="detailMalScore" class="detail-stat-mal-wrap" hidden></span>' : ''}</div>
+                <div class="detail-stat-content"><span>Puntaje</span><strong>${escapeHtml(String(score))}</strong>${scoreStarsHtml}${mostrarMal ? '<span id="detailMalScore" class="detail-stat-mal-wrap" hidden></span>' : ''}</div>
             </div>
             ${followsHtml}
         </div>
@@ -289,8 +295,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <span>Progreso</span>
                     <strong>${pct}% visto</strong>
                 </div>
-                <div class="detail-progress-track">
-                    <div class="detail-progress-fill" style="width:${pct}%"></div>
+                <div class="detail-progress-track q-linear">
+                    <div class="detail-progress-fill q-linear__bar" style="width:${pct}%"></div>
                 </div>
                 <div class="detail-progress-meta">${markedVolumes} de ${totalVols} volúmenes marcados</div>
             </div>
@@ -334,14 +340,22 @@ function renderDetalle(item, nombreUrl, categoria) {
             }
         });
         const pct = totalEps > 0 ? Math.round((watchedEpisodes / totalEps) * 100) : 0;
+        // En emisión con total conocido: detrás de lo visto, en gris claro, lo
+        // que ya salió (el "buffer" de QLinearProgress).
+        const airedPct = totalEps > 0 && airedCount > 0 && airedCount < totalEps
+            ? Math.round((airedCount / totalEps) * 100) : 0;
+        const bufferHtml = airedPct
+            ? `<div class="q-linear__buffer" style="width:${airedPct}%" title="${airedCount} de ${totalEps} emitidos"></div>`
+            : '';
         progressPanelHtml = `
             <div class="detail-progress-card">
                 <div class="detail-progress-head">
                     <span>Progreso</span>
                     <strong>${pct}% visto</strong>
                 </div>
-                <div class="detail-progress-track">
-                    <div class="detail-progress-fill" style="width:${pct}%"></div>
+                <div class="detail-progress-track q-linear">
+                    ${bufferHtml}
+                    <div class="detail-progress-fill q-linear__bar" style="width:${pct}%"></div>
                 </div>
                 <div class="detail-progress-meta">${watchedEpisodes} de ${totalEps || 0} capítulos marcados</div>
             </div>
@@ -351,7 +365,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             ? temporadas.map((t, idx) => {
                 const active = idx === 0 ? ' is-active' : '';
                 const name = t.nombre || `Temporada ${idx + 1}`;
-                return `<button class="season-tab${active}" type="button" data-season="${idx}">${escapeHtml(name)}</button>`;
+                return `<button class="season-tab q-tab${active}" type="button" role="tab" data-season="${idx}">${escapeHtml(name)}</button>`;
             }).join('')
             : '';
 
@@ -359,7 +373,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             <div class="detail-section">
                 <h2 class="detail-h2">Capítulos</h2>
                 ${progressPanelHtml}
-                ${tabs ? `<div class="season-tabs" role="tablist" aria-label="Temporadas">${tabs}</div>` : ""}
+                ${tabs ? `<div class="season-tabs q-tabs" role="tablist" aria-label="Temporadas">${tabs}</div>` : ""}
                 <p class="detail-help">Tocá un capítulo para marcarlo en verde (guardado por usuario).</p>
                 <div class="ep-grid" id="epGrid"></div>
             </div>
@@ -436,11 +450,11 @@ function renderDetalle(item, nombreUrl, categoria) {
                     <button class="action-btn viewed-btn" type="button" aria-label="Marcar como visto"><i data-lucide="eye"></i></button>
                 </div>
 
-                <div class="watch-status-bar" role="group" aria-label="Estado de seguimiento">
-                    <button class="watch-status-pill" type="button" data-wstatus="viendo">Viendo</button>
-                    <button class="watch-status-pill" type="button" data-wstatus="pendiente">Pendiente</button>
-                    <button class="watch-status-pill" type="button" data-wstatus="pausado">En pausa</button>
-                    <button class="watch-status-pill" type="button" data-wstatus="abandonado">Abandonado</button>
+                <div class="watch-status-bar q-btn-toggle" role="group" aria-label="Estado de seguimiento">
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="viendo" aria-pressed="false">Viendo</button>
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pendiente" aria-pressed="false">Pendiente</button>
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pausado" aria-pressed="false">En pausa</button>
+                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="abandonado" aria-pressed="false">Abandonado</button>
                 </div>
 
                 <div class="detail-actions">
@@ -493,7 +507,9 @@ function renderDetalle(item, nombreUrl, categoria) {
         const syncPills = () => {
             const current = window.getWatchStatus(getCurrentUserIdSafe(), item.id);
             wsBar.querySelectorAll('.watch-status-pill').forEach(p => {
-                p.classList.toggle('is-active', p.getAttribute('data-wstatus') === current);
+                const on = p.getAttribute('data-wstatus') === current;
+                p.classList.toggle('is-active', on);
+                p.setAttribute('aria-pressed', on ? 'true' : 'false');
             });
         };
         syncPills();
@@ -1024,6 +1040,9 @@ function renderDetalle(item, nombreUrl, categoria) {
         });
 
         if (tabsEl) {
+            // Las pestañas se pintan después de cargar la página: el indicador
+            // deslizante (js/ui/tabs.js) se engancha a mano.
+            if (window.QTabs) window.QTabs.attach(tabsEl);
             tabsEl.addEventListener('click', (e) => {
                 const btn = e.target instanceof HTMLElement ? e.target.closest('button.season-tab') : null;
                 if (!btn) return;
