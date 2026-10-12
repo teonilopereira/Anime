@@ -100,6 +100,8 @@ const JS_SOURCES = [
     'js/security/validator.js',
     'js/utils.js',
     'js/ui/toast.js',
+    'js/ui/ripple.js',
+    'js/ui/tooltip.js',
     // La mascota no va en el bundle: este cargador la pide despues del
     // contenido. Tiene que ir despues de toast.js (envuelve window.Toast).
     'js/ui/mascot-loader.js',
