@@ -9,6 +9,7 @@ const TEXT_PATTERNS = ['Ã', 'â'];
 const HTML_FILES = [
   'anime.html',
   'comparar.html',
+  'escena.html',
   'configuracion.html',
   'detalle.html',
   'index.html',

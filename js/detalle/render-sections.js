@@ -71,38 +71,61 @@ function buildRelatedHtml(item, cadenaTemporadas) {
             pushRelated({ relationType: 'SEQUEL', id: s.id, title: s.title, episodes: s.episodes || 0, format: s.format, seasonYear: s.seasonYear, img: s.img });
         });
     }
-    // Segunda linea de la card: año y cantidad de episodios/capitulos, lo que
-    // haya. Sin esto dos secuelas del mismo año eran indistinguibles.
-    function relatedMeta(r) {
-        var partes = [];
-        if (r.seasonYear) partes.push(r.seasonYear);
-        if (r.episodes) partes.push(r.episodes + (r.episodes === 1 ? ' ep' : ' eps'));
-        else if (r.chapters) partes.push(r.chapters + ' caps');
-        else if (r.volumes) partes.push(r.volumes + (r.volumes === 1 ? ' vol' : ' vols'));
-        return partes.join(' · ');
-    }
     var relatedList = Object.keys(relatedMap).map(function (k) { return relatedMap[k]; }).slice(0, 12);
     if (!relatedList.length) return '';
     return '<div class="detail-section detail-section-related"><h2 class="detail-h2">Relacionados</h2><div class="wcard-grid related-grid">' +
         relatedList.map(function (r) {
-            var cat = relatedCategory(r.format);
-            var label = relationTypeLabels[r.relationType] || r.relationType || 'Relacionado';
-            var meta = relatedMeta(r);
-            // Sin portada la card queda igual de alta que el resto: el hueco
-            // se rellena con la inicial del titulo en vez de descuadrar la
-            // grilla.
-            var portada = r.img
-                ? '<img src="' + safeUrl(r.img) + '" alt="" loading="lazy" decoding="async" data-fallback-catalog="1" data-title="' + escapeHtml(r.title) + '">'
-                : '<span class="wcard-empty" aria-hidden="true">' + escapeHtml(String(r.title).charAt(0)) + '</span>';
-            return '<a class="wcard related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
-                '<span class="wcard-media">' + portada +
-                    '<span class="wcard-pill">' + escapeHtml(label) + '</span>' +
-                '</span>' +
-                '<span class="wcard-text">' +
-                    '<span class="wcard-title">' + escapeHtml(r.title) + '</span>' +
-                    (meta ? '<span class="wcard-meta">' + escapeHtml(meta) + '</span>' : '') +
-                '</span>' +
-                '</a>';
+            return buildMediaCardHtml(r, relatedCategory(r.format), relationTypeLabels[r.relationType] || r.relationType || 'Relacionado');
+        }).join('') +
+        '</div></div>';
+}
+
+// Card de otra obra (Relacionados y "Si te gustó esto"). Segunda linea: año y
+// cantidad de episodios/capitulos, lo que haya. Sin esto dos secuelas del
+// mismo año eran indistinguibles.
+function buildMediaCardHtml(r, cat, pill) {
+    var partes = [];
+    if (r.seasonYear) partes.push(r.seasonYear);
+    if (r.episodes) partes.push(r.episodes + (r.episodes === 1 ? ' ep' : ' eps'));
+    else if (r.chapters) partes.push(r.chapters + ' caps');
+    else if (r.volumes) partes.push(r.volumes + (r.volumes === 1 ? ' vol' : ' vols'));
+    var meta = partes.join(' · ');
+    // Sin portada la card queda igual de alta que el resto: el hueco
+    // se rellena con la inicial del titulo en vez de descuadrar la
+    // grilla.
+    var portada = r.img
+        ? '<img src="' + safeUrl(r.img) + '" alt="" loading="lazy" decoding="async" data-fallback-catalog="1" data-title="' + escapeHtml(r.title) + '">'
+        : '<span class="wcard-empty" aria-hidden="true">' + escapeHtml(String(r.title).charAt(0)) + '</span>';
+    return '<a class="wcard related-card" href="detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(r.id) + '">' +
+        '<span class="wcard-media">' + portada +
+            (pill ? '<span class="wcard-pill">' + escapeHtml(pill) + '</span>' : '') +
+        '</span>' +
+        '<span class="wcard-text">' +
+            '<span class="wcard-title">' + escapeHtml(r.title) + '</span>' +
+            (meta ? '<span class="wcard-meta">' + escapeHtml(meta) + '</span>' : '') +
+        '</span>' +
+        '</a>';
+}
+
+// ── Si te gustó esto ──
+// Recomendaciones de la comunidad de AniList, ordenadas por votos. Vienen en
+// la misma query por id que la ficha. Se saltean las que ya están en
+// Relacionados o en Temporadas: recomendar la secuela no aporta nada.
+function buildRecommendationsHtml(item, cadenaTemporadas) {
+    var recs = Array.isArray(item.recommendations) ? item.recommendations : [];
+    if (!recs.length) return '';
+    var excluir = new Set([String(item.id)]);
+    (Array.isArray(item.relations) ? item.relations : []).forEach(function (r) { excluir.add(String(r.id)); });
+    (Array.isArray(item.seasons) ? item.seasons : []).forEach(function (r) { excluir.add(String(r.id)); });
+    if (cadenaTemporadas && Array.isArray(cadenaTemporadas.eslabones)) {
+        cadenaTemporadas.eslabones.forEach(function (r) { excluir.add(String(r.id)); });
+    }
+    var lista = recs.filter(function (r) { return !excluir.has(String(r.id)); }).slice(0, 10);
+    if (!lista.length) return '';
+    return '<div class="detail-section detail-section-recs"><h2 class="detail-h2">Si te gustó esto</h2><div class="wcard-grid related-grid">' +
+        lista.map(function (r) {
+            var cat = r.format === 'NOVEL' ? 'novelas' : (r.type === 'ANIME' ? 'anime' : 'manga');
+            return buildMediaCardHtml(r, cat, '');
         }).join('') +
         '</div></div>';
 }

@@ -88,6 +88,7 @@ const CSS_LITE_SOURCES = CSS_SOURCES.filter((rel) => !CSS_LITE_EXCLUDE.has(rel))
 // las páginas los cargan sueltos y temprano, antes del bundle.
 const JS_SOURCES = [
     'js/core/constants.js',
+    'js/core/genres.js',
     'js/core/api.js',
     'js/core/api-mangadex.js',
     'js/datos.js',
@@ -99,6 +100,8 @@ const JS_SOURCES = [
     'js/security/validator.js',
     'js/utils.js',
     'js/ui/toast.js',
+    'js/ui/ripple.js',
+    'js/ui/tooltip.js',
     // La mascota no va en el bundle: este cargador la pide despues del
     // contenido. Tiene que ir despues de toast.js (envuelve window.Toast).
     'js/ui/mascot-loader.js',

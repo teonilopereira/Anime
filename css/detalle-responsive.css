@@ -227,7 +227,8 @@ a.season-chain-item:hover {
 }
 
 /* ── Related section ── */
-.detail-section-related {
+.detail-section-related,
+.detail-section-recs {
     margin-top: 24px;
     padding-top: 20px;
     border-top: 1px solid rgba(var(--ink-rgb),0.06);

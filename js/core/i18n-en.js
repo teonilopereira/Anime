@@ -16,6 +16,7 @@
         "nav.manga":          "Manga",
         "nav.novelas":        "Novels",
         "nav.comparar":       "Compare",
+        "nav.escena":         "Which anime is it?",
         "nav.top":            "Top",
         "nav.top_jugadores":  "Player ranking",
         "nav.ranking":        "Ranking",
@@ -93,6 +94,9 @@
         "catalog.formato.tvcorta":   "TV short",
         "catalog.formato.musical":   "Music",
         "catalog.buscar_genero":  "Search genre...",
+        "catalog.generos_todos":  "Show all · {n} genres ▼",
+        "catalog.generos_menos":  "Show less ▲",
+        "catalog.generos_vacio":  "No matching genres.",
         "catalog.abrir_filtros":  "Open filters",
 
         // ── Catalog cards (cards.js, dynamic text) ───────────────────────
