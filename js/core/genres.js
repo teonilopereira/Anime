@@ -58,7 +58,8 @@
         'Battle Royale','Dystopian',
         'Female Protagonist','Male Protagonist',
         'Ensemble Cast',
-        'Food','Historical'
+        'Food','Historical',
+        'Coming of Age','Super Power','Elf'
     ];
 
     var EXTRA = {
@@ -95,7 +96,7 @@
             'Surreal Comedy','Time Manipulation',
             'Found Family',
             'Card Battle','Traditional Games',
-            'Award Winning'
+            'Award Winning','Kids','Cute Girls Doing Cute Things'
         ],
         manga: [
             'Shounen','Shoujo','Seinen','Josei',
@@ -130,6 +131,7 @@
             'School Life',
             'Reverse Harem',
             'Boys\' Love','Girls\' Love','LGBTQ+ Themes',
+            'Kids','Cute Girls Doing Cute Things',
             'Cooking',
             'Office Workers','Office','Economics','Philosophy',
             'Surreal Comedy','Time Manipulation',
