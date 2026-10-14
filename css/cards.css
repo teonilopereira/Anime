@@ -1100,3 +1100,39 @@ body.reduce-motion .catalog-neon-card {
     margin: 24px auto;
     box-sizing: border-box;
 }
+
+/* Top 1-2-3 de los carruseles del inicio: la cinta (.q-ribbon) ocupa la
+   esquina superior derecha, así que los botones rápidos bajan. */
+.catalog-rail-card .crail-media--top .crail-quick {
+    top: 60px;
+}
+
+/* Sello "Completado" (.q-stamp, components.css) sobre el panel de progreso
+   del detalle, abajo a la derecha. */
+.detail-progress-card {
+    position: relative;
+}
+
+/* Con el sello puesto, el panel crece abajo para que no pise la barra. */
+.detail-progress-card[data-done="1"] {
+    padding-bottom: 26px;
+}
+
+.detail-progress-card .detail-stamp {
+    position: absolute;
+    right: 14px;
+    bottom: 8px;
+    font-size: 0.7rem;
+}
+
+/* Sello "Completado" sobre la portada de la card (lo pone states.js). Va al
+   centro, con fondo para que se lea sobre cualquier portada. */
+.catalog-rail-card .crail-stamp {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    z-index: 2;
+    translate: -50% -50%;
+    background: rgba(255, 255, 255, 0.85);
+    font-size: 0.7rem;
+}

@@ -108,6 +108,7 @@
             "card.progreso_libre":      "Progreso libre",
             "card.progreso_libre_sub":  "Marcá como visto completo usando el botón 👁",
             "card.pct_visto":           "{pct}% VISTO",
+            "card.completado":          "Completado",
             "card.status.releasing":    "En emisión",
             "card.status.publishing":   "Publicándose",
             "card.status.finished":     "Finalizado",

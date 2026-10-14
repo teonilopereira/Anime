@@ -325,7 +325,7 @@
               '</div>'
             : '<div class="comment-body">' + body + '</div>';
 
-        var html = '<div class="comment-card" data-comment-id="' + esc(comment.id) + '" data-depth="' + depth + '">' +
+        var html = '<div class="comment-card' + (isOwn ? ' comment-card--own' : '') + '" data-comment-id="' + esc(comment.id) + '" data-depth="' + depth + '">' +
             '<div class="comment-header">' +
                 avatarHtml +
                 '<span class="comment-author">' + name + '</span>' +

@@ -48,14 +48,17 @@
         }
     }
 
-    // Podio: corona para el 1 y medalla para 2 y 3, igual que el ranking de
-    // jugadores. Del 4 en adelante, el numero pelado.
+    // Podio: banderín oro, plata y bronce (.q-flag) con corona para el 1, igual
+    // que el ranking de jugadores. Del 4 en adelante, el numero pelado.
     function posHtml(pos) {
-        var icono = pos === 1 ? "crown" : (pos === 2 || pos === 3 ? "medal" : "");
-        return '<div class="trk-pos trk-pos--' + (pos <= 3 ? pos : "n") + '">' +
-            (icono ? '<i data-lucide="' + icono + '"></i>' : "") +
-            "<span>" + pos + "</span>" +
-        "</div>";
+        if (pos <= 3) {
+            return '<div class="trk-pos trk-pos--' + pos + '">' +
+                '<span class="q-flag q-flag--' + pos + '" aria-label="Puesto ' + pos + '">' +
+                    (pos === 1 ? '<i data-lucide="crown"></i>' : "") + pos +
+                "</span>" +
+            "</div>";
+        }
+        return '<div class="trk-pos trk-pos--n"><span>' + pos + "</span></div>";
     }
 
     function metaHtml(cat, item) {

@@ -563,12 +563,36 @@ a.season-chain-item:hover {
     color: rgba(var(--ink-rgb), 0.2);
     font-style: italic;
 }
+/* El cuerpo del comentario es un globo de diálogo: la colita (del color del
+   borde, porque el fondo es translúcido) apunta hacia arriba, al avatar. Los tuyos van en cian; los de los demás, en púrpura. */
 .comment-body {
+    --bubble-bg: rgba(188, 19, 254, 0.10);
+    --bubble-border: rgba(188, 19, 254, 0.35);
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+    margin: 4px 0 8px 6px;
+    padding: 10px 14px;
+    border: 1px solid var(--bubble-border);
+    border-radius: 4px 16px 16px 16px;
+    background: var(--bubble-bg);
     font-size: 0.88rem;
     line-height: 1.6;
-    color: rgba(var(--ink-rgb), 0.75);
-    margin-bottom: 8px;
+    color: rgba(var(--ink-rgb), 0.82);
     word-break: break-word;
+}
+.comment-body::before {
+    content: "";
+    position: absolute;
+    top: -9px;
+    left: 8px;
+    border: 9px solid transparent;
+    border-top: 0;
+    border-bottom-color: var(--bubble-border);
+}
+.comment-card--own > .comment-body {
+    --bubble-bg: rgba(0, 242, 255, 0.10);
+    --bubble-border: rgba(0, 242, 255, 0.40);
 }
 .comment-actions {
     display: flex;

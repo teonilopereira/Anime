@@ -115,6 +115,7 @@
         "card.progreso_libre":      "Free progress",
         "card.progreso_libre_sub":  "Mark it as fully watched using the 👁 button",
         "card.pct_visto":           "{pct}% WATCHED",
+        "card.completado":          "Completed",
         "card.status.releasing":    "Airing",
         "card.status.publishing":   "Publishing",
         "card.status.finished":     "Finished",

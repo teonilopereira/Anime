@@ -51,30 +51,28 @@ body.menu-page .menu-container {
     box-sizing: border-box;
 }
 
-.section-divider::before,
+/* Título con corte diagonal (mismo dibujo que .q-slant de components.css) y
+   una línea que sigue hacia la derecha. */
 .section-divider::after {
     content: "";
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.38));
-}
-
-.section-divider::after {
-    background: linear-gradient(270deg, transparent, rgba(0, 242, 255, 0.38));
+    background: linear-gradient(90deg, rgba(188, 19, 254, 0.5), transparent);
 }
 
 .section-divider span {
     flex-shrink: 0;
+    padding: 7px 34px 7px 16px;
+    background: linear-gradient(120deg, var(--neon-purple), #6d28d9);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 100%, 0 100%);
     font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.82rem, 2vw, 1.02rem);
+    font-size: clamp(0.78rem, 2vw, 0.95rem);
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--text-main);
-    text-shadow: 0 0 16px rgba(0, 242, 255, 0.4);
+    color: #ffffff;
     white-space: nowrap;
 }
-
 
 .home-carousel {
     width: 100%;

@@ -76,6 +76,19 @@
         }).join('');
     }
 
+    // Cinta en la esquina de los tres más populares (oro, plata y bronce).
+    // Los botones rápidos de esa tarjeta bajan un poco para no taparse.
+    function ponerCintasTop(track) {
+        track.querySelectorAll('.crail-media').forEach(function (media, i) {
+            if (i > 2) return;
+            const cinta = document.createElement('span');
+            cinta.className = 'q-ribbon q-ribbon--' + (i + 1);
+            cinta.textContent = 'TOP ' + (i + 1);
+            media.classList.add('crail-media--top');
+            media.appendChild(cinta);
+        });
+    }
+
     // Muestra las flechas solo si hay desborde, y las desactiva en los extremos.
     function sincronizarFlechas(viewport) {
         const track = viewport.querySelector('.home-carousel-track');
@@ -137,6 +150,7 @@
                 return;
             }
             track.innerHTML = tarjetas(cfg, items);
+            ponerCintasTop(track);
             // Hidrata los botones de favorito/visto igual que en el catálogo.
             if (typeof window.cargarEstadosBotones === 'function') {
                 try { window.cargarEstadosBotones(); } catch (e) { /* no romper el resto */ }

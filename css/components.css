@@ -2481,3 +2481,176 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
 .q-badge--outline.q-badge--fav {
     --q-badge-color: var(--neon-purple);
 }
+
+/* ── Formas: ticket, cinta, banderín, globo, sello y corte diagonal ─────────
+   Todo con clip-path, máscaras y degradados: sin imágenes. */
+
+/* Ticket: talón a la izquierda (--ticket-stub de ancho) separado por una línea
+   punteada, con dos muescas recortadas arriba y abajo. La máscara recorta
+   cualquier fondo, así que funciona igual en tema claro y oscuro. */
+.q-ticket {
+    --ticket-stub: 84px;
+    --ticket-notch: 9px;
+    display: grid;
+    grid-template-columns: var(--ticket-stub) minmax(0, 1fr);
+    min-height: 84px;
+    border-radius: 12px;
+    background: rgba(var(--surface-card-rgb), 0.75);
+    border: 1px solid rgba(var(--ink-rgb), 0.10);
+    color: var(--text-main);
+    text-decoration: none;
+    -webkit-mask:
+        radial-gradient(circle at var(--ticket-stub) 0, transparent var(--ticket-notch), #000 calc(var(--ticket-notch) + 0.5px)) top / 100% 51% no-repeat,
+        radial-gradient(circle at var(--ticket-stub) 100%, transparent var(--ticket-notch), #000 calc(var(--ticket-notch) + 0.5px)) bottom / 100% 51% no-repeat;
+    mask:
+        radial-gradient(circle at var(--ticket-stub) 0, transparent var(--ticket-notch), #000 calc(var(--ticket-notch) + 0.5px)) top / 100% 51% no-repeat,
+        radial-gradient(circle at var(--ticket-stub) 100%, transparent var(--ticket-notch), #000 calc(var(--ticket-notch) + 0.5px)) bottom / 100% 51% no-repeat;
+    transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a.q-ticket:hover {
+    background: rgba(var(--surface-panel-rgb), 0.9);
+    transform: translateY(-2px);
+}
+
+.q-ticket__stub {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 2px;
+    padding: 10px 4px;
+    border-right: 2px dashed rgba(var(--ink-rgb), 0.18);
+    text-align: center;
+}
+
+.q-ticket__big {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--accent-cyan);
+    font-variant-numeric: tabular-nums;
+}
+
+.q-ticket__small {
+    font-family: var(--font-display);
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.q-ticket__body {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 10px 14px;
+}
+
+/* Cinta en esquina: banda diagonal arriba a la derecha (top 1-2-3).
+   El contenedor tiene que tener position y overflow: hidden. */
+.q-ribbon {
+    position: absolute;
+    top: 14px;
+    right: -34px;
+    z-index: 3;
+    width: 110px;
+    padding: 3px 0;
+    transform: rotate(45deg);
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 0.6rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: #111014;
+    background: var(--q-ribbon-color, #f5b301);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+.q-ribbon--1 { --q-ribbon-color: #f5b301; }
+.q-ribbon--2 { --q-ribbon-color: #cbd5e1; }
+.q-ribbon--3 { --q-ribbon-color: #d97706; }
+
+/* Banderín: tela colgante con la punta en V, para el podio del ranking. */
+.q-flag {
+    display: inline-grid;
+    justify-items: center;
+    gap: 1px;
+    width: 38px;
+    padding: 6px 0 14px;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #111014;
+    background: var(--q-flag-color, #f5b301);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.q-flag svg {
+    width: 13px;
+    height: 13px;
+}
+
+.q-flag--1 { --q-flag-color: #f5b301; }
+.q-flag--2 { --q-flag-color: #cbd5e1; }
+.q-flag--3 { --q-flag-color: #d97706; }
+
+/* Sello: doble borde, rotado, con un leve desgaste por máscara. Con .is-new
+   cae con un golpe (se agrega al completar algo en el momento). */
+.q-stamp {
+    display: inline-block;
+    padding: 5px 12px;
+    border: 3px double var(--q-stamp-color, #e11d48);
+    border-radius: 8px;
+    color: var(--q-stamp-color, #e11d48);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: rotate(-10deg);
+    opacity: 0.92;
+    pointer-events: none;
+    -webkit-mask: radial-gradient(circle at 30% 40%, #000 55%, rgba(0, 0, 0, 0.72) 75%);
+    mask: radial-gradient(circle at 30% 40%, #000 55%, rgba(0, 0, 0, 0.72) 75%);
+}
+
+.q-stamp--done { --q-stamp-color: #16a34a; }
+
+.q-stamp.is-new {
+    animation: q-stamp-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes q-stamp-in {
+    from { transform: rotate(-10deg) scale(2.2); opacity: 0; }
+    to { transform: rotate(-10deg) scale(1); opacity: 0.92; }
+}
+
+/* Corte diagonal: encabezado con el extremo derecho cortado en diagonal. */
+.q-slant {
+    display: inline-block;
+    max-width: 100%;
+    padding: 7px 34px 7px 16px;
+    background: linear-gradient(120deg, var(--neon-purple), #6d28d9);
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 20px) 100%, 0 100%);
+}
+
+.q-slant--cyan {
+    background: linear-gradient(120deg, #0e7490, #0891b2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .q-stamp.is-new { animation: none; }
+    a.q-ticket { transition: none; }
+}
+body.reduce-motion .q-stamp.is-new { animation: none; }

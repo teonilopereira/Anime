@@ -426,6 +426,7 @@
             if (!progressBox) return;
 
             const meta = resolveCatalogProgress(userId, String(category), String(itemId), card);
+            syncCardStamp(card, meta.show && meta.pct === 100);
 
             if (!meta.show) {
                 progressBox.style.display = 'none';
@@ -467,6 +468,27 @@
                 console.warn('updateCardProgressIndicators: card failed:', e);
             }
         });
+    }
+
+    // Sello "Completado" (.q-stamp) sobre la portada cuando la card llega al
+    // 100%. Cae con un golpe solo si se completó ahora (la pasada anterior la
+    // vio incompleta); en la primera pintada aparece quieto.
+    function syncCardStamp(card, done) {
+        const media = card.querySelector('.crail-media');
+        if (!media) return;
+        let stamp = media.querySelector('.crail-stamp');
+        const before = card.dataset.done;
+        card.dataset.done = done ? '1' : '0';
+        if (!done) {
+            if (stamp) stamp.remove();
+            return;
+        }
+        if (stamp) return;
+        stamp = document.createElement('span');
+        stamp.className = 'q-stamp q-stamp--done crail-stamp';
+        stamp.textContent = stTr('card.completado', 'Completado');
+        if (before === '0') stamp.classList.add('is-new');
+        media.appendChild(stamp);
     }
 
     function toggleStatus(btn, type, itemId) {

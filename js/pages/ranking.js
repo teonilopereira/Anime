@@ -13,13 +13,17 @@
         return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // Podio: corona para el 1, medallas para 2 y 3, numero pelado del 4 en adelante.
+    // Podio: banderín oro, plata y bronce (.q-flag) con corona para el 1;
+    // numero pelado del 4 en adelante.
     function getPosHtml(rank) {
-        var icon = rank === 1 ? 'crown' : (rank === 2 || rank === 3 ? 'medal' : '');
-        return '<div class="rank-pos rank-pos--' + (rank <= 3 ? rank : 'n') + '">' +
-            (icon ? '<i data-lucide="' + icon + '"></i>' : '') +
-            '<span>' + rank + '</span>' +
-        '</div>';
+        if (rank <= 3) {
+            return '<div class="rank-pos rank-pos--' + rank + '">' +
+                '<span class="q-flag q-flag--' + rank + '" aria-label="Puesto ' + rank + '">' +
+                    (rank === 1 ? '<i data-lucide="crown"></i>' : '') + rank +
+                '</span>' +
+            '</div>';
+        }
+        return '<div class="rank-pos rank-pos--n"><span>' + rank + '</span></div>';
     }
 
     function getInitials(name) {

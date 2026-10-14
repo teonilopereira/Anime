@@ -735,7 +735,28 @@ function renderDetalle(item, nombreUrl, categoria) {
         });
     }
  
-    function renderProgressPanel() {
+    // Sello "Completado" sobre el panel al llegar al 100%. Cae con un golpe
+    // solo si se completó en este momento (antes no estaba al 100%); al abrir
+    // una ficha ya terminada aparece quieto.
+    function syncCompletedStamp(panel, pct, quiet) {
+        let stamp = panel.querySelector('.detail-stamp');
+        if (pct < 100) {
+            if (stamp) stamp.remove();
+            panel.dataset.done = '0';
+            return;
+        }
+        if (!stamp) {
+            stamp = document.createElement('span');
+            stamp.className = 'q-stamp q-stamp--done detail-stamp';
+            stamp.textContent = 'Completado';
+            if (!quiet && panel.dataset.done === '0') stamp.classList.add('is-new');
+            panel.appendChild(stamp);
+        }
+        panel.dataset.done = '1';
+    }
+
+    function renderProgressPanel(opts) {
+        const quiet = !!(opts && opts.quiet);
         const panel = localLayout.querySelector('.detail-progress-card');
         if (!panel) return;
  
@@ -752,6 +773,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             if (head) head.textContent = `${pct}% visto`;
             if (fill) fill.style.width = `${pct}%`;
             if (meta) meta.textContent = `${markedVolumes} de ${totalVols} volúmenes marcados`;
+            syncCompletedStamp(panel, pct, quiet);
             return;
         }
  
@@ -777,6 +799,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             if (head) head.textContent = `${pct}% visto`;
             if (fill) fill.style.width = `${pct}%`;
             if (meta) meta.textContent = `${watchedEpisodes} de ${totalEps || 0} capítulos marcados`;
+            syncCompletedStamp(panel, pct, quiet);
         }
     }
  
@@ -890,7 +913,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             // Traer progreso desde SQL y reflejarlo en la UI (si hay sesión).
             syncProgressFromSupabase(categoria, item.id).then(() => {
                 syncVolStates();
-                renderProgressPanel();
+                renderProgressPanel({ quiet: true });
             });
 
             grid.addEventListener('click', (e) => {
@@ -1036,7 +1059,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         renderEpisodes(0);
         syncProgressFromSupabase('anime', item.id).then(() => {
             renderEpisodes(0);
-            renderProgressPanel();
+            renderProgressPanel({ quiet: true });
         });
 
         if (tabsEl) {

@@ -61,24 +61,29 @@
         return _followed;
     }
 
-    // Misma card "portada con riel" que el resto de la app (.wcard): la hora
-    // de emisión va en la píldora y la estrella de "lo seguís" en la esquina.
+    // Cada estreno es un ticket (.q-ticket): en el talón, la hora y el número
+    // de episodio, como una entrada; a la derecha, la portada y el título.
+    // Los que seguís llevan la estrella y el talón en púrpura.
     function cardHtml(ep) {
         var d = new Date(ep.airingAt * 1000);
         var mine = _followed && _followed.has(String(ep.id));
         var poster = ep.img
-            ? '<img class="cal-poster-img" loading="lazy" src="' + esc(ep.img) + '" alt="' + esc(ep.title) +
-              '" data-title="' + esc(ep.title) + '" data-fallback-catalog="1">'
-            : '<span class="wcard-empty" aria-hidden="true">' + esc(String(ep.title || '?').charAt(0)) + '</span>';
+            ? '<img class="cal-ticket-img" loading="lazy" src="' + esc(ep.img) + '" alt="" width="42" height="60"' +
+              ' data-title="' + esc(ep.title) + '" data-fallback-catalog="1">'
+            : '<span class="cal-ticket-img cal-ticket-img--empty" aria-hidden="true">' + esc(String(ep.title || '?').charAt(0)) + '</span>';
 
-        return '<a class="wcard cal-card' + (mine ? ' cal-card--mine' : '') + '" href="detalle.html?cat=anime&id=' + encodeURIComponent(ep.id) + '">' +
-                    '<span class="wcard-media">' + poster +
-                        '<span class="wcard-pill cal-time">' + hhmm(d) + '</span>' +
-                        (mine ? '<span class="wcard-corner cal-mine-badge" aria-label="Lo seguís">★</span>' : '') +
+        return '<a class="q-ticket cal-ticket' + (mine ? ' cal-ticket--mine' : '') + '" href="detalle.html?cat=anime&id=' + encodeURIComponent(ep.id) + '">' +
+                    '<span class="q-ticket__stub">' +
+                        '<span class="q-ticket__big">' + hhmm(d) + '</span>' +
+                        '<span class="q-ticket__small">Ep. ' + esc(ep.episode || '?') + '</span>' +
                     '</span>' +
-                    '<span class="wcard-text">' +
-                        '<span class="wcard-title">' + esc(ep.title) + '</span>' +
-                        '<span class="wcard-meta">Episodio ' + (ep.episode || '?') + '</span>' +
+                    '<span class="q-ticket__body">' + poster +
+                        '<span class="cal-ticket-info">' +
+                            '<span class="cal-ticket-title">' + esc(ep.title) + '</span>' +
+                            '<span class="cal-ticket-meta">Episodio ' + esc(ep.episode || '?') +
+                                (mine ? ' · <span class="cal-mine-badge">★ Lo seguís</span>' : '') +
+                            '</span>' +
+                        '</span>' +
                     '</span>' +
                 '</a>';
     }
@@ -108,14 +113,14 @@
                 byKey[k] = { label: dayLabel(d, today), items: [] };
                 groups.push({ key: k, at: d.getTime(), group: byKey[k] });
             }
-            byKey[k].group.items.push(ep);
+            byKey[k].items.push(ep);
         });
         groups.sort(function (a, b) { return a.at - b.at; });
 
         host.innerHTML = groups.map(function (g) {
             return '<section class="cal-day">' +
-                        '<h2 class="cal-day-title">' + esc(g.group.label) + '</h2>' +
-                        '<div class="wcard-grid cal-grid">' + g.group.items.map(cardHtml).join('') + '</div>' +
+                        '<h2 class="cal-day-title q-slant' + (g.group.label.indexOf('Hoy') === 0 ? '' : ' q-slant--cyan') + '">' + esc(g.group.label) + '</h2>' +
+                        '<div class="cal-grid">' + g.group.items.map(cardHtml).join('') + '</div>' +
                     '</section>';
         }).join('');
     }

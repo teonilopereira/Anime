@@ -40,25 +40,66 @@
 
 .cal-day { margin-bottom: 34px; }
 
+/* Encabezado del día con corte diagonal (.q-slant, components.css). "Hoy"
+   va en púrpura; el resto, en cian. */
 .cal-day-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.05rem;
-    letter-spacing: 0.04em;
-    color: var(--accent-cyan, #00f2ff);
+    font-size: 0.9rem;
     margin: 0 0 14px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(0, 242, 255, 0.16);
-    text-shadow: 0 0 12px rgba(0, 242, 255, 0.35);
 }
 
-/* Las cards de episodio usan .wcard (css/cards.css). Las que seguís se
-   marcan con la estrella de la esquina y un borde púrpura. */
-.cal-card--mine .wcard-media {
-    border-color: rgba(188, 19, 254, 0.6);
+/* Estrenos como tickets (.q-ticket, components.css). */
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 12px;
+}
+
+.cal-ticket-img {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    background: rgba(var(--ink-rgb), 0.08);
+}
+
+.cal-ticket-img--empty {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    color: var(--text-muted);
+}
+
+.cal-ticket-info {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.cal-ticket-title {
+    font-weight: 700;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cal-ticket-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Los que seguís: talón en púrpura y estrella dorada. */
+.cal-ticket--mine {
+    border-color: rgba(188, 19, 254, 0.45);
+}
+
+.cal-ticket--mine .q-ticket__big {
+    color: var(--neon-purple);
 }
 
 .cal-mine-badge {
-    color: #ffcf5a;
-    text-shadow: 0 0 8px rgba(255, 207, 90, 0.6);
+    color: #d99a00;
+    font-weight: 700;
 }
-
