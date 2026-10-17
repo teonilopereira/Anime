@@ -297,17 +297,26 @@
 
     function countUserStatesBoth(userId) {
         if (!userId || userId === 'Invitado') return { fav: 0, viewed: 0 };
-        let fav = 0, viewed = 0;
+        const sets = collectItemStateSets(userId);
+        return { fav: sets.fav.size, viewed: sets.viewed.size };
+    }
+
+    // Un solo recorrido de UserStore para saber qué ítems tiene el usuario en
+    // favoritos y en vistos. Lo comparten el conteo, el pintado de botones y el
+    // filtro por estado del buscador, que antes repetían cada uno este bucle.
+    function collectItemStateSets(userId) {
+        const fav = new Set();
+        const viewed = new Set();
         const prefix = `u:${userId}|item:`;
         try {
             const keys = UserStore.keys();
             for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                if (!key || !key.startsWith(prefix) || !UserStore.getItem(key)) continue;
-                if (key.endsWith('|fav'))         fav++;
-                else if (key.endsWith('|viewed')) viewed++;
+                const k = keys[i];
+                if (!k || !k.startsWith(prefix) || !UserStore.getItem(k)) continue;
+                if (k.endsWith('|fav'))         fav.add(k.slice(prefix.length, k.length - 4));
+                else if (k.endsWith('|viewed')) viewed.add(k.slice(prefix.length, k.length - 7));
             }
-        } catch (e) { console.warn('countUserStatesBoth failed:', e); }
+        } catch (e) { console.warn('collectItemStateSets failed:', e); }
         return { fav, viewed };
     }
 
@@ -555,18 +564,7 @@
 
     function applyRemoteStateToCards(cards, userId) {
         if (!cards || !cards.length) return;
-        const favSet = new Set();
-        const viewedSet = new Set();
-        const prefix = `u:${userId}|item:`;
-        try {
-            const keys = UserStore.keys();
-            for (let i = 0; i < keys.length; i++) {
-                const k = keys[i];
-                if (!k || !k.startsWith(prefix) || !UserStore.getItem(k)) continue;
-                if (k.endsWith('|fav'))         favSet.add(k.slice(prefix.length, k.length - 4));
-                else if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
-            }
-        } catch (e) { console.warn('applyRemoteStateToCards scan failed:', e); }
+        const { fav: favSet, viewed: viewedSet } = collectItemStateSets(userId);
         cards.forEach(card => {
             const itemId = card.getAttribute('data-item-id');
             if (!itemId) return;
@@ -607,20 +605,7 @@
         const cards = document.querySelectorAll('[data-item-id]');
         if (!cards.length) return;
 
-        const favSet = new Set();
-        const viewedSet = new Set();
-        const prefix = `u:${userId}|item:`;
-        try {
-            const keys = UserStore.keys();
-            for (let i = 0; i < keys.length; i++) {
-                const k = keys[i];
-                if (!k || !k.startsWith(prefix)) continue;
-                const val = UserStore.getItem(k);
-                if (!val) continue;
-                if (k.endsWith('|fav'))    favSet.add(k.slice(prefix.length, k.length - 4));
-                if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
-            }
-        } catch (e) { console.warn('cargarEstadosBotones scan failed:', e); }
+        const { fav: favSet, viewed: viewedSet } = collectItemStateSets(userId);
 
         cards.forEach(card => {
             const itemId = card.getAttribute('data-item-id');
@@ -701,6 +686,7 @@
     // Exports
     window.addUserPoints = addUserPoints;
     window.cargarEstadosBotones = cargarEstadosBotones;
+    window.collectItemStateSets = collectItemStateSets;
     window.getProgressPercentForItem = getProgressPercentForItem;
     window.buildSearchIndexForItem = buildSearchIndexForItem;
     window.getCategoriaActual = getCategoriaActual;

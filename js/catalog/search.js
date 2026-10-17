@@ -308,6 +308,19 @@ function inicializarBusquedaCatalogo() {
         setSuggestionsOpen(true);
     }
 
+    // normalizeText (NFD + quitar diacríticos) es lo más caro del filtro y antes
+    // corría sobre cada card en cada tecla. Se cachea por card y se recalcula
+    // solo si su data-search-index cambió.
+    const searchIndexCache = new WeakMap();
+    function normalizedSearchIndex(card) {
+        const raw = card.getAttribute('data-search-index') || '';
+        const cached = searchIndexCache.get(card);
+        if (cached && cached.raw === raw) return cached.norm;
+        const norm = normalizeText(raw);
+        searchIndexCache.set(card, { raw, norm });
+        return norm;
+    }
+
     function applyFilter() {
         const q = normalizeText(input.value);
         const cards = mainContainer.querySelectorAll('.card-container');
@@ -319,27 +332,16 @@ function inicializarBusquedaCatalogo() {
         const nsfwToggle = document.getElementById('nsfwToggle');
         const nsfwEnabled = !!(nsfwToggle && nsfwToggle.checked);
         
-        // Optimize: build Sets for state filters to avoid per-card UserStore lookup overhead
-        const favSet = new Set();
-        const viewedSet = new Set();
-        if (stateFilter !== 'all') {
-            const prefix = `u:${uid}|item:`;
-            try {
-                const keys = UserStore.keys();
-                for (let i = 0; i < keys.length; i++) {
-                    const k = keys[i];
-                    if (!k || !k.startsWith(prefix) || !UserStore.getItem(k)) continue;
-                    if (k.endsWith('|fav'))         favSet.add(k.slice(prefix.length, k.length - 4));
-                    else if (k.endsWith('|viewed')) viewedSet.add(k.slice(prefix.length, k.length - 7));
-                }
-            } catch (e) { console.warn('State filter scan failed:', e); }
-        }
-        
+        // Sets de favoritos/vistos armados una sola vez, no por card.
+        const { fav: favSet, viewed: viewedSet } = (stateFilter !== 'all' && typeof window.collectItemStateSets === 'function')
+            ? window.collectItemStateSets(uid)
+            : { fav: new Set(), viewed: new Set() };
+        const selectedGenreStrs = selectedGenres.map(String);
+
         let visible = 0;
 
         cards.forEach(card => {
-            const indexText = normalizeText(card.getAttribute('data-search-index') || '');
-            const matchQuery = !q || indexText.includes(q);
+            const matchQuery = !q || normalizedSearchIndex(card).includes(q);
             
             if (!matchQuery) {
                 card.style.display = 'none';
@@ -348,7 +350,7 @@ function inicializarBusquedaCatalogo() {
 
             const genres = card.getAttribute('data-genres-norm');
             const genreArr = genres ? genres.split('|') : [];
-            const matchGenre = selectedGenres.length === 0 || selectedGenres.some((g) => genreArr.includes(String(g)));
+            const matchGenre = selectedGenreStrs.length === 0 || selectedGenreStrs.some((g) => genreArr.includes(g));
             
             if (!matchGenre) {
                 card.style.display = 'none';
@@ -356,9 +358,7 @@ function inicializarBusquedaCatalogo() {
             }
 
             // If NSFW is disabled, hide cards that have 'Adult' genre
-            const genresList = genreArr.map(g => g.toLowerCase());
-            const isAdult = genresList.includes('adult');
-            const matchNsfw = nsfwEnabled || !isAdult;
+            const matchNsfw = nsfwEnabled || !genreArr.some((g) => g.toLowerCase() === 'adult');
             let matchStateFlag = true;
             
             if (stateFilter !== 'all') {
