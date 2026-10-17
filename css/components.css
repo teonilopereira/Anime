@@ -1395,7 +1395,7 @@ main { padding-bottom: 24px; }
 /* ── Mobile: compensar bottom tab bar ── */
 @media (max-width: 700px) {
     body.has-bottom-nav main {
-        padding-bottom: calc(24px + 60px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(24px + 70px + env(safe-area-inset-bottom, 0px));
     }
 }
 
