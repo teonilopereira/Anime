@@ -175,6 +175,10 @@ páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 |---|---|
 | `script.js` | Script compartido de catálogo (secciones, flechas, estados de botones). |
 | `mis-listas.js` | Núcleo de las listas del usuario (categorías, géneros, estados). |
+| `mis-listas-calendario.js` | Calendario de emisión (pestaña Calendario). |
+| `mis-listas-stats.js` | Actividad, tarjetas por categoría y gráficos de estadísticas. |
+| `mis-listas-recs.js` | Recomendaciones según los géneros del usuario. |
+| `mis-listas-sync.js` | Carga de estados desde Supabase y reparación de portadas. |
 | `mis-listas-logros.js` | Sistema de logros. |
 | `mis-listas-apodos.js` | Apodos del usuario. |
 | `mis-listas-puntos.js` | Puntos. |
