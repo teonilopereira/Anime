@@ -43,7 +43,13 @@ Variantes con transparencia ya definidas: `--neon-purple-10/15/18/glow`, `--acce
 | `--text-faint` | ink 35 % | Placeholders, metadatos |
 
 ### Acento por sección
-`body[data-page]` cambia `--nav-accent`: anime = cian `#00f2ff`, manga = verde `#22c55e`, novelas = rosa `#f43f5e`.
+`body[data-page]` cambia `--nav-accent`. Como también colorea texto, en modo claro usa una versión oscura que da ≥4,5:1 sobre `#f4f1fb`:
+
+| Sección | Oscuro | Claro |
+|---|---|---|
+| Anime | `#00f2ff` | `#0e7490` (4,80:1) |
+| Manga | `#22c55e` | `#15803d` (4,50:1) |
+| Novelas | `#f43f5e` | `#be123c` (5,63:1) |
 
 ### Semánticos (no hay tokens: están escritos a mano)
 | Rol | Valores encontrados |
@@ -56,12 +62,12 @@ Variantes con transparencia ya definidas: `--neon-purple-10/15/18/glow`, `--acce
 ### Desvíos detectados
 - **85 hex distintos y 242 `rgba()` distintos.** Solo `#00f2ff` aparece escrito literal 33 veces, y `rgba(0,242,255,…)` lo hace con 12 opacidades distintas.
 - **Más de 300 usos literales del cian y el violeta neón fuera de `theme.css`** (top: `components.css` 49, `usuario.css` 48, `cards.css` 32). Esos literales **no cambian en modo claro**.
-- **Bug de contraste confirmado:** `body[data-page="anime"]` fija `--nav-accent: #00f2ff` también en modo claro. El subrayado de la pestaña activa queda en **1,24:1** sobre el fondo lila (WCAG pide 3:1 para elementos de interfaz). Manga (`#22c55e`, 2,04:1) y novelas (`#f43f5e`, 3,29:1) tampoco tienen versión clara.
+- ~~Los acentos de sección no tenían versión clara~~ (corregido): el cian de anime quedaba en 1,24:1, el verde de manga en 2,04:1 y el rosa de novelas en 3,29:1 sobre el fondo lila.
 - El cian del modo claro (`#0a8ba6`) da 3,58:1 sobre el fondo: alcanza para títulos grandes, no para texto chico.
 
 ### Propuesta
 Agregar tokens semánticos con su par claro/oscuro y reemplazar los literales:
-`--color-success`, `--color-danger`, `--color-warning`, `--color-info`, y `--nav-accent` por sección definido en ambos temas. Para las transparencias, usar `rgb(var(--accent-cyan-rgb) / <alfa>)` en lugar de un `rgba` escrito a mano por cada caso.
+`--color-success`, `--color-danger`, `--color-warning` y `--color-info`. Para las transparencias, usar `rgb(var(--accent-cyan-rgb) / <alfa>)` en lugar de un `rgba` escrito a mano por cada caso.
 
 ---
 
