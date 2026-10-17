@@ -47,7 +47,11 @@ yarn-error.log*
 # Configuraciones locales de tu editor que no afectan al proyecto real.
 .vscode/
 .idea/
-.claude/
+.claude/*
+# Se versiona la config compartida de Claude Code (hook de inicio y permisos);
+# settings.local.json y el resto quedan locales.
+!.claude/settings.json
+!.claude/hooks/
 *.suo
 *.ntvs*
 *.njsproj
