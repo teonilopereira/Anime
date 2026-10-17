@@ -140,11 +140,25 @@ function applyBgToPage() {
             body.style.backgroundAttachment = 'fixed';
         }
     }
+    // El fondo neón lo pinta theme.js con <html data-bg-neon>.
+    window.AppTheme?.refresh?.();
 }
 
 function updateBgSections(mode) {
     $('bgColorSection').style.display = mode === 'color' ? 'block' : 'none';
     $('bgImageSection').style.display = mode === 'image' ? 'block' : 'none';
+    $('bgNeonSection').style.display = mode === 'neon' ? 'block' : 'none';
+}
+
+function syncNeonTiles() {
+    const ids = window.AppTheme?.neonIds || [];
+    const saved = r('pref:bgNeon', '');
+    const actual = ids.includes(saved) ? saved : ids[0];
+    document.querySelectorAll('.cfg-neon-opt').forEach(t => {
+        const on = t.dataset.neon === actual;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
 }
 
 /* ── Tarjetas por fila ── */
@@ -217,6 +231,7 @@ function syncUI() {
     $('cfgBgColor').value = r('pref:bgColor', '#2b0a55');
     $('cfgBgUrl').value = r('pref:bgImage', '').startsWith('data:') ? '' : r('pref:bgImage', '');
     updateBgSections(bgMode);
+    syncNeonTiles();
 
     const cprSaved = r('pref:cardsPerRow', 'auto');
     const fijado = cprSaved !== 'auto';
@@ -336,10 +351,21 @@ document.querySelectorAll('.cfg-bg-mode-btn').forEach(btn => {
         if (mode === 'default') {
             localStorage.removeItem('pref:bgColor');
             localStorage.removeItem('pref:bgImage');
+            localStorage.removeItem('pref:bgNeon');
             $('cfgBgUrl').value = '';
         }
+        if (mode === 'neon') syncNeonTiles();
         applyBgToPage();
         avisarGuardado('✅ Fondo actualizado');
+    });
+});
+
+document.querySelectorAll('.cfg-neon-opt').forEach(tile => {
+    tile.addEventListener('click', () => {
+        w('pref:bgNeon', tile.dataset.neon);
+        syncNeonTiles();
+        applyBgToPage();
+        avisarGuardado('✅ Fondo neón aplicado');
     });
 });
 
@@ -409,7 +435,7 @@ $('sqSizeSlider').addEventListener('input', function () {
 /* Preferencias locales de visualizacion. Se usan para exportar y para
  * restablecer. Las listas y el progreso viven en Supabase: no estan aca. */
 const PREF_KEYS = [
-    'pref:bgMode', 'pref:bgColor', 'pref:bgImage',
+    'pref:bgMode', 'pref:bgColor', 'pref:bgImage', 'pref:bgNeon',
     'pref:compactCards', 'pref:reduceMotion', 'pref:nsfw',
     'pref:notif', 'pref:contenido', 'pref:privacidad', 'pref:cardsPerRow',
     'pref:detailSquareSize', 'pref:mascot', 'pref:mascotRoam',

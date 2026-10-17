@@ -299,7 +299,7 @@ function renderProfile(user, profile) {
     document.getElementById('statExplorado').textContent = explored;
     document.getElementById('statPromedio').textContent = formatTime(avgMin);
 
-    document.getElementById('prefTema').textContent = read('pref:bgMode', 'default') === 'default' ? 'Oscuro 🌙' : read('pref:bgMode') === 'color' ? 'Color 🎨' : 'Imagen 🖼';
+    document.getElementById('prefTema').textContent = read('pref:bgMode', 'default') === 'default' ? 'Oscuro 🌙' : read('pref:bgMode') === 'color' ? 'Color 🎨' : read('pref:bgMode') === 'neon' ? 'Neón ⚡' : 'Imagen 🖼';
     document.getElementById('prefNotif').textContent = read('pref:notif', 'on') === 'off' ? 'Desactivadas 🔕' : 'Activadas 🔔';
     document.getElementById('prefContenido').textContent = read('pref:contenido', 'personalizado') === 'general' ? 'General ⭐' : 'Personalizado ⭐';
     document.getElementById('prefPrivacidad').textContent = read('pref:privacidad', 'publica') === 'privada' ? 'Privada 🔒' : 'Pública 🔒';

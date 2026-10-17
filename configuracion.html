@@ -19,17 +19,17 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle-lite.min.css?v=d5da6b6d">
+        <link rel="stylesheet" href="css/bundle-lite.min.css?v=b787921a">
 
-        <link rel="stylesheet" href="css/mascot.min.css?v=d5da6b6d">
+        <link rel="stylesheet" href="css/mascot.min.css?v=b787921a">
 
-    <link rel="stylesheet" href="css/configuracion.css?v=d5da6b6d">
+    <link rel="stylesheet" href="css/configuracion.css?v=b787921a">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=d5da6b6d">
-    <script src="js/vendor/lucide.min.js?v=d5da6b6d" defer></script>
-    <script src="js/core/theme.js?v=d5da6b6d"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=b787921a">
+    <script src="js/vendor/lucide.min.js?v=b787921a" defer></script>
+    <script src="js/core/theme.js?v=b787921a"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="configuracion">
@@ -262,6 +262,21 @@
                         <span class="cfg-bg-mode-icon">🖼️</span>
                         <span data-i18n="config.fondo.imagen">IMAGEN</span>
                     </button>
+                    <button class="cfg-bg-mode-btn" id="bgBtnNeon" data-mode="neon">
+                        <span class="cfg-bg-mode-icon">⚡</span>
+                        <span data-i18n="config.fondo.neon">NEÓN</span>
+                    </button>
+                </div>
+                <div id="bgNeonSection" style="display:none">
+                    <div class="cfg-neon-grid" role="radiogroup" aria-label="Fondo neón">
+                        <button type="button" class="cfg-neon-opt neon-tile" data-neon="synthwave" role="radio" aria-checked="false"><span>Synthwave</span></button>
+                        <button type="button" class="cfg-neon-opt neon-tile" data-neon="lluvia" role="radio" aria-checked="false"><span data-i18n="config.fondo.neon.lluvia">Lluvia digital</span></button>
+                        <button type="button" class="cfg-neon-opt neon-tile" data-neon="holo" role="radio" aria-checked="false"><span>Holo glass</span></button>
+                        <button type="button" class="cfg-neon-opt neon-tile" data-neon="circuito" role="radio" aria-checked="false"><span data-i18n="config.fondo.neon.circuito">Circuito</span></button>
+                        <button type="button" class="cfg-neon-opt neon-tile" data-neon="tokio" role="radio" aria-checked="false"><span data-i18n="config.fondo.neon.tokio">Letrero Tokio</span></button>
+                        <button type="button" class="cfg-neon-opt neon-tile" data-neon="glitch" role="radio" aria-checked="false"><span>Glitch CRT</span></button>
+                    </div>
+                    <p class="cfg-note" data-i18n="config.fondo.neon.nota">Los fondos neón usan siempre el tema oscuro.</p>
                 </div>
                 <div id="bgColorSection" class="cfg-field" style="display:none">
                     <label for="cfgBgColor" data-i18n="config.fondo.color_label">Color de fondo</label>
@@ -300,20 +315,20 @@
     <!-- Toast -->
     <div class="cfg-toast" id="cfgToast"></div>
 
-    <script src="js/core/config.js?v=d5da6b6d"></script>
-    <script src="js/core/i18n.min.js?v=d5da6b6d"></script>
+    <script src="js/core/config.js?v=b787921a"></script>
+    <script src="js/core/i18n.min.js?v=b787921a"></script>
 
-    <script src="js/core/constants.js?v=d5da6b6d"></script>
-    <script src="js/core/namespace.js?v=d5da6b6d"></script>
-<script type="module" src="api/supabase-config.js?v=d5da6b6d" async></script>
-    <script src="js/core/user-store.js?v=d5da6b6d" defer></script>
-    <script src="js/core/auth.js?v=d5da6b6d" defer></script>
-    <script src="js/core/push.js?v=d5da6b6d" defer></script>
+    <script src="js/core/constants.js?v=b787921a"></script>
+    <script src="js/core/namespace.js?v=b787921a"></script>
+<script type="module" src="api/supabase-config.js?v=b787921a" async></script>
+    <script src="js/core/user-store.js?v=b787921a" defer></script>
+    <script src="js/core/auth.js?v=b787921a" defer></script>
+    <script src="js/core/push.js?v=b787921a" defer></script>
 
-    <script src="js/mascot.min.js?v=d5da6b6d" defer></script>
-    <script src="js/pages/configuracion.js?v=d5da6b6d" defer></script>
-    <script src="js/ui/ripple.js?v=d5da6b6d" defer></script>
-    <script src="js/ui/tooltip.js?v=d5da6b6d" defer></script>
-    <script src="js/core/common-ui.js?v=d5da6b6d" defer></script>
+    <script src="js/mascot.min.js?v=b787921a" defer></script>
+    <script src="js/pages/configuracion.js?v=b787921a" defer></script>
+    <script src="js/ui/ripple.js?v=b787921a" defer></script>
+    <script src="js/ui/tooltip.js?v=b787921a" defer></script>
+    <script src="js/core/common-ui.js?v=b787921a" defer></script>
 </body>
 </html>

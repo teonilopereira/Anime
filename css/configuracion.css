@@ -268,7 +268,7 @@
 /* Fondo */
 .cfg-bg-mode-btns {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     margin-bottom: 14px;
 }
@@ -292,6 +292,43 @@
     color: var(--accent-cyan);
 }
 .cfg-bg-mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+@media (max-width: 480px) {
+    .cfg-bg-mode-btns { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Fondos neón: las miniaturas reusan los estilos de .neon-tile (theme.css). */
+.cfg-neon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+.cfg-neon-opt {
+    aspect-ratio: 16 / 10;
+    max-width: 100%;
+    border-radius: 10px;
+    border: 2px solid rgba(var(--ink-rgb), 0.15);
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-end;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cfg-neon-opt span {
+    width: 100%;
+    padding: 6px 8px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    text-align: left;
+}
+.cfg-neon-opt:hover { border-color: rgba(0, 242, 255, 0.5); }
+.cfg-neon-opt.active {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 14px rgba(0, 242, 255, 0.45);
+}
+.cfg-neon-opt:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
 
 /* Actions */
 .cfg-actions {

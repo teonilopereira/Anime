@@ -7,12 +7,17 @@
  * atributo data-theme en <html> cuando el usuario eligió claro u oscuro.
  *
  * Preferencia en localStorage["pref:theme"]: 'auto' | 'light' | 'dark'.
+ *
+ * También aplica los fondos neón (pref:bgMode = 'neon', pref:bgNeon = id) con
+ * <html data-bg-neon="id">. Son fondos oscuros, así que fuerzan el tema oscuro
+ * mientras están activos; los estilos viven en css/theme.css.
  */
 (function () {
     "use strict";
 
     var KEY = "pref:theme";
     var root = document.documentElement;
+    var NEON = ["synthwave", "lluvia", "holo", "circuito", "tokio", "glitch"];
 
     function read() {
         try {
@@ -31,6 +36,16 @@
         }
     }
 
+    function readNeon() {
+        try {
+            if (localStorage.getItem("pref:bgMode") !== "neon") return "";
+            var v = localStorage.getItem("pref:bgNeon");
+            return NEON.indexOf(v) >= 0 ? v : NEON[0];
+        } catch (e) {
+            return "";
+        }
+    }
+
     function updateThemeColorMeta(pref) {
         var meta = document.querySelector('meta[name="theme-color"]');
         if (!meta) return;
@@ -39,6 +54,13 @@
     }
 
     function apply(pref) {
+        var neon = readNeon();
+        if (neon) {
+            root.setAttribute("data-bg-neon", neon);
+            pref = "dark";
+        } else {
+            root.removeAttribute("data-bg-neon");
+        }
         // 'auto' quita el atributo y deja decidir a prefers-color-scheme.
         if (pref === "light" || pref === "dark") root.setAttribute("data-theme", pref);
         else root.removeAttribute("data-theme");
@@ -50,6 +72,9 @@
 
     window.AppTheme = {
         get: read,
+        neonIds: NEON.slice(),
+        // Reaplica tema y fondo neón tras cambiar pref:bgMode / pref:bgNeon.
+        refresh: function () { apply(read()); },
         set: function (pref) {
             if (pref !== "light" && pref !== "dark" && pref !== "auto") return;
             try { localStorage.setItem(KEY, pref); } catch (e) { /* almacenamiento no disponible */ }
