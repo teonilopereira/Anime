@@ -224,7 +224,7 @@
     right: 3px;
     height: 14px;
     border-radius: 7px;
-    background: rgba(var(--ink-rgb), 0.22);
+    background: rgba(var(--ink-rgb), var(--q-control-off-alpha));
     transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .cfg-switch-slider::before {
@@ -235,6 +235,8 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
+    box-sizing: border-box;
+    border: 1px solid rgba(var(--ink-rgb), var(--q-thumb-border-alpha));
     background: #f4f1fb;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 0 0 transparent;
     transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.22s, box-shadow 0.22s;
@@ -247,6 +249,7 @@
     background: var(--neon-purple-glow);
 }
 .cfg-switch input:checked + .cfg-switch-slider::before {
+    border-color: transparent;
     transform: translateX(18px);
     background: var(--neon-purple);
 }
@@ -263,6 +266,10 @@
     .cfg-switch-slider::before {
         transition: none;
     }
+}
+body.reduce-motion .cfg-switch-slider,
+body.reduce-motion .cfg-switch-slider::before {
+    transition: none;
 }
 
 /* Fondo */

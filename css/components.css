@@ -1626,6 +1626,14 @@ main { padding-bottom: 24px; }
     animation: q-skeleton-wave 1.5s linear 0.5s infinite;
 }
 
+body.reduce-motion .skeleton::after,
+body.reduce-motion .skeleton-card-poster::after,
+body.reduce-motion .skeleton-card-bar-line::after,
+body.reduce-motion .skeleton-card-bar-icon::after,
+body.reduce-motion .home-carousel-skeleton::after {
+    animation: none;
+}
+
 @keyframes q-skeleton-wave {
     100% { transform: translateX(100%); }
 }
@@ -1999,6 +2007,9 @@ body.reduce-motion .toast-item {
         transition: none;
     }
 }
+body.reduce-motion .tooltip {
+    transition: none;
+}
 
 /* ── Componentes estilo Quasar ──────────────────────────────────────────────
    Adaptados de Quasar Framework (MIT) sin Vue: QTabs, QLinearProgress y
@@ -2070,7 +2081,7 @@ body.reduce-motion .toast-item {
 }
 
 .q-tab:focus-visible {
-    outline: 2px solid var(--nav-accent);
+    outline: 2px solid var(--nav-accent-ink, var(--nav-accent));
     outline-offset: -2px;
 }
 
@@ -2081,8 +2092,8 @@ body.reduce-motion .toast-item {
     width: 0;
     height: 2px;
     border-radius: 2px 2px 0 0;
-    background: var(--nav-accent);
-    box-shadow: 0 0 10px var(--nav-accent);
+    background: var(--nav-accent-ink, var(--nav-accent));
+    box-shadow: 0 0 10px var(--nav-accent-ink, var(--nav-accent));
     pointer-events: none;
     opacity: 0;
 }
@@ -2226,7 +2237,8 @@ body.reduce-motion .toast-item {
 }
 body.reduce-motion .q-tabs--ready .q-tabs__indicator,
 body.reduce-motion .q-linear__bar,
-body.reduce-motion .q-linear__buffer {
+body.reduce-motion .q-linear__buffer,
+body.reduce-motion .q-btn-toggle__btn {
     transition: none;
 }
 body.reduce-motion .q-linear--stripe .q-linear__bar {
@@ -2320,12 +2332,17 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
     color: var(--text-main);
 }
 
+/* --q-banner-color pinta fondos con texto blanco encima (ícono, botón) y
+   --q-banner-text el texto de color (kicker, botón plano): con un solo tono no
+   se llega a 4.5:1 en los dos temas. */
 .q-banner--warning {
-    --q-banner-color: #d97706;
+    --q-banner-color: #b45309;
+    --q-banner-text: var(--warning-ink);
 }
 
 .q-banner--negative {
     --q-banner-color: #e11d48;
+    --q-banner-text: var(--negative-ink);
 }
 
 .q-banner__icon {
@@ -2355,7 +2372,7 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--q-banner-color);
+    color: var(--q-banner-text, var(--q-banner-color));
 }
 
 .q-banner__title {
@@ -2397,7 +2414,7 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
 
 .q-btn--flat {
     background: transparent;
-    color: var(--q-banner-color, var(--neon-purple));
+    color: var(--q-banner-text, var(--q-banner-color, var(--neon-purple)));
 }
 
 .q-btn--flat:hover {
@@ -2441,7 +2458,7 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
     flex: 0 0 auto;
     width: calc(var(--q-rating-size) * 5);
     height: var(--q-rating-size);
-    background: linear-gradient(90deg, #f5b301 var(--q-rating-pct, 0%), rgba(var(--ink-rgb), 0.22) var(--q-rating-pct, 0%));
+    background: linear-gradient(90deg, #f5b301 var(--q-rating-pct, 0%), rgba(var(--ink-rgb), var(--q-control-off-alpha)) var(--q-rating-pct, 0%));
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l2.94 5.96 6.56.95-4.75 4.63 1.12 6.54L12 17.5l-5.87 3.08 1.12-6.54L2.5 9.41l6.56-.95z'/%3E%3C/svg%3E") repeat-x 0 0 / var(--q-rating-size) var(--q-rating-size);
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5l2.94 5.96 6.56.95-4.75 4.63 1.12 6.54L12 17.5l-5.87 3.08 1.12-6.54L2.5 9.41l6.56-.95z'/%3E%3C/svg%3E") repeat-x 0 0 / var(--q-rating-size) var(--q-rating-size);
 }
@@ -2472,7 +2489,7 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
 .q-badge--abandonado { --q-badge-color: #e11d48; }
 
 .q-badge--outline {
-    --q-badge-color: var(--accent-cyan);
+    --q-badge-color: var(--info-ink);
     background: transparent;
     color: var(--q-badge-color);
     box-shadow: inset 0 0 0 1px var(--q-badge-color);

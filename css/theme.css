@@ -30,6 +30,11 @@
         /* Acentos oscurecidos para contraste legible sobre fondo claro. */
         --neon-purple: #8a10cf;
         --accent-cyan: #0a8ba6;
+        --warning-ink: #92400e;
+        --negative-ink: #be123c;
+        --info-ink: #0e7490;
+        --q-control-off-alpha: 0.5;
+        --q-thumb-border-alpha: 0.5;
         --theme-bg:
             radial-gradient(circle at 15% 10%, rgba(188, 19, 254, 0.10), transparent 42%),
             radial-gradient(circle at 85% 20%, rgba(0, 242, 255, 0.08), transparent 45%),
@@ -48,6 +53,11 @@
     --text-main: #1b1530;
     --neon-purple: #8a10cf;
     --accent-cyan: #0a8ba6;
+    --warning-ink: #92400e;
+    --negative-ink: #be123c;
+    --info-ink: #0e7490;
+    --q-control-off-alpha: 0.5;
+    --q-thumb-border-alpha: 0.5;
     --theme-bg:
         radial-gradient(circle at 15% 10%, rgba(188, 19, 254, 0.10), transparent 42%),
         radial-gradient(circle at 85% 20%, rgba(0, 242, 255, 0.08), transparent 45%),
@@ -74,3 +84,16 @@ body[data-page="novelas"] {
     --nav-accent: #f43f5e;
     --nav-accent-soft: rgba(244, 63, 94, 0.18);
 }
+
+/* En claro, la línea de las pestañas usa una versión oscura del acento de cada
+   página: el neón (#00f2ff, #22c55e) no llega a 3:1 sobre fondo claro. */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) body { --nav-accent-ink: var(--accent-cyan); }
+    :root:not([data-theme="dark"]) body[data-page="manga"] { --nav-accent-ink: #15803d; }
+    :root:not([data-theme="dark"]) body[data-page="anime"] { --nav-accent-ink: #0e7490; }
+    :root:not([data-theme="dark"]) body[data-page="novelas"] { --nav-accent-ink: #be123c; }
+}
+:root[data-theme="light"] body { --nav-accent-ink: var(--accent-cyan); }
+:root[data-theme="light"] body[data-page="manga"] { --nav-accent-ink: #15803d; }
+:root[data-theme="light"] body[data-page="anime"] { --nav-accent-ink: #0e7490; }
+:root[data-theme="light"] body[data-page="novelas"] { --nav-accent-ink: #be123c; }

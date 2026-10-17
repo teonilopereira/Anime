@@ -8,8 +8,9 @@
  *
  * Se aplica solo, por delegación, a: button, [role="button"], .btn,
  * [data-ripple] e inputs tipo botón. Para apagarlo: data-no-ripple (en el
- * elemento o en un contenedor). El color sale del texto del botón
- * (currentColor); se cambia con la variable CSS --ripple-color.
+ * elemento o en un contenedor). También se apaga con "Reducir movimiento",
+ * del sistema o de Configuración (body.reduce-motion). El color sale del
+ * texto del botón (currentColor); se cambia con la variable CSS --ripple-color.
  *
  * La onda NO se inserta dentro del botón: va en una capa fija encima de él.
  * Quasar le pone position:relative + overflow:hidden al botón, y acá eso
@@ -35,6 +36,7 @@
     /** Dispara la onda sobre `el`, naciendo en (x, y) en coordenadas de viewport. */
     function ripple(el, x, y) {
         if (reduceMotion && reduceMotion.matches) return;
+        if (document.body && document.body.classList.contains("reduce-motion")) return;
 
         const rect = el.getBoundingClientRect();
         if (!rect.width || !rect.height) return;

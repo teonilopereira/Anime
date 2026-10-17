@@ -947,12 +947,15 @@ function inicializarGeneroWidgets() {
         row = document.createElement('div');
         row.id = 'activeGenreChips';
         row.className = 'q-chip-row catalog-active-genres';
+        row.setAttribute('role', 'group');
         row.setAttribute('aria-label', catTr('catalog.generos_activos', 'Géneros elegidos'));
         row.hidden = true;
         dropdown.parentNode.insertBefore(row, dropdown.nextSibling);
         row.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-remove-genre], [data-clear-genres]');
             if (!btn) return;
+            const removeBtns = Array.from(row.querySelectorAll('[data-remove-genre]'));
+            const removedAt = removeBtns.indexOf(btn);
             const next = btn.hasAttribute('data-clear-genres')
                 ? []
                 : (Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [])
@@ -960,6 +963,14 @@ function inicializarGeneroWidgets() {
             window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = next;
             UserStore.setItem(selectedKey, JSON.stringify(next));
             renderDropdownGenres();
+            // La fila se rearma con innerHTML: sin esto el foco cae al body y
+            // quien usa teclado pierde el lugar. Va al chip que quedó en ese
+            // lugar (o al anterior) y, si no queda ninguno, al buscador.
+            const left = row.querySelectorAll('[data-remove-genre]');
+            const focusTo = removedAt >= 0 && left.length
+                ? left[Math.min(removedAt, left.length - 1)]
+                : document.getElementById('catalogSearch');
+            if (focusTo) focusTo.focus();
             if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
         });
         return row;

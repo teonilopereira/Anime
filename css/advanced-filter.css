@@ -113,7 +113,7 @@
     right: 3px;
     height: 14px;
     border-radius: 7px;
-    background: rgba(var(--ink-rgb), 0.22);
+    background: rgba(var(--ink-rgb), var(--q-control-off-alpha));
     transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .nsfw-checkbox-box::after {
@@ -124,6 +124,8 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
+    box-sizing: border-box;
+    border: 1px solid rgba(var(--ink-rgb), var(--q-thumb-border-alpha));
     background: #f4f1fb;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
     transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.22s, box-shadow 0.22s;
@@ -138,8 +140,19 @@
     background: var(--neon-purple-glow);
 }
 .nsfw-checkbox input:checked + .nsfw-checkbox-box::after {
+    border-color: transparent;
     transform: translateX(18px);
     background: var(--neon-purple);
+}
+@media (prefers-reduced-motion: reduce) {
+    .nsfw-checkbox-box,
+    .nsfw-checkbox-box::after {
+        transition: none;
+    }
+}
+body.reduce-motion .nsfw-checkbox-box,
+body.reduce-motion .nsfw-checkbox-box::after {
+    transition: none;
 }
 .nsfw-text-block {
     flex: 1;

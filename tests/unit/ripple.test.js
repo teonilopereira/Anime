@@ -7,6 +7,7 @@
  *  - la capa copia la posición y el tamaño del botón
  *  - no se dispara en botones deshabilitados, con data-no-ripple ni en otros elementos
  *  - Enter dispara la onda desde el teclado
+ *  - se apaga con "Reducir movimiento" de Configuración (body.reduce-motion)
  */
 
 import { beforeAll, beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
@@ -18,6 +19,7 @@ beforeAll(async () => {
 beforeEach(() => {
   vi.useFakeTimers();
   document.body.innerHTML = '';
+  document.body.className = '';
 });
 
 afterEach(() => {
@@ -77,5 +79,12 @@ describe('Ripple', () => {
   it('se dispara con Enter desde el teclado', () => {
     boton().dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
     expect(layers()).toHaveLength(1);
+  });
+
+  it('no se dispara con "Reducir movimiento" de Configuración', () => {
+    const el = boton();
+    document.body.classList.add('reduce-motion');
+    tocar(el);
+    expect(layers()).toHaveLength(0);
   });
 });

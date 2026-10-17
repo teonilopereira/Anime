@@ -14,6 +14,15 @@
     --accent-cyan-10: rgba(0, 242, 255, 0.10);
     --nav-accent: var(--accent-cyan);
     --nav-accent-soft: var(--accent-cyan-18);
+    /* Tintas para texto de aviso (amarillo/rojo) y para info; en claro se
+       oscurecen para pasar 4.5:1 (theme.css). */
+    --warning-ink: #f59e0b;
+    --negative-ink: #fb7185;
+    --info-ink: var(--accent-cyan);
+    /* Controles apagados (pista del interruptor, estrellas vacías) y borde de
+       la bola del interruptor: en claro suben para pasar 3:1 contra el fondo. */
+    --q-control-off-alpha: 0.22;
+    --q-thumb-border-alpha: 0;
     /* Tinta base: todo blanco con alpha se expresa como rgba(var(--ink-rgb), α).
        En claro se voltea a una tinta oscura y el texto/bordes se adaptan solos. */
     --ink-rgb: 255, 255, 255;

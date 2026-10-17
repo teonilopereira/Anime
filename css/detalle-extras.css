@@ -356,6 +356,10 @@ a.char-side:hover .char-name {
         transition: none;
     }
 }
+body.reduce-motion .detail-faq-item > summary::after,
+body.reduce-motion .detail-faq-item::details-content {
+    transition: none;
+}
 
 /* ── Información (js/detalle/info.js) ── */
 .detail-info-list {
