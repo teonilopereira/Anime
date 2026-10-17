@@ -215,6 +215,8 @@ function renderAchievements() {
         '</div>';
     }).join('');
 
+    renderNextAchievement(rules, userId);
+
     // Premiar EXP y notificar los logros realmente nuevos de esta sesión
     if (newlyUnlocked.length) {
         newlyUnlocked.forEach(function(r) {
@@ -227,4 +229,29 @@ function renderAchievements() {
         renderProfileSummary();
         renderApodos(); // el EXP nuevo puede desbloquear apodos por nivel
     }
+}
+
+// Resumen de la columna lateral: cuántos logros llevás y cuál es el siguiente
+// visible (los secretos no se adelantan).
+function renderNextAchievement(rules, userId) {
+    const host = document.getElementById('nextAchievement');
+    if (!host) return;
+    if (userId === 'Invitado') {
+        host.innerHTML = '<p class="ml-achv-desc">Iniciá sesión para desbloquear logros.</p>';
+        return;
+    }
+    const isUnlocked = function (r) { return UserStore.getItem('u:' + userId + '|achievement:' + r.id) === '1'; };
+    const done = rules.filter(isUnlocked).length;
+    const next = rules.find(function (r) { return !r.secret && !isUnlocked(r); });
+    const pct = Math.round((done / rules.length) * 100);
+    host.innerHTML =
+        '<div class="ml-achv">' +
+            '<span class="ml-achv-icon" aria-hidden="true">' + escapeHtml(next ? next.icon : '🏆') + '</span>' +
+            '<div>' +
+                '<p class="ml-achv-title">' + escapeHtml(next ? next.title : '¡Completaste todos los visibles!') + '</p>' +
+                '<p class="ml-achv-desc">' + escapeHtml(next ? next.desc : 'Quedan logros secretos por descubrir.') + '</p>' +
+            '</div>' +
+        '</div>' +
+        '<div class="ml-achv-bar" role="progressbar" aria-label="Logros desbloqueados" aria-valuemin="0" aria-valuemax="' + rules.length + '" aria-valuenow="' + done + '"><span style="width:' + pct + '%"></span></div>' +
+        '<p class="ml-achv-desc" style="margin-top:6px">' + done + ' de ' + rules.length + ' desbloqueados</p>';
 }

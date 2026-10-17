@@ -359,33 +359,235 @@ async function renderCalendario() {
     }
 }
 
+// ─── Biblioteca: búsqueda, orden y vista (portadas / lista) ───
+let currentSearch = '';
+let currentSort = 'reciente';
+let currentView = (function () {
+    try { return localStorage.getItem('ad:listsView') === 'list' ? 'list' : 'grid'; } catch (_) { return 'grid'; }
+})();
+
+const STATUS_COLORS = Object.freeze({
+    viendo: '#00f2ff',
+    pendiente: '#f59e0b',
+    pausado: '#94a3b8',
+    abandonado: '#ef4444',
+    visto: '#c77dff'
+});
+
+const CATEGORY_ACCENTS = Object.freeze({ anime: '#00f2ff', manga: '#22c55e', novelas: '#f43f5e' });
+
+const HEART_SVG = '<svg viewBox="0 0 24 24" fill="#ff5fa2" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg>';
+
+// Progreso marcado por ítem, recorriendo UserStore UNA sola vez por render.
+// Clave del mapa: "<categoria>:<id>" → { count, unit }.
+function buildProgressIndex(userId) {
+    const index = new Map();
+    const prefix = 'u:' + userId + '|';
+    const add = (key, unit) => {
+        const prev = index.get(key);
+        // Si un manga tiene capítulos y volúmenes marcados, cuentan los capítulos
+        if (prev && prev.unit === 'cap' && unit === 'vol') return;
+        if (prev && prev.unit === unit) prev.count++;
+        else index.set(key, { count: 1, unit });
+    };
+    try {
+        UserStore.keys().forEach((key) => {
+            if (!key.startsWith(prefix) || !UserStore.getItem(key)) return;
+            let m = key.match(/\|anime:([^|]+)\|s:\d+\|ep:\d+$/);
+            if (m) { add('anime:' + m[1], 'ep'); return; }
+            m = key.match(/\|(manga|novela):([^|]+)\|(vol|ch):\d+$/);
+            if (m) add((m[1] === 'novela' ? 'novelas' : 'manga') + ':' + m[2], m[3] === 'ch' ? 'cap' : 'vol');
+        });
+    } catch (e) { console.warn('buildProgressIndex failed:', e); }
+    return index;
+}
+
+function itemTotal(item) {
+    const n = Number(item.total || item.episodes || item.chapters || item.volumes || 0);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function progressLabel(prog, total) {
+    if (!prog) return '';
+    const unit = { ep: 'Ep.', cap: 'Cap.', vol: 'Vol.' }[prog.unit];
+    return total ? `${unit} ${prog.count} de ${total}` : `${unit} ${prog.count}`;
+}
+
+function entryStatus(entry) {
+    if (entry.wstatus && WSTATUS_BADGES[entry.wstatus]) {
+        return { label: WSTATUS_BADGES[entry.wstatus].label.replace(/^\S+\s/, ''), color: STATUS_COLORS[entry.wstatus] };
+    }
+    if (entry.viewed) return { label: 'Visto', color: STATUS_COLORS.visto };
+    return null;
+}
+
+function renderTile(entry, progress) {
+    const item = entry.item;
+    const link = getItemLink(item);
+    const title = escapeHtml(item.titulo);
+    const category = CATEGORY_LABELS[item.__category] || item.__category || '';
+    const status = entryStatus(entry);
+    const total = itemTotal(item);
+    const prog = progress.get(item.__category + ':' + item.id);
+    const pct = entry.viewed ? 100 : (prog && total ? Math.min(100, Math.round((prog.count / total) * 100)) : 0);
+    const meta = entry.viewed && !entry.wstatus ? 'Terminado' : (progressLabel(prog, total) || category);
+    const color = status ? status.color : STATUS_COLORS.visto;
+    return `
+        <li>
+            <a class="ml-tile" href="${escapeHtml(link)}" style="--st-color:${color}">
+                <span class="ml-tile-cover">
+                    <img src="${safeUrl(item.img)}"${coverSrcsetAttrs(safeUrl(item.img))} alt="" width="230" height="345" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${title}">
+                    ${status ? `<span class="ml-tile-badge">${escapeHtml(status.label)}</span>` : ''}
+                    ${entry.fav ? `<span class="ml-tile-fav" title="Te gusta">${HEART_SVG}<span class="sr-only">Te gusta</span></span>` : ''}
+                    ${pct ? `<span class="ml-tile-bar"><span style="width:${pct}%"></span></span>` : ''}
+                </span>
+                <span class="ml-tile-title">${title}</span>
+                <span class="ml-tile-meta">${escapeHtml(category)}${meta !== category ? ' · ' + escapeHtml(meta) : ''}</span>
+            </a>
+        </li>`;
+}
+
+function updateStatusCounts(entries) {
+    document.querySelectorAll('[data-count-for]').forEach((el) => {
+        const mode = el.getAttribute('data-count-for');
+        el.textContent = entries.filter((e) => matchesFilter(e, mode)).length;
+    });
+}
+
 function render(filterMode) {
     const grid = document.getElementById('listsGrid');
     if (!grid) return;
 
     const userId = getCurrentUserIdSafe();
     if (userId === 'Invitado') {
+        updateStatusCounts([]);
         renderEmpty(grid, 'Iniciá sesión', 'Usá el botón Cuenta para entrar o crear un usuario y ver tus listas.');
         return;
     }
 
-    const items = getAllItems()
+    const q = currentSearch.trim().toLowerCase();
+    // Base: todo lo que está en alguna lista, con la categoría y la búsqueda
+    // aplicadas. De ahí salen los contadores de cada pestaña de estado.
+    const base = getAllItems()
         .map((item) => getUserItemState(userId, item))
-        .filter((entry) => matchesFilter(entry, filterMode))
+        .filter((entry) => matchesFilter(entry, LIST_FILTERS.ALL))
         .filter((entry) => currentCatFilter === 'all' || entry.item.__category === currentCatFilter)
-        .sort((a, b) => getItemTs(userId, b.item.id) - getItemTs(userId, a.item.id));
+        .filter((entry) => !q || String(entry.item.titulo || '').toLowerCase().includes(q));
+    updateStatusCounts(base);
+
+    const items = base.filter((entry) => matchesFilter(entry, filterMode));
+    if (currentSort === 'az') {
+        items.sort((a, b) => String(a.item.titulo || '').localeCompare(String(b.item.titulo || ''), 'es'));
+    } else {
+        const dir = currentSort === 'antiguo' ? -1 : 1;
+        items.sort((a, b) => dir * (getItemTs(userId, b.item.id) - getItemTs(userId, a.item.id)));
+    }
 
     if (!items.length) {
-        renderEmpty(grid, 'Sin resultados', 'No tenés ítems marcados con este filtro.');
+        const filtered = q || currentCatFilter !== 'all' || filterMode !== LIST_FILTERS.ALL;
+        grid.innerHTML = `
+            <div class="lists-empty">
+                <h3>${filtered ? 'Sin resultados' : 'Tu biblioteca está vacía'}</h3>
+                <p>${filtered ? 'No hay títulos que coincidan con estos filtros.' : 'Marcá un anime, manga o novela como "Me gusta", "Visto" o "Viendo" y aparece acá.'}</p>
+                ${filtered ? '<button type="button" class="ml-reset" data-reset-filters="1">Quitar filtros</button>' : ''}
+            </div>`;
         return;
     }
 
-    grid.innerHTML = items.map((entry, idx) => renderMediaCard({ ...entry, isRow: true, index: idx + 1 })).join('');
+    if (currentView === 'list') {
+        grid.innerHTML = '<div class="lists-grid-rows">' +
+            items.map((entry, idx) => renderMediaCard({ ...entry, isRow: true, index: idx + 1 })).join('') + '</div>';
+        return;
+    }
+    const progress = buildProgressIndex(userId);
+    grid.innerHTML = '<ul class="ml-grid">' + items.map((entry) => renderTile(entry, progress)).join('') + '</ul>';
+}
+
+// ─── Continuar: lo que tenés en "Viendo", con el progreso marcado ───
+function renderContinue() {
+    const section = document.getElementById('continueSection');
+    const rail = document.getElementById('continueRail');
+    if (!section || !rail) return;
+
+    const userId = getCurrentUserIdSafe();
+    if (userId === 'Invitado') { section.hidden = true; return; }
+
+    const entries = getAllItems()
+        .map((item) => getUserItemState(userId, item))
+        .filter((e) => e.wstatus === 'viendo')
+        .sort((a, b) => getItemTs(userId, b.item.id) - getItemTs(userId, a.item.id))
+        .slice(0, 12);
+
+    section.hidden = !entries.length;
+    if (!entries.length) { rail.innerHTML = ''; return; }
+
+    const countEl = document.getElementById('continueCount');
+    if (countEl) countEl.textContent = entries.length === 1 ? '1 en curso' : `${entries.length} en curso`;
+
+    const progress = buildProgressIndex(userId);
+    rail.innerHTML = entries.map(({ item }) => {
+        const cat = item.__category;
+        const total = itemTotal(item);
+        const prog = progress.get(cat + ':' + item.id);
+        const pct = prog && total ? Math.min(100, Math.round((prog.count / total) * 100)) : 0;
+        const title = escapeHtml(item.titulo);
+        const label = progressLabel(prog, total) || 'Sin progreso marcado';
+        return `
+            <article class="ml-cont-card" style="--cont-accent:${CATEGORY_ACCENTS[cat] || '#00f2ff'}">
+                <img class="ml-cont-cover" src="${safeUrl(anilistCover(item.img, 'medium'))}" alt="" width="76" height="108" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${title}">
+                <div class="ml-cont-body">
+                    <h3 class="ml-cont-title">${title}</h3>
+                    <p class="ml-cont-meta">${escapeHtml(CATEGORY_LABELS[cat] || cat)}</p>
+                    <div class="ml-cont-foot">
+                        <div class="ml-cont-progress"><span>${escapeHtml(label)}</span>${pct ? `<span>${pct}%</span>` : ''}</div>
+                        <div class="ml-bar"><span style="width:${pct}%"></span></div>
+                        <a class="ml-cont-cta" href="${escapeHtml(getItemLink(item))}">${cat === 'anime' ? 'Seguir viendo' : 'Seguir leyendo'}</a>
+                    </div>
+                </div>
+            </article>`;
+    }).join('');
+}
+
+// ─── Esta semana: próximos episodios de los animes que seguís ───
+async function renderWeek() {
+    const host = document.getElementById('weekList');
+    if (!host) return;
+    const msg = (t) => { host.innerHTML = '<p class="ml-week-empty">' + escapeHtml(t) + '</p>'; };
+
+    if (getCurrentUserIdSafe() === 'Invitado') { msg('Iniciá sesión para ver los estrenos de tus animes.'); return; }
+    if (typeof window.getAiringSchedule !== 'function') { msg('El calendario no está disponible ahora.'); return; }
+    const ids = getCalendarAnimeIds();
+    if (!ids.length) { msg('Marcá animes como "Viendo" o "Pendiente" para ver sus próximos episodios.'); return; }
+
+    try {
+        const weekEnd = Date.now() + 7 * 86400000;
+        const next = (await window.getAiringSchedule(ids))
+            .filter((ep) => ep.airingAt * 1000 <= weekEnd)
+            .slice(0, 5);
+        if (!next.length) { msg('Ninguno de tus animes estrena episodio esta semana.'); return; }
+        host.innerHTML = '<ul class="ml-week">' + next.map((ep) => {
+            const ms = ep.airingAt * 1000;
+            const d = new Date(ms);
+            const day = calendarDayLabel(ms);
+            const short = (day === 'Hoy' || day === 'Mañana') ? day : d.toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '');
+            const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            return `
+                <li>
+                    <span class="ml-week-day">${escapeHtml(short)}</span>
+                    <a class="ml-week-title" href="detalle.html?cat=anime&amp;id=${encodeURIComponent(ep.id)}">${escapeHtml(ep.title)} <span class="ml-week-ep">ep. ${ep.episode || '?'}</span></a>
+                    <span class="ml-week-time">${escapeHtml(time)}</span>
+                </li>`;
+        }).join('') + '</ul>';
+    } catch (e) {
+        console.warn('renderWeek error:', e);
+        msg('No se pudieron cargar los estrenos. Probá de nuevo en unos minutos.');
+    }
 }
 
 function setActiveChip(activeId) {
     document.querySelectorAll('.lists-chip').forEach((chip) => {
         chip.classList.toggle('is-active', chip.id === activeId);
+        chip.setAttribute('aria-pressed', String(chip.id === activeId));
     });
 }
 
@@ -452,24 +654,13 @@ function renderProfileSummary() {
 
     const userId = getCurrentUserIdSafe();
 
-    // — Invitado: mostrar botón de login prominente —
+    // — Invitado: botón de ingreso en la barra superior —
     if (userId === 'Invitado') {
         host.innerHTML = `
-            <div class="sidebar-guest">
-                <div class="sidebar-guest-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(192,132,252,0.8)" stroke-width="1.5">
-                        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="sidebar-guest-text">No has iniciado sesión</p>
-                    <p class="sidebar-guest-sub">Iniciá sesión para guardar tus listas</p>
-                </div>
-                <a href="Login.html" class="sidebar-login-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                    Ingresar
-                </a>
-            </div>
+            <a href="Login.html" class="ml-login-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Ingresar para guardar tus listas
+            </a>
         `;
         return;
     }
@@ -496,39 +687,24 @@ function renderProfileSummary() {
     const level = lv.level;
     const pct = Math.max(0, Math.min(100, Math.round((lv.current / lv.next) * 100)));
 
-    const avatarHtml = photoUrl
-        ? `<div class="sidebar-avatar-ring">
-               <div class="sidebar-avatar-inner">
-                   <img src="${safeUrl(photoUrl)}" alt="${escapeHtml(displayName)}"
-                        data-avatar-fallback="1">
-                   <div class="sidebar-initials" style="display:none;">${escapeHtml(initials)}</div>
-               </div>
-           </div>`
-        : `<div class="sidebar-avatar-ring">
-               <div class="sidebar-avatar-inner">
-                   <div class="sidebar-initials">${escapeHtml(initials)}</div>
-               </div>
-           </div>`;
+    const apodo = getActiveApodoNick(userId);
+    const avatarInner = photoUrl
+        ? `<img src="${safeUrl(photoUrl)}" alt="" data-avatar-fallback="1"><span class="sidebar-initials" style="display:none;">${escapeHtml(initials)}</span>`
+        : `<span class="sidebar-initials">${escapeHtml(initials)}</span>`;
+    const hint = lv.atMax ? 'Nivel máximo alcanzado' : `${pct}% del nivel ${level}, ${pts} pts`;
 
+    // Pastilla compacta: el anillo del avatar es la barra de progreso del nivel.
     host.innerHTML = `
-        <div class="sidebar-avatar-wrap">
-            ${avatarHtml}
-        </div>
-        <div class="lists-profile-main">
-            <span class="lists-profile-label">Perfil</span>
-            <strong class="lists-profile-name">${escapeHtml(displayName)}</strong>
-            <span class="lists-profile-apodo">${escapeHtml(getActiveApodoNick(userId))}</span>
-            <div class="lists-profile-track" role="progressbar" aria-label="Progreso de nivel"
-                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
-                <div class="lists-profile-fill" style="width:${pct}%;--pctnum:${Math.max(pct, 1)}"></div>
-            </div>
-            <span class="lists-profile-meta"><strong>Nivel ${level}</strong> · ${pts} pts</span>
-            <span class="lists-profile-hint">${lv.atMax ? '¡Nivel máximo alcanzado!' : `Faltan ${Math.max(0, lv.next - lv.current)} pts para el próximo nivel`}</span>
-        </div>
-        <div class="lists-profile-actions">
-            <a class="lists-profile-btn" href="usuario.html">Editar perfil</a>
-            <a class="lists-profile-btn secondary" href="configuracion.html">Configuración</a>
-        </div>
+        <a class="ml-profile-link" href="usuario.html" aria-label="Tu perfil: ${escapeHtml(displayName)}, nivel ${level}. ${escapeHtml(hint)}">
+            <span class="ml-avatar" style="--pct:${pct}" aria-hidden="true"><span class="ml-avatar-inner">${avatarInner}</span></span>
+            <span class="ml-profile-text">
+                <span class="ml-profile-name">${escapeHtml(displayName)} · nivel ${level}</span>
+                <span class="ml-profile-sub">${escapeHtml(apodo || hint)}</span>
+            </span>
+        </a>
+        <a class="ml-icon-btn" href="configuracion.html" aria-label="Configuración" title="Configuración">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </a>
     `;
 }
 
@@ -582,6 +758,50 @@ function bindControls() {
 
     const exportBtn = document.getElementById('exportJson');
     if (exportBtn) exportBtn.addEventListener('click', exportUserData);
+
+    const search = document.getElementById('listsSearch');
+    if (search) search.addEventListener('input', () => {
+        currentSearch = search.value;
+        render(filterModeState);
+    });
+
+    const sort = document.getElementById('listsSort');
+    if (sort) sort.addEventListener('change', () => {
+        currentSort = sort.value;
+        render(filterModeState);
+    });
+
+    const viewButtons = { grid: document.getElementById('viewGrid'), list: document.getElementById('viewList') };
+    const syncView = () => Object.keys(viewButtons).forEach((mode) => {
+        if (viewButtons[mode]) viewButtons[mode].setAttribute('aria-pressed', String(currentView === mode));
+    });
+    syncView();
+    Object.keys(viewButtons).forEach((mode) => {
+        if (!viewButtons[mode]) return;
+        viewButtons[mode].addEventListener('click', () => {
+            currentView = mode;
+            try { localStorage.setItem('ad:listsView', mode); } catch (_) { /* storage bloqueado */ }
+            syncView();
+            render(filterModeState);
+        });
+    });
+
+    // "Quitar filtros" del estado vacío: vuelve a Todo / Todos / sin búsqueda
+    const grid = document.getElementById('listsGrid');
+    if (grid) grid.addEventListener('click', (e) => {
+        if (!e.target.closest('[data-reset-filters]')) return;
+        filterModeState = LIST_FILTERS.ALL;
+        currentCatFilter = 'all';
+        currentSearch = '';
+        if (search) search.value = '';
+        setActiveChip('filterAll');
+        document.querySelectorAll('.res-tab').forEach((t) => {
+            const on = (t.dataset.cat || 'all') === 'all';
+            t.classList.toggle('active', on);
+            t.setAttribute('aria-pressed', String(on));
+        });
+        render(filterModeState);
+    });
 
     return () => render(filterModeState);
 }
@@ -677,58 +897,22 @@ function renderActividad() {
     }).join('');
 }
 
+// Totales por categoría de la columna lateral ("En números"): cuenta todo lo
+// que está en alguna lista (Me gusta, Visto o un estado de seguimiento).
 function updateCategoryCards() {
     const user = getCurrentUserIdSafe();
-    if (user === 'Invitado') return;
-
     const catCounts = { anime: 0, manga: 0, novelas: 0 };
-    const catFav    = { anime: 0, manga: 0, novelas: 0 };
-    const catViewed = { anime: 0, manga: 0, novelas: 0 };
-
-    getAllItems().forEach(item => {
-        const cat = item.__category;
-        const fav = !!UserStore.getItem(`u:${user}|item:${item.id}|fav`);
-        const viewed = !!UserStore.getItem(`u:${user}|item:${item.id}|viewed`);
-        if (fav || viewed) {
-            catCounts[cat] = (catCounts[cat] || 0) + 1;
-            if (fav)    catFav[cat]    = (catFav[cat] || 0) + 1;
-            if (viewed) catViewed[cat] = (catViewed[cat] || 0) + 1;
-        }
-    });
-
+    if (user !== 'Invitado') {
+        getAllItems().forEach(item => {
+            const cat = item.__category;
+            if (catCounts[cat] == null) return;
+            if (matchesFilter(getUserItemState(user, item), LIST_FILTERS.ALL)) catCounts[cat]++;
+        });
+    }
     const setE = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    setE('countAnime', catCounts.anime || 0);
-    setE('countManga', catCounts.manga || 0);
-    setE('countNovelas', catCounts.novelas || 0);
-    setE('sublabelAnime', `${catFav.anime || 0} ❤ · ${catViewed.anime || 0} 👁`);
-    setE('sublabelManga', `${catFav.manga || 0} ❤ · ${catViewed.manga || 0} 👁`);
-    setE('sublabelNovelas', `${catFav.novelas || 0} ❤ · ${catViewed.novelas || 0} 👁`);
-}
-
-function updateActividadMini() {
-    const user = getCurrentUserIdSafe();
-    const host = document.getElementById('actividadMini');
-    if (!host || user === 'Invitado') return;
-
-    const items = [];
-    getAllItems().forEach(item => {
-        const fav = !!UserStore.getItem(`u:${user}|item:${item.id}|fav`);
-        const viewed = !!UserStore.getItem(`u:${user}|item:${item.id}|viewed`);
-        if (fav || viewed) items.push({ ...item, fav, viewed });
-    });
-
-    items.sort((a, b) => getItemTs(user, b.id) - getItemTs(user, a.id));
-    const recent = items.slice(0, AnimeDestiny.Constants.MAX_MINI_ACTIVITY || 5);
-    if (!recent.length) return;
-
-    const catIcons = { anime: '📺', manga: '📖', novelas: '📝' };
-    host.innerHTML = recent.map(item => `
-        <div class="cat-activity-item">
-            <span class="ai-icon">${catIcons[item.__category] || '⭐'}</span>
-            <span class="ai-title">${escapeHtml(String(item.titulo || '')).substring(0, AnimeDestiny.Constants.ACTIVITY_TITLE_MAX || 35)}</span>
-            <span>${item.fav ? '❤' : ''} ${item.viewed ? '👁' : ''}</span>
-        </div>
-    `).join('');
+    setE('countAnime', catCounts.anime);
+    setE('countManga', catCounts.manga);
+    setE('countNovelas', catCounts.novelas);
 }
 
 // Pinta una lista de barras horizontales (género/tipo/estado). Cada fila:
@@ -1166,10 +1350,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAchievements();
         renderApodos();
         renderCurrentFilter();
+        renderContinue();
+        renderWeek();
         renderRecommendations();
         renderActividad();
         updateCategoryCards();
-        updateActividadMini();
         renderStats();
     }
 
@@ -1222,20 +1407,37 @@ document.addEventListener('DOMContentLoaded', () => {
         repararPortadasFaltantes().catch((e) => console.warn('repararPortadasFaltantes:', e));
     });
 
-    // Sidebar tab logic
+    // Pestañas de sección (barra superior)
+    function openTab(tabId) {
+        const activeTab = document.getElementById('tab-' + tabId);
+        if (!activeTab) return false;
+        document.querySelectorAll('.sidebar-link').forEach(l => {
+            const on = l.getAttribute('data-tab') === tabId;
+            l.classList.toggle('active', on);
+            if (on) l.setAttribute('aria-current', 'page');
+            else l.removeAttribute('aria-current');
+        });
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.toggle('active', tc === activeTab));
+        if (tabId === 'calendario') renderCalendario();
+        return true;
+    }
     document.querySelectorAll('.sidebar-link').forEach(link => {
-        link.addEventListener('click', (e) => {
+        link.addEventListener('click', () => {
             const tabId = link.getAttribute('data-tab');
-            if(tabId) {
-                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-                const activeTab = document.getElementById('tab-' + tabId);
-                if(activeTab) activeTab.classList.add('active');
-                if (tabId === 'calendario') renderCalendario();
-            }
+            if (tabId) openTab(tabId);
         });
     });
+    // Accesos desde la columna lateral ("Calendario", "Ver logros"...)
+    document.querySelectorAll('[data-goto-tab]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (!openTab(link.getAttribute('data-goto-tab'))) return;
+            e.preventDefault();
+            history.replaceState(null, '', '#' + link.getAttribute('data-goto-tab'));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+    // Entrar directo a una sección con el hash (mis-listas.html#logros)
+    if (location.hash.length > 1) openTab(location.hash.slice(1));
 
     // Apodos: equipar al hacer click / Enter en una card desbloqueada
     const apodosGrid = document.getElementById('apodosGrid');
@@ -1256,6 +1458,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.res-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
+            document.querySelectorAll('.res-tab').forEach(t => t.setAttribute('aria-pressed', String(t === tab)));
             currentCatFilter = tab.dataset.cat || 'all';
             render(filterModeState);
         });
