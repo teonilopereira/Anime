@@ -340,8 +340,54 @@
         });
     }
 
+    // Nombres en español para mostrar. AniList (y la clave de los filtros)
+    // sigue usando el nombre en inglés: esto solo cambia lo que se lee. Lo que
+    // no está acá (tags poco comunes, nombres propios) se muestra como viene.
+    var ES = {
+        'Action': 'Acción', 'Adventure': 'Aventura', 'Comedy': 'Comedia', 'Drama': 'Drama',
+        'Ecchi': 'Ecchi', 'Fantasy': 'Fantasía', 'Horror': 'Terror', 'Mahou Shoujo': 'Chicas mágicas',
+        'Mecha': 'Mecha', 'Music': 'Música', 'Mystery': 'Misterio', 'Psychological': 'Psicológico',
+        'Romance': 'Romance', 'Sci-Fi': 'Ciencia ficción', 'Slice of Life': 'Recuentos de la vida',
+        'Sports': 'Deportes', 'Supernatural': 'Sobrenatural', 'Thriller': 'Suspenso',
+        'Tragedy': 'Tragedia', 'Magic': 'Magia', 'Mythology': 'Mitología', 'Parody': 'Parodia',
+        'Satire': 'Sátira', 'Superhero': 'Superhéroes', 'Demons': 'Demonios', 'Vampire': 'Vampiros',
+        'Zombie': 'Zombis', 'Ghost': 'Fantasmas', 'Aliens': 'Alienígenas',
+        'Post-Apocalyptic': 'Postapocalíptico', 'Reincarnation': 'Reencarnación',
+        'Time Travel': 'Viajes en el tiempo', 'School': 'Escolar', 'Military': 'Militar',
+        'Martial Arts': 'Artes marciales', 'Pirates': 'Piratas', 'Survival': 'Supervivencia',
+        'Band': 'Banda', 'Detective': 'Detectives', 'Espionage': 'Espionaje', 'Crime': 'Crimen',
+        'War': 'Guerra', 'Guns': 'Armas de fuego', 'Swordplay': 'Espadas', 'Revenge': 'Venganza',
+        'Amnesia': 'Amnesia', 'Gambling': 'Apuestas', 'Cultivation': 'Cultivo', 'Villainess': 'Villana',
+        'Anti-Hero': 'Antihéroe', 'Work': 'Trabajo', 'Medicine': 'Medicina', 'Politics': 'Política',
+        'Family Life': 'Vida familiar', 'Love Triangle': 'Triángulo amoroso',
+        'Dystopian': 'Distopía', 'Female Protagonist': 'Protagonista femenina',
+        'Male Protagonist': 'Protagonista masculino', 'Ensemble Cast': 'Elenco coral',
+        'Food': 'Comida', 'Historical': 'Histórico', 'Coming of Age': 'Madurez',
+        'Super Power': 'Superpoderes', 'Elf': 'Elfos', 'Police': 'Policial', 'Animals': 'Animales',
+        'Space': 'Espacio', 'Space Opera': 'Ópera espacial', 'Urban Fantasy': 'Fantasía urbana',
+        'Fairy Tale': 'Cuento de hadas', 'Swimming': 'Natación', 'Video Games': 'Videojuegos',
+        'Virtual World': 'Mundo virtual', 'Delinquents': 'Delincuentes', 'Fugitive': 'Fugitivos',
+        'Monster Girl': 'Chicas monstruo', 'Rehabilitation': 'Rehabilitación'
+    };
+    var esPorClave = new Map(Object.keys(ES).map(function (k) { return [compacta(k), ES[k]]; }));
+
+    function idiomaActual() {
+        try {
+            if (window.AppI18n && typeof window.AppI18n.getLang === 'function') return window.AppI18n.getLang();
+            return localStorage.getItem('pref:lang') || 'es';
+        } catch (_) { return 'es'; }
+    }
+
+    /** Nombre para mostrar en el idioma elegido (la clave no cambia). */
+    function etiqueta(nombreOClave) {
+        var base = nombre(nombreOClave);
+        if (idiomaActual() !== 'es') return base;
+        return esPorClave.get(compacta(base)) || base;
+    }
+
     window.AnimeDestiny = window.AnimeDestiny || {};
     window.AnimeDestiny.Genres = {
+        etiqueta: etiqueta,
         OFICIALES: OFICIALES,
         cargar: cargar,
         listo: function () { return !!remoto; },
