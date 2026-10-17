@@ -23,15 +23,16 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=14073d2b">
+        <link rel="stylesheet" href="css/bundle.min.css?v=7da450ba">
 
-    <link rel="stylesheet" href="css/advanced-filter.css?v=14073d2b">
+    <link rel="stylesheet" href="css/advanced-filter.css?v=7da450ba">
+    <link rel="stylesheet" href="css/catalogo.css?v=7da450ba">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=14073d2b">
+    <link rel="stylesheet" href="css/fonts.css?v=7da450ba">
 
-    <script src="js/vendor/lucide.min.js?v=14073d2b" defer></script>
-    <script src="js/core/theme.js?v=14073d2b"></script>
+    <script src="js/vendor/lucide.min.js?v=7da450ba" defer></script>
+    <script src="js/core/theme.js?v=7da450ba"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="anime">
@@ -43,63 +44,54 @@
         </div>
     </nav>
 
-    <header class="page-header">
-        <h1 class="page-title" data-i18n="catalog.title.anime">CATÁLOGO DE ANIME</h1>
-        <p class="page-subtitle" data-i18n="catalog.subtitle.anime">Explorá, descubrí y guardá tus animes favoritos.</p>
-        
-        <div class="catalog-browse-tabs q-tabs" id="browseTabs" role="tablist" aria-label="Modo de descubrimiento">
-            <button class="browse-tab q-tab" type="button" role="tab" data-browse="">Populares</button>
-            <button class="browse-tab q-tab" type="button" role="tab" data-browse="tendencias">Tendencias</button>
-            <button class="browse-tab q-tab" type="button" role="tab" data-browse="puntuados">Mejor puntuados</button>
-            <button class="browse-tab q-tab" type="button" role="tab" data-browse="temporada">Temporada actual</button>
-        </div>
-
-        <div class="catalog-search-filter-container">
-            <div class="catalog-search-wrap">
-                <div class="catalog-search-inner">
-                    <span class="catalog-search-icon"><i data-lucide="search"></i></span>
-                    <input id="catalogSearch" class="catalog-search-input" type="search" placeholder="Buscar anime..." data-i18n="catalog.buscar.anime" data-i18n-attr="placeholder" autocomplete="off">
+    <header class="cx-top">
+        <div class="cx-top-inner">
+            <div class="cx-top-row">
+                <div class="cx-heading">
+                    <h1 class="cx-title" data-i18n="catalog.title.anime">CATÁLOGO DE ANIME</h1>
+                    <p class="cx-subtitle" data-i18n="catalog.subtitle.anime">Explorá, descubrí y guardá tus animes favoritos.</p>
                 </div>
-                <button id="mainFilterToggle" type="button" class="advanced-filter-toggle" data-i18n="catalog.abrir_filtros" data-i18n-attr="aria-label" aria-label="Abrir filtros">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                </button>
+                <div class="catalog-search-filter-container cx-search">
+                    <div class="catalog-search-wrap">
+                        <div class="catalog-search-inner">
+                            <span class="catalog-search-icon"><i data-lucide="search"></i></span>
+                            <input id="catalogSearch" class="catalog-search-input" type="search" placeholder="Buscar anime..." data-i18n="catalog.buscar.anime" data-i18n-attr="placeholder" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="advanced-filter-dropdown" id="filterDropdown" style="display: none;">
-                <div class="filter-dropdown-inner">
-                    <div class="filter-header-row">
-                        <div class="filter-header-icon-wrap">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                        </div>
-                        <div class="filter-header-content">
-                            <div class="filter-header-row-inner">
-                                <h2 data-i18n="catalog.filtros">FILTROS ADICIONALES</h2>
-                                <button id="clearFiltersBtn" class="clear-filters-btn" data-i18n="catalog.limpiar">Limpiar Filtros</button>
-                            </div>
-                            
-                            <label class="nsfw-row-label">
-                                <div class="nsfw-checkbox">
-                                    <input type="checkbox" id="nsfwToggle">
-                                    <div class="nsfw-checkbox-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
-                                </div>
-                                <div class="nsfw-text-block">
-                                    <div class="nsfw-title" data-i18n="catalog.nsfw.titulo">Mostrar NSFW</div>
-                                    <div class="nsfw-desc" data-i18n="catalog.nsfw.desc">Activa para mostrar contenido para adultos.</div>
-                                </div>
-                                <div class="filter-chevron"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
-                            </label>
-                        </div>
-                    </div>
+            <nav class="cx-cats" aria-label="Catálogos">
+                <a class="cx-cat is-active" href="anime.html" data-cx-cat="anime" aria-current="page"><span class="cx-cat-dot" aria-hidden="true"></span>Anime</a>
+                <a class="cx-cat" href="manga.html" data-cx-cat="manga"><span class="cx-cat-dot" aria-hidden="true"></span>Manga</a>
+                <a class="cx-cat" href="novelas.html" data-cx-cat="novelas"><span class="cx-cat-dot" aria-hidden="true"></span>Novelas</a>
+            </nav>
+        </div>
+    </header>
 
-                    <div class="filter-section-divider">
-                        <span class="fsd-line"></span>
-                        <span class="fsd-dot"></span>
-                        <span class="fsd-text" data-i18n="catalog.refinar">REFINAR</span>
-                        <span class="fsd-dot"></span>
-                        <span class="fsd-line"></span>
-                    </div>
+    <div class="cx-layout">
+        <aside class="cx-side" aria-label="Filtros">
+            <section class="cx-side-sec" aria-labelledby="cxBrowseTitle">
+                <h2 class="cx-side-title" id="cxBrowseTitle">DESCUBRIR</h2>
+                <div class="catalog-browse-tabs q-tabs cx-browse" id="browseTabs" role="tablist" aria-label="Modo de descubrimiento" aria-orientation="vertical">
+                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="">Populares</button>
+                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="tendencias">Tendencias</button>
+                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="puntuados">Mejor puntuados</button>
+                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="temporada">Temporada actual</button>
+                </div>
+            </section>
 
-                    <div class="filter-advanced-grid">
+            <button id="mainFilterToggle" type="button" class="advanced-filter-toggle cx-filter-toggle" aria-expanded="false" aria-controls="filterDropdown">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                <span>Filtros y géneros</span>
+            </button>
+
+            <div class="advanced-filter-dropdown cx-filters" id="filterDropdown" style="display: none;">
+                <section class="cx-side-sec">
+                    <div class="cx-side-head">
+                        <h2 class="cx-side-title" data-i18n="catalog.refinar">REFINAR</h2>
+                        <button id="clearFiltersBtn" class="clear-filters-btn cx-clear" type="button" data-i18n="catalog.limpiar">Limpiar Filtros</button>
+                    </div>
+                    <div class="filter-advanced-grid cx-fields">
                         <label class="filter-adv-field">
                             <span class="filter-adv-label" data-i18n="catalog.orden">Orden</span>
                             <select id="filterSort" class="filter-adv-select">
@@ -140,42 +132,52 @@
                             </select>
                         </label>
                     </div>
+                </section>
 
-                    <div class="filter-section-divider">
-                        <span class="fsd-line"></span>
-                        <span class="fsd-dot"></span>
-                        <span class="fsd-text" data-i18n="catalog.genero">GÉNERO</span>
-                        <span class="fsd-dot"></span>
-                        <span class="fsd-line"></span>
-                    </div>
-
+                <section class="cx-side-sec">
+                    <h2 class="cx-side-title" data-i18n="catalog.genero">GÉNERO</h2>
                     <div class="filter-genre-search">
-                        <svg class="filter-genre-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="search" id="filterGenreSearch" class="filter-genre-search-input" placeholder="Buscar género..." data-i18n="catalog.buscar_genero" data-i18n-attr="placeholder" autocomplete="off">
+                        <svg class="filter-genre-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="search" id="filterGenreSearch" class="filter-genre-search-input" placeholder="Buscar género..." aria-label="Buscar género" data-i18n="catalog.buscar_genero" data-i18n-attr="placeholder" autocomplete="off">
                     </div>
-
                     <div class="fancy-filter-genres" id="filterGenres"></div>
-
                     <button type="button" id="toggleGenresBtn" class="toggle-genres-btn" hidden>Ver todos ▼</button>
+                </section>
+
+                <label class="cx-side-sec cx-nsfw">
+                    <input type="checkbox" id="nsfwToggle">
+                    <span>
+                        <span class="cx-nsfw-title" data-i18n="catalog.nsfw.titulo">Mostrar NSFW</span>
+                        <span class="cx-nsfw-desc" data-i18n="catalog.nsfw.desc">Activa para mostrar contenido para adultos.</span>
+                    </span>
+                </label>
+            </div>
+        </aside>
+
+        <div class="catalog-content cx-main">
+            <div class="cx-results-bar">
+                <h2 class="cx-results-title" id="catalogHeading">Populares</h2>
+                <div class="cx-view" role="group" aria-label="Vista">
+                    <button type="button" id="viewCards" aria-pressed="true" aria-label="Ver como fichas" title="Fichas">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="7" height="7"/><path d="M13 5h8M13 9h6"/><rect x="3" y="13" width="7" height="7"/><path d="M13 14h8M13 18h6"/></svg>
+                    </button>
+                    <button type="button" id="viewCovers" aria-pressed="false" aria-label="Ver como portadas" title="Portadas">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
+                    </button>
                 </div>
             </div>
-        </div>
-    </header>
-
-    <div class="catalog-layout">
-        <div class="catalog-content">
-            <main class="gallery" id="main-content"></main>
+            <div id="activeGenreSlot"></div>
+            <main class="gallery cx-gallery" id="main-content" data-view="fichas"></main>
             <div id="scroll-sentinel" class="scroll-sentinel"></div>
         </div>
     </div>
-
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=14073d2b"></script>
-    <script src="js/core/i18n.min.js?v=14073d2b"></script>
-    <script src="js/core/namespace.js?v=14073d2b"></script>
-    <script type="module" src="api/supabase-config.js?v=14073d2b" async></script>
-    <script src="js/core-bundle.min.js?v=14073d2b" defer></script>
-    <script src="js/pages/script.js?v=14073d2b" defer></script>
+    <script src="js/core/config.js?v=7da450ba"></script>
+    <script src="js/core/i18n.min.js?v=7da450ba"></script>
+    <script src="js/core/namespace.js?v=7da450ba"></script>
+    <script type="module" src="api/supabase-config.js?v=7da450ba" async></script>
+    <script src="js/core-bundle.min.js?v=7da450ba" defer></script>
+    <script src="js/pages/script.js?v=7da450ba" defer></script>
 </body>
 </html>
 

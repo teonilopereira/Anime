@@ -312,7 +312,10 @@ function buildCatalogCardHtml(options) {
         volCount = 0,
         chCount = 0,
         info = '',
-        titleAlt = ''
+        titleAlt = '',
+        score = null,
+        synopsis = '',
+        genreList = []
     } = options;
 
     const safeId = escapeHtml(String(id));
@@ -351,6 +354,27 @@ function buildCatalogCardHtml(options) {
     // más de un nombre al emparejado de portadas contra MangaDex.
     const titleAltAttr = titleAlt ? ` data-title-alt="${escapeHtml(String(titleAlt))}"` : '';
 
+    // Datos de la vista "fichas": nota, géneros y sinopsis. En la vista de
+    // portadas se ocultan por CSS. Solo los trae la lista de la API.
+    const scoreNum = Number(score);
+    const scoreHtml = score != null && Number.isFinite(scoreNum) && scoreNum > 0
+        ? `<span class="crail-score" aria-label="${escapeHtml(catTr('card.aria.nota', 'Nota'))} ${scoreNum.toFixed(1)}">★ ${scoreNum.toFixed(1)}</span>`
+        : '';
+    const shownGenres = (Array.isArray(genreList) ? genreList : []).filter(Boolean).slice(0, 3);
+    const genresHtml = shownGenres.length
+        ? `<span class="crail-genres">${shownGenres.map((g) => `<span class="crail-genre">${escapeHtml(String(g))}</span>`).join('')}</span>`
+        : '';
+    // AniList puede traer entidades HTML (&quot;, &amp;...) en la descripción:
+    // se decodifican antes de escaparlas para no mostrarlas literales.
+    const ENTITIES = { quot: '"', amp: '&', lt: '<', gt: '>', '#39': "'", '#039': "'" };
+    const cleanSynopsis = String(synopsis || '').replace(/&(quot|amp|lt|gt|#0?39);/g, (m, k) => ENTITIES[k]).trim();
+    const synopsisHtml = cleanSynopsis && cleanSynopsis !== 'Sin sinopsis disponible.'
+        ? `<p class="crail-synopsis">${escapeHtml(cleanSynopsis)}</p>`
+        : '';
+    const extraHtml = (scoreHtml || genresHtml || synopsisHtml)
+        ? `<div class="crail-extra">${scoreHtml}${genresHtml}${synopsisHtml}</div>`
+        : '';
+
     var safeImg = safeUrl(image);
     // Card "portada con riel": todo a la vista, sin giro. La portada lleva el
     // estado arriba a la izquierda, favorito y visto arriba a la derecha y un
@@ -388,6 +412,7 @@ function buildCatalogCardHtml(options) {
             ${titleHtml}
             ${chaptersBtn}
             ${captionHtml}
+            ${extraHtml}
         </div>
     </div>`;
 }
@@ -484,6 +509,9 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
             categoria: detailCat,
             info: info,
             titleAlt: item.title_english || '',
+            score: item.score,
+            synopsis: item.synopsis || '',
+            genreList: (Array.isArray(item.genres) ? item.genres : []).map((g) => typeof g === 'string' ? g : g?.name),
             progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
             volCount: volCount,
             chCount: chCount,
