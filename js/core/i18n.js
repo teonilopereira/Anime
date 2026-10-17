@@ -42,6 +42,14 @@
             "index.populares":     "Más populares",
             "index.continuar":     "Continuar viendo",
             "index.recomendado":   "Recomendado para vos",
+            "index.h1":            "Mirudoku: anime, manga y novelas con tu progreso guardado",
+            "index.populares_en":  "Lo más popular en",
+            "index.dock.listas":   "Mis listas",
+            "index.dock.ranking":  "Ranking",
+            "index.dock.comparar": "Comparar",
+            "index.join.title":    "Guardá por dónde vas",
+            "index.join.body":     "Con una cuenta, Mirudoku recuerda el episodio que te toca y lo pone primero cuando volvés.",
+            "index.join.cta":      "Crear cuenta",
 
             // ── Catálogo (anime / manga / novelas) ───────────────────────────
             "catalog.title.anime":    "CATÁLOGO DE ANIME",

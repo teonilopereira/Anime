@@ -1,284 +1,522 @@
-/* inicio.css — portada: separadores de seccion y carruseles. */
+/* inicio.css — portada: escenario "Seguí donde lo dejaste", tira de
+   populares con pestañas, dock de secciones, racha y recomendaciones.
+
+   Regla de la portada: el neón va en pocos lugares (pestaña elegida, puesto 1,
+   botón principal, progreso). Lo demás es estructura sobria: líneas finas,
+   superficies apenas marcadas y aire. */
 
 /* ── Contención de ancho ──
    <body> es flex column con align-items:center, asi que <main> se dimensiona
-   por su CONTENIDO y no queda limitado al viewport. Los carruseles tienen un
-   max-content enorme (12 tarjetas en fila), de modo que estiraban <main> a
-   1560 px sobre pantallas mucho mas angostas: todo quedaba centrado y cortado
-   a ambos lados (el menu se iba a 1100 px con un viewport de 562).
-   width:100% lo ata al ancho disponible; el carrusel scrollea por dentro. */
+   por su CONTENIDO y no queda limitado al viewport. La tira de populares tiene
+   un max-content ancho, de modo que estiraba <main> mas alla del viewport.
+   width:100% lo ata al ancho disponible; la tira scrollea por dentro. */
 body.menu-page #main-content {
     width: 100%;
     min-width: 0;
 }
 
-/* .menu-container es width:90% sin margin auto, asi que quedaba pegado a la
-   izquierda dejando un hueco a la derecha. */
-body.menu-page .menu-container {
-    margin-left: auto;
-    margin-right: auto;
-    /* Con auto-fit entraban 4 columnas y las 6 tarjetas caian 4+2, dejando una
-       fila huerfana. Columnas explicitas para que 6 siempre reparta parejo:
-       3x2 en escritorio, 2x3 en tablet, 1x6 en telefono. */
-    grid-template-columns: repeat(3, 1fr);
-}
-
-@media (max-width: 900px) {
-    body.menu-page .menu-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-}
-
-@media (max-width: 560px) {
-    body.menu-page .menu-container {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-}
-
-/* ── Separador de sección ──
-   No tenia ningun estilo base: se renderizaba como texto plano del navegador
-   (16px, peso 400, alineado a la izquierda), desentonando con el resto. */
-.section-divider {
+.home {
+    --home-max: 1240px;
+    --home-gutter: clamp(16px, 3vw, 28px);
+    --home-line: rgba(var(--ink-rgb), 0.10);
+    --home-surface: rgba(var(--surface-card-rgb), 0.72);
+    --home-btn: #9a12d4;
     display: flex;
-    align-items: center;
-    gap: clamp(12px, 3vw, 22px);
-    width: 100%;
-    max-width: 1560px;
-    margin: 26px auto 4px;
-    padding: 0 clamp(12px, 3vw, 28px);
+    flex-direction: column;
+    gap: clamp(36px, 6vw, 56px);
+    padding: clamp(16px, 3vw, 28px) 0 clamp(56px, 8vw, 96px);
     box-sizing: border-box;
 }
 
-.section-divider::before,
-.section-divider::after {
-    content: "";
-    flex: 1;
+.home > * {
+    width: 100%;
+    max-width: var(--home-max);
+    margin-inline: auto;
+    padding-inline: var(--home-gutter);
+    box-sizing: border-box;
+}
+
+/* Solo para lectores de pantalla. */
+.home-sr {
+    position: absolute;
+    width: 1px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.38));
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
 }
 
-.section-divider::after {
-    background: linear-gradient(270deg, transparent, rgba(0, 242, 255, 0.38));
+.home a:focus-visible,
+.home button:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 3px;
 }
 
-.section-divider span {
-    flex-shrink: 0;
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.82rem, 2vw, 1.02rem);
+/* ══════════════════════════════════════════════════════════════
+   Escenario "Seguí donde lo dejaste" (con sesión y algo en curso)
+   ══════════════════════════════════════════════════════════════ */
+.home-stage[hidden] { display: none; }
+
+.home-stage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* El escenario es siempre oscuro (texto sobre el arte del título), también
+   en tema claro: por eso usa colores fijos y no los del tema. */
+.home-stage-main {
+    position: relative;
+    flex: 2 1 480px;
+    min-width: 0;
+    min-height: clamp(280px, 34vw, 360px);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: #120e22;
+    color: #fff;
+}
+
+.home-stage-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+}
+
+.home-stage-main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(6, 5, 11, 0.94) 0%, rgba(6, 5, 11, 0.70) 45%, rgba(6, 5, 11, 0.15) 100%),
+        linear-gradient(0deg, rgba(6, 5, 11, 0.80), transparent 60%);
+}
+
+.home-stage-copy {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: clamp(24px, 4vw, 40px);
+    max-width: 560px;
+}
+
+.home-stage-label {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.home-stage-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 4.6vw, 3.2rem);
     font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    overflow-wrap: anywhere;
+}
+
+.home-stage-progress {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.home-stage-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 18px;
+    margin-top: 12px;
+}
+
+.home-stage-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 26px;
+    border-radius: 24px;
+    background: var(--home-btn);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 0 22px rgba(188, 19, 254, 0.5);
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.home-stage-btn:hover {
+    color: #fff;
+    box-shadow: 0 0 30px rgba(188, 19, 254, 0.75);
+}
+
+.home-stage-bar {
+    flex: 1 1 140px;
+    max-width: 240px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.home-stage-bar > span {
+    display: block;
+    height: 100%;
+    background: #00f2ff;
+    box-shadow: 0 0 8px #00f2ff;
+}
+
+.home-stage-side {
+    flex: 1 1 260px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.home-stage-side-label {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.home-stage-side ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.home-stage-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid var(--home-line);
+    background: var(--home-surface);
     color: var(--text-main);
-    text-shadow: 0 0 16px rgba(0, 242, 255, 0.4);
+    text-decoration: none;
+}
+
+.home-stage-mini:hover { border-color: rgba(0, 242, 255, 0.45); }
+
+.home-stage-thumb {
+    flex: 0 0 44px;
+    height: 62px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 6px;
+    background: rgba(var(--ink-rgb), 0.08);
+    font-weight: 700;
+}
+
+.home-stage-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.home-stage-mini-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.home-stage-mini-copy strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-
-.home-carousel {
-    width: 100%;
-    max-width: 1560px;
-    margin: 0 auto 34px;
-    padding: 0 clamp(12px, 3vw, 28px);
-    box-sizing: border-box;
+.home-stage-mini-copy span {
+    font-size: 0.9rem;
+    color: var(--text-muted);
 }
 
-/* ── Encabezado ── */
-.home-carousel-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 12px;
-}
-
-.home-carousel-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-main);
-}
-
-.home-carousel-title i,
-.home-carousel-title svg {
-    width: 20px;
-    height: 20px;
-    color: var(--accent-cyan, #00f2ff);
-    filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.5));
-}
-
-.home-carousel-more {
-    flex-shrink: 0;
-    padding: 5px 14px;
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    border-radius: 999px;
-    background: rgba(0, 242, 255, 0.06);
-    color: var(--accent-cyan, #00f2ff);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.78rem;
+.home-stage-all {
+    align-self: flex-start;
+    padding: 6px 2px;
+    color: var(--accent-cyan);
     font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
     text-decoration: none;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.home-carousel-more:hover {
-    background: rgba(0, 242, 255, 0.14);
-    border-color: rgba(0, 242, 255, 0.6);
-    color: var(--text-main);
-}
-
-/* Acento por categoría, alineado con el resto de la app. */
-.home-carousel[data-cat="manga"] .home-carousel-title i,
-.home-carousel[data-cat="manga"] .home-carousel-title svg { color: #22c55e; filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.5)); }
-.home-carousel[data-cat="manga"] .home-carousel-more {
-    border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.08); color: #22c55e;
-}
-.home-carousel[data-cat="manga"] .home-carousel-more:hover { background: rgba(34, 197, 94, 0.16); color: var(--text-main); }
-
-.home-carousel[data-cat="novelas"] .home-carousel-title i,
-.home-carousel[data-cat="novelas"] .home-carousel-title svg { color: #f43f5e; filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.5)); }
-.home-carousel[data-cat="novelas"] .home-carousel-more {
-    border-color: rgba(244, 63, 94, 0.35); background: rgba(244, 63, 94, 0.08); color: #f43f5e;
-}
-.home-carousel[data-cat="novelas"] .home-carousel-more:hover { background: rgba(244, 63, 94, 0.16); color: var(--text-main); }
-
-/* ── Pista ── */
-.home-carousel-viewport {
-    position: relative;
-    min-width: 0;
-}
-
-.home-carousel-track {
+/* ══════════════════════════════════════════════════════════════
+   Más populares: pestañas grandes + tira de pósters inclinados
+   ══════════════════════════════════════════════════════════════ */
+.home-top {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.home-top-label {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* Las pestañas son la misma .q-tabs de js/ui/tabs.js (indicador, teclado y
+   aria-selected), con otra escala: acá son el titular de la sección. */
+.home-top-tabs.q-tabs {
+    margin-inline: 0;
+    gap: clamp(14px, 3vw, 32px);
+    border-bottom: 0;
+    padding-bottom: 6px;
+}
+
+.home-top-tabs .q-tab {
+    min-height: 0;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: clamp(1.9rem, 8.5vw, 4.4rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(var(--ink-rgb), 0.22);
+}
+
+.home-top-tabs .q-tab:hover {
+    background: transparent;
+    color: rgba(var(--ink-rgb), 0.5);
+}
+
+.home-top-tabs .q-tab.is-active {
+    color: var(--text-main);
+    text-shadow: 0 0 22px rgba(188, 19, 254, 0.6);
+}
+
+.home-top-tabs .q-tabs__indicator {
+    height: 2px;
+    background: var(--neon-purple);
+    box-shadow: 0 0 10px var(--neon-purple);
+}
+
+.home-top-strip {
+    display: flex;
+    gap: 10px;
+    height: clamp(300px, 34vw, 430px);
+    margin: 0;
+    /* El costado extra cubre lo que sobresale el paralelogramo (skew de 5°). */
+    padding: 8px 24px 10px;
+    list-style: none;
     overflow-x: auto;
     scroll-snap-type: x proximity;
-    /* overflow-x:auto obliga a recortar en vertical: el padding evita que se
-       corte el hover de la card (translateY(-8px) scale(1.02)). */
-    padding: 12px 2px 16px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
 }
 
-.home-carousel-track::-webkit-scrollbar {
-    display: none;
-}
+.home-top-strip::-webkit-scrollbar { display: none; }
 
-/* Las cards del catálogo son width:100% (pensadas para grid): en el carrusel
-   necesitan un ancho fijo. */
-.home-carousel-track > * {
-    flex: 0 0 auto;
-    width: clamp(140px, 40vw, 190px);
-    max-width: none;
+.home-top-item {
+    flex: 1 1 110px;
+    min-width: 96px;
+    display: flex;
     scroll-snap-align: start;
 }
 
-.home-carousel-skeleton {
-    height: 268px;
-    border-radius: var(--radius-lg, 12px);
-    border: 1px solid rgba(0, 242, 255, 0.1);
-    /* Fondo y animación: bloque QSkeleton en components.css. */
+.home-top-item.is-feature {
+    flex: 3 1 340px;
+    min-width: min(300px, 72vw);
 }
 
-.home-carousel-empty {
-    margin: 0;
-    padding: 28px 4px;
-    color: rgba(var(--ink-rgb), 0.45);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.92rem;
+/* Póster inclinado. La imagen se inclina al revés y se agranda un poco para
+   que el recorte del paralelogramo no deje huecos en las esquinas. */
+.home-top-slat {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    transform: skewX(-5deg);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: #130f24;
+    color: #fff;
+    text-decoration: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* ── Flechas ── */
-.home-carousel-nav {
+.home-top-img {
     position: absolute;
-    top: 50%;
-    z-index: 3;
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    transform: translateY(-50%);
-    border: 1px solid rgba(0, 242, 255, 0.28);
-    border-radius: 50%;
-    background: rgba(var(--surface-card-rgb), 0.9);
-    color: var(--text-main);
-    font-size: 1.4rem;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: skewX(5deg) scale(1.12);
+}
+
+.home-top-slat::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(6, 5, 11, 0.92) 0%, rgba(6, 5, 11, 0.35) 45%, transparent 70%);
+}
+
+a.home-top-slat:hover {
+    border-color: rgba(0, 242, 255, 0.8);
+    color: #fff;
+}
+
+.home-top-item.is-feature .home-top-slat {
+    border-color: var(--neon-purple, #bc13fe);
+    box-shadow: 0 0 0 1px var(--neon-purple, #bc13fe), 0 0 30px rgba(188, 19, 254, 0.4);
+}
+
+.home-top-copy {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 14px 12px;
+    transform: skewX(5deg);
+}
+
+.home-top-item.is-feature .home-top-copy {
+    gap: 4px;
+    padding: clamp(18px, 3vw, 28px) clamp(20px, 3vw, 34px);
+}
+
+.home-top-rank {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
     line-height: 1;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+    color: #00f2ff;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.6);
 }
 
-.home-carousel-nav.prev { left: -6px; }
-.home-carousel-nav.next { right: -6px; }
-
-.home-carousel-nav:hover:not(:disabled) {
-    background: rgba(0, 242, 255, 0.16);
-    border-color: rgba(0, 242, 255, 0.6);
+.home-top-title {
+    font-weight: 700;
+    font-size: 0.98rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-.home-carousel-nav:disabled {
-    opacity: 0.25;
-    cursor: default;
+.home-top-item.is-feature .home-top-rank { font-size: 1.1rem; }
+
+.home-top-item.is-feature .home-top-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+    line-height: 1.05;
 }
 
-.home-carousel-nav[hidden] {
-    display: none;
+.home-top-meta {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.95rem;
 }
 
-/* En pantallas táctiles el gesto de scroll alcanza. */
-@media (hover: none), (max-width: 700px) {
-    .home-carousel-nav {
-        display: none;
-    }
+.home-top-slat.home-carousel-skeleton {
+    border-color: var(--home-line);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .home-carousel-track {
-        scroll-behavior: auto;
-    }
+.home-top-empty {
+    align-self: center;
+    padding: 28px 4px;
+    color: var(--text-muted);
+}
+
+.home-top-more {
+    align-self: flex-end;
+    padding: 6px 2px;
+    color: var(--accent-cyan);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.home-top-more:hover { color: var(--text-main); }
+
+/* ══════════════════════════════════════════════════════════════
+   Dock de secciones
+   ══════════════════════════════════════════════════════════════ */
+.home-dock {
+    display: flex;
+    justify-content: center;
+}
+
+.home-dock-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    margin: 0;
+    padding: 8px;
+    list-style: none;
+    border-radius: 28px;
+    border: 1px solid var(--home-line);
+    background: rgba(var(--surface-panel-rgb), 0.82);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.home-dock-list a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 18px;
+    border-radius: 22px;
+    color: var(--text-main);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.home-dock-list a:hover {
+    background: rgba(0, 242, 255, 0.10);
+}
+
+.home-dock-list svg,
+.home-dock-list i {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-cyan);
+}
+
+/* En teléfono la barra de abajo (common-ui.js) ya lleva estas secciones:
+   el dock solo las repetiría en tres renglones. */
+@media (max-width: 700px) {
+    body.has-bottom-nav .home-dock { display: none; }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Retención en la portada: widget de racha, "Continuar viendo" y
-   recomendaciones. Se rellenan en js/pages/inicio.js.
+   Racha diaria (js/pages/inicio.js)
    ══════════════════════════════════════════════════════════════ */
-
-/* ── Widget de racha ── */
-.streak-widget {
-    max-width: 1100px;
-    margin: 8px auto 0;
-    padding: 0 16px;
-}
+.streak-widget[hidden] { display: none; }
 
 .streak-card {
     display: flex;
     align-items: center;
     gap: 14px;
     padding: 14px 18px;
-    border-radius: var(--radius-lg, 16px);
-    border: 1px solid var(--accent-cyan-18, rgba(0, 242, 255, 0.18));
-    background: linear-gradient(135deg, rgba(188, 19, 254, 0.14), rgba(0, 242, 255, 0.08));
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+    border-radius: 16px;
+    border: 1px solid var(--home-line);
+    background: var(--home-surface);
 }
 
 .streak-card--risk {
     border-color: rgba(255, 138, 0, 0.55);
-    background: linear-gradient(135deg, rgba(255, 138, 0, 0.16), rgba(188, 19, 254, 0.10));
 }
 
 .streak-flame {
-    font-size: 2rem;
+    font-size: 1.8rem;
     line-height: 1;
-    filter: drop-shadow(0 0 10px rgba(255, 138, 0, 0.5));
 }
 
 .streak-copy {
@@ -295,23 +533,46 @@ body.menu-page .menu-container {
 }
 
 .streak-sub {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     color: var(--text-muted, rgba(255, 255, 255, 0.72));
 }
 
 .streak-risk {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 600;
     color: #ffb257;
 }
 
 .streak-ok {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     color: #6ee7a8;
 }
 
-/* ── Tiras "Continuar viendo" / recomendaciones ── */
+/* Acceso a Retos debajo de la racha. */
+.streak-missions {
+    display: block;
+    margin-top: 8px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--home-line);
+    color: var(--text-main);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.streak-missions:hover { border-color: var(--neon-purple); }
+
+/* ══════════════════════════════════════════════════════════════
+   Recomendaciones "Porque viste…" (js/pages/inicio.js)
+   ══════════════════════════════════════════════════════════════ */
 .home-strip[hidden] { display: none; }
+
+.home-block-title {
+    margin: 0 0 12px;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    font-weight: 700;
+    color: var(--text-main);
+}
 
 .home-mini-track {
     display: flex;
@@ -321,60 +582,100 @@ body.menu-page .menu-container {
     scroll-snap-type: x proximity;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding-left: 16px;
-    padding-right: 16px;
 }
 
 .home-mini-track::-webkit-scrollbar { display: none; }
 
 /* El aspecto de la card viene de .wcard (css/cards.css); acá solo el ancho
-   dentro del carrusel horizontal. */
+   dentro de la fila horizontal. */
 .home-mini-card {
     flex: 0 0 auto;
     width: clamp(120px, 34vw, 160px);
     scroll-snap-align: start;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .home-mini-track { scroll-behavior: auto; }
-}
-
-/* Acceso a Retos debajo de la racha (js/pages/inicio.js). */
-.streak-missions {
-    display: block;
-    margin-top: 8px;
-    padding: 8px 16px;
-    border-radius: var(--radius-md, 12px);
-    border: 1px solid rgba(188, 19, 254, 0.35);
-    background: rgba(188, 19, 254, 0.08);
-    color: var(--text-main);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.streak-missions:hover { border-color: var(--neon-purple); }
-
-/* Franja de acceso al reto del día (index.html). */
-.home-reto {
+/* ══════════════════════════════════════════════════════════════
+   Cierre: invitación a crear cuenta + reto del día
+   ══════════════════════════════════════════════════════════════ */
+.home-bottom {
     display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.home-join[hidden] { display: none; }
+
+.home-join {
+    flex: 2 1 460px;
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 14px;
-    max-width: 1068px;
-    margin: 14px auto 0;
-    padding: 14px 20px;
-    box-sizing: border-box;
-    width: calc(100% - 32px);
-    border-radius: var(--radius-lg, 16px);
-    border: 1px solid rgba(188, 19, 254, 0.4);
-    background: linear-gradient(135deg, rgba(188, 19, 254, 0.16), rgba(0, 242, 255, 0.08));
+    gap: 18px 24px;
+    padding: clamp(22px, 3vw, 32px);
+    border-radius: 22px;
+    border: 1px solid rgba(188, 19, 254, 0.35);
+    background: var(--home-surface);
+}
+
+.home-join-copy {
+    flex: 1 1 260px;
+}
+
+.home-join-copy h2 {
+    margin: 0 0 4px;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-main);
+}
+
+.home-join-copy p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.home-join-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 26px;
+    border-radius: 24px;
+    background: var(--home-btn);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.home-join-btn:hover { color: #fff; }
+
+.home-reto {
+    flex: 1 1 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: clamp(22px, 3vw, 28px);
+    border-radius: 22px;
+    border: 1px solid rgba(0, 242, 255, 0.35);
+    background: rgba(0, 242, 255, 0.04);
     color: var(--text-main);
     text-decoration: none;
 }
 
-.home-reto:hover { border-color: var(--neon-purple); }
-.home-reto svg { flex: none; color: var(--accent-cyan); }
-.home-reto-copy { flex: 1; display: grid; }
-.home-reto-copy strong { font-family: var(--font-display); letter-spacing: 0.04em; }
-.home-reto-copy span { color: var(--text-muted); }
+.home-reto:hover { border-color: var(--accent-cyan); }
+
+.home-reto strong {
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.home-reto span { color: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+    .home-top-strip,
+    .home-mini-track { scroll-behavior: auto; }
+    .home-stage-btn,
+    .home-top-slat,
+    .home-dock-list a { transition: none; }
+}

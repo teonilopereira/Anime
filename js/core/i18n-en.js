@@ -49,6 +49,14 @@
         "index.populares":     "Most popular",
         "index.continuar":     "Continue watching",
         "index.recomendado":   "Recommended for you",
+        "index.h1":            "Mirudoku: anime, manga and novels with your progress saved",
+        "index.populares_en":  "Most popular in",
+        "index.dock.listas":   "My lists",
+        "index.dock.ranking":  "Ranking",
+        "index.dock.comparar": "Compare",
+        "index.join.title":    "Keep your place",
+        "index.join.body":     "With an account, Mirudoku remembers the episode you’re on and puts it first when you come back.",
+        "index.join.cta":      "Create account",
 
         // ── Catalog ──────────────────────────────────────────────────────
         "catalog.title.anime":    "ANIME CATALOG",

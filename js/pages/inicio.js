@@ -3,10 +3,13 @@
  *
  * Tres bloques que solo aparecen para usuarios con sesión y datos:
  *   1. Widget de racha diaria (días seguidos + récord + aviso de riesgo).
- *   2. "Continuar viendo": títulos empezados y sin terminar, para retomar de
- *      una. Se derivan de los estados de item + el progreso guardado.
+ *   2. Escenario "Seguí donde lo dejaste": el título en curso más reciente en
+ *      grande, arriba de todo, y los dos siguientes al costado. Se derivan de
+ *      los estados de item + el progreso guardado.
  *   3. "Porque viste…": recomendaciones por el género más frecuente en lo que
  *      el usuario marcó como visto/favorito.
+ *
+ * Además oculta la invitación a crear cuenta (#homeJoin) cuando hay sesión.
  *
  * Todo es best-effort: si no hay sesión, si Supabase no cargó o si la API
  * falla, cada bloque se queda oculto sin romper el resto de la home.
@@ -14,7 +17,7 @@
 (function () {
     'use strict';
 
-    var CONTINUE_MAX = 12;
+    var CONTINUE_MAX = 3; // 1 en grande + 2 al costado
     var RECO_MAX = 12;
 
     function esc(s) {
@@ -206,6 +209,8 @@
                 titulo: meta.titulo,
                 img: meta.img || '',
                 badge: progressCount > 0 ? (progressCount + '✓') : 'Viendo',
+                visto: progressCount,
+                total: Number(meta.total || 0),
                 _ts: st.updated_at || ''
             });
         });
@@ -216,9 +221,92 @@
         return out.slice(0, CONTINUE_MAX);
     }
 
-    async function loadHomeData() {
+    // ─────────────────────────────────────────────────────────────
+    // 2. Escenario "Seguí donde lo dejaste"
+    // ─────────────────────────────────────────────────────────────
+    function unidad(item) {
+        return item.category === 'anime' ? 'episodios' : 'capítulos';
+    }
+
+    function progresoTexto(item) {
+        if (item.visto > 0 && item.total > 0) return item.visto + ' de ' + item.total + ' ' + unidad(item) + ' vistos';
+        if (item.visto > 0) return item.visto + ' ' + unidad(item) + ' vistos';
+        return item.category === 'anime' ? 'Lo estás viendo' : 'Lo estás leyendo';
+    }
+
+    function stageSideHtml(item) {
+        var img = item.img
+            ? '<img src="' + esc(item.img) + '" alt="" loading="lazy">'
+            : '<span aria-hidden="true">' + esc(String(item.titulo || '?').charAt(0)) + '</span>';
+        return '<li><a class="home-stage-mini" href="' + esc(detailUrl(item.category, item.id)) + '">' +
+                    '<span class="home-stage-thumb">' + img + '</span>' +
+                    '<span class="home-stage-mini-copy">' +
+                        '<strong>' + esc(item.titulo) + '</strong>' +
+                        '<span>' + esc(progresoTexto(item)) + '</span>' +
+                    '</span>' +
+                '</a></li>';
+    }
+
+    function renderStage(items) {
+        var host = document.getElementById('homeStage');
+        if (!host) return;
+        if (!items.length) { host.hidden = true; host.innerHTML = ''; return; }
+
+        var main = items[0];
+        var rest = items.slice(1);
+        var pct = main.total > 0 ? Math.min(100, Math.round(main.visto / main.total * 100)) : 0;
+        var bar = pct > 0
+            ? '<span class="home-stage-bar" role="img" aria-label="' + esc(progresoTexto(main)) + '">' +
+                  '<span style="width:' + pct + '%"></span>' +
+              '</span>'
+            : '';
+        var bg = main.img
+            ? '<img class="home-stage-bg" src="' + esc(main.img) + '" alt="">'
+            : '';
+
+        host.innerHTML =
+            '<div class="home-stage-main">' +
+                bg +
+                '<div class="home-stage-copy">' +
+                    '<p class="home-stage-label" id="homeStageLabel">Seguí donde lo dejaste</p>' +
+                    '<h2 class="home-stage-title">' + esc(main.titulo) + '</h2>' +
+                    '<p class="home-stage-progress">' + esc(progresoTexto(main)) + '</p>' +
+                    '<div class="home-stage-actions">' +
+                        '<a class="home-stage-btn" href="' + esc(detailUrl(main.category, main.id)) + '">' +
+                            (main.category === 'anime' ? 'Seguir viendo' : 'Seguir leyendo') +
+                        '</a>' +
+                        bar +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            (rest.length
+                ? '<div class="home-stage-side">' +
+                      '<p class="home-stage-side-label">También en curso</p>' +
+                      '<ul>' + rest.map(stageSideHtml).join('') + '</ul>' +
+                      '<a class="home-stage-all" href="mis-listas.html">Ver todas tus listas</a>' +
+                  '</div>'
+                : '');
+        // Si el arte no carga, queda el fondo liso en vez del ícono de imagen rota.
+        host.querySelectorAll('img').forEach(function (img) {
+            img.addEventListener('error', function () { img.remove(); }, { once: true });
+        });
+        host.hidden = false;
+    }
+
+    function syncJoin() {
+        var join = document.getElementById('homeJoin');
+        if (!join) return;
         var client = window.AppSupabase;
-        if (!client || !client.isSignedIn || !client.isSignedIn()) return;
+        join.hidden = !!(client && client.isSignedIn && client.isSignedIn());
+    }
+
+    async function loadHomeData() {
+        syncJoin();
+        var client = window.AppSupabase;
+        if (!client || !client.isSignedIn || !client.isSignedIn()) {
+            renderStage([]);
+            return;
+        }
         if (typeof client.loadItemStates !== 'function' || typeof client.loadAllProgress !== 'function') return;
 
         var states = [];
@@ -242,9 +330,8 @@
         var ownedIds = new Set();
         states.forEach(function (st) { ownedIds.add(String(st.item_id)); });
 
-        // 2. Continuar viendo
-        fillRow('continueWatchingTrack', 'continueWatchingSection', buildContinueWatching(states, progressByItem));
-        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+        // 2. Seguí donde lo dejaste
+        renderStage(buildContinueWatching(states, progressByItem));
 
         // 3. Recomendaciones
         await loadRecommendations(states, ownedIds);
