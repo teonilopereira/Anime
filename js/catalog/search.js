@@ -582,8 +582,13 @@ function inicializarBusquedaCatalogo() {
     if (browseTabs) {
         var syncBrowseTabs = function () {
             var current = getBrowsePref(categoria);
+            var heading = document.getElementById('catalogHeading');
             browseTabs.querySelectorAll('.browse-tab').forEach(function (tab) {
-                tab.classList.toggle('is-active', (tab.getAttribute('data-browse') || '') === current);
+                var on = (tab.getAttribute('data-browse') || '') === current;
+                tab.classList.toggle('is-active', on);
+                tab.setAttribute('aria-selected', String(on));
+                // El título de los resultados repite el modo elegido.
+                if (on && heading) heading.textContent = tab.textContent.trim();
             });
         };
         syncBrowseTabs();
@@ -942,14 +947,18 @@ function inicializarGeneroWidgets() {
     function getActiveGenreRow() {
         let row = document.getElementById('activeGenreChips');
         if (row) return row;
+        // Con el layout de columna lateral, los géneros elegidos van arriba de
+        // los resultados (#activeGenreSlot); si no está, debajo del panel.
+        const slot = document.getElementById('activeGenreSlot');
         const dropdown = document.getElementById('filterDropdown');
-        if (!dropdown || !dropdown.parentNode) return null;
+        if (!slot && (!dropdown || !dropdown.parentNode)) return null;
         row = document.createElement('div');
         row.id = 'activeGenreChips';
         row.className = 'q-chip-row catalog-active-genres';
         row.setAttribute('aria-label', catTr('catalog.generos_activos', 'Géneros elegidos'));
         row.hidden = true;
-        dropdown.parentNode.insertBefore(row, dropdown.nextSibling);
+        if (slot) slot.appendChild(row);
+        else dropdown.parentNode.insertBefore(row, dropdown.nextSibling);
         row.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-remove-genre], [data-clear-genres]');
             if (!btn) return;
@@ -1052,3 +1061,26 @@ function inicializarGeneroWidgets() {
     }
 }
 
+// Vista del catálogo: fichas (portada + datos y sinopsis) o solo portadas. Se
+// recuerda por navegador; el cambio es solo de CSS (data-view en la galería).
+(function initCatalogView() {
+    function init() {
+        const gallery = document.getElementById('main-content');
+        const buttons = { fichas: document.getElementById('viewCards'), portadas: document.getElementById('viewCovers') };
+        if (!gallery || !buttons.fichas || !buttons.portadas) return;
+        let view = 'fichas';
+        try { if (localStorage.getItem('pref:catalogView') === 'portadas') view = 'portadas'; } catch (_) {}
+        const apply = () => {
+            gallery.setAttribute('data-view', view);
+            Object.keys(buttons).forEach((k) => buttons[k].setAttribute('aria-pressed', String(k === view)));
+        };
+        apply();
+        Object.keys(buttons).forEach((k) => buttons[k].addEventListener('click', () => {
+            view = k;
+            try { localStorage.setItem('pref:catalogView', view); } catch (_) { /* storage bloqueado */ }
+            apply();
+        }));
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
