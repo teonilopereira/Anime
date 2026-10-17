@@ -21,310 +21,554 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=3fd02558">
+        <link rel="stylesheet" href="css/bundle.min.css?v=da5e7733">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=3fd02558">
+    <link rel="stylesheet" href="css/fonts.css?v=da5e7733">
     <style>
-        /* LAYOUT LISTAS */
-        .lists-layout {
-            display: grid;
-            grid-template-columns: 260px 1fr;
-            min-height: calc(100vh - 60px);
-        }
-
-        /* Sidebar */
-        .lists-sidebar {
+        /* ◆ ESTRUCTURA: barra superior + contenido a todo el ancho ◆ */
+        .ml-top {
+            border-bottom: 1px solid rgba(77,134,255,0.2);
             background:
-                repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80,130,255,0.012) 3px, rgba(80,130,255,0.012) 4px),
-                linear-gradient(180deg, rgba(var(--surface-card-rgb),0.95), rgba(var(--surface-dark-rgb),0.95));
-            border-right: 1px solid rgba(77,134,255,0.2);
-            padding: 28px 16px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+                repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80,130,255,0.02) 3px, rgba(80,130,255,0.02) 4px),
+                rgba(var(--surface-card-rgb),0.9);
         }
-        .lists-sidebar::-webkit-scrollbar { width: 4px; }
-        .lists-sidebar::-webkit-scrollbar-track { background: transparent; }
-        .lists-sidebar::-webkit-scrollbar-thumb { background: rgba(77,134,255,0.3); border-radius: 2px; }
+        .ml-top-inner {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 18px 24px 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px 24px;
+        }
+        .ml-title {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            font-size: clamp(1.25rem, 2.6vw, 1.65rem);
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #4d86ff, #00f2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-        .sidebar-profile {
-            background: rgba(var(--ink-rgb),0.04);
-            border: 1px solid rgba(77,134,255,0.25);
-            border-radius: 14px;
-            padding: 16px;
+        /* Perfil compacto (pastilla) */
+        .ml-profile { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .ml-profile-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            padding: 5px 16px 5px 5px;
+            border-radius: 999px;
+            border: 1px solid rgba(77,134,255,0.3);
+            background: rgba(var(--ink-rgb),0.03);
+            color: var(--text-main);
+            text-decoration: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .ml-profile-link:hover { border-color: rgba(77,134,255,0.6); box-shadow: 0 0 14px rgba(77,134,255,0.15); color: var(--text-main); }
+        .ml-avatar {
+            --pct: 0;
             position: relative;
-            overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .sidebar-profile::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 12px;
-            width: 42%; height: 3px;
-            background: linear-gradient(90deg, #4d86ff, #1c46f0);
-            clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
-            filter: drop-shadow(0 0 4px rgba(77,134,255,0.5));
-        }
-        .sidebar-profile:hover {
-            border-color: rgba(77,134,255,0.5);
-            box-shadow: 0 0 18px rgba(77,134,255,0.12);
-        }
-        .sidebar-avatar-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            margin-bottom: 8px;
-        }
-        .sidebar-avatar-ring {
-            width: 68px;
-            height: 68px;
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #2f6bff, #00f2ff, #2f6bff);
-            background-size: 200% 200%;
-            animation: avatarGlow 3s ease infinite;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 3px;
+            box-sizing: border-box;
+            background: conic-gradient(#00f2ff calc(var(--pct) * 1%), rgba(var(--ink-rgb),0.12) 0);
         }
-        @keyframes avatarGlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .sidebar-avatar-inner {
+        .ml-avatar-inner {
             width: 100%;
             height: 100%;
             border-radius: 50%;
+            overflow: hidden;
             background: #0d0620;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-        }
-        .sidebar-avatar-inner img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .sidebar-avatar-inner .sidebar-initials {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
+            font-size: 0.72rem;
             font-weight: 700;
-            color: var(--text-main);
+            color: #fff;
         }
-        .lists-profile-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2f6bff, #00f2ff);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin: 0 auto 10px;
-        }
-        .lists-profile-main { text-align: center; }
-        .lists-profile-label {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: rgba(var(--ink-rgb),0.4);
-            font-family: 'Orbitron', sans-serif;
-            display: block;
-        }
-        .lists-profile-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.95rem;
-            color: var(--text-main);
-            display: block;
-            margin: 4px 0 8px;
-        }
-        .lists-profile-track {
-            height: 5px;
-            background: rgba(var(--ink-rgb),0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 4px;
-        }
-        .lists-profile-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #2f6bff, #00f2ff);
-            border-radius: 3px;
-            transition: width 0.6s ease;
-        }
-        .lists-profile-meta {
-            font-size: 0.75rem;
-            color: rgba(var(--ink-rgb),0.5);
+        .ml-avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
+        .ml-avatar-inner .sidebar-initials { font-size: 0.72rem; color: #fff; line-height: 1; }
+        .ml-profile-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+        .ml-profile-name {
             font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .lists-profile-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        .lists-profile-btn {
-            display: block;
-            text-align: center;
-            padding: 7px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(0,242,255,0.25);
-            background: rgba(0,242,255,0.06);
-            color: #00f2ff;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 1px;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-        .lists-profile-btn:hover {
-            background: rgba(0,242,255,0.14);
-            border-color: rgba(0,242,255,0.5);
-        }
-        .lists-profile-btn.secondary {
-            border-color: rgba(77,134,255,0.3);
-            background: rgba(77,134,255,0.06);
-            color: #7ea8ff;
-        }
-        .lists-profile-btn.secondary:hover {
-            background: rgba(77,134,255,0.14);
-            border-color: rgba(77,134,255,0.55);
-        }
-
-        /* Invitado sidebar */
-        .sidebar-guest {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 14px;
-            padding: 20px 12px;
-            text-align: center;
-        }
-        .sidebar-guest-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            border: 2px solid rgba(77,134,255,0.55);
-            display: flex;
+        .ml-profile-sub { font-size: 0.85rem; color: rgba(var(--ink-rgb),0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ml-icon-btn {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(145deg, #0e1a3a, #2f6bff);
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            border: 1px solid rgba(77,134,255,0.3);
+            background: transparent;
+            color: rgba(var(--ink-rgb),0.7);
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
         }
-        .sidebar-guest-icon svg { width: 32px; height: 32px; }
-        .sidebar-guest-text { color: rgba(var(--ink-rgb),0.5); font-size: 0.8rem; font-family: 'Rajdhani', sans-serif; margin: 0 0 4px; }
-        .sidebar-guest-sub { color: rgba(var(--ink-rgb),0.35); font-size: 0.72rem; margin: 0; }
-        .sidebar-login-btn {
+        .ml-icon-btn:hover { color: var(--accent-cyan); border-color: rgba(0,242,255,0.5); }
+        .ml-icon-btn svg { width: 18px; height: 18px; }
+        .ml-login-btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 22px;
-            border: 1.5px solid rgba(77,134,255,0.7);
+            min-height: 44px;
+            padding: 0 20px;
             border-radius: 999px;
+            border: 1.5px solid rgba(77,134,255,0.7);
             background: linear-gradient(135deg, rgba(28,70,240,0.4), rgba(77,134,255,0.2));
             color: var(--text-main);
             font-family: 'Rajdhani', sans-serif;
-            font-size: 0.9rem;
             font-weight: 700;
             text-decoration: none;
-            letter-spacing: 0.04em;
-            transition: all 0.2s;
-            box-shadow: 0 0 14px rgba(77,134,255,0.25);
         }
-        .sidebar-login-btn:hover {
-            background: linear-gradient(135deg, rgba(28,70,240,0.6), rgba(77,134,255,0.4));
-            color: var(--text-main);
-            box-shadow: 0 0 20px rgba(77,134,255,0.4);
-        }
-        .sidebar-login-btn svg { width: 16px; height: 16px; }
+        .ml-login-btn:hover { color: var(--text-main); box-shadow: 0 0 18px rgba(77,134,255,0.35); }
+        .ml-login-btn svg { width: 16px; height: 16px; }
 
-        /* Nav sidebar */
-        .sidebar-nav {
+        /* Pestañas de sección (reemplazan la barra lateral) */
+        .ml-tabs {
+            flex: 1 1 100%;
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            gap: 2px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            margin: 0 -8px;
         }
-        .sidebar-link {
-            display: flex;
+        .ml-tabs::-webkit-scrollbar { display: none; }
+        .ml-tabs .sidebar-link {
+            flex: none;
+            border-radius: 0;
+            border-left: 0;
+            background: transparent;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: 10px;
+            gap: 8px;
+            min-height: 46px;
+            padding: 0 14px;
+            white-space: nowrap;
             text-decoration: none;
             color: rgba(var(--ink-rgb),0.6);
             font-family: 'Rajdhani', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.98rem;
+            font-weight: 700;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .ml-tabs .sidebar-link:hover { color: var(--text-main); background: transparent; }
+        .ml-tabs .sidebar-link.active { color: var(--text-main); background: transparent; border-left: 0; border-bottom-color: #00f2ff; }
+        .sidebar-icon { display: inline-flex; }
+        .sidebar-icon svg { width: 17px; height: 17px; }
+
+        .lists-main-content {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 28px 24px 64px;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        .ml-h2 {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
             font-weight: 600;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-        .sidebar-link:hover {
-            background: rgba(var(--ink-rgb),0.05);
+            font-size: 1rem;
+            letter-spacing: 0.5px;
             color: var(--text-main);
-            border-color: rgba(var(--ink-rgb),0.08);
         }
-        .sidebar-link {
+        .ml-section-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px 16px;
+            margin-bottom: 14px;
+        }
+        .ml-muted { color: rgba(var(--ink-rgb),0.6); font-size: 0.92rem; }
+        .ml-link {
+            color: var(--accent-cyan);
+            font-weight: 700;
+            font-size: 0.92rem;
+            text-decoration: none;
+        }
+        .ml-link:hover { text-decoration: underline; }
+
+        /* Continuar */
+        .ml-continue { margin-bottom: 36px; }
+        .ml-continue[hidden] { display: none; }
+        .ml-rail {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(290px, 1fr);
+            gap: 14px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scroll-snap-type: x proximity;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(77,134,255,0.35) transparent;
+        }
+        .ml-cont-card {
             position: relative;
+            display: flex;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(77,134,255,0.25);
+            background: rgba(var(--surface-card-rgb),0.85);
+            overflow: hidden;
+            scroll-snap-align: start;
         }
-        .sidebar-link.active {
-            background: rgba(77,134,255,0.12);
-            border-color: rgba(77,134,255,0.3);
-            color: #7ea8ff;
-            box-shadow: 0 0 12px rgba(77,134,255,0.1);
-        }
-        .sidebar-link.active::before {
+        .ml-cont-card::before {
             content: '';
             position: absolute;
-            left: 0;
-            top: 20%;
-            bottom: 20%;
-            width: 3px;
-            background: linear-gradient(180deg, #4d86ff, #1c46f0);
-            border-radius: 2px;
-            box-shadow: 0 0 8px rgba(77,134,255,0.7);
+            top: 0; left: 14px;
+            width: 38%; height: 2px;
+            background: var(--cont-accent, #00f2ff);
         }
-        .sidebar-icon { font-size: 1rem; width: 20px; text-align: center; }
-
-        .sidebar-quote-box {
-            margin-top: auto;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(188,19,254,0.15);
-            background: linear-gradient(135deg, rgba(77,134,255,0.05), rgba(0,242,255,0.03));
-            position: relative;
+        .ml-cont-cover {
+            width: 76px;
+            height: 108px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            object-fit: cover;
+            background: rgba(var(--ink-rgb),0.06);
+        }
+        .ml-cont-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .ml-cont-title {
+            margin: 0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.08rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .sidebar-quote-box::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(77,134,255,0.5), transparent);
+        .ml-cont-meta { margin: 2px 0 0; font-size: 0.88rem; font-weight: 600; color: rgba(var(--ink-rgb),0.6); }
+        .ml-cont-foot { margin-top: auto; }
+        .ml-cont-progress { display: flex; justify-content: space-between; font-size: 0.88rem; color: rgba(var(--ink-rgb),0.75); }
+        .ml-bar {
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(var(--ink-rgb),0.1);
+            overflow: hidden;
+            margin: 5px 0 9px;
         }
-        .quote-text {
-            font-size: 0.82rem;
-            color: rgba(var(--ink-rgb),0.6);
-            font-style: italic;
+        .ml-bar > span { display: block; height: 100%; background: var(--cont-accent, #00f2ff); }
+        .ml-cont-cta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            border-radius: 9px;
+            border: 1px solid rgba(77,134,255,0.4);
+            background: rgba(77,134,255,0.1);
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .ml-cont-cta:hover { background: rgba(77,134,255,0.2); border-color: rgba(77,134,255,0.7); color: var(--text-main); }
+
+        /* Biblioteca + columna lateral */
+        .ml-split { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+        .ml-library { flex: 999 1 600px; min-width: 0; }
+        .ml-side { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+        .ml-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .ml-search,
+        .ml-select {
+            min-height: 40px;
+            padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(77,134,255,0.3);
+            background: rgba(var(--surface-card-rgb),0.85);
+            color: var(--text-main);
             font-family: 'Rajdhani', sans-serif;
-            line-height: 1.5;
+            font-size: 0.95rem;
         }
-        .quote-author {
+        .ml-search { width: 200px; }
+        .ml-search::placeholder { color: rgba(var(--ink-rgb),0.45); }
+        .ml-view {
+            display: flex;
+            border: 1px solid rgba(77,134,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .ml-view button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 38px;
+            border: 0;
+            background: transparent;
+            color: rgba(var(--ink-rgb),0.55);
+            cursor: pointer;
+        }
+        .ml-view button[aria-pressed="true"] { background: rgba(77,134,255,0.18); color: var(--accent-cyan); }
+        .ml-view svg, .ml-export svg { width: 18px; height: 18px; }
+        .ml-export {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(77,134,255,0.3);
+            background: transparent;
+            color: rgba(var(--ink-rgb),0.7);
+            cursor: pointer;
+        }
+        .ml-export:hover { color: var(--accent-cyan); border-color: rgba(0,242,255,0.5); }
+
+        /* Estado: pestañas con contador */
+        .ml-status {
+            display: flex;
+            gap: 2px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            border-bottom: 1px solid rgba(77,134,255,0.2);
+            margin-bottom: 12px;
+        }
+        .ml-status::-webkit-scrollbar { display: none; }
+        body[data-page="listas"] .ml-status .lists-chip {
+            border-radius: 0;
+            letter-spacing: 0;
+            box-shadow: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 44px;
+            padding: 0 12px;
+            margin-bottom: -1px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: rgba(var(--ink-rgb),0.6);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        body[data-page="listas"] .ml-status .lists-chip:hover { color: var(--text-main); background: transparent; }
+        body[data-page="listas"] .ml-status .lists-chip.is-active { color: var(--text-main); background: transparent; box-shadow: none; border-color: transparent; border-bottom-color: #00f2ff; }
+        .ml-count {
+            min-width: 22px;
+            padding: 0 7px;
+            border-radius: 999px;
+            background: rgba(77,134,255,0.16);
+            color: rgba(var(--ink-rgb),0.75);
+            font-size: 0.8rem;
+            line-height: 20px;
+            text-align: center;
+        }
+        body[data-page="listas"] .lists-chip.is-active .ml-count { background: #00f2ff; color: #06050c; }
+
+        /* Categoría */
+        .resultados-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; padding-bottom: 0; border-bottom: 0; }
+        .res-tab {
+            display: inline-flex;
+            align-items: center;
+            box-shadow: none;
+            min-height: 36px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(77,134,255,0.25);
+            background: transparent;
+            color: rgba(var(--ink-rgb),0.75);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .res-tab:hover { border-color: rgba(77,134,255,0.55); color: var(--text-main); background: transparent; transform: none; }
+        .res-tab.active, .res-tab.active:hover { background: #1c46f0; border-color: #4d86ff; color: #fff; box-shadow: none; }
+
+        /* Grilla de portadas */
+        .ml-grid {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 22px 16px;
+        }
+        .ml-tile { display: flex; flex-direction: column; gap: 7px; text-decoration: none; color: var(--text-main); min-width: 0; }
+        .ml-tile:hover { color: var(--text-main); }
+        .ml-tile-cover {
+            position: relative;
+            display: block;
+            aspect-ratio: 2 / 3;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(77,134,255,0.22);
+            background: rgba(var(--ink-rgb),0.06);
+            transition: transform 0.18s ease, border-color 0.18s ease;
+        }
+        .ml-tile:hover .ml-tile-cover { transform: translateY(-3px); border-color: #4d86ff; }
+        .ml-tile-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ml-tile-badge {
+            position: absolute;
+            top: 8px; left: 8px;
+            padding: 1px 8px;
+            border-radius: 999px;
+            background: rgba(6,5,12,0.88);
+            border: 1px solid var(--st-color, #a3abcf);
+            color: var(--st-color, #a3abcf);
             font-size: 0.75rem;
-            color: rgba(126,168,255,0.8);
-            margin-top: 6px;
-            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+        }
+        .ml-tile-fav {
+            position: absolute;
+            top: 8px; right: 8px;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(6,5,12,0.88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ml-tile-fav svg { width: 13px; height: 13px; }
+        .ml-tile-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(6,5,12,0.85); }
+        .ml-tile-bar > span { display: block; height: 100%; background: var(--st-color, #00f2ff); }
+        .ml-tile-title {
+            font-weight: 700;
+            font-size: 1rem;
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .ml-tile-meta { font-size: 0.85rem; color: rgba(var(--ink-rgb),0.6); }
+        .lists-empty .ml-reset {
+            margin-top: 14px;
+            min-height: 42px;
+            padding: 0 18px;
+            border-radius: 999px;
+            border: 1px solid #00f2ff;
+            background: transparent;
+            color: var(--accent-cyan);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
         }
 
-        /* Main content */
-        .lists-main-content {
-            padding: 28px 28px 60px;
-            min-width: 0;
+        /* Columna lateral */
+        .ml-card {
+            border: 1px solid rgba(77,134,255,0.2);
+            border-radius: 14px;
+            background: rgba(var(--surface-card-rgb),0.85);
+            padding: 16px 18px;
+        }
+        .ml-card .ml-h2 { font-size: 0.85rem; }
+        .ml-card .ml-section-head { margin-bottom: 10px; }
+        .ml-week { list-style: none; margin: 0; padding: 0; }
+        .ml-week li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-top: 1px solid rgba(77,134,255,0.12);
+        }
+        .ml-week-day {
+            width: 46px;
+            flex-shrink: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.66rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+        }
+        .ml-week-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); text-decoration: none; font-weight: 700; }
+        .ml-week-title:hover { color: var(--accent-cyan); }
+        .ml-week-ep { color: rgba(var(--ink-rgb),0.6); font-weight: 500; }
+        .ml-week-time { font-size: 0.85rem; color: rgba(var(--ink-rgb),0.6); }
+        .ml-week-empty { margin: 0; color: rgba(var(--ink-rgb),0.6); font-size: 0.92rem; }
+
+        body[data-page="listas"] .ml-points .points-card {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: none;
+            box-shadow: none;
+        }
+        body[data-page="listas"] .ml-points .points-card::before { display: none; }
+        .points-top { display: flex; justify-content: space-between; align-items: baseline; }
+        .points-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+        .points-value { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: var(--accent-cyan); }
+        .points-track { height: 6px; border-radius: 3px; background: rgba(var(--ink-rgb),0.1); overflow: hidden; }
+        .points-fill { height: 100%; background: linear-gradient(90deg, #2f6bff, #00f2ff); border-radius: 3px; transition: width 0.6s ease; }
+        .points-sub { font-size: 0.88rem; color: rgba(var(--ink-rgb),0.6); }
+        .ml-points:empty { display: none; }
+
+        .ml-achv { display: flex; gap: 14px; align-items: center; }
+        .ml-achv-icon {
+            width: 46px; height: 46px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            border: 1px solid rgba(255,209,102,0.7);
+            background: rgba(255,209,102,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        .ml-achv-title { margin: 0; font-weight: 700; color: var(--text-main); }
+        .ml-achv-desc { margin: 0; font-size: 0.88rem; color: rgba(var(--ink-rgb),0.6); }
+        .ml-achv-bar { height: 6px; border-radius: 3px; background: rgba(var(--ink-rgb),0.1); overflow: hidden; margin-top: 12px; }
+        .ml-achv-bar > span { display: block; height: 100%; background: #ffd166; }
+
+        .ml-totals { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        .ml-totals dt { font-size: 0.88rem; color: rgba(var(--ink-rgb),0.6); }
+        .ml-totals dd { margin: 0; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1.45rem; }
+        .ml-totals .t-anime { color: var(--accent-cyan); }
+        .ml-totals .t-manga { color: #22c55e; }
+        .ml-totals .t-novelas { color: #f43f5e; }
+
+        .ml-recs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .ml-recs .wcard { width: 100%; max-width: none; }
+        .ml-recs > p { grid-column: 1 / -1; }
+        .sr-only {
+            position: absolute;
+            width: 1px; height: 1px;
+            padding: 0; margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
         }
 
         .tab-content { display: none; }
@@ -350,292 +594,6 @@
             font-family: 'Rajdhani', sans-serif;
             margin: 0;
         }
-
-        /* Puntos / nivel */
-        .points-new { margin-bottom: 20px; }
-        .points-card {
-            background:
-                linear-gradient(90deg, rgba(77,134,255,0.05), transparent 55%),
-                rgba(6,9,20,0.85);
-            border: 1px solid rgba(77,134,255,0.28);
-            border-radius: 14px;
-            padding: 16px 20px;
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .points-card::before {
-            content: '';
-            position: absolute;
-            top: 0; right: 14px;
-            width: 52px; height: 8px;
-            background: repeating-linear-gradient(115deg, rgba(77,134,255,0.85) 0px, rgba(77,134,255,0.85) 6px, transparent 6px, transparent 12px);
-            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-            filter: drop-shadow(0 0 4px rgba(77,134,255,0.45));
-        }
-        .points-card:hover {
-            border-color: rgba(77,134,255,0.5);
-            box-shadow: 0 0 18px rgba(77,134,255,0.12);
-        }
-        .points-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .points-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--text-main); }
-        .points-value { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #00f2ff; }
-        .points-track {
-            height: 8px;
-            background: rgba(var(--ink-rgb),0.09);
-            border: 1px solid rgba(var(--ink-rgb),0.08);
-            border-radius: 999px;
-            overflow: hidden;
-        }
-        .points-fill {
-            height: 100%;
-            min-width: 6px;
-            border-radius: inherit;
-            /* Mismo criterio que la barra del perfil: el degradado se escala al
-               ancho del track via --pctnum para que no se comprima en niveles bajos. */
-            background-image: linear-gradient(90deg, #ec4899, #a855f7 48%, #38bdf8);
-            background-repeat: no-repeat;
-            background-size: calc(10000% / var(--pctnum, 100)) 100%;
-            box-shadow: 0 0 10px rgba(168, 85, 247, 0.45);
-            transition: width 0.8s ease;
-        }
-        .points-sub {
-            font-size: 0.75rem;
-            color: rgba(var(--ink-rgb),0.4);
-            font-family: 'Rajdhani', sans-serif;
-            margin-top: 5px;
-        }
-
-        /* Chips / filtros */
-        .lists-controls {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .lists-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 999px;
-            border: 1px solid rgba(var(--ink-rgb),0.12);
-            background: rgba(var(--ink-rgb),0.04);
-            color: rgba(var(--ink-rgb),0.65);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .lists-chip:hover {
-            border-color: rgba(0,242,255,0.3);
-            color: #00f2ff;
-        }
-        .lists-chip.is-active {
-            border-color: rgba(0,242,255,0.45);
-            background: rgba(0,242,255,0.1);
-            color: #00f2ff;
-            box-shadow: 0 0 12px rgba(0,242,255,0.1);
-        }
-        .lists-chip.export-btn { border-color: rgba(77,134,255,0.3); color: #7ea8ff; }
-        .lists-chip.export-btn:hover { background: rgba(77,134,255,0.1); border-color: rgba(77,134,255,0.5); }
-        .chip-icon { font-size: 0.9rem; }
-
-        /* ◆ CARDS DE CATEGORÍA ◆ */
-        .category-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-        .category-card {
-            background:
-                repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80,130,255,0.01) 3px, rgba(80,130,255,0.01) 4px),
-                linear-gradient(180deg, rgba(var(--surface-card-rgb),0.9), rgba(var(--surface-dark-rgb),0.9));
-            border: 1px solid rgba(77,134,255,0.18);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            cursor: pointer;
-            transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-            position: relative;
-            overflow: hidden;
-        }
-        /* Barra superior inclinada en el color de la categoría */
-        .category-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 14px;
-            width: 34%; height: 3px;
-            background: var(--cat-accent, linear-gradient(90deg, #4d86ff, #1c46f0));
-            clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
-            opacity: 0.85;
-            transition: opacity 0.25s, filter 0.25s;
-        }
-        .category-card:hover::before {
-            opacity: 1;
-            filter: drop-shadow(0 0 5px currentColor);
-        }
-        .category-card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            opacity: 0;
-            transition: opacity 0.25s;
-            pointer-events: none;
-        }
-        .category-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-        }
-        .category-card.anime { border-color: rgba(0,242,255,0.2); --cat-accent: linear-gradient(90deg, #00f2ff, #0891b2); color: #00f2ff; }
-        .category-card.anime:hover {
-            border-color: rgba(0,242,255,0.5);
-            box-shadow: 0 6px 24px rgba(0,242,255,0.08);
-        }
-        .category-card.manga { border-color: rgba(34,197,94,0.2); --cat-accent: linear-gradient(90deg, #22c55e, #15803d); color: #22c55e; }
-        .category-card.manga:hover {
-            border-color: rgba(34,197,94,0.5);
-            box-shadow: 0 6px 24px rgba(34,197,94,0.08);
-        }
-        .category-card.novelas { border-color: rgba(244,63,94,0.2); --cat-accent: linear-gradient(90deg, #f43f5e, #be123c); color: #f43f5e; }
-        .category-card.novelas:hover {
-            border-color: rgba(244,63,94,0.5);
-            box-shadow: 0 6px 24px rgba(244,63,94,0.08);
-        }
-        .category-card.actividad { border-color: rgba(77,134,255,0.22); --cat-accent: linear-gradient(90deg, #4d86ff, #1c46f0); color: #4d86ff; }
-        .category-card.actividad:hover {
-            border-color: rgba(77,134,255,0.5);
-            box-shadow: 0 6px 24px rgba(77,134,255,0.1);
-        }
-        /* El color de la card es solo para acentos; restaurar texto */
-        .category-card .cat-card-label,
-        .category-card .cat-card-count { color: var(--text-main); }
-        .category-card .cat-card-sublabel { color: rgba(var(--ink-rgb),0.4); }
-
-        .cat-card-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .cat-card-title-wrap { display: flex; align-items: center; gap: 10px; }
-        .cat-card-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        .cat-card-icon.cyan { background: rgba(0,242,255,0.15); }
-        .cat-card-icon.green { background: rgba(34,197,94,0.15); }
-        .cat-card-icon.pink { background: rgba(244,63,94,0.15); }
-        .cat-card-icon.purple { background: rgba(77,134,255,0.15); }
-        .cat-card-label {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 1.5px;
-            color: var(--text-main);
-        }
-        .cat-card-count {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-main);
-            transition: color 0.25s;
-        }
-        .category-card.anime:hover .cat-card-count { color: #00f2ff; }
-        .category-card.manga:hover .cat-card-count { color: #22c55e; }
-        .category-card.novelas:hover .cat-card-count { color: #f43f5e; }
-        .cat-card-sublabel {
-            font-size: 0.75rem;
-            color: rgba(var(--ink-rgb),0.4);
-            font-family: 'Rajdhani', sans-serif;
-        }
-        .cat-card-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.62rem;
-            letter-spacing: 1px;
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(var(--ink-rgb),0.1);
-            color: rgba(var(--ink-rgb),0.5);
-            transition: all 0.2s;
-            align-self: flex-start;
-        }
-        .cat-card-link:hover {
-            color: var(--text-main);
-            border-color: rgba(var(--ink-rgb),0.3);
-        }
-
-        /* Actividad mini lista en la card */
-        .cat-activity-list { display: flex; flex-direction: column; gap: 6px; }
-        .cat-activity-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 8px;
-            border-radius: 8px;
-            background: rgba(var(--ink-rgb),0.03);
-            border: 1px solid rgba(var(--ink-rgb),0.05);
-            font-size: 0.8rem;
-            font-family: 'Rajdhani', sans-serif;
-            color: rgba(var(--ink-rgb),0.75);
-            transition: background 0.2s;
-        }
-        .cat-activity-item:hover { background: rgba(var(--ink-rgb),0.06); }
-        .cat-activity-item .ai-icon { font-size: 0.9rem; }
-        .cat-activity-item .ai-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .cat-activity-item .ai-time { font-size: 0.7rem; color: rgba(var(--ink-rgb),0.35); white-space: nowrap; }
-
-        /* ◆ GRID DE RESULTADOS (filas) ◆ */
-        .lists-section { margin-bottom: 28px; }
-        .lists-h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.78rem;
-            letter-spacing: 2px;
-            color: rgba(var(--ink-rgb),0.7);
-            margin: 0 0 14px;
-            text-transform: uppercase;
-        }
-
-        /* Tabs de resultados */
-        .resultados-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-        }
-        .res-tab {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 999px;
-            border: 1px solid rgba(var(--ink-rgb),0.1);
-            background: rgba(var(--ink-rgb),0.03);
-            color: rgba(var(--ink-rgb),0.55);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.62rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .res-tab:hover, .res-tab.active {
-            border-color: rgba(0,242,255,0.4);
-            background: rgba(0,242,255,0.08);
-            color: #00f2ff;
-        }
-        .tab-icon { font-size: 0.9rem; }
 
         /* Grid rows */
         .lists-grid-rows { display: flex; flex-direction: column; gap: 8px; }
@@ -790,52 +748,6 @@
         }
         .lists-empty p { font-family: 'Rajdhani', sans-serif; margin: 0; }
 
-        /* Recomendaciones */
-        .recommend { margin-bottom: 28px; }
-        .recommend-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-        .recommend-icon { font-size: 1.4rem; }
-        .recommend-grid-vertical {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 20px;
-            align-items: start;
-            justify-items: center;
-        }
-        .recommend-grid-vertical .card-container,
-        .recommend-grid-vertical .wcard {
-            width: 100%;
-            max-width: 240px;
-        }
-
-        /* Ver más */
-        .btn-ver-mas {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 11px;
-            border-radius: 10px;
-            border: 1px solid rgba(var(--ink-rgb),0.1);
-            background: rgba(var(--ink-rgb),0.03);
-            color: rgba(var(--ink-rgb),0.5);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.68rem;
-            letter-spacing: 1px;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: all 0.2s;
-        }
-        .btn-ver-mas:hover {
-            border-color: rgba(0,242,255,0.3);
-            color: #00f2ff;
-            background: rgba(0,242,255,0.05);
-        }
-
         /* Achievements grid */
         .achievements-grid {
             display: grid;
@@ -884,20 +796,6 @@
             color: #00f2ff;
         }
         .achievement-card.is-locked .achievement-state { color: rgba(var(--ink-rgb),0.3); }
-
-        /* Apodo en el perfil del sidebar */
-        .lists-profile-apodo {
-            display: inline-block;
-            margin: 2px 0 8px;
-            padding: 2px 10px;
-            border-radius: 999px;
-            border: 1px solid rgba(0,242,255,0.35);
-            background: rgba(0,242,255,0.08);
-            color: #00f2ff;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.6rem;
-            letter-spacing: 0.5px;
-        }
 
         /* Apodos grid */
         .apodos-grid {
@@ -1121,70 +1019,40 @@
 
         /* Responsive */
         @media (max-width: 900px) {
-            .lists-layout { grid-template-columns: 1fr; }
-            .lists-sidebar { position: static; height: auto; }
-            .category-cards-grid { grid-template-columns: 1fr 1fr; }
             .achievements-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: 1fr; }
         }
-@media (max-width: 600px) {
-    .lists-main-content { padding: 16px; }
-    .category-cards-grid { grid-template-columns: 1fr; }
-    /* En celular: portada + datos. El número de orden y el total de
-       episodios se ocultan para dejarle el ancho al título y los estados. */
-    .list-row-card {
-        grid-template-columns: 46px minmax(0,1fr);
-        grid-template-areas: "cover info";
-    }
-    .row-rank, .row-eps { display: none; }
-    .stats-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-    .lists-main-content { padding: 12px; }
-    .lists-sidebar { padding: 16px 12px; gap: 14px; }
-    .sidebar-avatar-ring { width: 54px; height: 54px; }
-    .sidebar-avatar-inner .sidebar-initials { font-size: 0.9rem; }
-    .sidebar-link { padding: 8px 10px; font-size: 0.82rem; }
-    .category-cards-grid { gap: 10px; }
-    .category-card { padding: 14px; }
-    .cat-card-count { font-size: 1.4rem; }
-    .list-row-card { padding: 8px 10px; gap: 8px; }
-    .row-title { font-size: 0.75rem; }
-    .row-desc { font-size: 0.72rem; }
-    .achievements-grid { grid-template-columns: 1fr; }
-    .stats-grid { gap: 10px; }
-    .stat-card { padding: 12px 14px; }
-    .stat-value { font-size: 1.1rem; }
-}
-@media (max-width: 400px) {
-    .lists-main-content { padding: 8px; }
-    .lists-sidebar { padding: 12px 8px; }
-    .sidebar-profile { padding: 10px; }
-    .sidebar-avatar-ring { width: 44px; height: 44px; }
-    .sidebar-avatar-inner .sidebar-initials { font-size: 0.75rem; }
-    .sidebar-link { padding: 6px 8px; font-size: 0.75rem; gap: 6px; }
-    .sidebar-icon { font-size: 0.85rem; width: 16px; }
-    .sidebar-quote-box { padding: 10px; }
-    .quote-text { font-size: 0.75rem; }
-    .lists-header-new { margin-bottom: 14px; }
-    .lists-title { font-size: clamp(1rem, 4vw, 1.3rem); }
-    .lists-subtitle { font-size: 0.78rem; }
-    .category-cards-grid { gap: 8px; }
-    .category-card { padding: 10px; border-radius: 12px; gap: 8px; }
-    .cat-card-head { flex-direction: column; align-items: flex-start; gap: 4px; }
-    .cat-card-count { font-size: 1.1rem; }
-    .list-row-card { padding: 6px 8px; gap: 6px; border-radius: 8px; }
-    .lists-chip { padding: 6px 10px; font-size: 0.58rem; }
-    .stat-card { padding: 10px; gap: 10px; border-radius: 10px; }
-    .stat-value { font-size: 1rem; }
-    .stat-label { font-size: 0.7rem; }
-    .achievement-card { padding: 10px; }
-    .points-card { padding: 12px 14px; }
-}
+        @media (max-width: 600px) {
+            .ml-top-inner { padding: 14px 16px 0; }
+            .ml-profile-sub { display: none; }
+            .lists-main-content { padding: 20px 16px 48px; }
+            .ml-rail { grid-auto-columns: 85%; }
+            .ml-tools { width: 100%; }
+            .ml-search { flex: 1 1 140px; width: auto; }
+            .ml-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 18px 12px; }
+            .ml-tile-title { font-size: 0.92rem; }
+            /* En celular: portada + datos. El número de orden y el total de
+               episodios se ocultan para dejarle el ancho al título y los estados. */
+            .list-row-card {
+                grid-template-columns: 46px minmax(0,1fr);
+                grid-template-areas: "cover info";
+            }
+            .row-rank, .row-eps { display: none; }
+        }
+        @media (max-width: 400px) {
+            .ml-profile-link { padding-right: 10px; }
+            .list-row-card { padding: 6px 8px; gap: 6px; border-radius: 8px; }
+            .stat-card { padding: 10px; gap: 10px; border-radius: 10px; }
+            .achievement-card { padding: 10px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ml-tile-cover, .points-fill { transition: none; }
+            .ml-tile:hover .ml-tile-cover { transform: none; }
+        }
     </style>
 
-    <script src="js/vendor/lucide.min.js?v=3fd02558" defer></script>
-    <script src="js/core/theme.js?v=3fd02558"></script>
+    <script src="js/vendor/lucide.min.js?v=da5e7733" defer></script>
+    <script src="js/core/theme.js?v=da5e7733"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="listas" data-no-profile-strip="true">
@@ -1196,13 +1064,13 @@
         </div>
     </nav>
 
-    <div class="lists-layout">
-        <!-- SIDEBAR -->
-        <aside class="lists-sidebar">
-            <section id="listsProfile" class="sidebar-profile" aria-label="Perfil"></section>
+    <header class="ml-top">
+        <div class="ml-top-inner">
+            <h1 class="ml-title" data-i18n="lists.titulo">MIS LISTAS</h1>
+            <section id="listsProfile" class="ml-profile" aria-label="Perfil"></section>
 
-            <nav class="sidebar-nav">
-                <a href="#mis-listas" class="sidebar-link active" data-tab="mis-listas">
+            <nav class="ml-tabs" aria-label="Secciones">
+                <a href="#mis-listas" class="sidebar-link active" data-tab="mis-listas" aria-current="page">
                     <span class="sidebar-icon"><i data-lucide="clipboard-list"></i></span> <span data-i18n="lists.sidebar.mis_listas">Mis Listas</span>
                 </a>
                 <a href="#calendario" class="sidebar-link" data-tab="calendario">
@@ -1221,113 +1089,112 @@
                     <span class="sidebar-icon"><i data-lucide="trending-up"></i></span> <span data-i18n="lists.sidebar.estadisticas">Estadísticas</span>
                 </a>
             </nav>
-        </aside>
+        </div>
+    </header>
 
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="lists-main-content" id="main-content">
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="lists-main-content" id="main-content">
+        <div class="app-loader" id="listsLoader">
+            <span class="app-loader-text" data-i18n="lists.cargando">Cargando tus listas...</span>
+        </div>
 
-            <div class="app-loader" id="listsLoader">
-                <span class="app-loader-text" data-i18n="lists.cargando">Cargando tus listas...</span>
-            </div>
+        <!-- MIS LISTAS -->
+        <div id="tab-mis-listas" class="tab-content active">
 
-            <!-- MIS LISTAS -->
-            <div id="tab-mis-listas" class="tab-content active">
-                <header class="lists-header-new">
-                    <h1 class="lists-title" data-i18n="lists.titulo">MIS LISTAS</h1>
-                    <p class="lists-subtitle" data-i18n="lists.subtitulo">Tus "Me gusta" y "Vistos" separados por categoría.</p>
-                </header>
-
-                <section id="pointsBar" class="points-new" aria-label="Puntos y nivel"></section>
-
-                <!-- Cards de categoría -->
-                <div class="category-cards-grid" id="categoryCards">
-                    <!-- Anime card -->
-                    <div class="category-card anime">
-                        <div class="cat-card-head">
-                            <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon cyan"><i data-lucide="clapperboard"></i></div>
-                                <div class="cat-card-label" data-i18n="lists.card.anime">ANIME</div>
-                            </div>
-                        </div>
-                        <div class="cat-card-count" id="countAnime">0</div>
-                        <div class="cat-card-sublabel" id="sublabelAnime" data-i18n="lists.card.sublabel">Títulos guardados</div>
-                        <a href="anime.html" class="cat-card-link" data-i18n="lists.card.ver_catalogo">Ver catálogo ➜</a>
-                    </div>
-                    <!-- Manga card -->
-                    <div class="category-card manga">
-                        <div class="cat-card-head">
-                            <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon green"><i data-lucide="book-open"></i></div>
-                                <div class="cat-card-label" data-i18n="lists.card.manga">MANGA</div>
-                            </div>
-                        </div>
-                        <div class="cat-card-count" id="countManga">0</div>
-                        <div class="cat-card-sublabel" id="sublabelManga" data-i18n="lists.card.sublabel">Títulos guardados</div>
-                        <a href="manga.html" class="cat-card-link" data-i18n="lists.card.ver_catalogo">Ver catálogo ➜</a>
-                    </div>
-                    <!-- Novelas card -->
-                    <div class="category-card novelas">
-                        <div class="cat-card-head">
-                            <div class="cat-card-title-wrap">
-                                <div class="cat-card-icon pink"><i data-lucide="book"></i></div>
-                                <div class="cat-card-label" data-i18n="lists.card.novelas">NOVELAS</div>
-                            </div>
-                        </div>
-                        <div class="cat-card-count" id="countNovelas">0</div>
-                        <div class="cat-card-sublabel" id="sublabelNovelas" data-i18n="lists.card.sublabel">Títulos guardados</div>
-                        <a href="novelas.html" class="cat-card-link" data-i18n="lists.card.ver_catalogo">Ver catálogo ➜</a>
-                    </div>
+            <!-- Lo que estás viendo ahora: lo más usado va primero -->
+            <section class="ml-continue" id="continueSection" aria-labelledby="continueTitle" hidden>
+                <div class="ml-section-head">
+                    <h2 class="ml-h2" id="continueTitle">Continuar</h2>
+                    <span class="ml-muted" id="continueCount"></span>
                 </div>
+                <div class="ml-rail" id="continueRail"></div>
+            </section>
 
-                <!-- Actividad reciente como card separada -->
-                <div class="category-card actividad" id="actividadCard">
-                    <div class="cat-card-head">
-                        <div class="cat-card-title-wrap">
-                            <div class="cat-card-icon purple"><i data-lucide="clock"></i></div>
-                            <div class="cat-card-label" data-i18n="lists.card.actividad_reciente">ACTIVIDAD RECIENTE</div>
+            <div class="ml-split">
+                <section class="ml-library" aria-labelledby="libraryTitle">
+                    <div class="ml-section-head">
+                        <h2 class="ml-h2" id="libraryTitle">Tu biblioteca</h2>
+                        <div class="ml-tools">
+                            <label for="listsSearch" class="sr-only">Buscar en tu biblioteca</label>
+                            <input type="search" id="listsSearch" class="ml-search" placeholder="Buscar título" autocomplete="off">
+                            <label for="listsSort" class="sr-only">Ordenar</label>
+                            <select id="listsSort" class="ml-select">
+                                <option value="reciente">Más recientes</option>
+                                <option value="antiguo">Más antiguos</option>
+                                <option value="az">A–Z</option>
+                            </select>
+                            <div class="ml-view" role="group" aria-label="Vista">
+                                <button type="button" id="viewGrid" aria-pressed="true" aria-label="Ver como portadas">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                                </button>
+                                <button type="button" id="viewList" aria-pressed="false" aria-label="Ver como lista">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+                                </button>
+                            </div>
+                            <button type="button" class="ml-export" id="exportJson" aria-label="Exportar mis listas en JSON" title="Exportar JSON">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            </button>
                         </div>
-                        <a href="#" class="cat-card-link" data-open-tab="actividad" data-i18n="lists.card.ver_todo">Ver todo ➜</a>
                     </div>
-                    <div class="cat-activity-list" id="actividadMini">
-                        <div class="cat-activity-empty" data-i18n="lists.card.sin_actividad">
-                            Sin actividad reciente.
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Filtros + resultados -->
-                <div class="lists-controls" role="toolbar" aria-label="Filtros">
-                    <button class="lists-chip is-active" id="filterAll" type="button"><span class="chip-icon"><i data-lucide="clipboard-list"></i></span> <span data-i18n="lists.filter.todo">Todo</span></button>
-                    <button class="lists-chip" id="filterFav" type="button"><span class="chip-icon"><i data-lucide="heart"></i></span> <span data-i18n="lists.filter.me_gusta">Me gusta</span></button>
-                    <button class="lists-chip" id="filterViewed" type="button"><span class="chip-icon"><i data-lucide="eye"></i></span> <span data-i18n="lists.filter.vistos">Vistos</span></button>
-                    <button class="lists-chip" id="filterWatching" type="button"><span class="chip-icon"><i data-lucide="play"></i></span> <span>Viendo</span></button>
-                    <button class="lists-chip" id="filterPlanned" type="button"><span class="chip-icon"><i data-lucide="clock"></i></span> <span>Pendiente</span></button>
-                    <button class="lists-chip" id="filterDropped" type="button"><span class="chip-icon"><i data-lucide="x-circle"></i></span> <span>Abandonado</span></button>
-                    <button class="lists-chip export-btn" id="exportJson" type="button"><span class="chip-icon"><i data-lucide="download"></i></span> <span data-i18n="lists.filter.exportar">Exportar JSON</span></button>
-                </div>
-
-                <section class="lists-section">
-                    <h2 class="lists-h2" data-i18n="lists.results.titulo">RESULTADOS</h2>
-                    <div class="resultados-tabs">
-                        <button class="res-tab active" data-cat="all"><span class="tab-icon"><i data-lucide="clipboard-list"></i></span> <span data-i18n="lists.results.todos">Todos</span></button>
-                        <button class="res-tab" data-cat="anime"><span class="tab-icon"><i data-lucide="clapperboard"></i></span> <span data-i18n="lists.results.anime">Anime</span></button>
-                        <button class="res-tab" data-cat="manga"><span class="tab-icon"><i data-lucide="book-open"></i></span> <span data-i18n="lists.results.manga">Manga</span></button>
-                        <button class="res-tab" data-cat="novelas"><span class="tab-icon"><i data-lucide="book"></i></span> <span data-i18n="lists.results.novelas">Novelas</span></button>
+                    <div class="ml-status" role="toolbar" aria-label="Estado">
+                        <button class="lists-chip is-active" id="filterAll" type="button"><span data-i18n="lists.filter.todo">Todo</span> <span class="ml-count" data-count-for="all">0</span></button>
+                        <button class="lists-chip" id="filterWatching" type="button"><span>Viendo</span> <span class="ml-count" data-count-for="viendo">0</span></button>
+                        <button class="lists-chip" id="filterPlanned" type="button"><span>Pendiente</span> <span class="ml-count" data-count-for="pendiente">0</span></button>
+                        <button class="lists-chip" id="filterViewed" type="button"><span data-i18n="lists.filter.vistos">Vistos</span> <span class="ml-count" data-count-for="viewed">0</span></button>
+                        <button class="lists-chip" id="filterFav" type="button"><span data-i18n="lists.filter.me_gusta">Me gusta</span> <span class="ml-count" data-count-for="fav">0</span></button>
+                        <button class="lists-chip" id="filterDropped" type="button"><span>Abandonado</span> <span class="ml-count" data-count-for="abandonado">0</span></button>
                     </div>
-                    <div id="listsGrid" class="lists-grid-rows" aria-live="polite"></div>
+
+                    <div class="resultados-tabs" role="group" aria-label="Categoría">
+                        <button class="res-tab active" type="button" data-cat="all" aria-pressed="true"><span data-i18n="lists.results.todos">Todos</span></button>
+                        <button class="res-tab" type="button" data-cat="anime" aria-pressed="false"><span data-i18n="lists.results.anime">Anime</span></button>
+                        <button class="res-tab" type="button" data-cat="manga" aria-pressed="false"><span data-i18n="lists.results.manga">Manga</span></button>
+                        <button class="res-tab" type="button" data-cat="novelas" aria-pressed="false"><span data-i18n="lists.results.novelas">Novelas</span></button>
+                    </div>
+
+                    <div id="listsGrid" aria-live="polite"></div>
                 </section>
 
-                <section class="recommend" aria-label="Recomendaciones">
-                    <div class="recommend-header">
-                        <span class="recommend-icon"><i data-lucide="lightbulb"></i></span>
-                        <div>
-                            <h2 class="lists-h2" data-i18n="lists.recommend.titulo">RECOMENDADO PARA VOS</h2>
-                            <p class="lists-subtitle" data-i18n="lists.recommend.subtitulo">Basado en lo que marcaste como visto.</p>
+                <aside class="ml-side" aria-label="Resumen">
+                    <section class="ml-card" aria-labelledby="weekTitle">
+                        <div class="ml-section-head">
+                            <h2 class="ml-h2" id="weekTitle">Esta semana</h2>
+                            <a href="#calendario" class="ml-link" data-goto-tab="calendario">Calendario</a>
                         </div>
-                    </div>
-                    <div id="recommendGrid" class="recommend-grid-vertical" aria-live="polite"></div>
-                </section>
+                        <div id="weekList"><p class="ml-week-empty">Cargando estrenos...</p></div>
+                    </section>
+
+                    <section id="pointsBar" class="ml-card ml-points" aria-label="Puntos y nivel"></section>
+
+                    <section class="ml-card" aria-labelledby="achvTitle">
+                        <div class="ml-section-head">
+                            <h2 class="ml-h2" id="achvTitle">Próximo logro</h2>
+                            <a href="#logros" class="ml-link" data-goto-tab="logros">Ver logros</a>
+                        </div>
+                        <div id="nextAchievement"></div>
+                    </section>
+
+                    <section class="ml-card" aria-labelledby="totalsTitle">
+                        <div class="ml-section-head">
+                            <h2 class="ml-h2" id="totalsTitle">En números</h2>
+                            <a href="#estadisticas" class="ml-link" data-goto-tab="estadisticas">Estadísticas</a>
+                        </div>
+                        <dl class="ml-totals">
+                            <div><dt data-i18n="lists.card.anime">Anime</dt><dd class="t-anime" id="countAnime">0</dd></div>
+                            <div><dt data-i18n="lists.card.manga">Manga</dt><dd class="t-manga" id="countManga">0</dd></div>
+                            <div><dt data-i18n="lists.card.novelas">Novelas</dt><dd class="t-novelas" id="countNovelas">0</dd></div>
+                        </dl>
+                    </section>
+
+                    <section class="ml-card" aria-labelledby="recTitle">
+                        <h2 class="ml-h2" id="recTitle" data-i18n="lists.recommend.titulo">Para vos</h2>
+                        <p class="ml-muted" style="margin:2px 0 0" data-i18n="lists.recommend.subtitulo">Basado en lo que marcaste como visto.</p>
+                        <div id="recommendGrid" class="ml-recs" aria-live="polite"></div>
+                    </section>
+                </aside>
             </div>
+        </div>
 
             <!-- ◆ CALENDARIO ◆ -->
             <div id="tab-calendario" class="tab-content">
@@ -1384,21 +1251,20 @@
                 <div id="statsCharts" class="stats-charts"></div>
             </div>
 
-        </main>
-    </div>
+    </main>
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=3fd02558"></script>
-    <script src="js/core/i18n.min.js?v=3fd02558"></script>
-    <script src="js/core/namespace.js?v=3fd02558"></script>
-    <script type="module" src="api/supabase-config.js?v=3fd02558" async></script>
-    <script src="js/core-bundle.min.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas-calendario.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas-stats.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas-recs.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas-sync.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas-logros.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas-apodos.js?v=3fd02558" defer></script>
-    <script src="js/pages/mis-listas-puntos.js?v=3fd02558" defer></script>
+    <script src="js/core/config.js?v=da5e7733"></script>
+    <script src="js/core/i18n.min.js?v=da5e7733"></script>
+    <script src="js/core/namespace.js?v=da5e7733"></script>
+    <script type="module" src="api/supabase-config.js?v=da5e7733" async></script>
+    <script src="js/core-bundle.min.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas-calendario.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas-stats.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas-recs.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas-sync.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas-logros.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas-apodos.js?v=da5e7733" defer></script>
+    <script src="js/pages/mis-listas-puntos.js?v=da5e7733" defer></script>
 </body>
 

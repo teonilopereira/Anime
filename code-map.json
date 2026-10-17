@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-10-17T03:30:20.433Z",
+  "generatedAt": "2026-10-17T04:22:43.118Z",
   "note": "Riesgo = 0.40*tamaño + 0.22*fragilidad(catch+API) + 0.13*churn + 0.25*(sin test), normalizado 0..1. Acota dónde mirar; no señala el bug exacto. Regenerar con: npm run map",
   "summary": {
     "jsFiles": 76,
     "htmlPages": 23,
-    "totalLines": 31071,
+    "totalLines": 31167,
     "untested": 33,
-    "functions": 1340
+    "functions": 1357
   },
   "hotspots": [
     {
       "file": "js/core/mangadex-api.js",
-      "risk": 0.914,
+      "risk": 0.954,
       "lines": 808,
       "tested": false,
       "err": 27,
@@ -20,7 +20,7 @@
     },
     {
       "file": "js/ui/mascot.js",
-      "risk": 0.91,
+      "risk": 0.95,
       "lines": 1692,
       "tested": false,
       "err": 13,
@@ -29,7 +29,7 @@
     },
     {
       "file": "js/core/api.js",
-      "risk": 0.763,
+      "risk": 0.796,
       "lines": 1432,
       "tested": true,
       "err": 36,
@@ -38,7 +38,7 @@
     },
     {
       "file": "js/pages/retos.js",
-      "risk": 0.735,
+      "risk": 0.766,
       "lines": 1107,
       "tested": false,
       "err": 11,
@@ -46,8 +46,17 @@
       "churn": 6
     },
     {
+      "file": "js/pages/mis-listas.js",
+      "risk": 0.716,
+      "lines": 814,
+      "tested": false,
+      "err": 17,
+      "api": 20,
+      "churn": 9
+    },
+    {
       "file": "js/detalle/comments.js",
-      "risk": 0.676,
+      "risk": 0.705,
       "lines": 900,
       "tested": false,
       "err": 12,
@@ -56,7 +65,7 @@
     },
     {
       "file": "js/catalog/states.js",
-      "risk": 0.657,
+      "risk": 0.685,
       "lines": 720,
       "tested": false,
       "err": 21,
@@ -65,7 +74,7 @@
     },
     {
       "file": "js/detalle/interactions.js",
-      "risk": 0.641,
+      "risk": 0.668,
       "lines": 436,
       "tested": false,
       "err": 24,
@@ -74,7 +83,7 @@
     },
     {
       "file": "js/catalog/cards.js",
-      "risk": 0.636,
+      "risk": 0.664,
       "lines": 686,
       "tested": false,
       "err": 25,
@@ -83,21 +92,12 @@
     },
     {
       "file": "js/pages/comparar.js",
-      "risk": 0.611,
+      "risk": 0.638,
       "lines": 674,
       "tested": false,
       "err": 4,
       "api": 24,
       "churn": 4
-    },
-    {
-      "file": "js/pages/mis-listas.js",
-      "risk": 0.597,
-      "lines": 575,
-      "tested": false,
-      "err": 11,
-      "api": 19,
-      "churn": 9
     }
   ],
   "files": {
@@ -143,7 +143,7 @@
         "buildQuery()",
         "PGRST202()"
       ],
-      "risk": 0.431
+      "risk": 0.449
     },
     "api/supabase-config.js": {
       "kind": "js",
@@ -162,7 +162,7 @@
         "window.AppSupabase",
         "__puedeHaberSesion()"
       ],
-      "risk": 0.085
+      "risk": 0.089
     },
     "js/catalog/cards.js": {
       "kind": "js",
@@ -203,7 +203,7 @@
         "_invalidateProgressIndex()",
         "toggleCardComplete()"
       ],
-      "risk": 0.636
+      "risk": 0.664
     },
     "js/catalog/chapters-modal.js": {
       "kind": "js",
@@ -236,7 +236,7 @@
         "nn()",
         "hideAfter()"
       ],
-      "risk": 0.479
+      "risk": 0.499
     },
     "js/catalog/pagination.js": {
       "kind": "js",
@@ -262,7 +262,7 @@
         "window.__catalogSearchItems",
         "listaItems()"
       ],
-      "risk": 0.446
+      "risk": 0.465
     },
     "js/catalog/search.js": {
       "kind": "js",
@@ -320,7 +320,7 @@
         "selectedGenres()",
         "q()"
       ],
-      "risk": 0.403
+      "risk": 0.421
     },
     "js/catalog/states.js": {
       "kind": "js",
@@ -384,7 +384,7 @@
         "window.WATCH_STATUS_LABELS",
         "syncCat()"
       ],
-      "risk": 0.657
+      "risk": 0.685
     },
     "js/core/api-mangadex.js": {
       "kind": "js",
@@ -421,7 +421,7 @@
         "hasO()",
         "cards()"
       ],
-      "risk": 0.239
+      "risk": 0.249
     },
     "js/core/api.js": {
       "kind": "js",
@@ -502,7 +502,7 @@
         "getQuizPool()",
         "getStudioIdByName()"
       ],
-      "risk": 0.763
+      "risk": 0.796
     },
     "js/core/auth.js": {
       "kind": "js",
@@ -538,7 +538,7 @@
         "delta()",
         "apodoLabel()"
       ],
-      "risk": 0.193
+      "risk": 0.201
     },
     "js/core/common-ui.js": {
       "kind": "js",
@@ -572,7 +572,7 @@
         "injectFooter()",
         "installSecurityHandlers()"
       ],
-      "risk": 0.583
+      "risk": 0.608
     },
     "js/core/config.js": {
       "kind": "js",
@@ -585,7 +585,7 @@
       "exports": [
         "window.AppConfig"
       ],
-      "risk": 0.031
+      "risk": 0.032
     },
     "js/core/config.template.js": {
       "kind": "js",
@@ -598,7 +598,7 @@
       "exports": [
         "window.AppConfig"
       ],
-      "risk": 0.375
+      "risk": 0.391
     },
     "js/core/constants.js": {
       "kind": "js",
@@ -611,7 +611,7 @@
       "exports": [
         "window.AnimeDestiny"
       ],
-      "risk": 0.035
+      "risk": 0.036
     },
     "js/core/genres.js": {
       "kind": "js",
@@ -636,7 +636,7 @@
         "window.AnimeDestiny",
         "listo()"
       ],
-      "risk": 0.182
+      "risk": 0.189
     },
     "js/core/i18n-en.js": {
       "kind": "js",
@@ -645,11 +645,11 @@
       "api": 12,
       "todos": 0,
       "tested": 1,
-      "churn": 10,
+      "churn": 11,
       "exports": [
         "window.__i18nDicts"
       ],
-      "risk": 0.227
+      "risk": 0.239
     },
     "js/core/i18n.js": {
       "kind": "js",
@@ -658,7 +658,7 @@
       "api": 12,
       "todos": 0,
       "tested": 1,
-      "churn": 16,
+      "churn": 17,
       "exports": [
         "resolveKey()",
         "interpolate()",
@@ -673,7 +673,7 @@
         "setLang()",
         "t()"
       ],
-      "risk": 0.299
+      "risk": 0.314
     },
     "js/core/mangadex-api.js": {
       "kind": "js",
@@ -738,7 +738,7 @@
         "applyMangaDexVolumeCovers()",
         "resolveMangaDexCoverForVolume()"
       ],
-      "risk": 0.914
+      "risk": 0.954
     },
     "js/core/missions.js": {
       "kind": "js",
@@ -780,7 +780,7 @@
         "window.AppMissions",
         "dow()"
       ],
-      "risk": 0.107
+      "risk": 0.112
     },
     "js/core/namespace.js": {
       "kind": "js",
@@ -795,7 +795,7 @@
         "window.AnimeDestiny",
         "reportError()"
       ],
-      "risk": 0.39
+      "risk": 0.406
     },
     "js/core/push.js": {
       "kind": "js",
@@ -821,7 +821,7 @@
         "window.PushNotifs",
         "base64()"
       ],
-      "risk": 0.085
+      "risk": 0.088
     },
     "js/core/reminders.js": {
       "kind": "js",
@@ -845,7 +845,7 @@
         "init()",
         "window.AppReminders"
       ],
-      "risk": 0.423
+      "risk": 0.441
     },
     "js/core/storage.js": {
       "kind": "js",
@@ -864,7 +864,7 @@
         "window.AppStorage",
         "PREFIX()"
       ],
-      "risk": 0.034
+      "risk": 0.035
     },
     "js/core/streak.js": {
       "kind": "js",
@@ -885,7 +885,7 @@
         "bonusForStreak()",
         "window.AppStreak"
       ],
-      "risk": 0.053
+      "risk": 0.055
     },
     "js/core/theme.js": {
       "kind": "js",
@@ -903,7 +903,7 @@
         "window.AppTheme",
         "set()"
       ],
-      "risk": 0.369
+      "risk": 0.385
     },
     "js/core/user-store.js": {
       "kind": "js",
@@ -916,7 +916,7 @@
       "exports": [
         "window.UserStore"
       ],
-      "risk": 0.029
+      "risk": 0.031
     },
     "js/datos.js": {
       "kind": "js",
@@ -935,7 +935,7 @@
         "escapeHtml()",
         "safeUrl()"
       ],
-      "risk": 0.034
+      "risk": 0.036
     },
     "js/detalle/comments.js": {
       "kind": "js",
@@ -986,7 +986,7 @@
         "temporadas()",
         "totalVols()"
       ],
-      "risk": 0.676
+      "risk": 0.705
     },
     "js/detalle/data.js": {
       "kind": "js",
@@ -1011,7 +1011,7 @@
         "segment()",
         "rawCat()"
       ],
-      "risk": 0.114
+      "risk": 0.119
     },
     "js/detalle/info.js": {
       "kind": "js",
@@ -1034,7 +1034,7 @@
         "html()",
         "window.DetalleInfo"
       ],
-      "risk": 0.086
+      "risk": 0.09
     },
     "js/detalle/interactions.js": {
       "kind": "js",
@@ -1063,7 +1063,7 @@
         "isMangaDexUuid()",
         "hintCover()"
       ],
-      "risk": 0.641
+      "risk": 0.668
     },
     "js/detalle/mal-stats.js": {
       "kind": "js",
@@ -1085,7 +1085,7 @@
         "window.DetalleMal",
         "p()"
       ],
-      "risk": 0.063
+      "risk": 0.066
     },
     "js/detalle/progress.js": {
       "kind": "js",
@@ -1108,7 +1108,7 @@
         "showProgressToast()",
         "saveProgressToSupabase()"
       ],
-      "risk": 0.083
+      "risk": 0.086
     },
     "js/detalle/render-sections.js": {
       "kind": "js",
@@ -1138,7 +1138,7 @@
         "buildDetailFaq()",
         "trailerId()"
       ],
-      "risk": 0.181
+      "risk": 0.188
     },
     "js/detalle/render.js": {
       "kind": "js",
@@ -1179,7 +1179,7 @@
         "maxVolKey()",
         "safeCall()"
       ],
-      "risk": 0.47
+      "risk": 0.49
     },
     "js/detalle/seasons.js": {
       "kind": "js",
@@ -1204,7 +1204,7 @@
         "hidratar()",
         "window.DetalleTemporadas"
       ],
-      "risk": 0.098
+      "risk": 0.102
     },
     "js/detalle/themes.js": {
       "kind": "js",
@@ -1237,7 +1237,7 @@
         "titulo()",
         "control()"
       ],
-      "risk": 0.164
+      "risk": 0.171
     },
     "js/detalle/watch-links.js": {
       "kind": "js",
@@ -1257,7 +1257,7 @@
         "html()",
         "window.DetalleWatchLinks"
       ],
-      "risk": 0.075
+      "risk": 0.078
     },
     "js/estudio/render.js": {
       "kind": "js",
@@ -1279,7 +1279,7 @@
         "window.getStudioIdByName",
         "initials()"
       ],
-      "risk": 0.092
+      "risk": 0.096
     },
     "js/pages/calendario.js": {
       "kind": "js",
@@ -1301,7 +1301,7 @@
         "load()",
         "start()"
       ],
-      "risk": 0.408
+      "risk": 0.426
     },
     "js/pages/comparar.js": {
       "kind": "js",
@@ -1359,7 +1359,7 @@
         "generos()",
         "rawDe()"
       ],
-      "risk": 0.611
+      "risk": 0.638
     },
     "js/pages/configuracion.js": {
       "kind": "js",
@@ -1397,7 +1397,7 @@
         "SQ_DEF()",
         "sqVal()"
       ],
-      "risk": 0.538
+      "risk": 0.562
     },
     "js/pages/escena.js": {
       "kind": "js",
@@ -1426,7 +1426,7 @@
         "items()",
         "onload()"
       ],
-      "risk": 0.116
+      "risk": 0.121
     },
     "js/pages/import-mal.js": {
       "kind": "js",
@@ -1453,7 +1453,7 @@
         "uid()",
         "onload()"
       ],
-      "risk": 0.252
+      "risk": 0.263
     },
     "js/pages/inicio.js": {
       "kind": "js",
@@ -1462,7 +1462,7 @@
       "api": 9,
       "todos": 0,
       "tested": 1,
-      "churn": 6,
+      "churn": 7,
       "exports": [
         "esc()",
         "detailUrl()",
@@ -1486,7 +1486,7 @@
         "items()",
         "key()"
       ],
-      "risk": 0.161
+      "risk": 0.17
     },
     "js/pages/login.js": {
       "kind": "js",
@@ -1519,7 +1519,7 @@
         "window.refreshUserUi",
         "file()"
       ],
-      "risk": 0.181
+      "risk": 0.189
     },
     "js/pages/mis-listas-apodos.js": {
       "kind": "js",
@@ -1540,7 +1540,7 @@
         "lv()",
         "test()"
       ],
-      "risk": 0.399
+      "risk": 0.416
     },
     "js/pages/mis-listas-calendario.js": {
       "kind": "js",
@@ -1557,11 +1557,11 @@
         "renderCalendario()",
         "startOfDay()"
       ],
-      "risk": 0.384
+      "risk": 0.401
     },
     "js/pages/mis-listas-logros.js": {
       "kind": "js",
-      "lines": 231,
+      "lines": 258,
       "err": 2,
       "api": 4,
       "todos": 0,
@@ -1575,13 +1575,15 @@
         "getViewedIdSet()",
         "franquiciaVista()",
         "renderAchievements()",
+        "renderNextAchievement()",
         "window.addUserPoints",
         "achvPts()",
         "achvLvInfo()",
         "fr()",
-        "streakInfo()"
+        "streakInfo()",
+        "isUnlocked()"
       ],
-      "risk": 0.426
+      "risk": 0.453
     },
     "js/pages/mis-listas-puntos.js": {
       "kind": "js",
@@ -1595,7 +1597,7 @@
         "renderPoints()",
         "lv()"
       ],
-      "risk": 0.355
+      "risk": 0.37
     },
     "js/pages/mis-listas-recs.js": {
       "kind": "js",
@@ -1612,11 +1614,11 @@
         "recs()",
         "img()"
       ],
-      "risk": 0.374
+      "risk": 0.39
     },
     "js/pages/mis-listas-stats.js": {
       "kind": "js",
-      "lines": 267,
+      "lines": 231,
       "err": 2,
       "api": 1,
       "todos": 0,
@@ -1625,12 +1627,11 @@
       "exports": [
         "renderActividad()",
         "updateCategoryCards()",
-        "updateActividadMini()",
         "renderBarChart()",
         "renderStats()",
         "setE()"
       ],
-      "risk": 0.423
+      "risk": 0.43
     },
     "js/pages/mis-listas-sync.js": {
       "kind": "js",
@@ -1646,13 +1647,13 @@
         "repararPortadasFaltantes()",
         "window.syncItemStateToSupabase"
       ],
-      "risk": 0.452
+      "risk": 0.471
     },
     "js/pages/mis-listas.js": {
       "kind": "js",
-      "lines": 575,
-      "err": 11,
-      "api": 19,
+      "lines": 814,
+      "err": 17,
+      "api": 20,
       "todos": 0,
       "tested": 0,
       "churn": 9,
@@ -1668,7 +1669,15 @@
         "matchesFilter()",
         "renderMediaCard()",
         "renderEmpty()",
+        "buildProgressIndex()",
+        "itemTotal()",
+        "progressLabel()",
+        "entryStatus()",
+        "renderTile()",
+        "updateStatusCounts()",
         "render()",
+        "renderContinue()",
+        "renderWeek()",
         "setActiveChip()",
         "downloadJson()",
         "exportUserData()",
@@ -1679,11 +1688,19 @@
         "renderAll()",
         "initConSupabase()",
         "hideListsLoader()",
+        "openTab()",
         "window.waitForSupabase",
         "pushItem()",
-        "lv()"
+        "currentView()",
+        "add()",
+        "msg()",
+        "next()",
+        "short()",
+        "lv()",
+        "syncView()",
+        "on()"
       ],
-      "risk": 0.597
+      "risk": 0.716
     },
     "js/pages/offline.js": {
       "kind": "js",
@@ -1694,7 +1711,7 @@
       "tested": 0,
       "churn": 4,
       "exports": [],
-      "risk": 0.349
+      "risk": 0.364
     },
     "js/pages/personajes.js": {
       "kind": "js",
@@ -1712,7 +1729,7 @@
         "choose()",
         "boot()"
       ],
-      "risk": 0.378
+      "risk": 0.394
     },
     "js/pages/ranking-top.js": {
       "kind": "js",
@@ -1738,7 +1755,7 @@
         "filas()",
         "inicial()"
       ],
-      "risk": 0.108
+      "risk": 0.112
     },
     "js/pages/ranking.js": {
       "kind": "js",
@@ -1767,7 +1784,7 @@
         "ini()",
         "label()"
       ],
-      "risk": 0.155
+      "risk": 0.161
     },
     "js/pages/retos-juegos.js": {
       "kind": "js",
@@ -1826,7 +1843,7 @@
         "list()",
         "hash()"
       ],
-      "risk": 0.52
+      "risk": 0.542
     },
     "js/pages/retos.js": {
       "kind": "js",
@@ -1915,7 +1932,7 @@
         "onload()",
         "onerror()"
       ],
-      "risk": 0.735
+      "risk": 0.766
     },
     "js/pages/script.js": {
       "kind": "js",
@@ -1924,7 +1941,7 @@
       "api": 3,
       "todos": 0,
       "tested": 1,
-      "churn": 4,
+      "churn": 5,
       "exports": [
         "esc()",
         "esqueleto()",
@@ -1937,7 +1954,7 @@
         "elegir()",
         "items()"
       ],
-      "risk": 0.064
+      "risk": 0.069
     },
     "js/pages/usuario.js": {
       "kind": "js",
@@ -1976,7 +1993,7 @@
         "onerror()",
         "onload()"
       ],
-      "risk": 0.287
+      "risk": 0.3
     },
     "js/pages/volumenes.js": {
       "kind": "js",
@@ -2000,7 +2017,7 @@
         "tipoTxt()",
         "nn()"
       ],
-      "risk": 0.429
+      "risk": 0.448
     },
     "js/personaje/render.js": {
       "kind": "js",
@@ -2033,7 +2050,7 @@
         "vaInner()",
         "tipo()"
       ],
-      "risk": 0.162
+      "risk": 0.169
     },
     "js/reload.js": {
       "kind": "js",
@@ -2046,7 +2063,7 @@
       "exports": [
         "onmessage()"
       ],
-      "risk": 0.341
+      "risk": 0.356
     },
     "js/security/sanitizer.js": {
       "kind": "js",
@@ -2062,7 +2079,7 @@
         "window.escapeHtml",
         "window.safeUrl"
       ],
-      "risk": 0.026
+      "risk": 0.027
     },
     "js/security/validator.js": {
       "kind": "js",
@@ -2079,7 +2096,7 @@
         "getSafeUrlParams()",
         "window.AppValidator"
       ],
-      "risk": 0.021
+      "risk": 0.022
     },
     "js/ui/characters.js": {
       "kind": "js",
@@ -2092,7 +2109,7 @@
       "exports": [
         "window.CharacterRegistry"
       ],
-      "risk": 0.533
+      "risk": 0.556
     },
     "js/ui/mascot-loader.js": {
       "kind": "js",
@@ -2112,7 +2129,7 @@
         "window.Toast",
         "queue()"
       ],
-      "risk": 0.37
+      "risk": 0.386
     },
     "js/ui/mascot.js": {
       "kind": "js",
@@ -2228,7 +2245,7 @@
         "a()",
         "onmouseleave()"
       ],
-      "risk": 0.91
+      "risk": 0.95
     },
     "js/ui/mascots.js": {
       "kind": "js",
@@ -2241,7 +2258,7 @@
       "exports": [
         "window.MascotRegistry"
       ],
-      "risk": 0.387
+      "risk": 0.404
     },
     "js/ui/ripple.js": {
       "kind": "js",
@@ -2258,7 +2275,7 @@
         "centerX()",
         "centerY()"
       ],
-      "risk": 0.036
+      "risk": 0.037
     },
     "js/ui/tabs.js": {
       "kind": "js",
@@ -2278,7 +2295,7 @@
         "window.ResizeObserver",
         "window.QTabs"
       ],
-      "risk": 0.044
+      "risk": 0.046
     },
     "js/ui/toast.js": {
       "kind": "js",
@@ -2298,7 +2315,7 @@
         "window.Toast",
         "en()"
       ],
-      "risk": 0.054
+      "risk": 0.056
     },
     "js/ui/tooltip.js": {
       "kind": "js",
@@ -2317,7 +2334,7 @@
         "schedule()",
         "window.Tooltip"
       ],
-      "risk": 0.051
+      "risk": 0.053
     },
     "js/utils.js": {
       "kind": "js",
@@ -2350,7 +2367,7 @@
         "window.volumeStorageKey",
         "esc()"
       ],
-      "risk": 0.114
+      "risk": 0.119
     },
     "404.html": {
       "kind": "html",
@@ -2359,7 +2376,7 @@
       "api": 25,
       "todos": 0,
       "tested": 1,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2372,7 +2389,7 @@
         "js/ui/tooltip.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.259
+      "risk": 0.271
     },
     "Login.html": {
       "kind": "html",
@@ -2381,7 +2398,7 @@
       "api": 27,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2397,7 +2414,7 @@
         "js/ui/tooltip.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.592
+      "risk": 0.618
     },
     "anime.html": {
       "kind": "html",
@@ -2406,7 +2423,7 @@
       "api": 27,
       "todos": 0,
       "tested": 1,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2416,7 +2433,7 @@
         "js/core-bundle.min.js",
         "js/pages/script.js"
       ],
-      "risk": 0.285
+      "risk": 0.297
     },
     "calendario.html": {
       "kind": "html",
@@ -2425,7 +2442,7 @@
       "api": 32,
       "todos": 0,
       "tested": 0,
-      "churn": 66,
+      "churn": 67,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2436,7 +2453,7 @@
         "js/pages/script.js",
         "js/pages/calendario.js"
       ],
-      "risk": 0.584
+      "risk": 0.61
     },
     "comparar.html": {
       "kind": "html",
@@ -2445,7 +2462,7 @@
       "api": 28,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2457,7 +2474,7 @@
         "js/pages/script.js",
         "js/pages/comparar.js"
       ],
-      "risk": 0.595
+      "risk": 0.621
     },
     "configuracion.html": {
       "kind": "html",
@@ -2466,7 +2483,7 @@
       "api": 28,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2483,7 +2500,7 @@
         "js/ui/tooltip.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.66
+      "risk": 0.689
     },
     "detalle.html": {
       "kind": "html",
@@ -2492,7 +2509,7 @@
       "api": 27,
       "todos": 0,
       "tested": 1,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2512,7 +2529,7 @@
         "js/detalle/interactions.js",
         "js/detalle/comments.js"
       ],
-      "risk": 0.292
+      "risk": 0.305
     },
     "escena.html": {
       "kind": "html",
@@ -2521,7 +2538,7 @@
       "api": 29,
       "todos": 0,
       "tested": 1,
-      "churn": 8,
+      "churn": 9,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2531,7 +2548,7 @@
         "js/core-bundle.min.js",
         "js/pages/escena.js"
       ],
-      "risk": 0.106
+      "risk": 0.113
     },
     "estudio.html": {
       "kind": "html",
@@ -2540,7 +2557,7 @@
       "api": 27,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2550,7 +2567,7 @@
         "js/core-bundle.min.js",
         "js/estudio/render.js"
       ],
-      "risk": 0.582
+      "risk": 0.608
     },
     "index.html": {
       "kind": "html",
@@ -2559,7 +2576,7 @@
       "api": 30,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2570,7 +2587,7 @@
         "js/pages/script.js",
         "js/pages/inicio.js"
       ],
-      "risk": 0.608
+      "risk": 0.635
     },
     "manga.html": {
       "kind": "html",
@@ -2579,7 +2596,7 @@
       "api": 28,
       "todos": 0,
       "tested": 1,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2590,16 +2607,16 @@
         "js/core/mangadex-api.js",
         "js/pages/script.js"
       ],
-      "risk": 0.287
+      "risk": 0.299
     },
     "mis-listas.html": {
       "kind": "html",
-      "lines": 1405,
+      "lines": 1271,
       "err": 0,
       "api": 27,
       "todos": 0,
       "tested": 0,
-      "churn": 70,
+      "churn": 71,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2625,7 +2642,7 @@
       "api": 28,
       "todos": 0,
       "tested": 1,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2636,7 +2653,7 @@
         "js/core/mangadex-api.js",
         "js/pages/script.js"
       ],
-      "risk": 0.287
+      "risk": 0.3
     },
     "offline.html": {
       "kind": "html",
@@ -2645,13 +2662,13 @@
       "api": 24,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/i18n.min.js",
         "js/pages/offline.js"
       ],
-      "risk": 0.591
+      "risk": 0.617
     },
     "personaje.html": {
       "kind": "html",
@@ -2660,7 +2677,7 @@
       "api": 26,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2670,7 +2687,7 @@
         "js/core-bundle.min.js",
         "js/personaje/render.js"
       ],
-      "risk": 0.58
+      "risk": 0.605
     },
     "personajes.html": {
       "kind": "html",
@@ -2679,7 +2696,7 @@
       "api": 25,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2695,7 +2712,7 @@
         "js/ui/tooltip.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.575
+      "risk": 0.6
     },
     "privacidad.html": {
       "kind": "html",
@@ -2704,7 +2721,7 @@
       "api": 30,
       "todos": 0,
       "tested": 0,
-      "churn": 69,
+      "churn": 70,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2717,93 +2734,11 @@
         "js/ui/tooltip.js",
         "js/core/common-ui.js"
       ],
-      "risk": 0.605
+      "risk": 0.631
     },
     "ranking.html": {
       "kind": "html",
       "lines": 396,
-      "err": 0,
-      "api": 27,
-      "todos": 0,
-      "tested": 1,
-      "churn": 69,
-      "loads": [
-        "js/core/theme.js",
-        "js/core/config.js",
-        "js/core/i18n.min.js",
-        "js/core/namespace.js",
-        "api/supabase-config.js",
-        "js/core-bundle.min.js",
-        "js/pages/ranking-top.js"
-      ],
-      "risk": 0.351
-    },
-    "retos.html": {
-      "kind": "html",
-      "lines": 145,
-      "err": 0,
-      "api": 32,
-      "todos": 0,
-      "tested": 0,
-      "churn": 31,
-      "loads": [
-        "js/core/theme.js",
-        "js/core/config.js",
-        "js/core/i18n.min.js",
-        "js/core/namespace.js",
-        "api/supabase-config.js",
-        "js/core-bundle.min.js",
-        "js/pages/script.js",
-        "js/core/push.js",
-        "js/pages/retos.js",
-        "js/pages/retos-juegos.js"
-      ],
-      "risk": 0.52
-    },
-    "terminos.html": {
-      "kind": "html",
-      "lines": 112,
-      "err": 0,
-      "api": 29,
-      "todos": 0,
-      "tested": 0,
-      "churn": 69,
-      "loads": [
-        "js/core/theme.js",
-        "js/core/config.js",
-        "js/core/i18n.min.js",
-        "js/core/constants.js",
-        "js/core/namespace.js",
-        "js/datos.js",
-        "api/supabase-config.js",
-        "js/ui/ripple.js",
-        "js/ui/tooltip.js",
-        "js/core/common-ui.js"
-      ],
-      "risk": 0.597
-    },
-    "top.html": {
-      "kind": "html",
-      "lines": 508,
-      "err": 0,
-      "api": 27,
-      "todos": 0,
-      "tested": 1,
-      "churn": 69,
-      "loads": [
-        "js/core/theme.js",
-        "js/core/config.js",
-        "js/core/i18n.min.js",
-        "js/core/namespace.js",
-        "api/supabase-config.js",
-        "js/core-bundle.min.js",
-        "js/pages/ranking.js"
-      ],
-      "risk": 0.386
-    },
-    "usuario.html": {
-      "kind": "html",
-      "lines": 323,
       "err": 0,
       "api": 27,
       "todos": 0,
@@ -2816,10 +2751,92 @@
         "js/core/namespace.js",
         "api/supabase-config.js",
         "js/core-bundle.min.js",
+        "js/pages/ranking-top.js"
+      ],
+      "risk": 0.366
+    },
+    "retos.html": {
+      "kind": "html",
+      "lines": 145,
+      "err": 0,
+      "api": 32,
+      "todos": 0,
+      "tested": 0,
+      "churn": 32,
+      "loads": [
+        "js/core/theme.js",
+        "js/core/config.js",
+        "js/core/i18n.min.js",
+        "js/core/namespace.js",
+        "api/supabase-config.js",
+        "js/core-bundle.min.js",
+        "js/pages/script.js",
+        "js/core/push.js",
+        "js/pages/retos.js",
+        "js/pages/retos-juegos.js"
+      ],
+      "risk": 0.545
+    },
+    "terminos.html": {
+      "kind": "html",
+      "lines": 112,
+      "err": 0,
+      "api": 29,
+      "todos": 0,
+      "tested": 0,
+      "churn": 70,
+      "loads": [
+        "js/core/theme.js",
+        "js/core/config.js",
+        "js/core/i18n.min.js",
+        "js/core/constants.js",
+        "js/core/namespace.js",
+        "js/datos.js",
+        "api/supabase-config.js",
+        "js/ui/ripple.js",
+        "js/ui/tooltip.js",
+        "js/core/common-ui.js"
+      ],
+      "risk": 0.623
+    },
+    "top.html": {
+      "kind": "html",
+      "lines": 508,
+      "err": 0,
+      "api": 27,
+      "todos": 0,
+      "tested": 1,
+      "churn": 70,
+      "loads": [
+        "js/core/theme.js",
+        "js/core/config.js",
+        "js/core/i18n.min.js",
+        "js/core/namespace.js",
+        "api/supabase-config.js",
+        "js/core-bundle.min.js",
+        "js/pages/ranking.js"
+      ],
+      "risk": 0.403
+    },
+    "usuario.html": {
+      "kind": "html",
+      "lines": 323,
+      "err": 0,
+      "api": 27,
+      "todos": 0,
+      "tested": 1,
+      "churn": 71,
+      "loads": [
+        "js/core/theme.js",
+        "js/core/config.js",
+        "js/core/i18n.min.js",
+        "js/core/namespace.js",
+        "api/supabase-config.js",
+        "js/core-bundle.min.js",
         "js/pages/usuario.js",
         "js/pages/import-mal.js"
       ],
-      "risk": 0.331
+      "risk": 0.345
     },
     "volumenes.html": {
       "kind": "html",
@@ -2828,7 +2845,7 @@
       "api": 30,
       "todos": 0,
       "tested": 0,
-      "churn": 60,
+      "churn": 61,
       "loads": [
         "js/core/theme.js",
         "js/core/config.js",
@@ -2839,7 +2856,7 @@
         "js/core/mangadex-api.js",
         "js/pages/volumenes.js"
       ],
-      "risk": 0.568
+      "risk": 0.593
     }
   }
 }

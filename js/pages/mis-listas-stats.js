@@ -1,6 +1,6 @@
 // js/pages/mis-listas-stats.js
-// Actividad y estadísticas: grilla de actividad, tarjetas por categoría,
-// mini-resumen y gráficos de barras (géneros, tipos, estados).
+// Actividad y estadísticas: grilla de actividad, tarjetas por categoría y
+// gráficos de barras (géneros, tipos, estados).
 // Extraído de mis-listas.js. Ámbito global (script clásico con defer), igual
 // que mis-listas.js: comparte sus constantes y estado (_sessionUser, etc.) y
 // sus funciones se llaman recién en DOMContentLoaded, con todo ya cargado.
@@ -96,58 +96,22 @@ function renderActividad() {
     }).join('');
 }
 
+// Totales por categoría de la columna lateral ("En números"): cuenta todo lo
+// que está en alguna lista (Me gusta, Visto o un estado de seguimiento).
 function updateCategoryCards() {
     const user = getCurrentUserIdSafe();
-    if (user === 'Invitado') return;
-
     const catCounts = { anime: 0, manga: 0, novelas: 0 };
-    const catFav    = { anime: 0, manga: 0, novelas: 0 };
-    const catViewed = { anime: 0, manga: 0, novelas: 0 };
-
-    getAllItems().forEach(item => {
-        const cat = item.__category;
-        const fav = !!UserStore.getItem(`u:${user}|item:${item.id}|fav`);
-        const viewed = !!UserStore.getItem(`u:${user}|item:${item.id}|viewed`);
-        if (fav || viewed) {
-            catCounts[cat] = (catCounts[cat] || 0) + 1;
-            if (fav)    catFav[cat]    = (catFav[cat] || 0) + 1;
-            if (viewed) catViewed[cat] = (catViewed[cat] || 0) + 1;
-        }
-    });
-
+    if (user !== 'Invitado') {
+        getAllItems().forEach(item => {
+            const cat = item.__category;
+            if (catCounts[cat] == null) return;
+            if (matchesFilter(getUserItemState(user, item), LIST_FILTERS.ALL)) catCounts[cat]++;
+        });
+    }
     const setE = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    setE('countAnime', catCounts.anime || 0);
-    setE('countManga', catCounts.manga || 0);
-    setE('countNovelas', catCounts.novelas || 0);
-    setE('sublabelAnime', `${catFav.anime || 0} ❤ · ${catViewed.anime || 0} 👁`);
-    setE('sublabelManga', `${catFav.manga || 0} ❤ · ${catViewed.manga || 0} 👁`);
-    setE('sublabelNovelas', `${catFav.novelas || 0} ❤ · ${catViewed.novelas || 0} 👁`);
-}
-
-function updateActividadMini() {
-    const user = getCurrentUserIdSafe();
-    const host = document.getElementById('actividadMini');
-    if (!host || user === 'Invitado') return;
-
-    const items = [];
-    getAllItems().forEach(item => {
-        const fav = !!UserStore.getItem(`u:${user}|item:${item.id}|fav`);
-        const viewed = !!UserStore.getItem(`u:${user}|item:${item.id}|viewed`);
-        if (fav || viewed) items.push({ ...item, fav, viewed });
-    });
-
-    items.sort((a, b) => getItemTs(user, b.id) - getItemTs(user, a.id));
-    const recent = items.slice(0, AnimeDestiny.Constants.MAX_MINI_ACTIVITY || 5);
-    if (!recent.length) return;
-
-    const catIcons = { anime: '📺', manga: '📖', novelas: '📝' };
-    host.innerHTML = recent.map(item => `
-        <div class="cat-activity-item">
-            <span class="ai-icon">${catIcons[item.__category] || '⭐'}</span>
-            <span class="ai-title">${escapeHtml(String(item.titulo || '')).substring(0, AnimeDestiny.Constants.ACTIVITY_TITLE_MAX || 35)}</span>
-            <span>${item.fav ? '❤' : ''} ${item.viewed ? '👁' : ''}</span>
-        </div>
-    `).join('');
+    setE('countAnime', catCounts.anime);
+    setE('countManga', catCounts.manga);
+    setE('countNovelas', catCounts.novelas);
 }
 
 // Pinta una lista de barras horizontales (género/tipo/estado). Cada fila:
