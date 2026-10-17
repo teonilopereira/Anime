@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./js/core-bundle.min.js)",
+      "Read(./js/mascot.min.js)",
+      "Read(./js/core/i18n.min.js)",
+      "Read(./js/core/i18n-en.min.js)",
+      "Read(./js/vendor/**)",
+      "Read(./css/*.min.css)",
+      "Read(./package-lock.json)",
+      "Read(./node_modules/**)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
