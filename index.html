@@ -44,15 +44,15 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=d5da6b6d">
-    <link rel="stylesheet" href="css/inicio.css?v=d5da6b6d">
+        <link rel="stylesheet" href="css/bundle.min.css?v=20bb5a48">
+    <link rel="stylesheet" href="css/inicio.css?v=20bb5a48">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=d5da6b6d">
+    <link rel="stylesheet" href="css/fonts.css?v=20bb5a48">
 
-    <script src="js/vendor/lucide.min.js?v=d5da6b6d" defer></script>
-    <script src="js/core/theme.js?v=d5da6b6d"></script>
+    <script src="js/vendor/lucide.min.js?v=20bb5a48" defer></script>
+    <script src="js/core/theme.js?v=20bb5a48"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body class="menu-page" data-page="index">
@@ -67,97 +67,73 @@
         </div>
     </nav>
 
-    <main id="main-content">
-    <!-- Hero -->
-    <header class="hero-menu">
-        <p class="hero-eyebrow" data-i18n="index.eyebrow">Base de datos • v2026</p>
-        <div class="hero-brand">
-            <img class="hero-logo" src="images/brand/mirudoku-mark.svg" alt="" aria-hidden="true" width="180" height="320">
-            <h1 class="glitch-text">MIRUDOKU</h1>
-        </div>
-        <p class="hero-subtitle" data-i18n="index.subtitle">Explorá el catálogo, guardá tu progreso y construí tus listas.</p>
-    </header>
+    <main id="main-content" class="home">
+    <h1 class="home-sr" data-i18n="index.h1">Mirudoku: anime, manga y novelas con tu progreso guardado</h1>
+
+    <!-- Escenario "Seguí donde lo dejaste": solo con sesión y algo en curso
+         (se rellena en js/pages/inicio.js). Sin datos queda oculto y la
+         portada arranca directo en los populares. -->
+    <section id="homeStage" class="home-stage" aria-labelledby="homeStageLabel" hidden></section>
 
     <!-- Racha diaria (se rellena en js/pages/inicio.js; oculto sin sesión) -->
     <section id="streakWidget" class="streak-widget" aria-label="Racha diaria" hidden></section>
 
-    <!-- Acceso al reto del día (retos.html): una franja y no otra card, para no
-         dejar una card sola en la última fila de la grilla. -->
-    <a class="home-reto" href="retos.html#anime">
-        <i data-lucide="target"></i>
-        <span class="home-reto-copy">
-            <strong data-i18n="index.reto">Reto del día</strong>
-            <span data-i18n="index.card.retos">Adiviná el anime del día</span>
-        </span>
-        <i data-lucide="arrow-right"></i>
-    </a>
+    <!-- Más populares: una tira por categoría con pestañas (js/pages/script.js) -->
+    <section class="home-top" aria-labelledby="homeTopLabel">
+        <p class="home-top-label" id="homeTopLabel" data-i18n="index.populares_en">Lo más popular en</p>
+        <div class="home-top-tabs q-tabs" role="tablist" aria-labelledby="homeTopLabel">
+            <button class="q-tab home-top-tab is-active" type="button" role="tab" data-cat="anime" aria-controls="homeTopStrip">Anime</button>
+            <button class="q-tab home-top-tab" type="button" role="tab" data-cat="manga" aria-controls="homeTopStrip">Manga</button>
+            <button class="q-tab home-top-tab" type="button" role="tab" data-cat="novelas" aria-controls="homeTopStrip">Novelas</button>
+        </div>
+        <ol class="home-top-strip" id="homeTopStrip" role="tabpanel" aria-labelledby="homeTopLabel" aria-busy="true"></ol>
+        <a class="home-top-more" id="homeTopMore" href="anime.html">Ver todo el anime</a>
+    </section>
 
-    <!-- Cards de navegación -->
-    <nav class="menu-container" aria-label="Menú principal">
-        <a href="anime.html" class="menu-item">
-            <span class="icon"><i data-lucide="clapperboard"></i></span>
-            <h2>ANIME</h2>
-            <p class="menu-item-desc" data-i18n="index.card.anime">Series y películas</p>
-            <span class="border-glow"></span>
-        </a>
-        <a href="manga.html" class="menu-item">
-            <span class="icon"><i data-lucide="book-open"></i></span>
-            <h2>MANGA</h2>
-            <p class="menu-item-desc" data-i18n="index.card.manga">Cómics y tankobon</p>
-            <span class="border-glow"></span>
-        </a>
-        <a href="novelas.html" class="menu-item">
-            <span class="icon"><i data-lucide="book"></i></span>
-            <h2>NOVELAS</h2>
-            <p class="menu-item-desc" data-i18n="index.card.novelas">Light novels y más</p>
-            <span class="border-glow"></span>
-        </a>
-        <a href="mis-listas.html" class="menu-item">
-            <span class="icon"><i data-lucide="heart"></i></span>
-            <h2>MIS LISTAS</h2>
-            <p class="menu-item-desc" data-i18n="index.card.listas">Favoritos y vistos</p>
-            <span class="border-glow"></span>
-        </a>
-        <a href="ranking.html" class="menu-item">
-            <span class="icon"><i data-lucide="trophy"></i></span>
-            <h2>RANKING</h2>
-            <p class="menu-item-desc" data-i18n="index.card.ranking">Los títulos mejor puntuados</p>
-            <span class="border-glow"></span>
-        </a>
-        <a href="comparar.html" class="menu-item">
-            <span class="icon"><i data-lucide="columns-2"></i></span>
-            <h2>COMPARAR</h2>
-            <p class="menu-item-desc" data-i18n="index.card.comparar">Dos títulos lado a lado</p>
-            <span class="border-glow"></span>
-        </a>
+    <!-- Secciones: un dock en lugar de la grilla de tarjetas -->
+    <nav class="home-dock" aria-label="Secciones">
+        <ul class="home-dock-list">
+            <li><a href="anime.html" title="Series y películas"><i data-lucide="clapperboard"></i><span>Anime</span></a></li>
+            <li><a href="manga.html" title="Cómics y tankobon"><i data-lucide="book-open"></i><span>Manga</span></a></li>
+            <li><a href="novelas.html" title="Light novels y más"><i data-lucide="book"></i><span>Novelas</span></a></li>
+            <li><a href="mis-listas.html" title="Favoritos y vistos"><i data-lucide="heart"></i><span data-i18n="index.dock.listas">Mis listas</span></a></li>
+            <li><a href="ranking.html" title="Los títulos mejor puntuados"><i data-lucide="trophy"></i><span data-i18n="index.dock.ranking">Ranking</span></a></li>
+            <li><a href="comparar.html" title="Dos títulos lado a lado"><i data-lucide="columns-2"></i><span data-i18n="index.dock.comparar">Comparar</span></a></li>
+        </ul>
     </nav>
 
-    <!-- Más populares: un carrusel por categoría (se generan en js/pages/script.js) -->
-    <div class="section-divider"><span data-i18n="index.populares">Más populares</span></div>
-    <div id="homeCarousels"></div>
-
-    <!-- Continuar viendo (se rellena en js/pages/inicio.js; oculto sin datos) -->
-    <section class="home-strip" id="continueWatchingSection" aria-label="Continuar viendo" hidden>
-        <div class="section-divider"><span data-i18n="index.continuar">Continuar viendo</span></div>
-        <div class="home-mini-track" id="continueWatchingTrack"></div>
-    </section>
-
     <!-- Recomendaciones "Porque viste…" (se rellena en js/pages/inicio.js) -->
-    <section class="home-strip" id="homeReco" aria-label="Recomendado para vos" hidden>
-        <div class="section-divider"><span id="homeRecoTitle" data-i18n="index.recomendado">Recomendado para vos</span></div>
+    <section class="home-strip" id="homeReco" aria-labelledby="homeRecoTitle" hidden>
+        <h2 class="home-block-title" id="homeRecoTitle" data-i18n="index.recomendado">Recomendado para vos</h2>
         <div class="home-mini-track" id="homeRecoTrack"></div>
     </section>
+
+    <div class="home-bottom">
+        <!-- Invitación a crear cuenta: inicio.js la oculta cuando hay sesión. -->
+        <section class="home-join" id="homeJoin" aria-labelledby="homeJoinTitle">
+            <div class="home-join-copy">
+                <h2 id="homeJoinTitle" data-i18n="index.join.title">Guardá por dónde vas</h2>
+                <p data-i18n="index.join.body">Con una cuenta, Mirudoku recuerda el episodio que te toca y lo pone primero cuando volvés.</p>
+            </div>
+            <a class="home-join-btn" href="Login.html" data-i18n="index.join.cta">Crear cuenta</a>
+        </section>
+
+        <a class="home-reto" href="retos.html#anime">
+            <strong data-i18n="index.reto">Reto del día</strong>
+            <span data-i18n="index.card.retos">Adiviná el anime del día</span>
+        </a>
+    </div>
     </main>
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=d5da6b6d"></script>
-    <script src="js/core/i18n.min.js?v=d5da6b6d"></script>
-    <script src="js/core/namespace.js?v=d5da6b6d"></script>
-    <script type="module" src="api/supabase-config.js?v=d5da6b6d" async></script>
-    <script src="js/core-bundle.min.js?v=d5da6b6d" defer></script>
-    <script src="js/pages/script.js?v=d5da6b6d" defer></script>
-    <script src="js/pages/inicio.js?v=d5da6b6d" defer></script>
+    <script src="js/core/config.js?v=20bb5a48"></script>
+    <script src="js/core/i18n.min.js?v=20bb5a48"></script>
+    <script src="js/core/namespace.js?v=20bb5a48"></script>
+    <script type="module" src="api/supabase-config.js?v=20bb5a48" async></script>
+    <script src="js/core-bundle.min.js?v=20bb5a48" defer></script>
+    <script src="js/pages/script.js?v=20bb5a48" defer></script>
+    <script src="js/pages/inicio.js?v=20bb5a48" defer></script>
 </body>
 </html>
 
