@@ -41,10 +41,22 @@ function getApiPoster(item) {
 }
 
 
+// Formato de AniList (MOVIE, TV_SHORT...) con nombre legible en el idioma
+// elegido. Lo que no está en la lista se muestra tal cual.
+function translateCatalogFormat(format) {
+    const f = String(format || '').trim().toUpperCase();
+    const fallbacks = {
+        TV: 'TV', TV_SHORT: 'TV corta', MOVIE: 'Película', SPECIAL: 'Especial',
+        OVA: 'OVA', ONA: 'ONA', MUSIC: 'Musical'
+    };
+    if (!fallbacks[f]) return String(format || '').trim();
+    return catTr('card.format.' + f.toLowerCase(), fallbacks[f]);
+}
+
 function getApiCatalogInfo(categoria, item) {
     if (categoria === 'anime') {
         const eps = item?.episodes ? `${item.episodes} ${catTr('card.unit.eps', 'eps')}` : '';
-        const parts = [item?.type, eps, item?.status].filter(Boolean);
+        const parts = [translateCatalogFormat(item?.type), eps, item?.status].filter(Boolean);
         return parts.join(' / ') || catTr('card.type.anime', 'Anime');
     }
 
@@ -295,6 +307,140 @@ function catalogStatusTone(status) {
     return 'releasing';
 }
 
+function catalogLang() {
+    if (window.AppI18n && typeof window.AppI18n.getLang === 'function') return window.AppI18n.getLang();
+    try { return localStorage.getItem('pref:lang') || 'es'; } catch (_) { return 'es'; }
+}
+
+// La tarjeta muestra 2 o 3 líneas: alcanza con las primeras oraciones. Además
+// se quitan las notas de fuente de AniList ("(Source: ...)") y se acorta el
+// texto que se manda a traducir (MyMemory cuenta caracteres por día).
+function shortSynopsis(text) {
+    let t = String(text || '')
+        .replace(/\(\s*source:[^)]*\)/gi, '')
+        .replace(/\[\s*written by[^\]]*\]/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (t.length <= 320) return t;
+    const cut = t.slice(0, 320);
+    const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+    return (end > 120 ? cut.slice(0, end + 1) : cut.replace(/\s+\S*$/, '') + '…').trim();
+}
+
+// ─── Traducción de sinopsis al español ───
+// Misma caché que la ficha de detalle (ad:trans:v2:), así lo que ya se tradujo
+// en un lado sirve en el otro. Se traducen solo las tarjetas que entran en
+// pantalla, de a dos pedidos por vez.
+const SYNOPSIS_CACHE_PREFIX = 'ad:trans:v2:';
+const SYNOPSIS_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+let _synopsisQueue = [];
+let _synopsisActive = 0;
+let _synopsisQuotaHit = false;
+let _synopsisObserver = null;
+
+function _synopsisCacheKey(text) {
+    let s = String(text).trim().toLowerCase();
+    if (s.length > 120) s = s.slice(0, 120);
+    return SYNOPSIS_CACHE_PREFIX + s;
+}
+
+function _cachedSynopsis(text) {
+    try {
+        const raw = localStorage.getItem(_synopsisCacheKey(text));
+        if (!raw) return '';
+        const parsed = JSON.parse(raw);
+        return parsed && Date.now() < parsed.expiry ? String(parsed.text || '') : '';
+    } catch (_) { return ''; }
+}
+
+async function _fetchSynopsisEs(text) {
+    const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=en|es&de=demo@example.com';
+    const resp = await fetch(url);
+    const data = await resp.json();
+    const out = String(data?.responseData?.translatedText || '').trim();
+    // Con la cuota del día agotada MyMemory responde 429/403 o devuelve el
+    // aviso como si fuera la traducción: eso no se muestra ni se guarda.
+    if (Number(data?.responseStatus) !== 200 || !out || /MYMEMORY WARNING|QUERY LENGTH LIMIT/i.test(out)) {
+        if (Number(data?.responseStatus) === 429 || /MYMEMORY WARNING/i.test(out)) _synopsisQuotaHit = true;
+        return '';
+    }
+    try {
+        localStorage.setItem(_synopsisCacheKey(text), JSON.stringify({ text: out, expiry: Date.now() + SYNOPSIS_CACHE_TTL }));
+    } catch (_) { /* storage lleno o bloqueado */ }
+    return out;
+}
+
+function _showSynopsis(el, text, lang) {
+    el.textContent = text;
+    el.setAttribute('lang', lang);
+    el.hidden = false;
+}
+
+function _pumpSynopsisQueue() {
+    while (_synopsisActive < 2 && _synopsisQueue.length && !_synopsisQuotaHit) {
+        const el = _synopsisQueue.shift();
+        if (!el.isConnected || !el.hidden || catalogLang() === 'en') continue;
+        const src = el.getAttribute('data-synopsis-src') || '';
+        _synopsisActive++;
+        _fetchSynopsisEs(src)
+            .then((es) => { if (es && el.isConnected && catalogLang() !== 'en') _showSynopsis(el, es, 'es'); })
+            .catch(() => {})
+            .finally(() => { _synopsisActive--; _pumpSynopsisQueue(); });
+    }
+}
+
+function translateVisibleSynopses(container) {
+    if (!container) return;
+    const pending = container.querySelectorAll('.crail-synopsis[data-synopsis-src][hidden]');
+    if (!pending.length) return;
+    if (catalogLang() === 'en') {
+        pending.forEach((el) => _showSynopsis(el, el.getAttribute('data-synopsis-src') || '', 'en'));
+        return;
+    }
+    // Lo que ya está en caché aparece enseguida, sin pedir nada.
+    const toObserve = [];
+    pending.forEach((el) => {
+        const cached = _cachedSynopsis(el.getAttribute('data-synopsis-src') || '');
+        if (cached) _showSynopsis(el, cached, 'es');
+        else toObserve.push(el);
+    });
+    if (!toObserve.length || _synopsisQuotaHit) return;
+    if (typeof IntersectionObserver !== 'function') return;
+    if (!_synopsisObserver) {
+        _synopsisObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                _synopsisObserver.unobserve(entry.target);
+                _synopsisQueue.push(entry.target);
+            });
+            _pumpSynopsisQueue();
+        }, { rootMargin: '200px 0px' });
+    }
+    toObserve.forEach((el) => _synopsisObserver.observe(el));
+}
+
+// Cambio de idioma: géneros, formato y sinopsis de las tarjetas ya pintadas.
+window.addEventListener('i18n:changed', function () {
+    const gallery = document.getElementById('main-content');
+    if (!gallery) return;
+    const Genres = AnimeDestiny.Genres;
+    if (Genres && typeof Genres.etiqueta === 'function') {
+        gallery.querySelectorAll('.crail-genre[data-genre]').forEach((el) => {
+            el.textContent = Genres.etiqueta(el.getAttribute('data-genre'));
+        });
+    }
+    gallery.querySelectorAll('.crail-synopsis[data-synopsis-src]').forEach((el) => {
+        if (catalogLang() === 'en') {
+            _showSynopsis(el, el.getAttribute('data-synopsis-src') || '', 'en');
+        } else if (el.getAttribute('lang') !== 'es') {
+            el.hidden = true;
+            el.textContent = '';
+            el.removeAttribute('lang');
+        }
+    });
+    translateVisibleSynopses(gallery);
+});
+
 function buildCatalogCardHtml(options) {
     const {
         id,
@@ -361,15 +507,22 @@ function buildCatalogCardHtml(options) {
         ? `<span class="crail-score" aria-label="${escapeHtml(catTr('card.aria.nota', 'Nota'))} ${scoreNum.toFixed(1)}">★ ${scoreNum.toFixed(1)}</span>`
         : '';
     const shownGenres = (Array.isArray(genreList) ? genreList : []).filter(Boolean).slice(0, 3);
+    const Genres = AnimeDestiny.Genres;
+    const genreLabel = (g) => (Genres && typeof Genres.etiqueta === 'function' ? Genres.etiqueta(g) : g);
     const genresHtml = shownGenres.length
-        ? `<span class="crail-genres">${shownGenres.map((g) => `<span class="crail-genre">${escapeHtml(String(g))}</span>`).join('')}</span>`
+        ? `<span class="crail-genres">${shownGenres.map((g) => `<span class="crail-genre" data-genre="${escapeHtml(String(g))}">${escapeHtml(genreLabel(String(g)))}</span>`).join('')}</span>`
         : '';
     // AniList puede traer entidades HTML (&quot;, &amp;...) en la descripción:
     // se decodifican antes de escaparlas para no mostrarlas literales.
     const ENTITIES = { quot: '"', amp: '&', lt: '<', gt: '>', '#39': "'", '#039': "'" };
-    const cleanSynopsis = String(synopsis || '').replace(/&(quot|amp|lt|gt|#0?39);/g, (m, k) => ENTITIES[k]).trim();
+    const cleanSynopsis = shortSynopsis(String(synopsis || '').replace(/&(quot|amp|lt|gt|#0?39);/g, (m, k) => ENTITIES[k]));
+    // La sinopsis de AniList está en inglés. En inglés se muestra tal cual; en
+    // español queda oculta hasta que llega la traducción (ver
+    // translateVisibleSynopses), para no mostrar texto en otro idioma.
     const synopsisHtml = cleanSynopsis && cleanSynopsis !== 'Sin sinopsis disponible.'
-        ? `<p class="crail-synopsis">${escapeHtml(cleanSynopsis)}</p>`
+        ? (catalogLang() === 'en'
+            ? `<p class="crail-synopsis" lang="en" data-synopsis-src="${escapeHtml(cleanSynopsis)}">${escapeHtml(cleanSynopsis)}</p>`
+            : `<p class="crail-synopsis" data-synopsis-src="${escapeHtml(cleanSynopsis)}" hidden></p>`)
         : '';
     const extraHtml = (scoreHtml || genresHtml || synopsisHtml)
         ? `<div class="crail-extra">${scoreHtml}${genresHtml}${synopsisHtml}</div>`
@@ -526,6 +679,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
         mainContainer.innerHTML = cardsHtml;
     }
 
+    try { translateVisibleSynopses(mainContainer); } catch (e) { console.warn('Error traduciendo sinopsis:', e); }
     try { cargarEstadosBotones(); } catch (e) { console.warn('Error en botones:', e); }
     if (!append) {
         try { inicializarBusquedaCatalogo(); } catch (e) { console.warn('Error en busqueda:', e); }

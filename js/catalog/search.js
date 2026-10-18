@@ -592,6 +592,9 @@ function inicializarBusquedaCatalogo() {
             });
         };
         syncBrowseTabs();
+        // El título de resultados copia el texto de la pestaña: al llegar otro
+        // idioma se vuelve a copiar.
+        window.addEventListener('i18n:changed', syncBrowseTabs);
         browseTabs.addEventListener('click', function (e) {
             var tab = e.target.closest('.browse-tab');
             if (!tab) return;
@@ -899,10 +902,16 @@ function inicializarGeneroWidgets() {
         const arr = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
         const q = (window.__genreQuery || '').trim().toLowerCase();
 
-        // Filtrado por texto del buscador (coincide con la etiqueta).
+        // Nombre a mostrar en el idioma elegido (la clave sigue en inglés) y
+        // orden alfabético por ese nombre, con los géneros oficiales primero.
+        const shown = filterGenres.map((g) => ({ ...g, display: genreDisplay(g.label) }))
+            .sort((a, b) => (a.oficial !== b.oficial ? (a.oficial ? -1 : 1) : a.display.localeCompare(b.display, 'es', { sensitivity: 'base' })));
+
+        // Filtrado por texto del buscador: coincide con el nombre mostrado o
+        // con el original de AniList.
         const list = q
-            ? filterGenres.filter((g) => g.label.toLowerCase().includes(q))
-            : filterGenres;
+            ? shown.filter((g) => g.display.toLowerCase().includes(q) || g.label.toLowerCase().includes(q))
+            : shown;
 
         // Colapsar salvo que se esté buscando o el usuario haya expandido.
         const canCollapse = !q && !window.__genreExpanded && list.length > GENRE_COLLAPSED_COUNT;
@@ -920,7 +929,7 @@ function inicializarGeneroWidgets() {
         } else {
             filterGenresContainer.innerHTML = visible.map((g) => {
                 const active = arr.includes(g.key) ? ' is-active' : '';
-                return `<button class="ff-genre-chip${active}" type="button" data-genre="${escapeHtml(g.key)}" aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(g.label)}</button>`;
+                return `<button class="ff-genre-chip${active}" type="button" data-genre="${escapeHtml(g.key)}" aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(g.display)}</button>`;
             }).join('');
         }
 
@@ -942,6 +951,9 @@ function inicializarGeneroWidgets() {
     // Van debajo del buscador, a la vista aunque el panel de filtros esté
     // cerrado. Se rearman cada vez que cambia la selección.
     const genreLabels = new Map(filterGenres.map((g) => [g.key, g.label]));
+    function genreDisplay(label) {
+        return Genres && typeof Genres.etiqueta === 'function' ? Genres.etiqueta(label) : label;
+    }
     const CHIP_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 
     function getActiveGenreRow() {
@@ -981,8 +993,9 @@ function inicializarGeneroWidgets() {
         row.hidden = !arr.length;
         if (!arr.length) { row.innerHTML = ''; return; }
         let html = arr.map((key) => {
-            const label = escapeHtml(genreLabels.get(key) || key);
-            const quitar = escapeHtml(catTr('catalog.quitar_genero', 'Quitar ' + (genreLabels.get(key) || key), { genero: genreLabels.get(key) || key }));
+            const name = genreDisplay(genreLabels.get(key) || key);
+            const label = escapeHtml(name);
+            const quitar = escapeHtml(catTr('catalog.quitar_genero', 'Quitar ' + name, { genero: name }));
             return `<span class="q-chip q-chip--removable">${label}<button class="q-chip__remove" type="button" data-remove-genre="${escapeHtml(key)}" aria-label="${quitar}">${CHIP_X}</button></span>`;
         }).join('');
         if (arr.length > 1) {
@@ -1014,6 +1027,11 @@ function inicializarGeneroWidgets() {
             }, 120);
         });
     }
+
+    // Al cambiar de idioma se rearman los chips con los nombres nuevos.
+    window.addEventListener('i18n:changed', () => {
+        if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
+    });
 
     if (genreToggleBtn) {
         genreToggleBtn.addEventListener('click', () => {

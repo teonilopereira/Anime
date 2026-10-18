@@ -23,16 +23,16 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=9d097fb7">
+        <link rel="stylesheet" href="css/bundle.min.css?v=3e9c4321">
 
-    <link rel="stylesheet" href="css/advanced-filter.css?v=9d097fb7">
-    <link rel="stylesheet" href="css/catalogo.css?v=9d097fb7">
+    <link rel="stylesheet" href="css/advanced-filter.css?v=3e9c4321">
+    <link rel="stylesheet" href="css/catalogo.css?v=3e9c4321">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=9d097fb7">
+    <link rel="stylesheet" href="css/fonts.css?v=3e9c4321">
 
-    <script src="js/vendor/lucide.min.js?v=9d097fb7" defer></script>
-    <script src="js/core/theme.js?v=9d097fb7"></script>
+    <script src="js/vendor/lucide.min.js?v=3e9c4321" defer></script>
+    <script src="js/core/theme.js?v=3e9c4321"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="manga">
@@ -64,19 +64,19 @@
     </header>
 
     <div class="cx-layout">
-        <aside class="cx-side" aria-label="Filtros">
+        <aside class="cx-side" aria-label="Filtros" data-i18n="catalog.aside" data-i18n-attr="aria-label">
             <section class="cx-side-sec" aria-labelledby="cxBrowseTitle">
-                <h2 class="cx-side-title" id="cxBrowseTitle">DESCUBRIR</h2>
-                <div class="catalog-browse-tabs q-tabs cx-browse" id="browseTabs" role="tablist" aria-label="Modo de descubrimiento" aria-orientation="vertical">
-                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="">Populares</button>
-                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="tendencias">Tendencias</button>
-                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="puntuados">Mejor puntuados</button>
+                <h2 class="cx-side-title" id="cxBrowseTitle" data-i18n="catalog.descubrir">DESCUBRIR</h2>
+                <div class="catalog-browse-tabs q-tabs cx-browse" id="browseTabs" role="tablist" aria-label="Modo de descubrimiento" data-i18n="catalog.browse.aria" data-i18n-attr="aria-label" aria-orientation="vertical">
+                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="" data-i18n="catalog.browse.populares">Populares</button>
+                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="tendencias" data-i18n="catalog.browse.tendencias">Tendencias</button>
+                    <button class="browse-tab q-tab" type="button" role="tab" data-browse="puntuados" data-i18n="catalog.browse.puntuados">Mejor puntuados</button>
                 </div>
             </section>
 
             <button id="mainFilterToggle" type="button" class="advanced-filter-toggle cx-filter-toggle" aria-expanded="false" aria-controls="filterDropdown">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                <span>Filtros y géneros</span>
+                <span data-i18n="catalog.filtros_btn">Filtros y géneros</span>
             </button>
 
             <div class="advanced-filter-dropdown cx-filters" id="filterDropdown" style="display: none;">
@@ -151,11 +151,11 @@
         <div class="catalog-content cx-main">
             <div class="cx-results-bar">
                 <h2 class="cx-results-title" id="catalogHeading">Populares</h2>
-                <div class="cx-view" role="group" aria-label="Vista">
-                    <button type="button" id="viewCards" aria-pressed="true" aria-label="Ver como fichas" title="Fichas">
+                <div class="cx-view" role="group" aria-label="Vista" data-i18n="catalog.vista" data-i18n-attr="aria-label">
+                    <button type="button" id="viewCards" aria-pressed="true" aria-label="Ver como fichas" title="Ver como fichas" data-i18n="catalog.vista.fichas" data-i18n-attr="aria-label,title">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="7" height="7"/><path d="M13 5h8M13 9h6"/><rect x="3" y="13" width="7" height="7"/><path d="M13 14h8M13 18h6"/></svg>
                     </button>
-                    <button type="button" id="viewCovers" aria-pressed="false" aria-label="Ver como portadas" title="Portadas">
+                    <button type="button" id="viewCovers" aria-pressed="false" aria-label="Ver como portadas" title="Ver como portadas" data-i18n="catalog.vista.portadas" data-i18n-attr="aria-label,title">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
                     </button>
                 </div>
@@ -166,13 +166,13 @@
         </div>
     </div>
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=9d097fb7"></script>
-    <script src="js/core/i18n.min.js?v=9d097fb7"></script>
-    <script src="js/core/namespace.js?v=9d097fb7"></script>
-    <script type="module" src="api/supabase-config.js?v=9d097fb7" async></script>
-    <script src="js/core-bundle.min.js?v=9d097fb7" defer></script>
-    <script src="js/core/mangadex-api.js?v=9d097fb7" defer></script>
-    <script src="js/pages/script.js?v=9d097fb7" defer></script>
+    <script src="js/core/config.js?v=3e9c4321"></script>
+    <script src="js/core/i18n.min.js?v=3e9c4321"></script>
+    <script src="js/core/namespace.js?v=3e9c4321"></script>
+    <script type="module" src="api/supabase-config.js?v=3e9c4321" async></script>
+    <script src="js/core-bundle.min.js?v=3e9c4321" defer></script>
+    <script src="js/core/mangadex-api.js?v=3e9c4321" defer></script>
+    <script src="js/pages/script.js?v=3e9c4321" defer></script>
 </body>
 </html>
 
