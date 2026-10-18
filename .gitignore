@@ -47,8 +47,7 @@ yarn-error.log*
 # Configuraciones locales de tu editor que no afectan al proyecto real.
 .vscode/
 .idea/
-.claude/*
-!.claude/skills/
+.claude/
 *.suo
 *.ntvs*
 *.njsproj
