@@ -1,6 +1,7 @@
 /* ==========================================
    catalogo.css — Layout de anime / manga / novelas
-   Encabezado con buscador y selector de catálogo,
+   Encabezado con buscador (el cambio entre catálogos
+   lo hace la navbar),
    columna lateral de filtros (Descubrir, Refinar,
    Género, NSFW) y resultados en vista de fichas o
    de portadas. El acento sale de --nav-accent, que
@@ -20,7 +21,7 @@
 .cx-top-inner {
     max-width: 1360px;
     margin: 0 auto;
-    padding: 22px 24px 0;
+    padding: 22px 24px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -63,42 +64,6 @@
 }
 .cx-search .catalog-search-wrap::after { display: none; }
 .cx-search .catalog-search-icon { color: rgba(var(--ink-rgb), 0.55); }
-
-/* Selector Anime · Manga · Novelas */
-.cx-cats {
-    display: flex;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    margin: 0 -6px;
-}
-.cx-cats::-webkit-scrollbar { display: none; }
-.cx-cat {
-    --cx-dot: #00f2ff;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 46px;
-    padding: 0 16px;
-    white-space: nowrap;
-    color: rgba(var(--ink-rgb), 0.62);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-decoration: none;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s ease, border-color 0.2s ease;
-}
-.cx-cat[data-cx-cat="manga"] { --cx-dot: #22c55e; }
-.cx-cat[data-cx-cat="novelas"] { --cx-dot: #f43f5e; }
-.cx-cat:hover { color: var(--text-main); }
-.cx-cat.is-active { color: var(--text-main); border-bottom-color: var(--cx-dot); }
-.cx-cat-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--cx-dot);
-}
 
 /* ── Cuerpo: columna de filtros + resultados ── */
 .cx-layout {
@@ -384,7 +349,7 @@ body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card:hover {
 .cx-gallery .skeleton-card { width: 100%; max-width: none; }
 
 @media (max-width: 600px) {
-    .cx-top-inner { padding: 16px 16px 0; }
+    .cx-top-inner { padding: 16px; }
     .cx-layout { padding: 16px 16px 48px; gap: 18px; }
     .catalog-search-filter-container.cx-search { flex-basis: 100%; min-width: 0; }
     .cx-fields.filter-advanced-grid { grid-template-columns: minmax(0, 1fr); }

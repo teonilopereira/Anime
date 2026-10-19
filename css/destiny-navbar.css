@@ -1,4 +1,4 @@
-/* Navbar estilo Mirudoku para manga.html. */
+/* Navbar de Mirudoku: tres cápsulas flotantes en desktop y dock flotante en mobile. */
 
 /* La navbar y la barra inferior son siempre oscuras. Con el tema claro se les
    devuelve la paleta oscura para que el texto y los acentos que heredan del tema
@@ -45,80 +45,44 @@
     display: none;
 }
 
-/* ── Área de usuario en navbar (avatar + nombre + botón) ── */
-.destiny-navbar .nav-user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-}
+/* ── Navbar "cápsula" ──────────────────────────────────────────────────────
+   En desktop la barra ya no es una franja: se parte en tres piezas de vidrio
+   que flotan sobre la página (marca · secciones · usuario). La sección actual
+   es una píldora violeta. El contenedor es transparente y no recibe clicks,
+   así el hueco entre cápsulas deja tocar lo que hay debajo. */
 .destiny-navbar {
-    --nav-accent: #4d86ff;
-    --nav-accent-soft: rgba(77, 134, 255, 0.24);
+    --nav-accent: #bc13fe;
+    --nav-accent-soft: rgba(188, 19, 254, 0.22);
+    --nav-glass: rgba(16, 11, 32, 0.74);
+    --nav-glass-border: rgba(255, 255, 255, 0.09);
+    --nav-pill: linear-gradient(135deg, #bc13fe, #5b2cff);
+    --nav-pill-glow: 0 0 20px rgba(188, 19, 254, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
     position: sticky;
     top: 0;
     z-index: 1000;
     width: min(1560px, calc(100% - 28px));
-    min-height: 76px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 14px 0 0;
     display: grid;
-    grid-template-columns: auto 1fr minmax(300px, 440px);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: 14px;
-    overflow: visible;
-    border: 1px solid rgba(77, 134, 255, 0.28);
-    border-bottom-color: rgba(77, 134, 255, 0.55);
-    border-radius: 12px;
-    background:
-        radial-gradient(ellipse at 10% 50%, rgba(40, 90, 220, 0.16), transparent 50%),
-        radial-gradient(ellipse at 90% 50%, rgba(40, 90, 220, 0.11), transparent 50%),
-        linear-gradient(90deg, rgba(3, 5, 12, 0.98), rgba(7, 9, 18, 0.96) 42%, rgba(3, 5, 12, 0.98));
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42), inset 0 0 28px rgba(var(--ink-rgb), 0.035);
-    backdrop-filter: blur(14px);
+    gap: 12px;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    color: var(--text-main);
 }
 
 /* Al bajar la barra se retrae hacia arriba y vuelve apenas se sube (lo maneja
    wireNavAutoHide en js/core/common-ui.js). Se translada el 100% del alto mas
    el margen de la sombra, para que no quede asomando una linea. */
 .destiny-navbar {
-    transition: transform 0.28s ease, min-height 0.2s ease, padding 0.2s ease;
+    transition: transform 0.28s ease, padding 0.2s ease;
     will-change: transform;
 }
 
 .destiny-navbar.is-hidden {
-    transform: translateY(calc(-100% - 20px));
-}
-
-.destiny-navbar.is-scrolled {
-    padding: 0 22px;
-}
-
-/* Compacta al despegarse de la cabecera: gana altura de lectura sin que la
-   barra desaparezca del todo. Solo en el layout de tres columnas: mas abajo la
-   barra se apila y bajarle el alto la deja apretada. */
-@media (min-width: 1181px) {
-    .destiny-navbar.is-scrolled {
-        min-height: 62px;
-    }
-
-    /* `.nav-btn.active` tiene la misma especificidad y esta definido mas
-       abajo, asi que sin nombrarlo aca el item de la pagina actual se quedaba
-       en 60px dentro de una fila de 50 y sobresalia. */
-    .destiny-navbar.is-scrolled .nav-links,
-    .destiny-navbar.is-scrolled .nav-btn,
-    .destiny-navbar.is-scrolled .nav-btn.active {
-        min-height: 50px;
-    }
-
-    .destiny-navbar.is-scrolled .nav-brand-mark {
-        width: 48px;
-        height: 40px;
-    }
-
-    .destiny-navbar.is-scrolled .nav-brand-jp {
-        display: none;
-    }
+    transform: translateY(calc(-100% - 24px));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -130,86 +94,31 @@ body.reduce-motion .destiny-navbar {
     transition: none;
 }
 
-.destiny-navbar::before,
-.destiny-navbar::after {
-    content: "";
-    position: absolute;
-    pointer-events: none;
-}
-
-.destiny-navbar::before {
-    inset: 0;
-    border-radius: inherit;
-    background-image:
-        linear-gradient(90deg, transparent 0%, rgba(77, 134, 255, 0.06) 15%, transparent 30%, transparent 70%, rgba(77, 134, 255, 0.06) 85%, transparent 100%),
-        repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(80, 130, 255, 0.012) 3px, rgba(80, 130, 255, 0.012) 4px),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55)),
-        linear-gradient(rgba(0, 242, 255, 0.55), rgba(0, 242, 255, 0.55));
-    background-size:
-        100% 100%, 100% 100%,
-        14px 2px, 2px 14px,
-        14px 2px, 2px 14px,
-        14px 2px, 2px 14px,
-        14px 2px, 2px 14px;
-    background-position:
-        0 0, 0 0,
-        8px 6px, 8px 6px,
-        calc(100% - 8px) 6px, calc(100% - 8px) 6px,
-        8px calc(100% - 6px), 8px calc(100% - 6px),
-        calc(100% - 8px) calc(100% - 6px), calc(100% - 8px) calc(100% - 6px);
-    background-repeat: no-repeat;
-}
-
-.destiny-navbar::after {
-    inset: auto 22px -1px 22px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.75) 35%, rgba(77, 134, 255, 0.85) 65%, transparent);
-    background-size: 200% 100%;
-    filter: drop-shadow(0 0 10px rgba(77, 134, 255, 0.9));
-    /* Una pasada al cargar y otra mientras el puntero esta encima. Antes era
-       infinita: la barra se redibujaba sin parar en todas las paginas. */
-    animation: nav-edge-sweep 7s linear 1;
-}
-
-.destiny-navbar:hover::after {
-    animation-iteration-count: infinite;
-}
-
-@keyframes nav-edge-sweep {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
+/* ── Marca ── */
 .nav-brand {
     position: relative;
-    z-index: 1;
     display: inline-flex;
     align-items: center;
     min-width: 0;
-    gap: 18px;
+    gap: 10px;
     color: var(--text-main);
     text-decoration: none;
 }
 
 .nav-brand-mark {
-    width: 64px;
-    height: 54px;
+    width: 34px;
+    height: 34px;
     position: relative;
     display: grid;
     place-items: center;
-    filter: drop-shadow(0 0 12px rgba(77, 134, 255, 0.55));
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(188, 19, 254, 0.5));
     transition: filter 0.25s ease, transform 0.25s ease;
 }
 
 .nav-brand:hover .nav-brand-mark {
-    filter: drop-shadow(0 0 18px rgba(0, 242, 255, 0.75));
-    transform: scale(1.05);
+    filter: drop-shadow(0 0 14px rgba(0, 242, 255, 0.7));
+    transform: scale(1.06);
 }
 
 .nav-brand-mark img {
@@ -235,8 +144,8 @@ body.reduce-motion .destiny-navbar {
 .nav-brand-destiny {
     font-family: "Orbitron", sans-serif;
     font-weight: 900;
-    font-size: clamp(0.95rem, 1.5vw, 1.3rem);
-    letter-spacing: 0;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
 }
 
 .nav-brand-jp {
@@ -248,13 +157,12 @@ body.reduce-motion .destiny-navbar {
 }
 
 .nav-brand-destiny {
-    color: #4d86ff;
-    background: linear-gradient(100deg, #4d86ff 0%, #4d86ff 35%, #9db8ff 46%, #00f2ff 50%, #9db8ff 54%, #4d86ff 65%, #4d86ff 100%);
+    color: #bc13fe;
+    background: linear-gradient(100deg, #bc13fe 0%, #bc13fe 35%, #e7a6ff 46%, #00f2ff 50%, #e7a6ff 54%, #bc13fe 65%, #bc13fe 100%);
     background-size: 250% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 10px rgba(77, 134, 255, 0.45));
     animation: nav-brand-shimmer 7s linear 1;
 }
 
@@ -267,90 +175,66 @@ body.reduce-motion .destiny-navbar {
     100% { background-position: -30% 0; }
 }
 
+/* ── Secciones ── */
 .destiny-navbar .nav-links {
     position: relative;
-    z-index: 1;
-    min-height: 60px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-    align-items: stretch;
+    display: flex;
+    align-items: center;
     gap: 2px;
-    padding: 0 10px;
-    background: rgba(12, 14, 24, 0.6);
-    border-radius: 10px;
-    border: 1px solid rgba(var(--ink-rgb), 0.06);
 }
 
 .destiny-navbar .nav-btn {
     position: relative;
     min-width: 0;
-    min-height: 60px;
-    padding: 6px 8px;
+    min-height: 42px;
+    margin: 0;
+    padding: 0 16px;
     display: inline-flex;
-    flex-direction: column;
-    gap: 4px;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     border: 0;
-    border-radius: 8px;
+    border-radius: 999px;
     background: transparent;
-    color: rgba(var(--ink-rgb), 0.82);
+    color: rgba(var(--ink-rgb), 0.7);
     box-shadow: none;
-    font-size: 0.78rem;
-    letter-spacing: 0.02em;
+    font-family: "Rajdhani", sans-serif;
+    font-size: 0.98rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     text-transform: none;
+    text-decoration: none;
+    white-space: nowrap;
     transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .destiny-navbar .nav-btn:hover {
     color: var(--text-main);
-    background: rgba(77, 134, 255, 0.12);
-}
-
-/* Subrayado que se expande desde el centro al pasar el mouse */
-.destiny-navbar .nav-btn:not(.active)::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    right: 50%;
-    height: 2px;
-    background: linear-gradient(90deg, rgba(0, 242, 255, 0.8), var(--nav-accent));
-    border-radius: 2px;
-    opacity: 0;
-    transition: left 0.25s ease, right 0.25s ease, opacity 0.25s ease;
-}
-
-.destiny-navbar .nav-btn:not(.active):hover::after {
-    left: 25%;
-    right: 25%;
-    opacity: 1;
+    background: rgba(188, 19, 254, 0.14);
 }
 
 .destiny-navbar .nav-btn.active {
-    min-height: 60px;
-    margin: 0;
-    color: #cfe0ff;
-    background:
-        radial-gradient(ellipse at 50% 30%, rgba(77, 134, 255, 0.2), transparent 70%),
-        rgba(18, 40, 105, 0.5);
-    border: 1px solid rgba(77, 134, 255, 0.5);
-    /* Brillo fijo (el punto medio del viejo "respirar"): animar box-shadow
-       repinta el boton en cada cuadro y gasta bateria en el celular. */
-    box-shadow: inset 0 0 24px rgba(77, 134, 255, 0.16);
-    z-index: 2;
+    color: #fff;
+    background: var(--nav-pill);
+    box-shadow: var(--nav-pill-glow);
 }
 
-.destiny-navbar .nav-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    left: 25%;
-    right: 25%;
-    height: 2px;
-    background: var(--nav-accent);
-    border-radius: 2px;
-    box-shadow: 0 0 8px var(--nav-accent);
+.destiny-navbar .nav-btn:focus-visible {
+    outline: 2px solid #00f2ff;
+    outline-offset: 2px;
+}
+
+.nav-icon {
+    display: inline-grid;
+    place-items: center;
+    line-height: 1;
+    color: currentColor;
+    transition: transform 0.2s ease;
+}
+
+.destiny-navbar .nav-icon svg {
+    width: 17px;
+    height: 17px;
 }
 
 /* ── Desplegable "Más" ─────────────────────────────────────────────────────
@@ -364,15 +248,15 @@ body.reduce-motion .destiny-navbar {
 }
 
 .destiny-navbar .nav-more-btn {
-    width: 100%;
     cursor: pointer;
     font-family: inherit;
+    flex-direction: row-reverse;
 }
 
 /* La flecha gira al abrir: es la única señal de que el panel está desplegado
    cuando el menú cae por debajo del borde de la barra. */
 .destiny-navbar .nav-more-btn .nav-icon {
-    transition: transform 0.2s ease, filter 0.2s ease;
+    transition: transform 0.2s ease;
 }
 .destiny-navbar .nav-more.is-open .nav-more-btn .nav-icon {
     transform: rotate(180deg);
@@ -380,20 +264,20 @@ body.reduce-motion .destiny-navbar {
 
 .destiny-navbar .nav-more-menu {
     position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
+    top: calc(100% + 14px);
+    right: -5px;
     z-index: 10;
-    min-width: 210px;
+    min-width: 220px;
     padding: 6px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    border-radius: 10px;
-    border: 1px solid rgba(77, 134, 255, 0.35);
-    background: linear-gradient(180deg, rgba(12, 16, 32, 0.98), rgba(6, 8, 18, 0.98));
+    border-radius: 18px;
+    border: 1px solid var(--nav-glass-border);
+    background: rgba(16, 11, 32, 0.96);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 /* El atributo `hidden` no alcanzaba para ocultar el panel: la regla del UA
@@ -406,7 +290,7 @@ body.reduce-motion .destiny-navbar {
     display: none;
 }
 
-/* Puente invisible sobre los 8px que separan el botón del panel: son píxeles
+/* Puente invisible sobre los 14px que separan el botón del panel: son píxeles
    que no pertenecen a ningún elemento, así que al cruzarlos el puntero "sale"
    del menú y el hover lo cerraría en el camino. */
 .destiny-navbar .nav-more-menu::before {
@@ -414,8 +298,8 @@ body.reduce-motion .destiny-navbar {
     position: absolute;
     left: 0;
     right: 0;
-    top: -8px;
-    height: 8px;
+    top: -14px;
+    height: 14px;
 }
 
 .destiny-navbar .nav-more-item {
@@ -426,24 +310,26 @@ body.reduce-motion .destiny-navbar {
     /* 44px de alto util: es el minimo comodo para tocar con el dedo, y en
        mobile este panel se abre dentro de la hoja. */
     min-height: 44px;
-    border-radius: 8px;
+    border: 1px solid transparent;
+    border-radius: 12px;
     color: rgba(var(--ink-rgb), 0.82);
     text-decoration: none;
-    font-size: 0.85rem;
+    font-size: 0.92rem;
+    font-weight: 600;
     white-space: nowrap;
     transition: background 0.2s, color 0.2s;
 }
 
 .destiny-navbar .nav-more-item:hover,
 .destiny-navbar .nav-more-item:focus-visible {
-    background: rgba(77, 134, 255, 0.14);
+    background: rgba(188, 19, 254, 0.14);
     color: var(--text-main);
 }
 
 .destiny-navbar .nav-more-item.is-active {
-    background: rgba(18, 40, 105, 0.55);
-    border: 1px solid rgba(77, 134, 255, 0.5);
-    color: #cfe0ff;
+    background: rgba(188, 19, 254, 0.2);
+    border-color: rgba(188, 19, 254, 0.5);
+    color: #fff;
 }
 
 .destiny-navbar .nav-more-icon {
@@ -451,7 +337,7 @@ body.reduce-motion .destiny-navbar {
     place-items: center;
     flex-shrink: 0;
     width: 20px;
-    color: var(--nav-accent);
+    color: #d995ff;
 }
 
 .destiny-navbar .nav-more-icon svg {
@@ -459,23 +345,9 @@ body.reduce-motion .destiny-navbar {
     height: 18px;
 }
 
-.nav-icon {
-    font-family: "Segoe UI Symbol", Arial, sans-serif;
-    font-size: 1.25rem;
-    line-height: 1;
-    color: currentColor;
-    filter: drop-shadow(0 0 8px rgba(var(--ink-rgb), 0.18));
-    transition: transform 0.2s ease, filter 0.2s ease;
-}
-
-.destiny-navbar .nav-btn:hover .nav-icon {
-    transform: translateY(-2px);
-    filter: drop-shadow(0 0 10px rgba(77, 134, 255, 0.9));
-}
-
+/* ── Usuario ── */
 .destiny-navbar .nav-actions {
     position: relative;
-    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -483,43 +355,21 @@ body.reduce-motion .destiny-navbar {
     min-width: 0;
 }
 
-.destiny-navbar .nav-search {
-    flex: 1 1 240px;
-    min-width: 180px;
-    max-width: 320px;
-    margin-left: 0;
-    justify-content: flex-start;
-    position: relative;
-}
-
-.destiny-navbar .nav-search-input {
-    width: 100%;
-    max-width: none;
-    min-height: 44px;
-    padding: 0 16px 0 52px;
-    border-radius: 999px;
-    border: 1.5px solid rgba(77, 134, 255, 0.5);
-    background: rgba(7, 8, 16, 0.8);
-    color: var(--text-main);
-    box-shadow: inset 0 0 12px rgba(77, 134, 255, 0.08);
-    font-size: 0.85rem;
-}
-
-.destiny-navbar .nav-search-input:focus {
-    border-color: #7ea8ff;
-    background: rgba(7, 8, 16, 0.95);
-    box-shadow: inset 0 0 18px rgba(77, 134, 255, 0.15), 0 0 20px rgba(77, 134, 255, 0.15);
+.destiny-navbar .nav-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
 }
 
 .destiny-navbar .nav-user {
     display: flex;
     align-items: center;
     margin-left: 0;
-    padding: 6px 8px 6px 14px;
-    gap: 12px;
-    border: 1px solid rgba(77, 134, 255, 0.28);
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(77, 134, 255, 0.10), rgba(77, 134, 255, 0.04));
+    padding: 0;
+    gap: 10px;
+    border: 0;
+    background: none;
     flex-shrink: 0;
 }
 
@@ -532,39 +382,39 @@ body.reduce-motion .destiny-navbar {
     display: inline-block;
     padding: 1px 8px;
     border-radius: 999px;
-    background: rgba(77, 134, 255, 0.16);
-    border: 1px solid rgba(77, 134, 255, 0.38);
-    color: #9db8ff;
+    background: rgba(188, 19, 254, 0.18);
+    border: 1px solid rgba(188, 19, 254, 0.4);
+    color: #e7b8ff;
     font-family: 'Orbitron', sans-serif;
     font-size: 0.52rem;
     letter-spacing: 0.5px;
     line-height: 1.7;
     white-space: nowrap;
-    max-width: 180px;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .destiny-navbar .nav-user-grade[hidden] { display: none; }
 
-.destiny-navbar .nav-user:hover .nav-user-avatar {
-    border-color: rgba(0, 242, 255, 0.85);
-    box-shadow: 0 0 20px rgba(77, 134, 255, 0.6);
-}
-
 .destiny-navbar .nav-user-avatar {
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     flex: 0 0 auto;
     border-radius: 50%;
-    border: 2px solid rgba(77, 134, 255, 0.7);
+    border: 2px solid rgba(188, 19, 254, 0.75);
     transition: box-shadow 0.25s ease, border-color 0.25s ease;
     background:
-        radial-gradient(circle at 50% 35%, var(--text-main) 0 10px, transparent 11px),
-        radial-gradient(ellipse at 50% 75%, var(--text-main) 0 22px, transparent 23px),
-        linear-gradient(145deg, #0e1a3a, #2f6bff);
+        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.85) 0 6px, transparent 6.5px),
+        radial-gradient(ellipse 11px 9px at 50% 100%, rgba(255, 255, 255, 0.85) 0 100%, transparent 100%),
+        linear-gradient(145deg, #2a0d4f, #6a2bd9);
     background-position: center;
     background-size: cover;
-    box-shadow: 0 0 14px rgba(77, 134, 255, 0.35);
+    box-shadow: 0 0 12px rgba(188, 19, 254, 0.35);
+}
+
+.destiny-navbar .nav-user:hover .nav-user-avatar {
+    border-color: rgba(0, 242, 255, 0.85);
+    box-shadow: 0 0 18px rgba(188, 19, 254, 0.6);
 }
 
 .destiny-navbar .nav-user-avatar.has-image {
@@ -576,49 +426,106 @@ body.reduce-motion .destiny-navbar {
     border: 0;
     background: transparent;
     font-size: 0.9rem;
+    font-weight: 600;
     letter-spacing: 0;
 }
 
 .destiny-navbar .nav-user-btn {
-    min-height: 26px;
-    padding: 4px 12px;
+    min-height: 24px;
+    padding: 3px 12px;
     border: 0;
     border-radius: 999px;
-    background: linear-gradient(180deg, #4d86ff, #1c46f0);
-    color: var(--text-main);
+    background: var(--nav-pill);
+    color: #fff;
     font-size: 0.7rem;
     text-decoration: none;
-    box-shadow: 0 0 10px rgba(77, 134, 255, 0.35);
+    box-shadow: 0 0 10px rgba(188, 19, 254, 0.35);
 }
 
-@media (max-width: 1180px) {
+/* ── Las tres cápsulas (solo desktop: en mobile la navbar es la hoja "Más") ── */
+@media (min-width: 701px) {
     .destiny-navbar {
-        grid-template-columns: 1fr;
-        min-height: auto;
-        padding: 14px;
-        gap: 10px;
+        pointer-events: none;
     }
 
-    .destiny-navbar.is-scrolled {
-        padding: 14px;
+    .destiny-navbar > * {
+        pointer-events: auto;
     }
 
-    .destiny-navbar .nav-links {
-        order: 3;
-        grid-template-columns: repeat(auto-fit, minmax(76px, 1fr));
-        width: 100%;
+    #nav-brand-container {
+        justify-self: start;
+        min-width: 0;
+    }
+
+    #nav-links-container {
+        justify-self: center;
     }
 
     .destiny-navbar .nav-actions {
-        order: 2;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 8px;
+        justify-self: end;
     }
 
-    .destiny-navbar .nav-search {
-        min-width: 150px;
-        flex: 1 1 180px;
+    .destiny-navbar .nav-brand,
+    .destiny-navbar .nav-links,
+    .destiny-navbar .nav-user {
+        background: var(--nav-glass);
+        border: 1px solid var(--nav-glass-border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .destiny-navbar .nav-brand {
+        padding: 6px 18px 6px 10px;
+        border-radius: 999px;
+    }
+
+    .destiny-navbar .nav-brand-jp {
+        display: none;
+    }
+
+    .destiny-navbar .nav-links {
+        padding: 5px;
+        border-radius: 999px;
+    }
+
+    .destiny-navbar .nav-user {
+        padding: 5px 5px 5px 16px;
+        border-radius: 999px;
+    }
+
+    .destiny-navbar.is-scrolled {
+        padding-top: 10px;
+    }
+
+    /* El vidrio cuesta en equipos lentos: con "reducir animaciones" las
+       cápsulas pasan a fondo sólido. */
+    body.reduce-motion .destiny-navbar .nav-brand,
+    body.reduce-motion .destiny-navbar .nav-links,
+    body.reduce-motion .destiny-navbar .nav-user {
+        background: rgba(16, 11, 32, 0.97);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+}
+
+/* Entre 701 y 1180px no entran las tres en una fila: marca y usuario arriba,
+   las secciones centradas debajo. */
+@media (min-width: 701px) and (max-width: 1180px) {
+    .destiny-navbar,
+    .destiny-navbar.is-scrolled {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 12px 0 0;
+        gap: 10px;
+    }
+
+    #nav-links-container {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .destiny-navbar .nav-btn {
+        padding: 0 14px;
     }
 }
 
@@ -637,6 +544,8 @@ body.reduce-motion .destiny-navbar {
         transform: translateY(-110%);
         pointer-events: none;
         z-index: 1001;
+        background: linear-gradient(180deg, rgba(20, 13, 40, 0.98), rgba(9, 6, 20, 0.98));
+        border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .destiny-navbar.is-open {
@@ -661,121 +570,118 @@ body.reduce-motion .destiny-navbar {
         z-index: 5;
     }
 
-    /* ── Mostrar bottom tab bar ── */
+    /* ── Dock flotante ──
+       Cápsula de vidrio separada de los bordes. Las pestañas son solo ícono;
+       la de la página actual se estira en una píldora violeta con su nombre. */
     .mobile-bottom-nav {
         display: flex;
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        left: max(10px, env(safe-area-inset-left, 0px));
+        right: max(10px, env(safe-area-inset-right, 0px));
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         z-index: 1000;
-        min-height: 60px;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        background:
-            linear-gradient(180deg, rgba(12, 16, 32, 0.97) 0%, rgba(6, 8, 18, 0.97) 100%);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border-top: 0;
-        justify-content: space-around;
-        align-items: center;
-    }
-
-    /* Borde superior con gradiente HUD (cyan → azul) */
-    .mobile-bottom-nav::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1.5px;
-        background: linear-gradient(90deg, rgba(0, 242, 255, 0.55), rgba(77, 134, 255, 0.65) 50%, rgba(0, 242, 255, 0.25));
-        box-shadow: 0 0 10px rgba(77, 134, 255, 0.35);
-        pointer-events: none;
-    }
-
-    .mobile-bottom-nav .bottom-tab {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        min-height: 0;
+        padding: 6px;
         gap: 2px;
-        text-decoration: none;
-        color: rgba(var(--ink-rgb), 0.45);
-        font-size: 0.62rem;
-        font-weight: 600;
-        font-family: 'Orbitron', sans-serif;
-        letter-spacing: 0.04em;
-        padding: 6px 0;
-        min-width: 52px;
-        transition: color 0.2s;
-        -webkit-tap-highlight-color: transparent;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        background: rgba(16, 11, 32, 0.8);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
     }
 
-    .mobile-bottom-nav .bottom-tab .bottom-tab-icon {
-        font-size: 1.3rem;
-        line-height: 1;
-        transition: transform 0.2s ease;
-    }
-
-    .mobile-bottom-nav .bottom-tab.active {
-        color: #7ea8ff;
-    }
-
-    .mobile-bottom-nav .bottom-tab.active .bottom-tab-icon {
-        filter: drop-shadow(0 0 7px rgba(77, 134, 255, 0.9));
-        transform: translateY(-1px);
-    }
-
-    /* Indicador superior inclinado del tab activo (estilo placa de la card) */
-    .mobile-bottom-nav .bottom-tab.active::before {
-        content: "";
-        position: absolute;
-        top: -1px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 34px;
-        height: 3px;
-        background: linear-gradient(90deg, #4d86ff, #1c46f0);
-        clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
-        /* Fijo en vez de pulsar: mismo motivo que el tab activo de escritorio. */
-        box-shadow: 0 0 12px rgba(0, 242, 255, 0.85);
-    }
-
+    .mobile-bottom-nav .bottom-tab,
     .mobile-bottom-nav .bottom-tab-more {
+        position: relative;
+        flex: 0 0 auto;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        gap: 2px;
+        justify-content: center;
+        gap: 0;
+        height: 46px;
+        min-width: 46px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 20px;
         background: none;
-        border: none;
-        color: rgba(var(--ink-rgb), 0.45);
-        font-size: 0.62rem;
-        font-weight: 600;
-        font-family: 'Orbitron', sans-serif;
-        letter-spacing: 0.04em;
-        padding: 6px 0;
-        min-width: 52px;
+        color: rgba(var(--ink-rgb), 0.62);
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-decoration: none;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
-        transition: color 0.2s;
+        transition: background 0.3s ease, color 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease;
     }
 
+    .mobile-bottom-nav .bottom-tab .bottom-tab-icon,
     .mobile-bottom-nav .bottom-tab-more .bottom-tab-icon {
-        font-size: 1.3rem;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
         line-height: 1;
     }
 
-    /* `active` marca que la pagina actual vive detras de este boton (Ranking,
-       Comparar...): sin eso, en esas paginas no se enciende ninguna pestaña y
-       no hay forma de saber donde uno esta parado. */
-    .mobile-bottom-nav .bottom-tab-more.is-open,
-    .mobile-bottom-nav .bottom-tab-more.active {
-        color: #7ea8ff;
+    .mobile-bottom-nav .bottom-tab-icon svg {
+        width: 21px;
+        height: 21px;
     }
 
-    .mobile-bottom-nav .bottom-tab-more.is-open .bottom-tab-icon,
-    .mobile-bottom-nav .bottom-tab-more.active .bottom-tab-icon {
-        filter: drop-shadow(0 0 7px rgba(77, 134, 255, 0.9));
+    /* El nombre solo se ve en la pestaña activa. */
+    .mobile-bottom-nav .bottom-tab > span:not(.bottom-tab-icon),
+    .mobile-bottom-nav .bottom-tab-more > span:not(.bottom-tab-icon) {
+        max-width: 0;
+        overflow: hidden;
+        opacity: 0;
+        white-space: nowrap;
+        transition: max-width 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+    }
+
+    /* `active` en "Más" marca que la pagina actual vive detras de ese boton
+       (Ranking, Comparar...): sin eso, en esas paginas no se enciende ninguna
+       pestaña y no hay forma de saber donde uno esta parado. */
+    .mobile-bottom-nav .bottom-tab.active,
+    .mobile-bottom-nav .bottom-tab-more.active {
+        padding: 0 16px;
+        color: #fff;
+        background: linear-gradient(135deg, #bc13fe, #5b2cff);
+        box-shadow: 0 0 18px rgba(188, 19, 254, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .mobile-bottom-nav .bottom-tab.active > span:not(.bottom-tab-icon),
+    .mobile-bottom-nav .bottom-tab-more.active > span:not(.bottom-tab-icon) {
+        max-width: 96px;
+        opacity: 1;
+        margin-left: 8px;
+    }
+
+    .mobile-bottom-nav .bottom-tab-more.is-open {
+        color: #fff;
+        background: rgba(188, 19, 254, 0.22);
+    }
+
+    .mobile-bottom-nav .bottom-tab:focus-visible,
+    .mobile-bottom-nav .bottom-tab-more:focus-visible {
+        outline: 2px solid #00f2ff;
+        outline-offset: 2px;
+    }
+}
+
+@media (max-width: 360px) {
+    .mobile-bottom-nav .bottom-tab,
+    .mobile-bottom-nav .bottom-tab-more {
+        min-width: 42px;
+        padding: 0 10px;
+    }
+
+    .mobile-bottom-nav .bottom-tab.active,
+    .mobile-bottom-nav .bottom-tab-more.active {
+        padding: 0 12px;
     }
 }
 
@@ -951,7 +857,7 @@ body.reduce-motion .destiny-navbar {
         max-height: calc(100dvh - 40px);
         overflow-y: auto;
         overscroll-behavior: contain;
-        padding: 18px 16px calc(80px + env(safe-area-inset-bottom, 0px));
+        padding: 18px 16px calc(92px + env(safe-area-inset-bottom, 0px));
         border-radius: 20px 20px 0 0;
         border-bottom: 0;
         transform: translateY(105%);
@@ -1072,7 +978,7 @@ body.reduce-motion .destiny-navbar {
         gap: 8px;
         min-height: 84px;
         padding: 12px 6px;
-        border: 1px solid rgba(77, 134, 255, 0.18);
+        border: 1px solid rgba(188, 19, 254, 0.2);
         border-radius: 14px;
         background: rgba(var(--ink-rgb), 0.04);
         font-size: 0.78rem;
@@ -1083,12 +989,12 @@ body.reduce-motion .destiny-navbar {
     }
 
     body.has-bottom-nav .destiny-navbar .nav-more-item:active {
-        background: rgba(77, 134, 255, 0.2);
+        background: rgba(188, 19, 254, 0.22);
     }
 
     body.has-bottom-nav .destiny-navbar .nav-more-item.is-active {
-        border-color: rgba(77, 134, 255, 0.6);
-        box-shadow: 0 0 14px rgba(77, 134, 255, 0.25);
+        border-color: rgba(188, 19, 254, 0.6);
+        box-shadow: 0 0 14px rgba(188, 19, 254, 0.3);
     }
 
     body.has-bottom-nav .destiny-navbar .nav-more-icon {

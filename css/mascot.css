@@ -445,11 +445,11 @@
 }
 
 /* En pantallas chicas la mascota se sube para NO tapar la barra inferior de
-   navegación (.mobile-bottom-nav, ~60px). El tamaño ya es fluido (clamp). */
+   navegación (.mobile-bottom-nav, dock flotante de ~70px). El tamaño ya es fluido (clamp). */
 @media (max-width: 640px) {
     .mascot-root {
         right: 12px;
-        bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(82px + env(safe-area-inset-bottom, 0px));
     }
     .mascot-bubble {
         font-size: 0.82rem;
