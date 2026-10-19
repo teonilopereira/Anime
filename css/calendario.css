@@ -10,7 +10,7 @@
 .calendar-toolbar {
     display: flex;
     justify-content: flex-end;
-    margin: 8px 0 20px;
+    margin: 8px 0 14px;
 }
 
 .calendar-filter {
@@ -38,9 +38,74 @@
     color: var(--text-muted, rgba(255, 255, 255, 0.7));
 }
 
-.cal-day { margin-bottom: 34px; }
+/* Tira de la semana: 7 chips, uno por día, con la cantidad de estrenos. */
+.cal-week {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 30px;
+}
+
+.cal-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 4px;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--ink-rgb, 255, 255, 255), 0.08);
+    background: rgba(var(--surface-card-rgb, 10, 5, 25), 0.6);
+    color: var(--text-main, #fff);
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.cal-chip:hover {
+    border-color: rgba(0, 242, 255, 0.45);
+    background: rgba(0, 242, 255, 0.06);
+    transform: translateY(-2px);
+}
+
+.cal-chip--today {
+    border-color: rgba(188, 19, 254, 0.6);
+    background: linear-gradient(160deg, rgba(188, 19, 254, 0.22), rgba(0, 242, 255, 0.08));
+}
+
+.cal-chip.is-empty {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.cal-chip-day {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted, rgba(255, 255, 255, 0.7));
+}
+
+.cal-chip-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.25rem;
+    line-height: 1.2;
+}
+
+.cal-chip-count {
+    font-size: 0.72rem;
+    color: var(--accent-cyan, #00f2ff);
+}
+
+.cal-day {
+    margin-bottom: 34px;
+    /* Que el salto desde la tira no deje el título bajo la navbar. */
+    scroll-margin-top: 90px;
+}
 
 .cal-day-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
     font-family: 'Orbitron', sans-serif;
     font-size: 1.05rem;
     letter-spacing: 0.04em;
@@ -49,6 +114,15 @@
     padding-bottom: 8px;
     border-bottom: 1px solid rgba(0, 242, 255, 0.16);
     text-shadow: 0 0 12px rgba(0, 242, 255, 0.35);
+}
+
+.cal-day-count {
+    flex-shrink: 0;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--text-muted, rgba(255, 255, 255, 0.7));
+    text-shadow: none;
 }
 
 /* Las cards de episodio usan .wcard (css/cards.css). Las que seguís se
@@ -62,3 +136,18 @@
     text-shadow: 0 0 8px rgba(255, 207, 90, 0.6);
 }
 
+
+@media (max-width: 640px) {
+    /* En el celular la tira se desliza de costado en vez de apretarse. */
+    .cal-week {
+        display: flex;
+        overflow-x: auto;
+        scrollbar-width: none;
+        margin: 0 -16px 24px;
+        padding: 0 16px 4px;
+    }
+    .cal-week::-webkit-scrollbar { display: none; }
+    .cal-chip { flex: 0 0 64px; }
+    .calendar-toolbar { justify-content: stretch; }
+    .calendar-filter { width: 100%; justify-content: center; }
+}

@@ -12,6 +12,13 @@
 
 import {
     createIcons,
+    User,
+    Palette,
+    Lock,
+    LayoutGrid,
+    Image,
+    Ghost,
+    Database,
     Activity,
     ArrowLeftRight,
     ArrowRight,
@@ -57,6 +64,13 @@ import {
 // Las claves deben ir en PascalCase: Lucide las convierte a kebab-case para
 // machear con el atributo data-lucide.
 const icons = {
+    Database,
+    Ghost,
+    Image,
+    LayoutGrid,
+    Lock,
+    Palette,
+    User,
     Activity,
     ArrowLeftRight,
     ArrowRight,

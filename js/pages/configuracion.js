@@ -491,3 +491,48 @@ window.addEventListener('supabase-ready', () => {
     if (nameEl) nameEl.textContent = getCurrentUserName();
     if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
 }, { once: true });
+
+/* ── Menú lateral: muestra una sección a la vez ──
+   La sección activa va en el hash (#colores, #datos...) para poder volver
+   directo a ella o compartir el enlace. */
+(function initSectionNav() {
+    const buttons = Array.from(document.querySelectorAll('.cfg-nav-btn'));
+    const sections = Array.from(document.querySelectorAll('[data-cfg-section]'));
+    if (!buttons.length || !sections.length) return;
+    const names = sections.map(sec => sec.dataset.cfgSection);
+
+    function show(name, { scroll = false } = {}) {
+        if (!names.includes(name)) name = names[0];
+        sections.forEach(sec => { sec.hidden = sec.dataset.cfgSection !== name; });
+        buttons.forEach(btn => {
+            const on = btn.dataset.section === name;
+            btn.classList.toggle('active', on);
+            if (on) btn.setAttribute('aria-current', 'true');
+            else btn.removeAttribute('aria-current');
+        });
+        centerActive();
+        if (scroll) {
+            const content = document.querySelector('.cfg-content');
+            if (content && content.getBoundingClientRect().top < 0) content.scrollIntoView({ block: 'start' });
+        }
+    }
+
+    // En el celular el menú es una fila deslizable: centra el botón activo.
+    // Sin scrollIntoView para no mover la página en vertical.
+    function centerActive() {
+        const nav = document.querySelector('.cfg-nav');
+        const btn = nav && nav.querySelector('.cfg-nav-btn.active');
+        if (!btn || nav.scrollWidth <= nav.clientWidth) return;
+        nav.scrollLeft = btn.offsetLeft - nav.offsetLeft - (nav.clientWidth - btn.offsetWidth) / 2;
+    }
+
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+        const name = btn.dataset.section;
+        history.replaceState(null, '', '#' + name);
+        show(name, { scroll: true });
+    }));
+    window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+    show(location.hash.slice(1));
+    // Los íconos y las fuentes cambian el ancho de los botones al cargar.
+    window.addEventListener('load', centerActive);
+})();

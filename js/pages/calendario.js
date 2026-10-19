@@ -83,6 +83,44 @@
                 '</a>';
     }
 
+    // Agrupa por día local, en orden de emisión.
+    function groupByDay(lista, today) {
+        var groups = [];
+        var byKey = {};
+        lista.forEach(function (ep) {
+            var d = new Date(ep.airingAt * 1000);
+            var k = dayKey(d);
+            if (!byKey[k]) {
+                byKey[k] = { key: k, at: d.getTime(), label: dayLabel(d, today), items: [] };
+                groups.push(byKey[k]);
+            }
+            byKey[k].items.push(ep);
+        });
+        groups.sort(function (a, b) { return a.at - b.at; });
+        return { list: groups, byKey: byKey };
+    }
+
+    // Tira con los días de la semana: cada chip lleva al día y muestra
+    // cuántos estrenos tiene. Los días sin estrenos quedan apagados. La API
+    // trae 7×24 h desde ahora, así que puede asomar un octavo día.
+    function weekStripHtml(byKey, today) {
+        var html = '';
+        for (var i = 0; i < 8; i++) {
+            var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+            var k = dayKey(d);
+            var n = byKey[k] ? byKey[k].items.length : 0;
+            if (i === 7 && !n) break;
+            var corto = i === 0 ? 'Hoy' : DIAS[d.getDay()].slice(0, 3);
+            html += '<a class="cal-chip' + (i === 0 ? ' cal-chip--today' : '') + (n ? '' : ' is-empty') + '"' +
+                        (n ? ' href="#cal-' + k + '"' : ' aria-disabled="true"') + '>' +
+                        '<span class="cal-chip-day">' + esc(corto) + '</span>' +
+                        '<span class="cal-chip-num">' + d.getDate() + '</span>' +
+                        '<span class="cal-chip-count">' + (n ? n + ' ep.' : '—') + '</span>' +
+                    '</a>';
+        }
+        return '<nav class="cal-week" aria-label="Días de la semana">' + html + '</nav>';
+    }
+
     function render() {
         var host = document.getElementById('calendarBody');
         if (!host) return;
@@ -91,31 +129,25 @@
             ? _all.filter(function (ep) { return _followed.has(String(ep.id)); })
             : _all;
 
+        var today = new Date();
+        var groups = groupByDay(lista, today);
+        var strip = weekStripHtml(groups.byKey, today);
+
         if (!lista.length) {
-            host.innerHTML = '<p class="cal-empty">' +
+            host.innerHTML = strip + '<p class="cal-empty">' +
                 esc(_onlyMine ? 'No seguís ningún anime en emisión esta semana.' : 'No hay estrenos para mostrar ahora mismo.') +
                 '</p>';
             return;
         }
 
-        var today = new Date();
-        var groups = [];
-        var byKey = {};
-        lista.forEach(function (ep) {
-            var d = new Date(ep.airingAt * 1000);
-            var k = dayKey(d);
-            if (!byKey[k]) {
-                byKey[k] = { label: dayLabel(d, today), items: [] };
-                groups.push({ key: k, at: d.getTime(), group: byKey[k] });
-            }
-            byKey[k].group.items.push(ep);
-        });
-        groups.sort(function (a, b) { return a.at - b.at; });
-
-        host.innerHTML = groups.map(function (g) {
-            return '<section class="cal-day">' +
-                        '<h2 class="cal-day-title">' + esc(g.group.label) + '</h2>' +
-                        '<div class="wcard-grid cal-grid">' + g.group.items.map(cardHtml).join('') + '</div>' +
+        host.innerHTML = strip + groups.list.map(function (g) {
+            var n = g.items.length;
+            return '<section class="cal-day" id="cal-' + g.key + '">' +
+                        '<h2 class="cal-day-title">' +
+                            '<span>' + esc(g.label) + '</span>' +
+                            '<span class="cal-day-count">' + n + (n === 1 ? ' estreno' : ' estrenos') + '</span>' +
+                        '</h2>' +
+                        '<div class="wcard-grid cal-grid">' + g.items.map(cardHtml).join('') + '</div>' +
                     '</section>';
         }).join('');
     }

@@ -26,28 +26,25 @@
     margin: 0;
 }
 
-/* Top bar de usuario */
+/* Tarjeta de usuario (arriba del menú lateral) */
 .cfg-user-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    background: rgba(var(--surface-card-rgb),0.82);
-    border: 1px solid rgba(188,19,254,0.22);
-    border-radius: 14px;
-    padding: 16px 22px;
-    margin-bottom: 24px;
-    backdrop-filter: blur(10px);
-    gap: 16px;
-    flex-wrap: wrap;
+    gap: 12px;
+    padding: 4px 6px 16px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(var(--ink-rgb),0.07);
+    min-width: 0;
 }
+.cfg-user-text { min-width: 0; }
 .cfg-user-info {
     display: flex;
     align-items: center;
     gap: 14px;
 }
 .cfg-user-avatar {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--neon-purple), var(--accent-cyan));
     display: flex;
@@ -68,11 +65,16 @@
 }
 .cfg-user-name {
     font-family: var(--font-display);
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--accent-cyan);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .cfg-back-btn {
-    display: inline-flex;
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
     align-items: center;
     gap: 6px;
     padding: 8px 18px;
@@ -91,14 +93,80 @@
     border-color: rgba(0,242,255,0.6);
 }
 
-/* Layout de secciones */
-.cfg-sections {
+/* Layout: menú lateral fijo + una sección a la vez */
+.cfg-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: 230px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
 }
-.cfg-section-full {
-    grid-column: 1 / -1;
+.cfg-side {
+    min-width: 0;
+    position: sticky;
+    top: 96px;
+    background: rgba(var(--surface-card-rgb),0.82);
+    border: 1px solid rgba(188,19,254,0.18);
+    border-radius: 16px;
+    padding: 16px 12px;
+    backdrop-filter: blur(10px);
+}
+.cfg-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cfg-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(var(--ink-rgb),0.65);
+    font-family: var(--font-body);
+    font-size: 0.98rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.cfg-nav-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.cfg-nav-btn:hover {
+    background: rgba(var(--ink-rgb),0.05);
+    color: var(--text-main);
+}
+.cfg-nav-btn.active {
+    background: rgba(188,19,254,0.16);
+    color: var(--text-main);
+    box-shadow: inset 3px 0 0 var(--neon-purple);
+}
+.cfg-nav-btn.active svg { color: var(--neon-purple); }
+.cfg-nav-btn:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+}
+.cfg-content { min-width: 0; }
+.cfg-autosave { text-align: right; }
+
+/* Encabezado de cada sección */
+.cfg-sec-head {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(var(--ink-rgb),0.07);
+}
+.cfg-sec-head .cfg-panel-title {
+    margin: 0 0 4px;
+    padding: 0;
+    border: 0;
+    font-size: 0.95rem;
+}
+.cfg-panel-title svg { width: 18px; height: 18px; color: var(--neon-purple); }
+.cfg-sec-lead {
+    margin: 0;
+    color: rgba(var(--ink-rgb),0.55);
+    font-size: 0.92rem;
 }
 
 /* Panel base */
@@ -384,7 +452,7 @@
 /* ── Color picker grid ── */
 .cfg-color-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 4px;
 }
@@ -476,18 +544,42 @@
 .cfg-save-title { font-family: var(--font-display); font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px; }
 .cfg-save-desc { font-size: 0.82rem; color: rgba(var(--ink-rgb),0.45); font-family: var(--font-body); }
 
-/* Responsive */
+/* Responsive: el menú pasa a ser una fila deslizable arriba del contenido */
 @media (max-width: 768px) {
-    .cfg-sections { grid-template-columns: 1fr; }
-    .cfg-section-full { grid-column: auto; }
+    .cfg-layout { grid-template-columns: 1fr; gap: 14px; }
+    .cfg-side {
+        position: static;
+        padding: 8px;
+        background: transparent;
+        border: 0;
+        backdrop-filter: none;
+    }
+    .cfg-user-bar, .cfg-back-btn { display: none; }
+    .cfg-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        scrollbar-width: none;
+        margin: 0 -8px;
+        padding: 0 8px 4px;
+    }
+    .cfg-nav::-webkit-scrollbar { display: none; }
+    .cfg-nav-btn {
+        width: auto;
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 9px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(var(--ink-rgb),0.1);
+        background: rgba(var(--surface-card-rgb),0.7);
+    }
+    .cfg-nav-btn.active {
+        box-shadow: none;
+        border-color: var(--neon-purple);
+    }
+    .cfg-autosave { text-align: center; }
 }
 
 @media (max-width: 480px) {
-    .cfg-user-bar { padding: 12px 14px; flex-direction: column; align-items: stretch; text-align: center; }
-    .cfg-user-info { justify-content: center; }
-    .cfg-user-avatar { width: 38px; height: 38px; font-size: 0.85rem; }
-    .cfg-user-name { font-size: 0.95rem; }
-    .cfg-back-btn { padding: 6px 14px; font-size: 0.62rem; }
     .cfg-panel { padding: 16px 18px; }
     .cfg-color-grid { grid-template-columns: repeat(2, 1fr); }
     .cfg-actions { flex-direction: column; }
@@ -498,9 +590,6 @@
     .cfg-page { padding: 0 8px 32px; }
     .cfg-page-header { padding: 24px 0 18px; }
     .cfg-page-header p { font-size: 0.85rem; }
-    .cfg-user-bar { padding: 10px 12px; }
-    .cfg-user-avatar { width: 32px; height: 32px; font-size: 0.75rem; }
-    .cfg-user-name { font-size: 0.85rem; }
     .cfg-panel { padding: 12px 14px; border-radius: 12px; }
     .cfg-panel-title { font-size: 0.7rem; }
     .cfg-toggle-row { padding: 10px 0; gap: 8px; }
