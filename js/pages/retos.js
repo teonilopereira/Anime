@@ -59,6 +59,33 @@
         if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
     }
 
+    // Los juegos se redibujan enteros en cada jugada: el lector de pantalla se
+    // entera de lo que cambió por la línea de estado (role=status) de cada uno.
+    function announce(id, msg) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = msg;
+    }
+
+    // Al redibujar desaparece el elemento con foco. Se anota cuál era (por id o
+    // por su data-q*/data-charcat) para devolvérselo al nuevo; si ya no existe,
+    // va a lo que sigue: el campo de respuesta o el botón principal del final.
+    function focusKey(host) {
+        var a = document.activeElement;
+        if (!a || a === host || !host.contains(a)) return null;
+        for (var i = 0; i < a.attributes.length; i++) {
+            var at = a.attributes[i];
+            if (/^data-(qmode|qlevel|charcat)$/.test(at.name)) return '[' + at.name + '="' + at.value + '"]';
+        }
+        return a.id ? '#' + a.id : '';
+    }
+    function restoreFocus(host, key, fallback) {
+        if (key == null) return;
+        var el = (key && host.querySelector(key)) || host.querySelector(fallback);
+        if (el) el.focus({ preventScroll: true });
+    }
+
+    function pressed(on) { return ' aria-pressed="' + (on ? 'true' : 'false') + '"'; }
+
     function today() { return M ? M.dayStr() : new Date().toISOString().slice(0, 10); }
 
     function quizNumber(day) {
@@ -170,6 +197,7 @@
         var triesEl = document.getElementById('quizTries');
         var numEl = document.getElementById('quizNumber');
         if (!body) return;
+        var keep = focusKey(body);
         var isFree = quiz.mode === 'free';
         var a = cur().answer;
         var st = cur().state;
@@ -225,6 +253,7 @@
         if (!over) wireQuizInput();
         else if (isFree) wireFreeEnd();
         else wireQuizEnd();
+        restoreFocus(body, keep, over ? '.quiz-end .reto-btn' : '#quizGuess');
     }
 
     // Selector Del día / Libre y, en libre, el nivel.
@@ -232,12 +261,12 @@
         var isFree = quiz.mode === 'free';
         var html = '<div class="quiz-modes">' +
             '<div class="summary-months" role="group" aria-label="Modo">' +
-                '<button type="button" class="reto-chip' + (isFree ? '' : ' is-active') + '" data-qmode="daily">Del día</button>' +
-                '<button type="button" class="reto-chip' + (isFree ? ' is-active' : '') + '" data-qmode="free">Libre</button>' +
+                '<button type="button" class="reto-chip' + (isFree ? '' : ' is-active') + '"' + pressed(!isFree) + ' data-qmode="daily">Del día</button>' +
+                '<button type="button" class="reto-chip' + (isFree ? ' is-active' : '') + '"' + pressed(isFree) + ' data-qmode="free">Libre</button>' +
             '</div>';
         if (isFree) {
             html += '<div class="summary-months" role="group" aria-label="Nivel">' + Object.keys(LEVELS).map(function (k) {
-                return '<button type="button" class="reto-chip' + (k === free.level ? ' is-active' : '') + '" data-qlevel="' + k + '">' + LEVELS[k].label + '</button>';
+                return '<button type="button" class="reto-chip' + (k === free.level ? ' is-active' : '') + '"' + pressed(k === free.level) + ' data-qlevel="' + k + '">' + LEVELS[k].label + '</button>';
             }).join('') + '</div>' +
             '<span class="quiz-combo">Racha ' + free.combo + ' · Récord ' + freeBest(free.level) + '</span>';
         }
@@ -341,10 +370,13 @@
                 '<div><strong>' + s.cur + '</strong><span>Racha</span></div>' +
                 '<div><strong>' + s.best + '</strong><span>Mejor racha</span></div>' +
             '</div>' +
-            '<div class="quiz-dist" aria-label="Intentos para adivinar">' + s.dist.map(function (n, i) {
+            '<div class="quiz-dist" role="group" aria-label="Intentos para adivinar">' + s.dist.map(function (n, i) {
                 var mine = won && i === tries() - 1;
-                return '<div class="quiz-dist-row"><span>' + (i + 1) + '</span>' +
-                    '<i class="' + (mine ? 'is-mine' : '') + '" style="width:' + Math.max(8, Math.round((n / maxDist) * 100)) + '%">' + n + '</i></div>';
+                // Las barras sueltas se leerían "1 3 2 5…": cada fila lleva su frase.
+                return '<div class="quiz-dist-row"><span class="game-sr">' + (i + 1) + (i ? ' intentos: ' : ' intento: ') +
+                        n + (n === 1 ? ' vez' : ' veces') + (mine ? ', hoy' : '') + '</span>' +
+                    '<span aria-hidden="true">' + (i + 1) + '</span>' +
+                    '<i aria-hidden="true" class="' + (mine ? 'is-mine' : '') + '" style="width:' + Math.max(8, Math.round((n / maxDist) * 100)) + '%">' + n + '</i></div>';
             }).join('') + '</div>' +
             '<p class="quiz-next">El próximo anime sale en ' + untilMidnight() + '.</p>' +
         '</div>';
@@ -407,12 +439,20 @@
     function attachSuggest(input, list, search, render, onPick) {
         var current = [];
         var active = -1;
+        // Patrón combobox de ARIA: el foco queda en el campo y
+        // aria-activedescendant le dice al lector qué sugerencia está marcada.
+        input.setAttribute('role', 'combobox');
+        input.setAttribute('aria-autocomplete', 'list');
+        input.setAttribute('aria-expanded', 'false');
 
         function paint() {
+            input.setAttribute('aria-expanded', current.length ? 'true' : 'false');
+            if (active >= 0 && current.length) input.setAttribute('aria-activedescendant', list.id + '-' + active);
+            else input.removeAttribute('aria-activedescendant');
             if (!current.length) { list.hidden = true; list.innerHTML = ''; return; }
             list.hidden = false;
             list.innerHTML = current.map(function (m, i) {
-                return '<li role="option" data-i="' + i + '"' + (i === active ? ' class="is-active" aria-selected="true"' : '') + '>' +
+                return '<li role="option" id="' + list.id + '-' + i + '" data-i="' + i + '" aria-selected="' + (i === active) + '"' + (i === active ? ' class="is-active"' : '') + '>' +
                     render(m) + '</li>';
             }).join('');
         }
@@ -471,6 +511,7 @@
                 free.combo = 0;
             }
             renderQuiz();
+            announceGuess(m);
             return;
         }
 
@@ -489,6 +530,22 @@
             saveQuizState();
         }
         renderQuiz();
+        announceGuess(m);
+    }
+
+    function hintText(h) { return h.label + ': ' + (h.img ? 'foto del protagonista' : h.value); }
+
+    function announceGuess(m) {
+        var st = cur().state;
+        var a = cur().answer;
+        if (st.status === 'won') {
+            announce('quizStatus', '¡Correcto! Era ' + a.title + '. Lo sacaste en ' + tries() + (tries() === 1 ? ' intento.' : ' intentos.'));
+        } else if (st.status === 'lost') {
+            announce('quizStatus', 'Se terminaron los intentos. Era ' + a.title + '.');
+        } else {
+            announce('quizStatus', (m ? 'No es ' + m.title + '.' : 'Salteado.') + ' Nueva pista, ' +
+                hintText(hints()[tries() - 1]) + '. Intento ' + (tries() + 1) + ' de ' + MAX_TRIES + '.');
+        }
     }
 
     async function initQuiz() {
@@ -542,13 +599,14 @@
     function renderCharPicker(results, loading) {
         var host = charHost();
         if (!host) return;
+        var keep = focusKey(host);
         var last = readJson(K_CHAR_SERIES);
         host.innerHTML =
             '<p class="quiz-intro">Elegí un anime o manga y adiviná sus personajes por la imagen. Jugás todas las veces que quieras.</p>' +
             '<div class="char-pick">' +
                 '<div class="summary-months" role="group" aria-label="Tipo">' +
-                    '<button type="button" class="reto-chip' + (chars.cat === 'anime' ? ' is-active' : '') + '" data-charcat="anime">Anime</button>' +
-                    '<button type="button" class="reto-chip' + (chars.cat === 'manga' ? ' is-active' : '') + '" data-charcat="manga">Manga</button>' +
+                    '<button type="button" class="reto-chip' + (chars.cat === 'anime' ? ' is-active' : '') + '"' + pressed(chars.cat === 'anime') + ' data-charcat="anime">Anime</button>' +
+                    '<button type="button" class="reto-chip' + (chars.cat === 'manga' ? ' is-active' : '') + '"' + pressed(chars.cat === 'manga') + ' data-charcat="manga">Manga</button>' +
                 '</div>' +
                 '<div class="quiz-input">' +
                     '<input type="text" id="charSeries" autocomplete="off" placeholder="Buscá un ' + (chars.cat === 'manga' ? 'manga' : 'anime') + '…" aria-label="Buscar serie">' +
@@ -584,6 +642,9 @@
                 if (chars.lastQuery !== q) return;
                 chars.results = (list || []).slice(0, 8);
                 renderCharPicker(chars.results);
+                announce('charStatus', chars.results.length
+                    ? chars.results.length + (chars.results.length === 1 ? ' resultado.' : ' resultados.')
+                    : 'No encontramos nada con ese nombre.');
                 var again = document.getElementById('charSeries');
                 if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
             }, 450);
@@ -596,11 +657,16 @@
         });
         var lastBtn = document.getElementById('charLast');
         if (lastBtn) lastBtn.addEventListener('click', function () { pickSeries(last); });
+        restoreFocus(host, keep, '#charSeries');
     }
 
     async function pickSeries(series) {
         var host = charHost();
+        // El botón que eligió la serie desaparece: se recuerda para dar el foco
+        // al campo de respuesta cuando cargue el juego.
+        chars.keepFocus = focusKey(host) != null;
         host.innerHTML = '<p class="reto-loading">Cargando personajes de ' + esc(series.title) + '…</p>';
+        announce('charStatus', 'Cargando personajes de ' + series.title + '…');
         var cast = typeof window.getCharactersByMediaId === 'function' ? await window.getCharactersByMediaId(series.id) : [];
         cast = (cast || []).filter(hasRealImage);
         // Con muy pocos personajes el juego es adivinar entre dos.
@@ -608,6 +674,8 @@
             chars.results = null;
             renderCharPicker(null);
             host.insertAdjacentHTML('afterbegin', '<p class="quiz-result is-lost">' + esc(series.title) + ' tiene muy pocos personajes con imagen. Probá con otra serie.</p>');
+            announce('charStatus', series.title + ' tiene muy pocos personajes con imagen. Probá con otra serie.');
+            if (chars.keepFocus) restoreFocus(host, '', '#charSeries');
             return;
         }
         lsSet(K_CHAR_SERIES, JSON.stringify(series));
@@ -638,6 +706,7 @@
         chars.guesses = [];
         chars.status = 'playing';
         renderCharGame();
+        announce('charStatus', 'Nuevo personaje de ' + chars.series.title + '. Tenés ' + CHAR_TRIES + ' intentos.');
     }
 
     function charHints() {
@@ -657,6 +726,9 @@
 
     function renderCharGame() {
         var host = charHost();
+        var keep = focusKey(host);
+        if (keep == null && chars.keepFocus) keep = '';
+        chars.keepFocus = false;
         var c = chars.current;
         var over = chars.status !== 'playing';
         var n = chars.guesses.length;
@@ -728,6 +800,7 @@
                 renderCharPicker(null);
             });
         }
+        restoreFocus(host, keep, over ? '#charNext' : '#charGuess');
     }
 
     function charSuggestions(q) {
@@ -761,6 +834,16 @@
             saveCharProg(chars.series.id, prog);
         }
         renderCharGame();
+        var n = chars.guesses.length;
+        if (chars.status === 'won') {
+            announce('charStatus', '¡Correcto! Era ' + chars.current.name + '. En ' + n + (n === 1 ? ' intento.' : ' intentos.'));
+        } else if (chars.status === 'lost') {
+            announce('charStatus', 'Se terminaron los intentos. Era ' + chars.current.name + '.');
+        } else {
+            var h = charHints()[n - 1];
+            announce('charStatus', (c ? 'No es ' + c.name + '.' : 'Salteado.') + ' Nueva pista, ' + h.label + ': ' + h.value +
+                '. Intento ' + (n + 1) + ' de ' + CHAR_TRIES + '.');
+        }
     }
 
     function initChars() {

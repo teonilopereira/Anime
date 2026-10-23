@@ -84,7 +84,7 @@
 }
 
 .reto-link { color: var(--accent-cyan); font-weight: 600; }
-.reto-xp { color: #22c55e; font-weight: 700; margin-left: 6px; }
+.reto-xp { color: var(--game-ok-text); font-weight: 700; margin-left: 6px; }
 
 .reto-chip {
     padding: 6px 14px;
@@ -157,8 +157,8 @@
 
 .quiz-guesses { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .quiz-guesses li { padding: 6px 12px; border-radius: var(--radius-sm, 10px); font-weight: 600; overflow-wrap: anywhere; }
-.quiz-guesses .is-bad { background: rgba(239, 68, 68, 0.14); color: #ef4444; }
-.quiz-guesses .is-ok { background: rgba(34, 197, 94, 0.16); color: #16a34a; }
+.quiz-guesses .is-bad { background: rgba(239, 68, 68, 0.14); color: var(--game-bad-text); }
+.quiz-guesses .is-ok { background: rgba(34, 197, 94, 0.16); color: var(--game-ok-text); }
 
 .quiz-input { position: relative; display: grid; gap: 10px; }
 
@@ -216,7 +216,7 @@
 
 .quiz-end { display: grid; gap: 12px; }
 .quiz-result { margin: 0; font-size: 1.1rem; font-weight: 700; }
-.quiz-result.is-won { color: #16a34a; }
+.quiz-result.is-won { color: var(--game-ok-text); }
 .quiz-result.is-lost { color: var(--text-muted); }
 
 .quiz-answer {
@@ -264,7 +264,7 @@
     min-width: 24px;
     box-sizing: border-box;
 }
-.quiz-dist-row i.is-mine { background: #16a34a; color: #fff; }
+.quiz-dist-row i.is-mine { background: #15803d; color: #fff; }
 
 .quiz-next { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
 
@@ -432,15 +432,25 @@
 .game-pick.is-ok { border-color: var(--game-ok); background: rgba(34, 197, 94, 0.12); }
 .game-pick.is-bad { border-color: var(--game-bad); background: rgba(239, 68, 68, 0.12); }
 @media (prefers-reduced-motion: reduce) {
-    .game-pick { transition: none; }
+    .game-pick,
+    .quiz-cover img { transition: none; }
     .game-pick:hover:not([aria-disabled="true"]) { transform: none; }
 }
 
 /* Verde/rojo con contraste ≥ 3:1 sobre la tarjeta en los dos temas. */
-.reto-card { --game-ok: #22c55e; --game-bad: #ef4444; --game-num: var(--accent-cyan); }
-:root[data-theme="light"] .reto-card { --game-ok: #15803d; --game-bad: #dc2626; --game-num: #076f85; }
+.reto-card {
+    --game-ok: #22c55e; --game-bad: #ef4444; --game-num: var(--accent-cyan);
+    --game-ok-text: #22c55e; --game-bad-text: #f87171;
+}
+:root[data-theme="light"] .reto-card {
+    --game-ok: #15803d; --game-bad: #dc2626; --game-num: #076f85;
+    --game-ok-text: #166534; --game-bad-text: #b91c1c;
+}
 @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) .reto-card { --game-ok: #15803d; --game-bad: #dc2626; --game-num: #076f85; }
+    :root:not([data-theme="dark"]) .reto-card {
+        --game-ok: #15803d; --game-bad: #dc2626; --game-num: #076f85;
+        --game-ok-text: #166534; --game-bad-text: #b91c1c;
+    }
 }
 
 /* Resultado escrito sobre la portada (no solo el color del borde). */
