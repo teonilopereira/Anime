@@ -1,0 +1,266 @@
+/* css/detalle-vinetas.css — parte de la hoja de estilos de detalle.html.
+   Ficha armada como página de manga (render.js): portada, título, datos y
+   acciones en viñetas con borde neón; trama de puntos en la portada y en los
+   episodios sin ver. Va última en el bundle: pisa a premium/local/responsive. */
+/* ==========================================
+   VIÑETAS
+   ========================================== */
+.vn-page {
+    --vn-border: rgba(188, 19, 254, 0.55);
+    --vn-tone: rgba(188, 19, 254, 0.35);
+    --vn-gap: 14px;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    gap: var(--vn-gap);
+    align-items: stretch;
+}
+
+/* El wrapper queda en el DOM (lo usan otros estilos) pero sus hijos son las
+   viñetas de la grilla. */
+.vn-page > .detail-info {
+    display: contents;
+}
+
+.vn-page [hidden] {
+    display: none !important;
+}
+
+/* Todas las viñetas comparten el marco */
+.vn-panel,
+.vn-page > .detail-info > .detail-section,
+.vn-page > .detail-info > .detail-progress-card {
+    margin: 0;
+    padding: 22px 26px;
+    border: 2px solid var(--vn-border);
+    border-radius: 4px;
+    background: var(--surface-card);
+    box-shadow: none;
+}
+
+/* Por defecto cada bloque ocupa el ancho entero de la página */
+.vn-page > .detail-info > * {
+    grid-column: 1 / -1;
+}
+
+/* ── Portada: la tapa sobre trama de puntos ── */
+.vn-page > .vn-cover {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+    overflow: hidden;
+    background-color: var(--surface-card);
+    background-image: radial-gradient(var(--vn-tone) 1.2px, transparent 1.6px);
+    background-size: 8px 8px;
+}
+.vn-page > .vn-cover img {
+    width: min(100%, 340px);
+    border: 2px solid var(--vn-border);
+    border-radius: 2px;
+}
+
+/* ── Título: viñeta con el borde inferior en diagonal ── */
+.vn-page > .detail-info > .vn-title {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px 32px 26px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 3% 100%);
+}
+.vn-title .detail-breadcrumb {
+    margin: 0;
+}
+.vn-title-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.vn-page .vn-title .detail-title {
+    font-size: clamp(1.9rem, 4.2vw, 3.6rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    overflow-wrap: anywhere;
+    text-shadow: 0 0 22px rgba(188, 19, 254, 0.55);
+}
+.vn-title .next-episode-card {
+    margin: 4px 0 0;
+}
+
+/* ── Datos: cada dato es una viñeta chica ── */
+.vn-page > .detail-info > .detail-stat-grid {
+    grid-column: 2;
+    grid-row: 2;
+    gap: var(--vn-gap);
+}
+.vn-page .detail-stat {
+    justify-content: center;
+    padding: 14px 18px;
+    border: 2px solid var(--vn-border);
+    border-radius: 4px;
+    background: var(--surface-card);
+}
+.vn-page .detail-stat-content strong {
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+    font-weight: 900;
+    color: var(--text-main);
+}
+
+/* ── Acciones: el "¡Visto!" es la onomatopeya de la página ── */
+.vn-page > .detail-info > .vn-actions {
+    grid-column: 2;
+    grid-row: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.vn-actions .detail-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+.vn-actions .watch-status-bar {
+    margin: 0;
+}
+.vn-page .detail-actions-bar .viewed-btn {
+    width: auto;
+    height: auto;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 18px;
+    border: 2px solid var(--neon-purple);
+    border-radius: 4px;
+    background: var(--neon-purple-18);
+    box-shadow: 0 0 22px var(--neon-purple-glow);
+    transform: rotate(-3deg);
+}
+.vn-page .detail-actions-bar .viewed-btn:hover {
+    transform: rotate(-3deg) translateY(-1px);
+}
+.vn-page .detail-actions-bar .viewed-btn.active {
+    background: var(--neon-purple);
+    color: #ffffff;
+}
+.vn-viewed-label {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+/* ── Sinopsis en globo de diálogo ── */
+.vn-synopsis {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.vn-synopsis .detail-section-title {
+    margin: 0;
+}
+.vn-bubble {
+    align-self: flex-start;
+    max-width: 72ch;
+    padding: 18px 24px;
+    border: 2px solid rgba(0, 242, 255, 0.6);
+    border-radius: 28px;
+    background: var(--dark-bg);
+}
+.vn-bubble .detail-synopsis-text {
+    opacity: 1;
+    font-size: 1.08rem;
+}
+.vn-synopsis .detail-chips {
+    margin-bottom: 2px;
+}
+
+/* ── Episodios: vistos en neón, sin ver con trama ── */
+.vn-page .ep-btn,
+.vn-page .cuadrado-item:not(.has-cover) {
+    border: 1px solid rgba(188, 19, 254, 0.3);
+    border-radius: 4px;
+    background-color: var(--dark-bg);
+    background-image: radial-gradient(rgba(188, 19, 254, 0.3) 1px, transparent 1.4px);
+    background-size: 6px 6px;
+}
+.vn-page .ep-btn:hover {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 12px var(--neon-purple-glow);
+}
+.vn-page .ep-btn.is-active {
+    border-color: var(--neon-purple);
+    background: var(--neon-purple);
+    color: #ffffff;
+    box-shadow: 0 0 10px var(--neon-purple-glow);
+}
+.vn-page .ep-btn.is-next-ep {
+    border: 2px solid var(--accent-cyan);
+    background: var(--accent-cyan-10);
+    color: var(--accent-cyan);
+}
+.vn-page .vol-btn.has-cover {
+    border-radius: 4px;
+}
+.vn-page .vol-btn.is-active {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 10px var(--neon-purple-glow);
+}
+
+/* ── Volver al catálogo: fuera de viñeta ── */
+.vn-page > .detail-info > .detail-actions {
+    padding: 4px 0 0;
+}
+
+/* ── Celular: una columna, la portada arriba y sin diagonales ── */
+@media (max-width: 860px) {
+    .vn-page {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .vn-page > .vn-cover,
+    .vn-page > .detail-info > .vn-title,
+    .vn-page > .detail-info > .detail-stat-grid,
+    .vn-page > .detail-info > .vn-actions {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    .vn-page > .vn-cover {
+        max-width: none;
+        margin: 0;
+    }
+    .vn-page > .vn-cover img {
+        width: min(100%, 220px);
+    }
+    .vn-page > .detail-info > .vn-title {
+        clip-path: none;
+        padding: 18px 20px;
+        text-align: left;
+    }
+    .vn-panel,
+    .vn-page > .detail-info > .detail-section,
+    .vn-page > .detail-info > .detail-progress-card {
+        padding: 16px 18px;
+    }
+    .vn-page .detail-status {
+        align-self: auto;
+    }
+    .vn-bubble {
+        padding: 14px 18px;
+        border-radius: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vn-page .detail-actions-bar .viewed-btn,
+    .vn-page .detail-actions-bar .viewed-btn:hover {
+        transform: none;
+    }
+}

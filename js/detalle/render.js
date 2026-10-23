@@ -414,48 +414,53 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     localLayout.innerHTML = `
         ${bannerHtml}
-        <div class="detail-grid">
-            <div class="detail-cover">
+        <div class="detail-grid vn-page">
+            <div class="detail-cover vn-panel vn-cover">
                 <img src="${safeUrl(item.img)}" alt="${escapeHtml(item.titulo)}" width="460" height="690" decoding="async" fetchpriority="high" data-fallback-catalog="1" data-title="${escapeHtml(item.titulo)}">
             </div>
             <div class="detail-info">
-                ${breadcrumbHtml}
-                ${demografiaHtml}
-                <h1 class="detail-title">${escapeHtml(item.titulo)}</h1>
-                <div class="detail-status${isAiring ? ' is-airing' : ''}"><span><i data-lucide="${isAiring ? 'radio' : 'check-circle'}"></i></span> ${escapeHtml(status)}</div>
-                ${nextEpHtml}
+                <div class="vn-panel vn-title">
+                    ${breadcrumbHtml}
+                    <div class="vn-title-tags">
+                        ${demografiaHtml}
+                        <div class="detail-status${isAiring ? ' is-airing' : ''}"><span><i data-lucide="${isAiring ? 'radio' : 'check-circle'}"></i></span> ${escapeHtml(status)}</div>
+                    </div>
+                    <h1 class="detail-title">${escapeHtml(item.titulo)}</h1>
+                    ${nextEpHtml}
+                </div>
                 ${detailStatsHtml}
 
-                <div class="detail-section detail-section-synopsis">
-                    <h2 class="detail-section-title">SINOPSIS</h2>
-                    <p class="detail-synopsis-text">${escapeHtml(String(summaryText))}</p>
-                    <a href="#" class="detail-see-more">Ver más</a>
+                <div class="vn-panel vn-actions">
+                    <div class="detail-actions-bar">
+                        <button class="action-btn share-btn" type="button" aria-label="Compartir" title="Compartir"><i data-lucide="share-2"></i></button>
+                        <button class="action-btn fav-btn" type="button" aria-label="Favorito"><i data-lucide="heart"></i></button>
+                        <button class="action-btn viewed-btn" type="button" aria-label="Marcar como visto"><i data-lucide="eye"></i><span class="vn-viewed-label" aria-hidden="true">¡Visto!</span></button>
+                    </div>
+
+                    <div class="watch-status-bar q-btn-toggle" role="group" aria-label="Estado de seguimiento">
+                        <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="viendo" aria-pressed="false">Viendo</button>
+                        <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pendiente" aria-pressed="false">Pendiente</button>
+                        <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pausado" aria-pressed="false">En pausa</button>
+                        <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="abandonado" aria-pressed="false">Abandonado</button>
+                    </div>
                 </div>
 
-                ${watchLinksHtml}
-                ${trailerHtml}
-
-                <div class="detail-section">
+                <div class="detail-section detail-section-synopsis vn-panel vn-synopsis">
+                    <h2 class="detail-section-title">SINOPSIS</h2>
+                    <div class="vn-bubble">
+                        <p class="detail-synopsis-text">${escapeHtml(String(summaryText))}</p>
+                        <a href="#" class="detail-see-more">Ver más</a>
+                    </div>
                     <h2 class="detail-section-title">GÉNEROS</h2>
                     <div class="detail-chips">${generosHtml}</div>
                 </div>
-                ${studiosHtml}
-                ${infoHtml}
+
                 ${isMangaOrNovela ? progressPanelHtml : ''}
                 ${extraBlockHtml}
-
-                <div class="detail-actions-bar">
-                    <button class="action-btn share-btn" type="button" aria-label="Compartir" title="Compartir"><i data-lucide="share-2"></i></button>
-                    <button class="action-btn fav-btn" type="button" aria-label="Favorito"><i data-lucide="heart"></i></button>
-                    <button class="action-btn viewed-btn" type="button" aria-label="Marcar como visto"><i data-lucide="eye"></i></button>
-                </div>
-
-                <div class="watch-status-bar q-btn-toggle" role="group" aria-label="Estado de seguimiento">
-                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="viendo" aria-pressed="false">Viendo</button>
-                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pendiente" aria-pressed="false">Pendiente</button>
-                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="pausado" aria-pressed="false">En pausa</button>
-                    <button class="watch-status-pill q-btn-toggle__btn" type="button" data-wstatus="abandonado" aria-pressed="false">Abandonado</button>
-                </div>
+                ${watchLinksHtml}
+                ${trailerHtml}
+                ${studiosHtml}
+                ${infoHtml}
 
                 <div class="detail-actions">
                     <a class="detail-back" href="${escapeHtml(backHref)}" data-restore-catalog="1">Volver al catálogo</a>

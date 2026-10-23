@@ -140,6 +140,7 @@ const PAGE_CSS_BUNDLES = {
         'css/detalle-local.css',
         'css/detalle-responsive.css',
         'css/detalle-extras.css',
+        'css/detalle-vinetas.css',
     ],
 };
 
