@@ -38,8 +38,40 @@
 
     function levelChips(game, current) {
         return '<div class="summary-months" role="group" aria-label="Dificultad">' + LEVELS.map(function (l) {
-            return '<button type="button" class="reto-chip' + (l[0] === current ? ' is-active' : '') + '" data-' + game + '-level="' + l[0] + '">' + l[1] + '</button>';
+            var on = l[0] === current;
+            return '<button type="button" class="reto-chip' + (on ? ' is-active' : '') + '" aria-pressed="' + on + '" data-' + game + '-level="' + l[0] + '">' + l[1] + '</button>';
         }).join('') + '</div>';
+    }
+
+    // El tablero se redibuja entero en cada jugada, así que el lector de
+    // pantalla no se entera solo: se le avisa por la línea de estado.
+    function announce(id, msg) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = msg;
+    }
+
+    // Al redibujar, el botón con foco desaparece. Se anota cuál era (por su
+    // data-vs / data-dq / id) para devolverle el foco al nuevo, o a la primera
+    // opción si ya no existe (p. ej. después de "Jugar de nuevo").
+    function focusKey(host) {
+        var a = document.activeElement;
+        if (!a || a === host || !host.contains(a)) return null;
+        for (var i = 0; i < a.attributes.length; i++) {
+            var at = a.attributes[i];
+            if (/^data-(vs|dq)/.test(at.name)) return '[' + at.name + '="' + at.value + '"]';
+        }
+        return a.id ? '#' + a.id : '';
+    }
+    function restoreFocus(host, key, first) {
+        if (key == null) return;
+        var el = (key && host.querySelector(key)) || host.querySelector(first);
+        if (el) el.focus({ preventScroll: true });
+    }
+
+    // Marca con texto, no solo con color, cuál era la correcta y cuál elegiste.
+    function mark(ok, picked) {
+        var t = ok ? (picked ? '✓ ¡Bien!' : '✓ Correcta') : (picked ? '✗ Tu elección' : '');
+        return t ? '<span class="game-mark' + (ok ? ' is-ok' : ' is-bad') + '">' + t + '</span>' : '';
     }
 
     // Por popularidad: el pozo viene ordenado de más a menos popular.
@@ -124,7 +156,8 @@
         if (r.bottom > window.innerHeight || r.top < 0) {
             end.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
         }
-        if (finePointer()) again.focus({ preventScroll: true });
+        // Con mouse, o si venías jugando con teclado, el foco pasa a "Jugar de nuevo".
+        if (finePointer() || host.contains(document.activeElement)) again.focus({ preventScroll: true });
     }
 
     function shareLine(name, level, streak, tab) {
@@ -192,29 +225,40 @@
         vs.recent.push(vs.left.id);
         vs.right = challenger(vs.left);
         vsRender();
+        announce('versusStatus', vsMatchup());
+    }
+
+    function vsMatchup() {
+        return vs.left.title + ' (' + fans(vs.left.popularity) + ') contra ' + vs.right.title + '. ¿Cuál tiene más fans?';
+    }
+
+    function vsOutcome(ok, mine, other) {
+        return (ok ? '¡Bien! ' : 'No. ') + mine.title + ' tiene ' + fans(mine.popularity) + ' y ' +
+            other.title + ' ' + fans(other.popularity) + '.';
     }
 
     function vsCard(m, side, showNum) {
         var picked = vs.picked === side;
         var other = side === 'left' ? vs.right : vs.left;
         var cls = 'game-pick';
+        var isMore = m.popularity >= other.popularity;
         if (vs.picked) {
-            var isMore = m.popularity >= other.popularity;
             cls += isMore ? ' is-ok' : ' is-bad';
             if (picked) cls += ' is-picked';
         }
-        return '<button type="button" class="' + cls + '" data-vs="' + side + '"' + (vs.picked ? ' disabled' : '') +
-            ' aria-label="' + esc(m.title) + '">' +
+        // aria-disabled y no disabled: un botón deshabilitado pierde el foco.
+        return '<button type="button" class="' + cls + '" data-vs="' + side + '"' + (vs.picked ? ' aria-disabled="true"' : '') + '>' +
                 '<span class="game-cover"><img src="' + esc(m.image) + '" alt="" draggable="false"></span>' +
                 '<span class="game-title">' + esc(m.title) + '</span>' +
-                '<span class="game-num">' + (showNum ? fans(m.popularity) : '¿?') + '</span>' +
-                (vs.picked ? '' : kbd(side === 'left' ? '←' : '→')) +
+                '<span class="game-num">' + (showNum ? fans(m.popularity) : '<span aria-hidden="true">¿?</span><span class="game-sr">fans ocultos</span>') + '</span>' +
+                (vs.picked ? mark(isMore, picked) : kbd(side === 'left' ? '←' : '→')) +
             '</button>';
     }
 
     function vsRender() {
         var host = vsHost();
         if (!host) return;
+        var keep = focusKey(host);
         var rec = Math.max(best(K_VERSUS, vs.level), vs.streak);
         var html = '<div class="game-top">' +
                 levelChips('vs', vs.level) +
@@ -232,6 +276,7 @@
                 : 'Fin del juego. Hiciste ' + vs.streak + (vs.streak === 1 ? ' acierto.' : ' aciertos.'));
         }
         host.innerHTML = html;
+        restoreFocus(host, keep, '[data-vs]');
 
         host.querySelectorAll('[data-vs]').forEach(function (b) {
             b.addEventListener('click', function () { vsPick(b.getAttribute('data-vs')); });
@@ -269,6 +314,7 @@
             preload(next.image);
             vsRender();
             vsReveal();
+            announce('versusStatus', vsOutcome(true, mine, other) + ' Racha ' + vs.streak + '.');
             setTimeout(function () {
                 // Si mientras tanto cambió el nivel o empezó otra partida, no se toca nada.
                 if (round !== vs.round) return;
@@ -277,6 +323,7 @@
                 vs.right = next;
                 vs.picked = null;
                 vsRender();
+                announce('versusStatus', vsMatchup());
             }, NEXT_MS);
         } else {
             vs.over = true;
@@ -286,6 +333,8 @@
             if (vs.streak > prevBest) saveBest(K_VERSUS, vs.level, vs.streak);
             vsRender();
             vsReveal();
+            announce('versusStatus', vsOutcome(false, mine, other) + ' Fin del juego: ' + vs.streak +
+                (vs.streak === 1 ? ' acierto.' : ' aciertos.') + (vs.newRecord ? ' ¡Nuevo récord!' : ''));
         }
     }
 
@@ -330,6 +379,7 @@
         dq.options = shuffle([dq.answer].concat(dqDistractors(dq.answer)));
         dq.picked = null;
         dqRender();
+        announce('dequeStatus', 'Nuevo personaje. Opciones: ' + dq.options.map(function (m) { return m.title; }).join(', ') + '.');
     }
 
     function dqStart() {
@@ -343,6 +393,7 @@
     function dqRender() {
         var host = dqHost();
         if (!host) return;
+        var keep = focusKey(host);
         var rec = Math.max(best(K_DEQUE, dq.level), dq.streak);
         var html = '<div class="game-top">' +
                 levelChips('dq', dq.level) +
@@ -353,16 +404,17 @@
                 '<div class="deque-char"><img src="' + esc(dq.answer.mainImage) + '" alt="Personaje misterioso" draggable="false"></div>' +
                 '<div class="deque-options">' + dq.options.map(function (m, i) {
                     var cls = 'game-pick';
-                    if (dq.picked != null) {
-                        if (m.id === dq.answer.id) cls += ' is-ok';
+                    var done = dq.picked != null;
+                    var isAnswer = m.id === dq.answer.id;
+                    if (done) {
+                        if (isAnswer) cls += ' is-ok';
                         else if (i === dq.picked) cls += ' is-bad';
                         if (i === dq.picked) cls += ' is-picked';
                     }
-                    return '<button type="button" class="' + cls + '" data-dq="' + i + '"' + (dq.picked != null ? ' disabled' : '') +
-                        ' aria-label="' + esc(m.title) + '">' +
+                    return '<button type="button" class="' + cls + '" data-dq="' + i + '"' + (done ? ' aria-disabled="true"' : '') + '>' +
                             '<span class="game-cover"><img src="' + esc(m.image) + '" alt="" draggable="false"></span>' +
                             '<span class="game-title">' + esc(m.title) + '</span>' +
-                            (dq.picked != null ? '' : kbd(i + 1)) +
+                            (done ? mark(isAnswer, i === dq.picked) : kbd(i + 1)) +
                         '</button>';
                 }).join('') + '</div>' +
             '</div>';
@@ -372,6 +424,7 @@
                 : 'Hiciste ' + dq.streak + (dq.streak === 1 ? ' acierto.' : ' aciertos.')) + ' Era de:', dq.answer);
         }
         host.innerHTML = html;
+        restoreFocus(host, keep, '[data-dq]');
 
         host.querySelectorAll('[data-dq]').forEach(function (b) {
             b.addEventListener('click', function () { dqPick(Number(b.getAttribute('data-dq'))); });
@@ -397,6 +450,7 @@
             dq.streak += 1;
             var round = dq.round;
             dqRender();
+            announce('dequeStatus', '¡Bien! Era de ' + dq.answer.title + '. Racha ' + dq.streak + '.');
             setTimeout(function () { if (round === dq.round) dqRound(); }, NEXT_MS);
         } else {
             dq.over = true;
@@ -405,6 +459,8 @@
             dq.newRecord = dq.streak > 1 && dq.streak > prevBest;
             if (dq.streak > prevBest) saveBest(K_DEQUE, dq.level, dq.streak);
             dqRender();
+            announce('dequeStatus', 'No. Era de ' + dq.answer.title + '. Hiciste ' + dq.streak +
+                (dq.streak === 1 ? ' acierto.' : ' aciertos.') + (dq.newRecord ? ' ¡Nuevo récord!' : ''));
         }
     }
 
