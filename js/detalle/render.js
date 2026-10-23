@@ -467,13 +467,15 @@ function renderDetalle(item, nombreUrl, categoria) {
                 </div>
             </div>
         </div>
-        ${faq.html}
-        ${charactersHtml}
-        ${temporadasHtml}
-        ${themesHtml}
-        ${relatedHtml}
-        ${recommendationsHtml}
-        <div id="comments-section"></div>
+        <div class="vn-stack">
+            ${faq.html}
+            ${charactersHtml}
+            ${temporadasHtml}
+            ${themesHtml}
+            ${relatedHtml}
+            ${recommendationsHtml}
+            <div id="comments-section"></div>
+        </div>
     `;
 
     // Completa la cadena de temporadas contra la API. No se espera: la sección
