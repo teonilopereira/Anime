@@ -215,6 +215,40 @@
     box-shadow: 0 0 10px var(--neon-purple-glow);
 }
 
+/* ── Secciones de abajo (FAQ, personajes, temporadas, openings,
+   relacionados, recomendaciones, comentarios): una viñeta cada una,
+   apiladas a lo ancho. Temporadas y openings se reemplazan después por
+   outerHTML pero conservan su clase, así que entran solas. ── */
+.vn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 14px;
+}
+.vn-stack > .detail-section,
+.vn-stack > #comments-section {
+    margin: 0;
+    padding: 22px 26px;
+    border: 2px solid rgba(188, 19, 254, 0.55);
+    border-radius: 4px;
+    background: var(--surface-card);
+}
+.vn-stack > .detail-section > .detail-h2,
+.vn-stack > .detail-section > h2:first-child {
+    margin-top: 0;
+}
+.vn-stack .detail-faq-item:first-of-type,
+.vn-stack .detail-faq-item:last-of-type {
+    border-radius: 0;
+}
+.vn-stack .wcard,
+.vn-stack .char-card {
+    border-radius: 4px;
+}
+.vn-stack [hidden] {
+    display: none !important;
+}
+
 /* ── Volver al catálogo: fuera de viñeta ── */
 .vn-page > .detail-info > .detail-actions {
     padding: 4px 0 0;
@@ -246,7 +280,9 @@
     }
     .vn-panel,
     .vn-page > .detail-info > .detail-section,
-    .vn-page > .detail-info > .detail-progress-card {
+    .vn-page > .detail-info > .detail-progress-card,
+    .vn-stack > .detail-section,
+    .vn-stack > #comments-section {
         padding: 16px 18px;
     }
     .vn-page .detail-status {
