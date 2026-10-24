@@ -84,7 +84,7 @@
 }
 
 .reto-link { color: var(--accent-cyan); font-weight: 600; }
-.reto-xp { color: #22c55e; font-weight: 700; margin-left: 6px; }
+.reto-xp { color: var(--game-ok-text); font-weight: 700; margin-left: 6px; }
 
 .reto-chip {
     padding: 6px 14px;
@@ -157,8 +157,8 @@
 
 .quiz-guesses { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .quiz-guesses li { padding: 6px 12px; border-radius: var(--radius-sm, 10px); font-weight: 600; overflow-wrap: anywhere; }
-.quiz-guesses .is-bad { background: rgba(239, 68, 68, 0.14); color: #ef4444; }
-.quiz-guesses .is-ok { background: rgba(34, 197, 94, 0.16); color: #16a34a; }
+.quiz-guesses .is-bad { background: rgba(239, 68, 68, 0.14); color: var(--game-bad-text); }
+.quiz-guesses .is-ok { background: rgba(34, 197, 94, 0.16); color: var(--game-ok-text); }
 
 .quiz-input { position: relative; display: grid; gap: 10px; }
 
@@ -216,7 +216,7 @@
 
 .quiz-end { display: grid; gap: 12px; }
 .quiz-result { margin: 0; font-size: 1.1rem; font-weight: 700; }
-.quiz-result.is-won { color: #16a34a; }
+.quiz-result.is-won { color: var(--game-ok-text); }
 .quiz-result.is-lost { color: var(--text-muted); }
 
 .quiz-answer {
@@ -264,7 +264,7 @@
     min-width: 24px;
     box-sizing: border-box;
 }
-.quiz-dist-row i.is-mine { background: #16a34a; color: #fff; }
+.quiz-dist-row i.is-mine { background: #15803d; color: #fff; }
 
 .quiz-next { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
 
@@ -426,10 +426,59 @@
     cursor: pointer;
     transition: border-color 0.2s ease, transform 0.15s ease;
 }
-.game-pick:hover:not(:disabled) { border-color: var(--neon-purple); transform: translateY(-2px); }
-.game-pick:disabled { cursor: default; }
-.game-pick.is-ok { border-color: #22c55e; background: rgba(34, 197, 94, 0.12); }
-.game-pick.is-bad { border-color: #ef4444; background: rgba(239, 68, 68, 0.12); }
+.game-pick:hover:not([aria-disabled="true"]) { border-color: var(--neon-purple); transform: translateY(-2px); }
+.game-pick[aria-disabled="true"] { cursor: default; }
+.game-pick:focus-visible { border-color: var(--neon-purple); }
+.game-pick.is-ok { border-color: var(--game-ok); background: rgba(34, 197, 94, 0.12); }
+.game-pick.is-bad { border-color: var(--game-bad); background: rgba(239, 68, 68, 0.12); }
+@media (prefers-reduced-motion: reduce) {
+    .game-pick,
+    .quiz-cover img { transition: none; }
+    .game-pick:hover:not([aria-disabled="true"]) { transform: none; }
+}
+
+/* Verde/rojo con contraste ≥ 3:1 sobre la tarjeta en los dos temas. */
+.reto-card {
+    --game-ok: #22c55e; --game-bad: #ef4444; --game-num: var(--accent-cyan);
+    --game-ok-text: #22c55e; --game-bad-text: #f87171;
+}
+:root[data-theme="light"] .reto-card {
+    --game-ok: #15803d; --game-bad: #dc2626; --game-num: #076f85;
+    --game-ok-text: #166534; --game-bad-text: #b91c1c;
+}
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .reto-card {
+        --game-ok: #15803d; --game-bad: #dc2626; --game-num: #076f85;
+        --game-ok-text: #166534; --game-bad-text: #b91c1c;
+    }
+}
+
+/* Resultado escrito sobre la portada (no solo el color del borde). */
+.game-mark {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 1px 8px;
+    border-radius: 6px;
+    color: #fff;
+    font: 700 0.75rem/1.5 var(--font-body);
+    pointer-events: none;
+}
+.game-mark.is-ok { background: #15803d; }
+.game-mark.is-bad { background: #b91c1c; }
+
+/* Solo para lectores de pantalla. */
+.game-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
 
 .game-cover {
     display: block;
@@ -441,7 +490,7 @@
 .game-cover img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
 
 .game-title { font-size: 0.9rem; line-height: 1.25; overflow-wrap: anywhere; }
-.game-num { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent-cyan); }
+.game-num { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--game-num); }
 
 .versus-grid {
     display: grid;
@@ -538,6 +587,10 @@
         text-align: left;
     }
     .deque-options .game-cover { aspect-ratio: 2 / 3; border-radius: 6px; }
+    /* En fila, la marca va al final en vez de tapar la miniatura. */
+    .deque-options .game-mark { top: 50%; transform: translateY(-50%); }
+    .deque-options .game-pick.is-ok,
+    .deque-options .game-pick.is-bad { padding-right: 104px; }
     .deque-char { width: min(100%, 150px); }
     /* Que el scroll al final de partida no lo deje debajo de la barra de abajo. */
     .quiz-end { scroll-margin-bottom: 96px; }
