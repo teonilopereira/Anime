@@ -25,6 +25,106 @@ function setBrowsePref(categoria, value) {
 try {
     window.__catalogFilters.browse = getBrowsePref(document.body?.getAttribute('data-page') || '');
 } catch (_) {}
+
+/* ─── Filtros en la URL ───
+   ?q=…&genero=action,romance&anio=2024&temporada=SPRING&formato=TV&orden=SCORE_DESC
+   Así sobreviven al volver desde una ficha (antes se perdían) y el link del
+   catálogo filtrado se puede compartir. Solo se aceptan valores conocidos. */
+function readFiltersFromUrl() {
+    var out = {};
+    try {
+        var p = new URLSearchParams(window.location.search);
+        var q = (p.get('q') || '').trim();
+        if (q) out.search = q;
+        var g = p.get('genero');
+        if (g) {
+            var genres = g.split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
+            if (genres.length) out.genres = Array.from(new Set(genres)).slice(0, 10);
+        }
+        var y = Number(p.get('anio'));
+        if (Number.isInteger(y) && y >= 1960 && y <= new Date().getFullYear() + 1) out.year = y;
+        var s = p.get('temporada') || '';
+        if (/^(WINTER|SPRING|SUMMER|FALL)$/.test(s)) out.season = s;
+        var f = p.get('formato') || '';
+        if (/^(TV|TV_SHORT|MOVIE|SPECIAL|OVA|ONA|MUSIC)$/.test(f)) out.format = f;
+        var o = p.get('orden') || '';
+        if (/^(TRENDING_DESC|SCORE_DESC|START_DATE_DESC|TITLE_ROMAJI)$/.test(o)) out.sort = o;
+    } catch (_) {}
+    return out;
+}
+
+function writeFiltersToUrl(filters) {
+    try {
+        var url = new URL(window.location.href);
+        var set = function (key, value) {
+            if (value) url.searchParams.set(key, String(value));
+            else url.searchParams.delete(key);
+        };
+        set('q', filters.search);
+        set('genero', (filters.genres || []).join(','));
+        set('anio', filters.year);
+        set('temporada', filters.season);
+        set('formato', filters.format);
+        set('orden', filters.sort);
+        if (url.href !== window.location.href) history.replaceState(history.state, '', url.href);
+    } catch (_) {}
+}
+
+// Sembrar el estado con la URL antes de la primera carga del catálogo.
+try {
+    (function () {
+        var cat = document.body?.getAttribute('data-page') || '';
+        var u = readFiltersFromUrl();
+        var f = window.__catalogFilters;
+        if (u.search) f.search = u.search;
+        if (u.genres) {
+            f.genres = u.genres.slice();
+            window.__selectedGenres = AnimeDestiny.internals.__selectedGenres = u.genres.slice();
+            UserStore.setItem('ui:selectedGenres:' + cat, JSON.stringify(u.genres));
+        }
+        if (u.year) f.year = u.year;
+        if (u.sort) f.sort = u.sort;
+        // Temporada y formato son solo de anime.
+        if (cat === 'anime') {
+            if (u.season) f.season = u.season;
+            if (u.format) f.format = u.format;
+        }
+    })();
+} catch (_) {}
+
+// Cuántos filtros hay activos: se muestra en el botón "Filtros y géneros"
+// (en celular el panel está cerrado y no se ve qué quedó aplicado) y oculta
+// "Limpiar" cuando no hay nada que limpiar.
+function updateActiveFilterCount() {
+    var f = window.__catalogFilters || {};
+    var n = (Array.isArray(f.genres) ? f.genres.length : 0) +
+        ['sort', 'year', 'season', 'format'].filter(function (k) { return !!f[k]; }).length;
+    var toggle = document.getElementById('mainFilterToggle');
+    if (toggle) {
+        var badge = toggle.querySelector('.cx-filter-count');
+        if (!badge && n) {
+            badge = document.createElement('span');
+            badge.className = 'cx-filter-count';
+            toggle.appendChild(badge);
+        }
+        if (badge) {
+            badge.textContent = String(n);
+            badge.hidden = !n;
+        }
+    }
+    var clear = document.getElementById('clearFiltersBtn');
+    if (clear) clear.hidden = !n;
+}
+
+// Varios clics seguidos en géneros disparan un solo pedido a AniList (antes
+// era uno por clic, y con el límite de velocidad de la API eso se nota).
+var _catalogReloadTimer = null;
+function scheduleCatalogReload() {
+    clearTimeout(_catalogReloadTimer);
+    _catalogReloadTimer = setTimeout(function () {
+        if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+    }, 350);
+}
 var _genreWidgetsListenersAdded = false;
 var _searchListenersAdded = false;
 
@@ -530,6 +630,9 @@ function inicializarBusquedaCatalogo() {
             season: (isAnimeCat && advSeason && advSeason.value) ? advSeason.value : '',
             format: (isAnimeCat && advFormat && advFormat.value) ? advFormat.value : ''
         };
+        writeFiltersToUrl(window.__catalogFilters);
+        updateActiveFilterCount();
+        clearTimeout(_catalogReloadTimer);
 
         // Reset pagination and reload
         if (typeof resetInfiniteScroll === 'function') resetInfiniteScroll();
@@ -618,6 +721,13 @@ function inicializarBusquedaCatalogo() {
             }
             yearSel.appendChild(frag);
         }
+        // Reflejar en los selects los filtros que vinieron en la URL.
+        var f0 = window.__catalogFilters || {};
+        [['filterSort', 'sort'], ['filterYear', 'year'], ['filterSeason', 'season'], ['filterFormat', 'format']].forEach(function (pair) {
+            var el = document.getElementById(pair[0]);
+            if (el && f0[pair[1]]) el.value = String(f0[pair[1]]);
+        });
+        updateActiveFilterCount();
         ['filterSort', 'filterYear', 'filterSeason', 'filterFormat'].forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) return;
@@ -748,18 +858,17 @@ function inicializarBusquedaCatalogo() {
 
     // ── Búsqueda por URL (?q=) ──
     // Habilita el SearchAction del sitio (cajita de búsqueda de sitelinks en
-    // Google) y hace que las búsquedas sean compartibles por link. Se aplica una
-    // sola vez: inicializarBusquedaCatalogo se llama en cada re-render del catálogo.
+    // Google) y hace que las búsquedas sean compartibles por link. La primera
+    // carga ya buscó con ?q= (ver readFiltersFromUrl); acá solo se completa el
+    // campo. Se aplica una sola vez: inicializarBusquedaCatalogo se llama en
+    // cada re-render del catálogo.
     if (!window.__catalogQueryApplied) {
-        try {
-            const q0 = new URLSearchParams(window.location.search).get('q');
-            if (q0 && q0.trim() && !input.value) {
-                window.__catalogQueryApplied = true;
-                input.value = q0.trim();
-                syncClearBtn();
-                reloadCatalog();
-            }
-        } catch (e) { /* no-op (?q= opcional) */ }
+        window.__catalogQueryApplied = true;
+        const q0 = window.__catalogFilters.search;
+        if (q0 && !input.value) {
+            input.value = q0;
+            syncClearBtn();
+        }
     }
 
     var searchIcon = inputWrap?.querySelector('.catalog-search-icon');
@@ -790,7 +899,10 @@ function inicializarBusquedaCatalogo() {
         
         document.addEventListener('click', (e) => {
             if (filterDropdown.style.display === 'none') return;
-            if (!filterToggle.contains(e.target) && !filterDropdown.contains(e.target)) {
+            // composedPath y no contains: al tocar un género el chip se redibuja
+            // y e.target ya no está en el panel, lo que lo cerraba en celular.
+            const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target];
+            if (!path.includes(filterToggle) && !path.includes(filterDropdown)) {
                 showFilter(false);
             }
         });
@@ -900,7 +1012,8 @@ function inicializarGeneroWidgets() {
     function renderDropdownGenres() {
         if (!filterGenresContainer) return;
         const arr = Array.isArray(window.__selectedGenres) ? window.__selectedGenres : [];
-        const q = (window.__genreQuery || '').trim().toLowerCase();
+        // Sin distinguir acentos: "accion" encuentra "Acción".
+        const q = normalizeText((window.__genreQuery || '').trim());
 
         // Nombre a mostrar en el idioma elegido (la clave sigue en inglés) y
         // orden alfabético por ese nombre, con los géneros oficiales primero.
@@ -910,7 +1023,7 @@ function inicializarGeneroWidgets() {
         // Filtrado por texto del buscador: coincide con el nombre mostrado o
         // con el original de AniList.
         const list = q
-            ? shown.filter((g) => g.display.toLowerCase().includes(q) || g.label.toLowerCase().includes(q))
+            ? shown.filter((g) => normalizeText(g.display).includes(q) || normalizeText(g.label).includes(q))
             : shown;
 
         // Colapsar salvo que se esté buscando o el usuario haya expandido.
@@ -1051,6 +1164,8 @@ function inicializarGeneroWidgets() {
                 var el = document.getElementById(id);
                 if (el) el.value = '';
             });
+            if (genreSearchInput) genreSearchInput.value = '';
+            window.__genreQuery = '';
             if (typeof window.__renderDropdownGenres === 'function') window.__renderDropdownGenres();
             if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
         });
@@ -1073,8 +1188,8 @@ function inicializarGeneroWidgets() {
             UserStore.setItem(selectedKey, JSON.stringify(arr));
 
             renderDropdownGenres();
-            // Trigger server reload instead of local filter
-            if (typeof window.__reloadCatalog === 'function') window.__reloadCatalog();
+            // Recarga desde la API, agrupando clics seguidos.
+            scheduleCatalogReload();
         });
     }
 }
