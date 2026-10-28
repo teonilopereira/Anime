@@ -709,7 +709,14 @@ async function buscarCatalogoLiviano(categoria, search) {
     }
 }
 
+// Cada carga desde cero (no las páginas del scroll) se numera: si cambian los
+// filtros mientras la anterior sigue en vuelo, su respuesta llega tarde y no
+// debe pisar a la nueva.
+let _catalogLoadSeq = 0;
+
 async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append = false) {
+    const seq = append ? _catalogLoadSeq : ++_catalogLoadSeq;
+    const vigente = () => append || seq === _catalogLoadSeq;
     const loaderLabel = categoria === 'anime'
         ? catTr('card.loader.animes', 'animes')
         : (categoria === 'novelas' ? catTr('card.loader.novelas', 'novelas') : catTr('card.loader.mangas', 'mangas'));
@@ -732,12 +739,14 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
             setTimeout(function () { reject(new Error('Timeout')); }, AnimeDestiny.Constants.API_TIMEOUT_MS || 15000);
         });
         const listaItems = await Promise.race([getTopItems(page, filters), timeoutPromise]);
+        if (!vigente()) return false;
         const items = Array.isArray(listaItems) ? listaItems.slice(0, perPage) : [];
 
         // Búsqueda sin resultados en la carga principal: reintentar con la
         // búsqueda liviana antes de declarar "sin resultados".
         if (!append && !items.length && filters.search) {
             const alt = await buscarCatalogoLiviano(categoria, filters.search);
+            if (!vigente()) return false;
             if (alt.length) return renderCatalogItems(categoria, mainContainer, alt.slice(0, perPage), false);
         }
 
@@ -760,10 +769,12 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
         return renderCatalogItems(categoria, mainContainer, items, append);
     } catch (error) {
         console.warn('Error cargando API:', error);
+        if (!vigente()) return false;
         // Respaldo: si la carga fall\u00F3 durante una b\u00FAsqueda, intentar la b\u00FAsqueda
         // liviana (puede resolver desde cach\u00E9 aunque la API est\u00E9 limitando).
         if (!append && filters.search) {
             const alt = await buscarCatalogoLiviano(categoria, filters.search);
+            if (!vigente()) return false;
             if (alt.length) return renderCatalogItems(categoria, mainContainer, alt.slice(0, perPage), false);
         }
         if (!append) {
