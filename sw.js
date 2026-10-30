@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Mirudoku */
-const CACHE_NAME = 'anime-destiny-9772c09d';
+const CACHE_NAME = 'anime-destiny-fcdb8a9a';
 // v2: descarta las respuestas de error opacas que guardaba la v1.
 const IMG_CACHE_NAME = 'anime-destiny-img-v2';
 const IMG_CACHE_MAX = 120;
@@ -65,6 +65,9 @@ const ASSETS = [
   'usuario.html',
   'comparar.html',
   'escena.html',
+  'calendario.html',
+  'retos.html',
+  'estudio.html',
   'privacidad.html',
   'terminos.html',
   '404.html',
@@ -72,6 +75,11 @@ const ASSETS = [
   'css/bundle.min.css',
   'css/bundle-lite.min.css',
   'css/detalle.min.css',
+  'css/inicio.css',
+  'css/calendario.css',
+  'css/retos.css',
+  'css/estudio.css',
+  'css/personaje.css',
   'css/volumenes.css',
   'css/fonts.css',
   'fonts/orbitron-latin.woff2',
@@ -89,6 +97,7 @@ const ASSETS = [
   'js/core/mangadex-api.js',
   'js/pages/volumenes.js',
   'js/pages/offline.js',
+  'images/brand/mirudoku-icon-192.png',
   'manifest.json'
 ];
 
@@ -202,6 +211,11 @@ self.addEventListener('fetch', (event) => {
               cache.put(event.request, response.clone());
             }
             return response;
+          }).catch(() => {
+            // Sin red: el precache guarda estos archivos sin ?v= (ASSETS), así
+            // que la búsqueda exacta no los encuentra. El caché es por versión
+            // (CACHE_NAME), por eso la copia sin query es del mismo deploy.
+            return cache.match(event.request, { ignoreSearch: true });
           });
         });
       })

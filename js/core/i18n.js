@@ -10,6 +10,7 @@
             "nav.novelas":        "Novelas",
             "nav.comparar":       "Comparar",
             "nav.escena":         "¿Qué anime es?",
+            "a11y.saltar_contenido": "Saltar al contenido",
             "nav.top":            "Top",
             "nav.top_jugadores":  "Top de jugadores",
             "nav.ranking":        "Ranking",

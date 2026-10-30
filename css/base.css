@@ -125,6 +125,27 @@ h4,
     outline-offset: 2px;
 }
 
+/* Saltar al contenido: fuera de pantalla hasta que recibe foco con Tab. */
+.skip-link {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 10000;
+    padding: 10px 16px;
+    border-radius: 6px;
+    background: var(--accent-cyan);
+    color: #000;
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-200%);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+    transform: none;
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
 /* Global focus-visible for all interactive elements */
 a:focus-visible,
 button:focus-visible,

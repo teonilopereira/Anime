@@ -249,7 +249,7 @@ páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 | Archivo | Propósito |
 |---|---|
 | `schema.sql` | Schema consolidado v2 (reemplaza versiones anteriores). Ejecutar en el SQL Editor. |
-| `migrations/001_…` a `010_…` | Migraciones incrementales: comentarios, referencias, watch-status, apodos, ranking, spoilers, hardening, push, social, cron de push. |
+| `migrations/001_…` a `013_…` | Migraciones incrementales: comentarios, referencias, watch-status, apodos, ranking, spoilers, hardening, push, social, cron de push, EXP del ranking, permisos de limpieza. |
 | `functions/notify-new-episodes/` | Edge function de Supabase que manda los push de nuevos episodios (ver su README). |
 
 ---

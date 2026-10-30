@@ -124,6 +124,32 @@ for (const name of fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'))) {
   }
 }
 
+// Precache del service worker: cache.addAll es atomico, una sola entrada que
+// no exista (404) tumba la instalacion entera. Y offline.html se sirve sin red,
+// asi que todo lo que pide tiene que estar precacheado (sw.js lo busca
+// ignorando el ?v=).
+const swSrc = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+const swAssets = new Set([...(swSrc.match(/const ASSETS = \[([\s\S]*?)\];/)?.[1] || '')
+  .matchAll(/'([^']+)'/g)].map((m) => m[1]));
+if (!swAssets.size) {
+  failed = true;
+  issueCount += 1;
+  console.log('SW sw.js: no se encontro la lista ASSETS.');
+}
+for (const asset of swAssets) {
+  if (asset === './' || fs.existsSync(path.join(ROOT, asset))) continue;
+  failed = true;
+  issueCount += 1;
+  console.log(`SW sw.js: ASSETS incluye '${asset}', que no existe.`);
+}
+const offlineSrc = fs.readFileSync(path.join(ROOT, 'offline.html'), 'utf8');
+for (const m of offlineSrc.matchAll(/(?:href|src)="((?:css|js|api|fonts|images)\/[^"?#]+)/g)) {
+  if (swAssets.has(m[1])) continue;
+  failed = true;
+  issueCount += 1;
+  console.log(`SW offline.html pide '${m[1]}', que no esta en ASSETS de sw.js: sin red no carga.`);
+}
+
 if (failed) {
   console.error(`\nQuality check failed: ${issueCount} issue(s) found.`);
   process.exit(1);

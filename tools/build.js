@@ -30,7 +30,7 @@ const SITE_URL = 'https://mirudoku.netlify.app';
 
 // Paginas que NO deben indexarse ni entrar al sitemap (privadas o sin valor
 // de busqueda). El resto se agrega solo, asi no hay que mantener una lista.
-const NO_INDEXABLES = new Set(['404.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html', 'volumenes.html']);
+const NO_INDEXABLES = new Set(['404.html', 'offline.html', 'Login.html', 'usuario.html', 'configuracion.html', 'personajes.html', 'volumenes.html']);
 
 /**
  * Verificacion de propiedad de Google Search Console (token del meta tag).
@@ -408,9 +408,10 @@ for (const rel of [...assetPaths].sort()) {
 
 // Los HTML tambien entran al hash. Sin esto, un cambio que toque solo HTML
 // (meta tags de SEO, el script de analitica, canonicals) no movia la version,
-// y como sw.js usa CACHE_NAME = version y sirve HTML cache-first, el visitante
-// que ya tenia el service worker instalado seguia recibiendo la copia vieja
-// para siempre.
+// y sw.js usa CACHE_NAME = version. El HTML se sirve red-primero, pero el
+// precache offline (ASSETS en sw.js) guarda los HTML: si la version no cambia,
+// el service worker no se reinstala y la copia offline queda vieja. Por eso
+// los HTML tienen que seguir entrando al hash.
 //
 // Se hashea con los ?v= borrados: esos los escribe el propio estampado, asi
 // que si entraran al hash cada build cambiaria la version que acaba de
@@ -426,6 +427,9 @@ let stampedHtml = 0;
 const CSP_CABECERA = leerCspCabecera(ROOT);
 if (!CSP_CABECERA) throw new Error('No se encontro el Content-Security-Policy en netlify.toml');
 const CSP_META = cspParaMeta(CSP_CABECERA);
+
+const SKIP_LINK = '<a class="skip-link" href="#main-content" data-i18n="a11y.saltar_contenido">Saltar al contenido</a>';
+const SKIP_LINK_RE = /\n?[ \t]*<a class="skip-link"[^>]*>[^<]*<\/a>/g;
 
 for (const file of htmlFiles) {
     const p = abs(file);
@@ -489,6 +493,14 @@ for (const file of htmlFiles) {
         // y connect-src para que pueda mandar los eventos.
         src = src.replace(/script-src 'self'/, `script-src 'self' ${ANALYTICS.host}`);
         src = src.replace(/connect-src 'self'/, `connect-src 'self' ${ANALYTICS.host}`);
+    }
+
+    // ── Saltar al contenido (WCAG 2.4.1) ──
+    // Primer hijo del <body>, en el HTML y no inyectado por JS: tiene que estar
+    // aunque el JS falle o tarde. Se borra y se re-inyecta, asi no se duplica.
+    src = src.replace(SKIP_LINK_RE, '');
+    if (src.includes('id="main-content"')) {
+        src = src.replace(/(<body[^>]*>)/, `$1\n    ${SKIP_LINK}`);
     }
 
     // ── CSP en <meta> ──

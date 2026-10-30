@@ -17,6 +17,7 @@
         "nav.novelas":        "Novels",
         "nav.comparar":       "Compare",
         "nav.escena":         "Which anime is it?",
+        "a11y.saltar_contenido": "Skip to content",
         "nav.top":            "Top",
         "nav.top_jugadores":  "Player ranking",
         "nav.ranking":        "Ranking",
