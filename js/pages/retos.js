@@ -499,7 +499,17 @@
             quiz.pool = await window.getQuizPool();
         } catch (e) {
             console.warn('[retos] pozo del quiz:', e);
-            body.innerHTML = '<p class="reto-loading">No pudimos cargar el reto de hoy. Probá de nuevo en un rato.</p>';
+            body.innerHTML =
+                '<section class="q-banner q-banner--negative" role="alert">' +
+                    '<div class="q-banner__content"><p>No pudimos cargar el reto de hoy. Revisá tu conexión y tocá Reintentar.</p></div>' +
+                    '<div class="q-banner__actions"><button type="button" class="q-btn q-btn--unelevated" data-quiz-retry>Reintentar</button></div>' +
+                '</section>';
+            var retry = body.querySelector('[data-quiz-retry]');
+            if (retry) retry.addEventListener('click', function () {
+                retry.disabled = true;
+                retry.textContent = 'Cargando…';
+                initQuiz();
+            });
             return;
         }
         quiz.day = today();

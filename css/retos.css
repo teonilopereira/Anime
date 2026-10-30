@@ -542,3 +542,8 @@
     /* Que el scroll al final de partida no lo deje debajo de la barra de abajo. */
     .quiz-end { scroll-margin-bottom: 96px; }
 }
+
+/* Sin datos (cargando o con error) la píldora de intentos quedaba como un óvalo vacío. */
+.reto-pill:empty {
+    display: none;
+}

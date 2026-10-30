@@ -75,6 +75,19 @@
         return '<li class="home-top-empty">' + esc(mensaje) + '</li>';
     }
 
+    // Mismo aviso que el catálogo (q-banner), con "Reintentar". Antes era una
+    // línea de texto suelta y había que recargar toda la página.
+    function fallo(mensaje) {
+        return '<li class="home-top-empty home-top-error">' +
+                    '<section class="q-banner q-banner--negative" role="alert">' +
+                        '<div class="q-banner__content"><p>' + esc(mensaje) + '</p></div>' +
+                        '<div class="q-banner__actions">' +
+                            '<button type="button" class="q-btn q-btn--unelevated" data-home-top-retry>Reintentar</button>' +
+                        '</div>' +
+                    '</section>' +
+                '</li>';
+    }
+
     // Una portada que no carga se saca: el póster queda con su color de fondo
     // y el título encima, en vez del ícono de imagen rota.
     function quitarSiFalla(img) {
@@ -96,7 +109,7 @@
 
         const fn = window[CATEGORIAS[cat].api];
         if (typeof fn !== 'function') {
-            pintar(cat, vacio('No se pudo cargar el catálogo.'));
+            pintar(cat, fallo('No se pudo cargar el catálogo.'));
             return;
         }
         try {
@@ -110,7 +123,7 @@
             pintar(cat, cache[cat]);
         } catch (e) {
             console.warn('[inicio] Error cargando populares de ' + cat + ':', e);
-            pintar(cat, vacio('No se pudo cargar. Revisá tu conexión y recargá.'));
+            pintar(cat, fallo('No se pudo cargar. Revisá tu conexión y tocá Reintentar.'));
         }
     }
 
@@ -127,6 +140,14 @@
 
     tabs.forEach(function (t) {
         t.addEventListener('click', function () { elegir(t.dataset.cat); });
+    });
+
+    tira.addEventListener('click', function (e) {
+        const retry = e.target.closest('[data-home-top-retry]');
+        if (!retry) return;
+        retry.disabled = true;
+        retry.textContent = 'Cargando…';
+        cargar(actual);
     });
 
     if (window.lucide && typeof window.lucide.createIcons === 'function') {

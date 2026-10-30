@@ -1417,3 +1417,24 @@ input, select, textarea, button {
         font-size: 1.05rem;
     }
 }
+
+/* ==========================================
+   CELULAR: OBJETIVOS TÁCTILES DE 44PX
+   Estos controles medían entre 15 y 36px de alto en 390px de ancho. El prefijo
+   `body` les gana a las reglas de cada página (login.css, usuario.css, el
+   <style> de mis-listas), que se cargan después del bundle.
+========================================== */
+@media (max-width: 700px) {
+    body .app-footer-link,
+    body .perfil-guest-btn-back {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+
+    body .login-btn,
+    body .res-tab,
+    body .home-top-tabs .q-tab {
+        min-height: 44px;
+    }
+}
