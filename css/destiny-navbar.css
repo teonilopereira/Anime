@@ -16,9 +16,11 @@
         --surface-card: rgba(var(--surface-card-rgb), 0.80);
         --text-main: #ffffff;
         --text-muted: rgba(var(--ink-rgb), 0.72);
-        --text-faint: rgba(var(--ink-rgb), 0.35);
+        --text-faint: rgba(var(--ink-rgb), 0.55);
         --neon-purple: #bc13fe;
+        --neon-purple-rgb: 188, 19, 254;
         --accent-cyan: #00f2ff;
+        --accent-cyan-rgb: 0, 242, 255;
         color: var(--text-main);
     }
 }
@@ -34,9 +36,11 @@
     --surface-card: rgba(var(--surface-card-rgb), 0.80);
     --text-main: #ffffff;
     --text-muted: rgba(var(--ink-rgb), 0.72);
-    --text-faint: rgba(var(--ink-rgb), 0.35);
+    --text-faint: rgba(var(--ink-rgb), 0.55);
     --neon-purple: #bc13fe;
+    --neon-purple-rgb: 188, 19, 254;
     --accent-cyan: #00f2ff;
+    --accent-cyan-rgb: 0, 242, 255;
     color: var(--text-main);
 }
 
@@ -51,12 +55,12 @@
    es una píldora violeta. El contenedor es transparente y no recibe clicks,
    así el hueco entre cápsulas deja tocar lo que hay debajo. */
 .destiny-navbar {
-    --nav-accent: #bc13fe;
-    --nav-accent-soft: rgba(188, 19, 254, 0.22);
+    --nav-accent: var(--neon-purple);
+    --nav-accent-soft: rgba(var(--neon-purple-rgb), 0.22);
     --nav-glass: rgba(16, 11, 32, 0.74);
     --nav-glass-border: rgba(255, 255, 255, 0.09);
-    --nav-pill: linear-gradient(135deg, #bc13fe, #5b2cff);
-    --nav-pill-glow: 0 0 20px rgba(188, 19, 254, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    --nav-pill: linear-gradient(135deg, var(--neon-purple), #5b2cff);
+    --nav-pill-glow: 0 0 20px rgba(var(--neon-purple-rgb), 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -112,12 +116,12 @@ body.reduce-motion .destiny-navbar {
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    filter: drop-shadow(0 0 8px rgba(188, 19, 254, 0.5));
+    filter: drop-shadow(0 0 8px rgba(var(--neon-purple-rgb), 0.5));
     transition: filter 0.25s ease, transform 0.25s ease;
 }
 
 .nav-brand:hover .nav-brand-mark {
-    filter: drop-shadow(0 0 14px rgba(0, 242, 255, 0.7));
+    filter: drop-shadow(0 0 14px rgba(var(--accent-cyan-rgb), 0.7));
     transform: scale(1.06);
 }
 
@@ -157,8 +161,8 @@ body.reduce-motion .destiny-navbar {
 }
 
 .nav-brand-destiny {
-    color: #bc13fe;
-    background: linear-gradient(100deg, #bc13fe 0%, #bc13fe 35%, #e7a6ff 46%, #00f2ff 50%, #e7a6ff 54%, #bc13fe 65%, #bc13fe 100%);
+    color: var(--neon-purple);
+    background: linear-gradient(100deg, var(--neon-purple) 0%, var(--neon-purple) 35%, #e7a6ff 46%, var(--accent-cyan) 50%, #e7a6ff 54%, var(--neon-purple) 65%, var(--neon-purple) 100%);
     background-size: 250% 100%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -210,7 +214,7 @@ body.reduce-motion .destiny-navbar {
 
 .destiny-navbar .nav-btn:hover {
     color: var(--text-main);
-    background: rgba(188, 19, 254, 0.14);
+    background: rgba(var(--neon-purple-rgb), 0.14);
 }
 
 .destiny-navbar .nav-btn.active {
@@ -220,7 +224,7 @@ body.reduce-motion .destiny-navbar {
 }
 
 .destiny-navbar .nav-btn:focus-visible {
-    outline: 2px solid #00f2ff;
+    outline: 2px solid var(--accent-cyan);
     outline-offset: 2px;
 }
 
@@ -322,13 +326,13 @@ body.reduce-motion .destiny-navbar {
 
 .destiny-navbar .nav-more-item:hover,
 .destiny-navbar .nav-more-item:focus-visible {
-    background: rgba(188, 19, 254, 0.14);
+    background: rgba(var(--neon-purple-rgb), 0.14);
     color: var(--text-main);
 }
 
 .destiny-navbar .nav-more-item.is-active {
-    background: rgba(188, 19, 254, 0.2);
-    border-color: rgba(188, 19, 254, 0.5);
+    background: rgba(var(--neon-purple-rgb), 0.2);
+    border-color: rgba(var(--neon-purple-rgb), 0.5);
     color: #fff;
 }
 
@@ -382,8 +386,8 @@ body.reduce-motion .destiny-navbar {
     display: inline-block;
     padding: 1px 8px;
     border-radius: 999px;
-    background: rgba(188, 19, 254, 0.18);
-    border: 1px solid rgba(188, 19, 254, 0.4);
+    background: rgba(var(--neon-purple-rgb), 0.18);
+    border: 1px solid rgba(var(--neon-purple-rgb), 0.4);
     color: #e7b8ff;
     font-family: 'Orbitron', sans-serif;
     font-size: 0.52rem;
@@ -401,7 +405,7 @@ body.reduce-motion .destiny-navbar {
     height: 38px;
     flex: 0 0 auto;
     border-radius: 50%;
-    border: 2px solid rgba(188, 19, 254, 0.75);
+    border: 2px solid rgba(var(--neon-purple-rgb), 0.75);
     transition: box-shadow 0.25s ease, border-color 0.25s ease;
     background:
         radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.85) 0 6px, transparent 6.5px),
@@ -409,12 +413,12 @@ body.reduce-motion .destiny-navbar {
         linear-gradient(145deg, #2a0d4f, #6a2bd9);
     background-position: center;
     background-size: cover;
-    box-shadow: 0 0 12px rgba(188, 19, 254, 0.35);
+    box-shadow: 0 0 12px rgba(var(--neon-purple-rgb), 0.35);
 }
 
 .destiny-navbar .nav-user:hover .nav-user-avatar {
-    border-color: rgba(0, 242, 255, 0.85);
-    box-shadow: 0 0 18px rgba(188, 19, 254, 0.6);
+    border-color: rgba(var(--accent-cyan-rgb), 0.85);
+    box-shadow: 0 0 18px rgba(var(--neon-purple-rgb), 0.6);
 }
 
 .destiny-navbar .nav-user-avatar.has-image {
@@ -439,7 +443,7 @@ body.reduce-motion .destiny-navbar {
     color: #fff;
     font-size: 0.7rem;
     text-decoration: none;
-    box-shadow: 0 0 10px rgba(188, 19, 254, 0.35);
+    box-shadow: 0 0 10px rgba(var(--neon-purple-rgb), 0.35);
 }
 
 /* ── Las tres cápsulas (solo desktop: en mobile la navbar es la hoja "Más") ── */
@@ -649,8 +653,8 @@ body.reduce-motion .destiny-navbar {
     .mobile-bottom-nav .bottom-tab-more.active {
         padding: 0 16px;
         color: #fff;
-        background: linear-gradient(135deg, #bc13fe, #5b2cff);
-        box-shadow: 0 0 18px rgba(188, 19, 254, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        background: linear-gradient(135deg, var(--neon-purple), #5b2cff);
+        box-shadow: 0 0 18px rgba(var(--neon-purple-rgb), 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
     }
 
     .mobile-bottom-nav .bottom-tab.active > span:not(.bottom-tab-icon),
@@ -662,12 +666,12 @@ body.reduce-motion .destiny-navbar {
 
     .mobile-bottom-nav .bottom-tab-more.is-open {
         color: #fff;
-        background: rgba(188, 19, 254, 0.22);
+        background: rgba(var(--neon-purple-rgb), 0.22);
     }
 
     .mobile-bottom-nav .bottom-tab:focus-visible,
     .mobile-bottom-nav .bottom-tab-more:focus-visible {
-        outline: 2px solid #00f2ff;
+        outline: 2px solid var(--accent-cyan);
         outline-offset: 2px;
     }
 }
@@ -978,7 +982,7 @@ body.reduce-motion .destiny-navbar {
         gap: 8px;
         min-height: 84px;
         padding: 12px 6px;
-        border: 1px solid rgba(188, 19, 254, 0.2);
+        border: 1px solid rgba(var(--neon-purple-rgb), 0.2);
         border-radius: 14px;
         background: rgba(var(--ink-rgb), 0.04);
         font-size: 0.78rem;
@@ -989,12 +993,12 @@ body.reduce-motion .destiny-navbar {
     }
 
     body.has-bottom-nav .destiny-navbar .nav-more-item:active {
-        background: rgba(188, 19, 254, 0.22);
+        background: rgba(var(--neon-purple-rgb), 0.22);
     }
 
     body.has-bottom-nav .destiny-navbar .nav-more-item.is-active {
-        border-color: rgba(188, 19, 254, 0.6);
-        box-shadow: 0 0 14px rgba(188, 19, 254, 0.3);
+        border-color: rgba(var(--neon-purple-rgb), 0.6);
+        box-shadow: 0 0 14px rgba(var(--neon-purple-rgb), 0.3);
     }
 
     body.has-bottom-nav .destiny-navbar .nav-more-icon {

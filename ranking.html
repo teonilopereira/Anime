@@ -7,12 +7,12 @@
     <meta name="description" content="Los animes, mangas y novelas mejor puntuados por la comunidad, en tres rankings separados.">
     <meta name="keywords" content="ranking, top, mejores animes, mejores mangas, mejores novelas, puntuación">
     <meta name="robots" content="index,follow">
-    <meta property="og:title" content="Mirudoku | Top Ranking">
+    <meta property="og:title" content="Mirudoku | Ranking de títulos">
     <meta property="og:description" content="Los animes, mangas y novelas mejor puntuados por la comunidad, en tres rankings separados.">
-    <meta name="twitter:title" content="Mirudoku | Top Ranking">
+    <meta name="twitter:title" content="Mirudoku | Ranking de títulos">
     <meta name="twitter:description" content="Los animes, mangas y novelas mejor puntuados por la comunidad, en tres rankings separados.">
     <link rel="canonical" href="https://mirudoku.netlify.app/ranking.html">
-    <title>Mirudoku | Top Ranking</title>
+    <title>Mirudoku | Ranking de títulos</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="images/brand/mirudoku-icon-192.png">
     <link rel="apple-touch-icon" href="images/brand/mirudoku-icon-192.png">
@@ -23,11 +23,11 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-    <link rel="stylesheet" href="css/bundle.min.css?v=9772c09d">
+    <link rel="stylesheet" href="css/bundle.min.css?v=3d35f60e">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=9772c09d">
+    <link rel="stylesheet" href="css/fonts.css?v=3d35f60e">
     <style>
         /* ── Panel principal (mismo marco que el ranking de jugadores) ── */
         .trk-container {
@@ -36,7 +36,7 @@
             padding: 24px;
             border-radius: var(--radius-lg, 16px);
             background: rgba(var(--surface-card-rgb), 0.72);
-            border: 1px solid rgba(188, 19, 254, 0.18);
+            border: 1px solid rgba(var(--neon-purple-rgb), 0.18);
         }
 
         /* ── Cabecera ── */
@@ -61,18 +61,18 @@
             width: 64px;
             height: 64px;
             border-radius: 16px;
-            background: rgba(188, 19, 254, 0.12);
-            border: 1px solid rgba(188, 19, 254, 0.35);
-            box-shadow: 0 0 24px rgba(188, 19, 254, 0.25);
+            background: rgba(var(--neon-purple-rgb), 0.12);
+            border: 1px solid rgba(var(--neon-purple-rgb), 0.35);
+            box-shadow: 0 0 24px rgba(var(--neon-purple-rgb), 0.25);
             flex-shrink: 0;
         }
-        .trk-medalla svg { width: 34px; height: 34px; color: var(--neon-purple, #bc13fe); }
+        .trk-medalla svg { width: 34px; height: 34px; color: var(--neon-purple, var(--neon-purple)); }
         .trk-title {
             margin: 0;
             font-family: 'Orbitron', sans-serif;
             font-size: 1.9rem;
-            color: var(--accent-cyan, #00f2ff);
-            text-shadow: 0 0 14px rgba(0, 242, 255, 0.4);
+            color: var(--accent-cyan, var(--accent-cyan));
+            text-shadow: 0 0 14px rgba(var(--accent-cyan-rgb), 0.4);
         }
         .trk-subtitle {
             margin: 4px 0 0;
@@ -106,14 +106,14 @@
         .trk-tab svg { width: 15px; height: 15px; }
         .trk-tab:hover { color: var(--text-main); }
         .trk-tab.is-active {
-            background: linear-gradient(135deg, var(--neon-purple, #bc13fe), #7b2ff7);
+            background: linear-gradient(135deg, var(--neon-purple, var(--neon-purple)), #7b2ff7);
             color: var(--text-main);
-            box-shadow: 0 0 16px rgba(188, 19, 254, 0.45);
+            box-shadow: 0 0 16px rgba(var(--neon-purple-rgb), 0.45);
         }
 
         /* ── Filas ── */
         .trk-lista {
-            border: 1px solid rgba(0, 242, 255, 0.15);
+            border: 1px solid rgba(var(--accent-cyan-rgb), 0.15);
             border-radius: 14px;
             overflow: hidden;
         }
@@ -130,7 +130,7 @@
             transition: background .18s;
         }
         .trk-fila:last-child { border-bottom: 0; }
-        .trk-fila:hover { background: rgba(188, 19, 254, 0.10); }
+        .trk-fila:hover { background: rgba(var(--neon-purple-rgb), 0.10); }
         /* El podio se distingue con un borde lateral dorado/plata/bronce. */
         .trk-fila--podio { background: rgba(var(--ink-rgb), 0.035); }
         .trk-fila--podio:nth-child(1) { border-left: 2px solid #ffd54a; }
@@ -174,7 +174,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .trk-fila:hover .trk-titulo { color: var(--accent-cyan, #00f2ff); }
+        .trk-fila:hover .trk-titulo { color: var(--accent-cyan, var(--accent-cyan)); }
         .trk-meta {
             display: block;
             margin-top: 3px;
@@ -193,9 +193,9 @@
         .trk-genero {
             padding: 1px 8px;
             border-radius: 999px;
-            background: rgba(188, 19, 254, 0.12);
-            border: 1px solid rgba(188, 19, 254, 0.28);
-            color: var(--neon-purple, #bc13fe);
+            background: rgba(var(--neon-purple-rgb), 0.12);
+            border: 1px solid rgba(var(--neon-purple-rgb), 0.28);
+            color: var(--neon-purple, var(--neon-purple));
             font-size: 0.7rem;
             line-height: 1.5;
             white-space: nowrap;
@@ -216,7 +216,7 @@
             font-family: 'Orbitron', sans-serif;
             font-size: 1.25rem;
             line-height: 1.1;
-            color: var(--accent-cyan, #00f2ff);
+            color: var(--accent-cyan, var(--accent-cyan));
         }
         .trk-score-label {
             font-family: 'Orbitron', sans-serif;
@@ -246,9 +246,9 @@
         .trk-total svg { width: 15px; height: 15px; }
         .trk-btn {
             padding: 9px 26px;
-            border: 1px solid rgba(188, 19, 254, 0.4);
+            border: 1px solid rgba(var(--neon-purple-rgb), 0.4);
             border-radius: 999px;
-            background: rgba(188, 19, 254, 0.12);
+            background: rgba(var(--neon-purple-rgb), 0.12);
             color: var(--text-main);
             cursor: pointer;
             font-family: 'Orbitron', sans-serif;
@@ -256,8 +256,8 @@
             transition: all .2s;
         }
         .trk-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--neon-purple, #bc13fe), #7b2ff7);
-            box-shadow: 0 0 16px rgba(188, 19, 254, 0.45);
+            background: linear-gradient(135deg, var(--neon-purple, var(--neon-purple)), #7b2ff7);
+            box-shadow: 0 0 16px rgba(var(--neon-purple-rgb), 0.45);
         }
         .trk-btn:disabled { opacity: .5; cursor: not-allowed; }
 
@@ -270,7 +270,7 @@
             color: var(--text-muted);
             text-align: center;
         }
-        .trk-estado svg { width: 34px; height: 34px; color: var(--neon-purple, #bc13fe); }
+        .trk-estado svg { width: 34px; height: 34px; color: var(--neon-purple, var(--neon-purple)); }
         .trk-estado p { margin: 0; }
 
         /* Puente al otro ranking (el de jugadores), que no tiene item propio
@@ -293,8 +293,8 @@
         }
         .trk-otro-ranking svg { width: 15px; height: 15px; }
         .trk-otro-ranking:hover {
-            border-color: rgba(0, 242, 255, 0.4);
-            color: var(--accent-cyan, #00f2ff);
+            border-color: rgba(var(--accent-cyan-rgb), 0.4);
+            color: var(--accent-cyan, var(--accent-cyan));
         }
 
         /* ── Responsive ──────────────────────────────────────────────
@@ -339,8 +339,8 @@
             .trk-score-num { font-size: 0.95rem; }
         }
     </style>
-    <script src="js/vendor/lucide.min.js?v=9772c09d" defer></script>
-    <script src="js/core/theme.js?v=9772c09d"></script>
+    <script src="js/vendor/lucide.min.js?v=3d35f60e" defer></script>
+    <script src="js/core/theme.js?v=3d35f60e"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="ranking">
@@ -359,7 +359,7 @@
             <div class="trk-hero-left">
                 <span class="trk-medalla" aria-hidden="true"><i data-lucide="medal"></i></span>
                 <div>
-                    <h1 class="trk-title" data-i18n="rank.titulo">TOP RANKING</h1>
+                    <h1 class="trk-title" data-i18n="rank.titulo">RANKING DE TÍTULOS</h1>
                     <p class="trk-subtitle" data-i18n="rank.subtitulo">Los mejor puntuados por la comunidad.</p>
                 </div>
             </div>
@@ -385,11 +385,11 @@
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=9772c09d"></script>
-    <script src="js/core/i18n.min.js?v=9772c09d"></script>
-    <script src="js/core/namespace.js?v=9772c09d"></script>
-    <script src="api/supabase-config.js?v=9772c09d" type="module" async></script>
-    <script src="js/core-bundle.min.js?v=9772c09d" defer></script>
-    <script src="js/pages/ranking-top.js?v=9772c09d" defer></script>
+    <script src="js/core/config.js?v=3d35f60e"></script>
+    <script src="js/core/i18n.min.js?v=3d35f60e"></script>
+    <script src="js/core/namespace.js?v=3d35f60e"></script>
+    <script src="api/supabase-config.js?v=3d35f60e" type="module" async></script>
+    <script src="js/core-bundle.min.js?v=3d35f60e" defer></script>
+    <script src="js/pages/ranking-top.js?v=3d35f60e" defer></script>
 </body>
 </html>

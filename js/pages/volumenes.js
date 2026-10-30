@@ -121,6 +121,22 @@
 
         var q = function (sel) { return document.querySelector(sel); };
 
+        // Sin id no hay de qué mostrar volúmenes: antes se pintaba una ficha rota
+        // ("Sin título", portada vacía, "?" y "0/?"). Ahora, un estado "No encontrado".
+        if (!id) {
+            var nf = q('[data-vols-notfound]');
+            var hero = q('.vols-hero');
+            var listWrap = q('.vols-list-wrap');
+            var nfBack = q('[data-vols-notfound-back]');
+            if (hero) hero.hidden = true;
+            if (listWrap) listWrap.hidden = true;
+            if (nfBack) nfBack.setAttribute('href', category === 'anime' ? 'anime.html'
+                : (category === 'novelas' ? 'novelas.html' : 'manga.html'));
+            if (nf) nf.hidden = false;
+            document.title = 'Mirudoku | No encontrado';
+            return;
+        }
+
         // Enlace de volver: al catálogo correspondiente.
         var backHref = category === 'anime' ? 'anime.html'
             : (category === 'novelas' ? 'novelas.html' : 'manga.html');

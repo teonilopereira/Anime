@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" href="images/brand/mirudoku-icon-192.png">
     <meta name="theme-color" content="#bc13fe">
 
-    <link rel="stylesheet" href="css/bundle-lite.min.css?v=9772c09d">
+    <link rel="stylesheet" href="css/bundle-lite.min.css?v=3d35f60e">
     <style>
         /* Estilos propios e inline: la página debe verse bien aunque el bundle
            no esté en caché (primera visita sin red). */
@@ -23,7 +23,7 @@
             align-items: center;
             justify-content: center;
             padding: 24px;
-            background: radial-gradient(circle at 50% 0%, rgba(188, 19, 254, 0.12), transparent 60%), #08061a;
+            background: radial-gradient(circle at 50% 0%, rgba(var(--neon-purple-rgb), 0.12), transparent 60%), #08061a;
         }
         .offline-card {
             max-width: 460px;
@@ -32,8 +32,8 @@
             padding: 40px 28px;
             border-radius: 16px;
             background: rgba(10, 5, 25, 0.82);
-            border: 1px solid rgba(188, 19, 254, 0.25);
-            box-shadow: 0 0 40px rgba(188, 19, 254, 0.15);
+            border: 1px solid rgba(var(--neon-purple-rgb), 0.25);
+            box-shadow: 0 0 40px rgba(var(--neon-purple-rgb), 0.15);
         }
         .offline-icon {
             display: inline-flex;
@@ -43,17 +43,17 @@
             height: 84px;
             margin-bottom: 22px;
             border-radius: 22px;
-            background: rgba(188, 19, 254, 0.12);
-            border: 1px solid rgba(188, 19, 254, 0.35);
-            box-shadow: 0 0 26px rgba(188, 19, 254, 0.28);
+            background: rgba(var(--neon-purple-rgb), 0.12);
+            border: 1px solid rgba(var(--neon-purple-rgb), 0.35);
+            box-shadow: 0 0 26px rgba(var(--neon-purple-rgb), 0.28);
         }
-        .offline-icon svg { width: 44px; height: 44px; color: #bc13fe; }
+        .offline-icon svg { width: 44px; height: 44px; color: var(--neon-purple); }
         .offline-card h1 {
             margin: 0 0 12px;
             font-family: 'Orbitron', 'Segoe UI', sans-serif;
             font-size: 1.6rem;
-            color: #00f2ff;
-            text-shadow: 0 0 14px rgba(0, 242, 255, 0.4);
+            color: var(--accent-cyan);
+            text-shadow: 0 0 14px rgba(var(--accent-cyan-rgb), 0.4);
         }
         .offline-card p {
             margin: 0 0 26px;
@@ -83,8 +83,8 @@
         .offline-btn--primary {
             border: 0;
             color: #fff;
-            background: linear-gradient(135deg, #bc13fe, #7b2ff7);
-            box-shadow: 0 0 16px rgba(188, 19, 254, 0.45);
+            background: linear-gradient(135deg, var(--neon-purple), #7b2ff7);
+            box-shadow: 0 0 16px rgba(var(--neon-purple-rgb), 0.45);
         }
         .offline-btn--primary:hover { filter: brightness(1.1); }
         .offline-btn--ghost {
@@ -92,9 +92,9 @@
             background: rgba(255, 255, 255, 0.03);
             color: #c9bfe0;
         }
-        .offline-btn--ghost:hover { border-color: rgba(0, 242, 255, 0.4); color: #00f2ff; }
+        .offline-btn--ghost:hover { border-color: rgba(var(--accent-cyan-rgb), 0.4); color: var(--accent-cyan); }
     </style>
-    <script src="js/core/theme.js?v=9772c09d"></script>
+    <script src="js/core/theme.js?v=3d35f60e"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body class="menu-page" data-page="offline">
@@ -120,7 +120,7 @@
         </div>
     </main>
 
-    <script src="js/core/i18n.min.js?v=9772c09d"></script>
-    <script src="js/pages/offline.js?v=9772c09d"></script>
+    <script src="js/core/i18n.min.js?v=3d35f60e"></script>
+    <script src="js/pages/offline.js?v=3d35f60e"></script>
 </body>
 </html>

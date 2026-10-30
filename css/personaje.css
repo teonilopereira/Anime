@@ -27,7 +27,7 @@
     display: inline-block;
     padding: 4px 12px;
     border-radius: var(--radius-pill);
-    background: rgba(188,19,254,0.15);
+    background: rgba(var(--neon-purple-rgb),0.15);
     color: var(--neon-purple);
     font-family: var(--font-display);
     font-size: 0.75rem;
@@ -42,7 +42,7 @@
     min-height: 40px;
     padding: 0 18px;
     border-radius: var(--radius-pill);
-    border: 1px solid rgba(188,19,254,0.3);
+    border: 1px solid rgba(var(--neon-purple-rgb),0.3);
     color: var(--text-main);
     text-decoration: none;
     font-family: var(--font-display);
@@ -52,9 +52,9 @@
     transition: all 0.2s ease;
 }
 .detail-back:hover {
-    background: rgba(188,19,254,0.12);
+    background: rgba(var(--neon-purple-rgb),0.12);
     border-color: var(--neon-purple);
-    box-shadow: 0 0 16px rgba(188,19,254,0.2);
+    box-shadow: 0 0 16px rgba(var(--neon-purple-rgb),0.2);
 }
 .btn-ver-mas {
     display: block;
@@ -91,7 +91,7 @@
     aspect-ratio: 2 / 3;
     object-fit: cover;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(188,19,254,0.25);
+    border: 1px solid rgba(var(--neon-purple-rgb),0.25);
     background: rgba(var(--ink-rgb),0.04);
     display: block;
 }
@@ -180,7 +180,7 @@
     height: 20px;
     padding: 0 7px;
     border-radius: var(--radius-pill);
-    background: rgba(188,19,254,0.15);
+    background: rgba(var(--neon-purple-rgb),0.15);
     color: var(--neon-purple);
     font-size: 0.7rem;
     font-weight: 700;
@@ -217,7 +217,7 @@
     justify-content: space-between;
     align-items: stretch;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(188,19,254,0.15);
+    border: 1px solid rgba(var(--neon-purple-rgb),0.15);
     background: rgba(var(--surface-panel-rgb),0.3);
     overflow: hidden;
     transition: border-color 0.2s ease;
@@ -240,7 +240,7 @@
 }
 a.persona-card-main:hover,
 a.persona-va:hover {
-    background: rgba(188,19,254,0.10);
+    background: rgba(var(--neon-purple-rgb),0.10);
 }
 a.persona-card-main:hover .persona-card-title,
 a.persona-va:hover .persona-va-name {

@@ -22,7 +22,7 @@
 .skeleton-card-poster {
     aspect-ratio: 2 / 3;
     border-radius: 14px;
-    border: 1px solid rgba(0, 242, 255, 0.12);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.12);
 }
 
 .skeleton-card-bar {
@@ -116,8 +116,8 @@
     align-self: stretch;
     border-radius: var(--radius-lg);
     background: rgba(var(--surface-panel-rgb), 0.5);
-    border: 1px solid rgba(188, 19, 254, 0.18);
-    box-shadow: 0 0 12px rgba(188, 19, 254, 0.08);
+    border: 1px solid rgba(var(--neon-purple-rgb), 0.18);
+    box-shadow: 0 0 12px rgba(var(--neon-purple-rgb), 0.08);
     opacity: 0.98;
 }
 
@@ -161,7 +161,7 @@
 .cuadrado-item {
     min-height: 70px;
     border-radius: var(--radius-md);
-    border: 2px solid rgba(0, 242, 255, 0.35);
+    border: 2px solid rgba(var(--accent-cyan-rgb), 0.35);
     background: rgba(0, 0, 0, 0.4);
     color: var(--text-main);
     cursor: pointer;
@@ -189,8 +189,8 @@
 .vol-btn:hover,
 .cuadrado-item:hover {
     transform: scale(1.05);
-    border-color: rgba(0, 242, 255, 0.65);
-    box-shadow: 0 0 16px rgba(0, 242, 255, 0.25);
+    border-color: rgba(var(--accent-cyan-rgb), 0.65);
+    box-shadow: 0 0 16px rgba(var(--accent-cyan-rgb), 0.25);
 }
 
 .vol-btn.is-active {
@@ -274,7 +274,7 @@
     min-height: 0;
     height: auto;
     border-radius: 10px;
-    border-color: rgba(0, 242, 255, 0.28);
+    border-color: rgba(var(--accent-cyan-rgb), 0.28);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
@@ -285,7 +285,7 @@
 
 .vol-tomo.has-cover:hover {
     transform: translateY(-4px) scale(1.03);
-    box-shadow: 0 10px 24px rgba(0, 242, 255, 0.28);
+    box-shadow: 0 10px 24px rgba(var(--accent-cyan-rgb), 0.28);
 }
 
 .vol-tomo.has-cover .num-cap {
@@ -328,7 +328,7 @@
     width: 100%;
     padding: 5px 6px;
     border-radius: var(--radius-pill, 999px);
-    border: 1px solid rgba(0, 242, 255, 0.35);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.35);
     background: rgba(0, 0, 0, 0.4);
     color: var(--text-main);
     font-family: var(--font-display);
@@ -345,8 +345,8 @@
 }
 
 .vol-check-btn:hover {
-    border-color: rgba(0, 242, 255, 0.65);
-    box-shadow: 0 0 12px rgba(0, 242, 255, 0.22);
+    border-color: rgba(var(--accent-cyan-rgb), 0.65);
+    box-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.22);
 }
 
 .vol-check-btn.is-active {
@@ -372,8 +372,8 @@
     min-height: 28px;
     padding: 4px 10px;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(0, 242, 255, 0.45);
-    background: rgba(0, 242, 255, 0.08);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.45);
+    background: rgba(var(--accent-cyan-rgb), 0.08);
     color: var(--accent-cyan);
     cursor: pointer;
     font-family: var(--font-display);
@@ -399,9 +399,9 @@
 
 .btn-resumen:hover {
     opacity: 1;
-    border-color: rgba(0, 242, 255, 0.7);
-    background: rgba(0, 242, 255, 0.15);
-    box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+    border-color: rgba(var(--accent-cyan-rgb), 0.7);
+    background: rgba(var(--accent-cyan-rgb), 0.15);
+    box-shadow: 0 0 10px rgba(var(--accent-cyan-rgb), 0.3);
 }
 
 .btn-resumen:active {
@@ -416,7 +416,7 @@
 .catalog-neon-card {
     /* Paleta HUD de la card (cian). Los canales RGB permiten usar el mismo
        color con distintas opacidades sin repetir el valor en cada regla. */
-    --card-hud: #00f2ff;
+    --card-hud: var(--accent-cyan);
     --card-hud-bright: #7df9ff;
     --card-hud-deep: #00a8c8;
     --card-hud-rgb: 0, 242, 255;
@@ -629,13 +629,13 @@ body.reduce-motion .catalog-neon-card {
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    --crail-tone: #00f2ff;
+    --crail-tone: var(--accent-cyan);
 }
 
 .catalog-rail-card .crail-status[data-tone="finished"] { --crail-tone: #22c55e; }
 .catalog-rail-card .crail-status[data-tone="hiatus"] { --crail-tone: #f5b83d; }
 .catalog-rail-card .crail-status[data-tone="cancelled"] { --crail-tone: #f43f5e; }
-.catalog-rail-card .crail-status[data-tone="upcoming"] { --crail-tone: #bc13fe; }
+.catalog-rail-card .crail-status[data-tone="upcoming"] { --crail-tone: var(--neon-purple); }
 
 .catalog-rail-card .crail-dot {
     flex: 0 0 auto;
@@ -871,14 +871,14 @@ body.reduce-motion .catalog-neon-card {
     border-radius: 14px;
     overflow: hidden;
     background: #0a1220;
-    border: 1px solid rgba(0, 242, 255, 0.18);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.18);
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .wcard:hover .wcard-media,
 .wcard:focus-visible .wcard-media {
-    border-color: rgba(0, 242, 255, 0.55);
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.16);
+    border-color: rgba(var(--accent-cyan-rgb), 0.55);
+    box-shadow: 0 0 20px rgba(var(--accent-cyan-rgb), 0.16);
 }
 
 .wcard:focus-visible {
@@ -939,8 +939,8 @@ body.reduce-motion .catalog-neon-card {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--wcard-tone, #00f2ff);
-    box-shadow: 0 0 8px var(--wcard-tone, #00f2ff);
+    background: var(--wcard-tone, var(--accent-cyan));
+    box-shadow: 0 0 8px var(--wcard-tone, var(--accent-cyan));
 }
 
 .wcard-media:has(.wcard-corner) .wcard-pill {
@@ -1038,7 +1038,7 @@ body.reduce-motion .catalog-neon-card {
     margin: 24px auto;
     padding: 48px 24px;
     box-sizing: border-box;
-    border: 1px solid rgba(188, 19, 254, 0.18);
+    border: 1px solid rgba(var(--neon-purple-rgb), 0.18);
     border-radius: 18px;
     background: rgba(var(--surface-card-rgb), 0.55);
     backdrop-filter: blur(6px);
@@ -1047,8 +1047,8 @@ body.reduce-motion .catalog-neon-card {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 999px;
-    background: rgba(188, 19, 254, 0.15);
-    color: var(--neon-purple, #bc13fe);
+    background: rgba(var(--neon-purple-rgb), 0.15);
+    color: var(--neon-purple, var(--neon-purple));
     font-family: var(--font-display, 'Orbitron', sans-serif);
     font-size: 0.72rem;
     font-weight: 700;
@@ -1072,8 +1072,8 @@ body.reduce-motion .catalog-neon-card {
     min-height: 40px;
     padding: 0 20px;
     border-radius: var(--radius-pill, 999px);
-    border: 1px solid rgba(188, 19, 254, 0.35);
-    background: rgba(188, 19, 254, 0.12);
+    border: 1px solid rgba(var(--neon-purple-rgb), 0.35);
+    background: rgba(var(--neon-purple-rgb), 0.12);
     color: var(--text-main);
     font-family: var(--font-display, 'Orbitron', sans-serif);
     font-size: 0.78rem;
@@ -1083,8 +1083,8 @@ body.reduce-motion .catalog-neon-card {
     transition: background 0.2s ease, border-color 0.2s ease;
 }
 .gallery .empty-state .empty-state-retry:hover:not(:disabled) {
-    background: rgba(188, 19, 254, 0.22);
-    border-color: var(--neon-purple, #bc13fe);
+    background: rgba(var(--neon-purple-rgb), 0.22);
+    border-color: var(--neon-purple, var(--neon-purple));
 }
 .gallery .empty-state .empty-state-retry:disabled {
     opacity: 0.6;
