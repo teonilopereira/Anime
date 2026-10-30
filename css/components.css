@@ -596,7 +596,7 @@ main { padding-bottom: 24px; }
     box-shadow: 0 0 14px rgba(var(--accent-cyan-rgb), 0.08);
 }
 .app-footer-link {
-    color: rgba(var(--ink-rgb),0.4);
+    color: var(--text-muted);
     text-decoration: none;
     transition: color 0.2s;
 }

@@ -286,12 +286,12 @@ body.menu-page #main-content {
     line-height: 1;
     letter-spacing: 0;
     text-transform: none;
-    color: rgba(var(--ink-rgb), 0.22);
+    color: rgba(var(--ink-rgb), 0.45);
 }
 
 .home-top-tabs .q-tab:hover {
     background: transparent;
-    color: rgba(var(--ink-rgb), 0.5);
+    color: rgba(var(--ink-rgb), 0.7);
 }
 
 .home-top-tabs .q-tab.is-active {
@@ -431,6 +431,12 @@ a.home-top-slat:hover {
     align-self: center;
     padding: 28px 4px;
     color: var(--text-muted);
+}
+
+.home-top-error {
+    flex: 1 1 100%;
+    width: 100%;
+    padding: 12px 0;
 }
 
 .home-top-more {

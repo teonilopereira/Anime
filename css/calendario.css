@@ -72,8 +72,11 @@
     background: linear-gradient(160deg, rgba(var(--neon-purple-rgb), 0.22), rgba(var(--accent-cyan-rgb), 0.08));
 }
 
+/* Día sin estrenos: se atenúa el borde y el fondo, no el texto, para que la
+   fecha (y "Hoy") siga legible. */
 .cal-chip.is-empty {
-    opacity: 0.4;
+    border-style: dashed;
+    background: transparent;
     pointer-events: none;
 }
 

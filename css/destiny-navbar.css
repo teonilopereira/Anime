@@ -16,7 +16,7 @@
         --surface-card: rgba(var(--surface-card-rgb), 0.80);
         --text-main: #ffffff;
         --text-muted: rgba(var(--ink-rgb), 0.72);
-        --text-faint: rgba(var(--ink-rgb), 0.35);
+        --text-faint: rgba(var(--ink-rgb), 0.55);
         --neon-purple: #bc13fe;
         --neon-purple-rgb: 188, 19, 254;
         --accent-cyan: #00f2ff;
@@ -36,7 +36,7 @@
     --surface-card: rgba(var(--surface-card-rgb), 0.80);
     --text-main: #ffffff;
     --text-muted: rgba(var(--ink-rgb), 0.72);
-    --text-faint: rgba(var(--ink-rgb), 0.35);
+    --text-faint: rgba(var(--ink-rgb), 0.55);
     --neon-purple: #bc13fe;
     --neon-purple-rgb: 188, 19, 254;
     --accent-cyan: #00f2ff;
