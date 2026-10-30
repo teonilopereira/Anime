@@ -14,12 +14,12 @@
 }
 .advanced-filter-toggle:hover,
 .advanced-filter-toggle.is-active {
-    background: rgba(188, 19, 254, 0.12);
-    color: rgba(188, 19, 254, 0.9);
+    background: rgba(var(--neon-purple-rgb), 0.12);
+    color: rgba(var(--neon-purple-rgb), 0.9);
 }
 .advanced-filter-dropdown {
     background: rgba(10, 8, 20, 0.95);
-    border-top: 1px solid rgba(188, 19, 254, 0.25);
+    border-top: 1px solid rgba(var(--neon-purple-rgb), 0.25);
     border-radius: 0 0 12px 12px;
     padding: 20px;
     margin-top: 0;
@@ -530,7 +530,7 @@
     height: var(--control-height, 42px);
     padding: 0 32px 0 12px;
     border-radius: var(--radius-sm, 10px);
-    border: 1px solid rgba(188,19,254,0.25);
+    border: 1px solid rgba(var(--neon-purple-rgb),0.25);
     background-color: rgba(var(--surface-panel-rgb, 26,11,46), 0.5);
     color: var(--text-main);
     font-family: var(--font-body);
@@ -544,12 +544,12 @@
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .filter-adv-select:hover {
-    border-color: rgba(0,242,255,0.45);
+    border-color: rgba(var(--accent-cyan-rgb),0.45);
 }
 .filter-adv-select:focus-visible {
     outline: none;
     border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 2px rgba(0,242,255,0.2);
+    box-shadow: 0 0 0 2px rgba(var(--accent-cyan-rgb),0.2);
 }
 .filter-adv-select option {
     background: #140a24;

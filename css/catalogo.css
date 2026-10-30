@@ -209,7 +209,7 @@
     height: 18px;
     margin: 3px 0 0;
     flex-shrink: 0;
-    accent-color: #bc13fe;
+    accent-color: var(--neon-purple);
 }
 .cx-nsfw-title { display: block; font-weight: 700; color: var(--text-main); }
 .cx-nsfw-desc { display: block; font-size: 0.88rem; color: rgba(var(--ink-rgb), 0.6); }

@@ -118,7 +118,7 @@
     width: max-content;
     padding: 10px 30px 10px 14px;
     border-radius: 14px;
-    border: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
+    border: 1px solid var(--neon-purple-15, rgba(var(--neon-purple-rgb), 0.15));
     background: var(--surface-dark, rgba(15, 15, 20, 0.92));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -153,8 +153,8 @@
     width: 14px;
     height: 14px;
     background: inherit;
-    border-right: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
-    border-bottom: 1px solid var(--neon-purple-15, rgba(188, 19, 254, 0.15));
+    border-right: 1px solid var(--neon-purple-15, rgba(var(--neon-purple-rgb), 0.15));
+    border-bottom: 1px solid var(--neon-purple-15, rgba(var(--neon-purple-rgb), 0.15));
     transform: rotate(45deg);
 }
 

@@ -4,14 +4,18 @@
     --primary-purple: #6a0dad;
     --dark-bg: #050505;
     --purple-gradient: #1a0b2e;
+    /* Acentos: hex para colores sólidos y triple rgb para tintes con alpha,
+       rgba(var(--accent-cyan-rgb), α). El tema claro redefine los dos. */
     --neon-purple: #bc13fe;
-    --neon-purple-18: rgba(188, 19, 254, 0.18);
-    --neon-purple-15: rgba(188, 19, 254, 0.15);
-    --neon-purple-10: rgba(188, 19, 254, 0.10);
-    --neon-purple-glow: rgba(188, 19, 254, 0.40);
+    --neon-purple-rgb: 188, 19, 254;
+    --neon-purple-18: rgba(var(--neon-purple-rgb), 0.18);
+    --neon-purple-15: rgba(var(--neon-purple-rgb), 0.15);
+    --neon-purple-10: rgba(var(--neon-purple-rgb), 0.10);
+    --neon-purple-glow: rgba(var(--neon-purple-rgb), 0.40);
     --accent-cyan: #00f2ff;
-    --accent-cyan-18: rgba(0, 242, 255, 0.18);
-    --accent-cyan-10: rgba(0, 242, 255, 0.10);
+    --accent-cyan-rgb: 0, 242, 255;
+    --accent-cyan-18: rgba(var(--accent-cyan-rgb), 0.18);
+    --accent-cyan-10: rgba(var(--accent-cyan-rgb), 0.10);
     --nav-accent: var(--accent-cyan);
     --nav-accent-soft: var(--accent-cyan-18);
     /* Tinta base: todo blanco con alpha se expresa como rgba(var(--ink-rgb), α).

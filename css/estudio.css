@@ -18,9 +18,9 @@
     font-size: 2rem;
     letter-spacing: 0.04em;
     color: #fff;
-    background: linear-gradient(135deg, var(--accent-purple, #bc13fe), var(--accent-cyan, #00f2ff));
-    border: 1px solid rgba(188,19,254,0.35);
-    box-shadow: 0 6px 22px rgba(188,19,254,0.25);
+    background: linear-gradient(135deg, var(--accent-purple, var(--neon-purple)), var(--accent-cyan, var(--accent-cyan)));
+    border: 1px solid rgba(var(--neon-purple-rgb),0.35);
+    box-shadow: 0 6px 22px rgba(var(--neon-purple-rgb),0.25);
     user-select: none;
 }
 

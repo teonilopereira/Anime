@@ -6,8 +6,8 @@
    VIÑETAS
    ========================================== */
 .vn-page {
-    --vn-border: rgba(188, 19, 254, 0.55);
-    --vn-tone: rgba(188, 19, 254, 0.35);
+    --vn-border: rgba(var(--neon-purple-rgb), 0.55);
+    --vn-tone: rgba(var(--neon-purple-rgb), 0.35);
     --vn-gap: 14px;
     grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
     gap: var(--vn-gap);
@@ -86,7 +86,7 @@
     line-height: 1;
     letter-spacing: 0.01em;
     overflow-wrap: anywhere;
-    text-shadow: 0 0 22px rgba(188, 19, 254, 0.55);
+    text-shadow: 0 0 22px rgba(var(--neon-purple-rgb), 0.55);
 }
 .vn-title .next-episode-card {
     margin: 4px 0 0;
@@ -171,7 +171,7 @@
     align-self: flex-start;
     max-width: 72ch;
     padding: 18px 24px;
-    border: 2px solid rgba(0, 242, 255, 0.6);
+    border: 2px solid rgba(var(--accent-cyan-rgb), 0.6);
     border-radius: 28px;
     background: var(--dark-bg);
 }
@@ -186,10 +186,10 @@
 /* ── Episodios: vistos en neón, sin ver con trama ── */
 .vn-page .ep-btn,
 .vn-page .cuadrado-item:not(.has-cover) {
-    border: 1px solid rgba(188, 19, 254, 0.3);
+    border: 1px solid rgba(var(--neon-purple-rgb), 0.3);
     border-radius: 4px;
     background-color: var(--dark-bg);
-    background-image: radial-gradient(rgba(188, 19, 254, 0.3) 1px, transparent 1.4px);
+    background-image: radial-gradient(rgba(var(--neon-purple-rgb), 0.3) 1px, transparent 1.4px);
     background-size: 6px 6px;
 }
 .vn-page .ep-btn:hover {
@@ -229,7 +229,7 @@
 .vn-stack > #comments-section {
     margin: 0;
     padding: 22px 26px;
-    border: 2px solid rgba(188, 19, 254, 0.55);
+    border: 2px solid rgba(var(--neon-purple-rgb), 0.55);
     border-radius: 4px;
     background: var(--surface-card);
 }

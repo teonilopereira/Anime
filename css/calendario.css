@@ -23,11 +23,11 @@
     user-select: none;
     padding: 8px 14px;
     border-radius: 999px;
-    border: 1px solid var(--accent-cyan-18, rgba(0, 242, 255, 0.18));
+    border: 1px solid var(--accent-cyan-18, rgba(var(--accent-cyan-rgb), 0.18));
     background: rgba(var(--surface-card-rgb, 10, 5, 25), 0.6);
 }
 
-.calendar-filter input { accent-color: var(--neon-purple, #bc13fe); }
+.calendar-filter input { accent-color: var(--neon-purple, var(--neon-purple)); }
 
 .calendar-body { min-height: 40vh; }
 
@@ -62,14 +62,14 @@
 }
 
 .cal-chip:hover {
-    border-color: rgba(0, 242, 255, 0.45);
-    background: rgba(0, 242, 255, 0.06);
+    border-color: rgba(var(--accent-cyan-rgb), 0.45);
+    background: rgba(var(--accent-cyan-rgb), 0.06);
     transform: translateY(-2px);
 }
 
 .cal-chip--today {
-    border-color: rgba(188, 19, 254, 0.6);
-    background: linear-gradient(160deg, rgba(188, 19, 254, 0.22), rgba(0, 242, 255, 0.08));
+    border-color: rgba(var(--neon-purple-rgb), 0.6);
+    background: linear-gradient(160deg, rgba(var(--neon-purple-rgb), 0.22), rgba(var(--accent-cyan-rgb), 0.08));
 }
 
 .cal-chip.is-empty {
@@ -92,7 +92,7 @@
 
 .cal-chip-count {
     font-size: 0.72rem;
-    color: var(--accent-cyan, #00f2ff);
+    color: var(--accent-cyan, var(--accent-cyan));
 }
 
 .cal-day {
@@ -109,11 +109,11 @@
     font-family: 'Orbitron', sans-serif;
     font-size: 1.05rem;
     letter-spacing: 0.04em;
-    color: var(--accent-cyan, #00f2ff);
+    color: var(--accent-cyan, var(--accent-cyan));
     margin: 0 0 14px;
     padding-bottom: 8px;
-    border-bottom: 1px solid rgba(0, 242, 255, 0.16);
-    text-shadow: 0 0 12px rgba(0, 242, 255, 0.35);
+    border-bottom: 1px solid rgba(var(--accent-cyan-rgb), 0.16);
+    text-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.35);
 }
 
 .cal-day-count {
@@ -128,7 +128,7 @@
 /* Las cards de episodio usan .wcard (css/cards.css). Las que seguís se
    marcan con la estrella de la esquina y un borde púrpura. */
 .cal-card--mine .wcard-media {
-    border-color: rgba(188, 19, 254, 0.6);
+    border-color: rgba(var(--neon-purple-rgb), 0.6);
 }
 
 .cal-mine-badge {
