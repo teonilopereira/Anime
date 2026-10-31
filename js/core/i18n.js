@@ -252,7 +252,7 @@
             "lists.results.anime": "Anime",
             "lists.results.manga": "Manga",
             "lists.results.novelas": "Novelas",
-            "lists.recommend.titulo": "RECOMENDADO PARA VOS",
+            "lists.recommend.titulo": "Para vos",
             "lists.recommend.subtitulo": "Basado en lo que marcaste como visto.",
             "lists.activity.titulo": "ACTIVIDAD RECIENTE",
             "lists.activity.subtitulo": "Tus últimos animes, mangas y novelas marcados.",

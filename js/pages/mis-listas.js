@@ -1034,7 +1034,7 @@ function renderStats() {
 let _recsSignature = null;
 
 function recsMessage(text) {
-    return '<p style="color:rgba(255,255,255,0.4);font-family:Rajdhani,sans-serif;text-align:center;grid-column:1/-1;padding:40px 0">' + escapeHtml(text) + '</p>';
+    return '<p class="ml-recs-empty">' + escapeHtml(text) + '</p>';
 }
 
 async function renderRecommendations() {

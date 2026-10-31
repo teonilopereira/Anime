@@ -21,11 +21,11 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=9772c09d">
+        <link rel="stylesheet" href="css/bundle.min.css?v=0b5ecf1e">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=9772c09d">
+    <link rel="stylesheet" href="css/fonts.css?v=0b5ecf1e">
     <style>
         /* ◆ ESTRUCTURA: barra superior + contenido a todo el ancho ◆ */
         .ml-top {
@@ -297,7 +297,7 @@
         .ml-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .ml-search,
         .ml-select {
-            min-height: 40px;
+            min-height: var(--control-height);
             padding: 0 12px;
             border-radius: 10px;
             border: 1px solid rgba(77,134,255,0.3);
@@ -319,7 +319,8 @@
             align-items: center;
             justify-content: center;
             width: 44px;
-            height: 38px;
+            /* el borde de .ml-view suma 2px: queda al alto de los otros controles */
+            height: calc(var(--control-height) - 2px);
             border: 0;
             background: transparent;
             color: rgba(var(--ink-rgb),0.55);
@@ -332,7 +333,7 @@
             align-items: center;
             justify-content: center;
             width: 44px;
-            height: 40px;
+            height: var(--control-height);
             border-radius: 10px;
             border: 1px solid rgba(77,134,255,0.3);
             background: transparent;
@@ -495,7 +496,8 @@
             border-top: 1px solid rgba(77,134,255,0.12);
         }
         .ml-week-day {
-            width: 46px;
+            /* entra "MAÑANA" sin pisar el título ni partirse en dos líneas */
+            width: 64px;
             flex-shrink: 0;
             font-family: 'Orbitron', sans-serif;
             font-size: 0.66rem;
@@ -561,6 +563,14 @@
         }
         .ml-recs .wcard { width: 100%; max-width: none; }
         .ml-recs > p { grid-column: 1 / -1; }
+        /* Aviso sin recomendaciones: tinta del tema para que se lea también en claro */
+        .ml-recs-empty {
+            margin: 0;
+            padding: 20px 0 8px;
+            text-align: center;
+            font-family: 'Rajdhani', sans-serif;
+            color: rgba(var(--ink-rgb),0.6);
+        }
         .sr-only {
             position: absolute;
             width: 1px; height: 1px;
@@ -1027,7 +1037,7 @@
             .ml-profile-sub { display: none; }
             .lists-main-content { padding: 20px 16px 48px; }
             .ml-rail { grid-auto-columns: 85%; }
-            .ml-tools { width: 100%; }
+            .ml-tools { width: 100%; --control-height: 44px; }
             .ml-search { flex: 1 1 140px; width: auto; }
             .ml-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 18px 12px; }
             .ml-tile-title { font-size: 0.92rem; }
@@ -1051,8 +1061,8 @@
         }
     </style>
 
-    <script src="js/vendor/lucide.min.js?v=9772c09d" defer></script>
-    <script src="js/core/theme.js?v=9772c09d"></script>
+    <script src="js/vendor/lucide.min.js?v=0b5ecf1e" defer></script>
+    <script src="js/core/theme.js?v=0b5ecf1e"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="listas" data-no-profile-strip="true">
@@ -1253,14 +1263,14 @@
 
     </main>
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=9772c09d"></script>
-    <script src="js/core/i18n.min.js?v=9772c09d"></script>
-    <script src="js/core/namespace.js?v=9772c09d"></script>
-    <script type="module" src="api/supabase-config.js?v=9772c09d" async></script>
-    <script src="js/core-bundle.min.js?v=9772c09d" defer></script>
-    <script src="js/pages/mis-listas.js?v=9772c09d" defer></script>
-    <script src="js/pages/mis-listas-logros.js?v=9772c09d" defer></script>
-    <script src="js/pages/mis-listas-apodos.js?v=9772c09d" defer></script>
-    <script src="js/pages/mis-listas-puntos.js?v=9772c09d" defer></script>
+    <script src="js/core/config.js?v=0b5ecf1e"></script>
+    <script src="js/core/i18n.min.js?v=0b5ecf1e"></script>
+    <script src="js/core/namespace.js?v=0b5ecf1e"></script>
+    <script type="module" src="api/supabase-config.js?v=0b5ecf1e" async></script>
+    <script src="js/core-bundle.min.js?v=0b5ecf1e" defer></script>
+    <script src="js/pages/mis-listas.js?v=0b5ecf1e" defer></script>
+    <script src="js/pages/mis-listas-logros.js?v=0b5ecf1e" defer></script>
+    <script src="js/pages/mis-listas-apodos.js?v=0b5ecf1e" defer></script>
+    <script src="js/pages/mis-listas-puntos.js?v=0b5ecf1e" defer></script>
 </body>
 
