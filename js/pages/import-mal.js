@@ -149,7 +149,7 @@
                     resultArea.hidden = true;
                     progressArea.hidden = true;
                 } catch (err) {
-                    previewArea.innerHTML = '<p style="color:#ff6b6b">Error al leer el archivo: ' + escapeHtml(err.message) + '</p>';
+                    previewArea.innerHTML = '<p class="mal-error">Error al leer el archivo: ' + escapeHtml(err.message) + '</p>';
                     previewArea.hidden = false;
                 }
             };
@@ -222,7 +222,7 @@
 
         var supabase = window.AppSupabase;
         if (!supabase || !supabase.saveItemState) {
-            progressArea.innerHTML = '<p style="color:#ff6b6b">Supabase no está disponible. Iniciá sesión primero.</p>';
+            progressArea.innerHTML = '<p class="mal-error">Supabase no está disponible. Iniciá sesión primero.</p>';
             if (onDone) onDone();
             return;
         }

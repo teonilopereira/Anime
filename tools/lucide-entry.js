@@ -59,6 +59,11 @@ import {
     Users,
     WifiOff,
     XCircle,
+    Camera,
+    Globe,
+    Languages,
+    Mail,
+    Repeat,
 } from 'lucide';
 
 // Las claves deben ir en PascalCase: Lucide las convierte a kebab-case para
@@ -111,6 +116,11 @@ const icons = {
     Users,
     WifiOff,
     XCircle,
+    Camera,
+    Globe,
+    Languages,
+    Mail,
+    Repeat,
 };
 
 window.lucide = {

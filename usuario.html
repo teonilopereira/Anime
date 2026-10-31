@@ -23,15 +23,15 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=0b5ecf1e">
+        <link rel="stylesheet" href="css/bundle.min.css?v=54885f1a">
 
-    <link rel="stylesheet" href="css/usuario.css?v=0b5ecf1e">
+    <link rel="stylesheet" href="css/usuario.css?v=54885f1a">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=0b5ecf1e">
-    <script src="js/vendor/lucide.min.js?v=0b5ecf1e" defer></script>
-    <script src="js/core/theme.js?v=0b5ecf1e"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=54885f1a">
+    <script src="js/vendor/lucide.min.js?v=54885f1a" defer></script>
+    <script src="js/core/theme.js?v=54885f1a"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="usuario">
@@ -56,11 +56,17 @@
 
         <!-- Estado sin sesión -->
         <section class="perfil-guest" id="perfilGuest" hidden>
-            <div class="perfil-guest-icon">👤</div>
+            <div class="perfil-guest-icon"><i data-lucide="user"></i></div>
             <h2 class="perfil-guest-title">TU PERFIL TE ESPERA</h2>
             <p class="perfil-guest-text">Inicia sesión para ver tu nivel, tus puntos, tus favoritos y tu actividad reciente.</p>
+            <ul class="perfil-guest-perks" aria-label="Qué vas a ver en tu perfil">
+                <li class="perfil-chip"><i data-lucide="trophy"></i> Nivel</li>
+                <li class="perfil-chip"><i data-lucide="star"></i> Puntos</li>
+                <li class="perfil-chip"><i data-lucide="heart"></i> Favoritos</li>
+                <li class="perfil-chip"><i data-lucide="activity"></i> Actividad</li>
+            </ul>
             <div class="perfil-guest-btns">
-                <a href="Login.html" class="perfil-guest-btn-login">🚀 INICIAR SESIÓN</a>
+                <a href="Login.html" class="perfil-guest-btn-login">INICIAR SESIÓN <i data-lucide="arrow-right"></i></a>
                 <a href="index.html" class="perfil-guest-btn-back">← VOLVER AL INICIO</a>
             </div>
         </section>
@@ -68,14 +74,15 @@
         <div id="perfilContent" class="perfil-init-hidden">
             <!-- Bloque superior -->
             <section class="perfil-top" id="perfilTop">
-                <!-- Avatar -->
+                <div class="perfil-banner" aria-hidden="true"></div>
+                <!-- Avatar: el anillo marca el progreso al siguiente nivel (--pct) -->
                 <div class="perfil-avatar-wrap">
                     <div class="perfil-avatar-ring" id="avatarRing" title="Cambiar imagen">
                         <div class="perfil-avatar-inner" id="avatarInner">
                             <div class="perfil-avatar-overlay">Cambiar<br>imagen</div>
                             <span id="avatarInitials"></span>
                         </div>
-                        <div class="perfil-change-img-btn" id="changeImgBtn" title="Cambiar imagen">📷</div>
+                        <button type="button" class="perfil-change-img-btn" id="changeImgBtn" title="Cambiar imagen" aria-label="Cambiar imagen de perfil"><i data-lucide="camera"></i></button>
                     </div>
                     <div class="perfil-online-badge">
                         <div class="perfil-online-dot"></div>
@@ -88,60 +95,64 @@
                 <!-- Info y métricas -->
                 <div class="perfil-info-col">
                     <div class="perfil-info-top">
-                        <div>
+                        <div class="perfil-identity">
                             <div class="perfil-user-label">USUARIO</div>
                             <div class="perfil-user-name">
                                 <span id="userName">—</span>
                                 <span class="perfil-edit-icon" title="Editar nombre">✏️</span>
                             </div>
-                            <div class="perfil-apodo" id="perfilApodo" hidden></div>
-                            <div class="perfil-since">Miembro desde <strong id="memberSince">—</strong></div>
+                            <div class="perfil-chips">
+                                <div class="perfil-apodo" id="perfilApodo" hidden></div>
+                                <div class="perfil-since perfil-chip"><i data-lucide="calendar-days"></i> Miembro desde <strong id="memberSince">—</strong></div>
+                            </div>
                             <a href="#" class="perfil-btn-edit" id="editProfileBtn">✏️ EDITAR PERFIL</a>
                         </div>
                         <div class="perfil-action-btns">
                             <a href="javascript:void(0)" class="perfil-btn-back" id="backBtn">← VOLVER</a>
-                            <a href="configuracion.html" class="perfil-btn-config">⚙️ Configuración</a>
+                            <a href="configuracion.html" class="perfil-btn-config"><i data-lucide="settings"></i> CONFIGURACIÓN</a>
                         </div>
                     </div>
 
-                    <!-- Tarjetas de resumen -->
+                    <!-- Tiles de resumen -->
                     <div class="perfil-summary-cards">
-            <div class="perfil-summary-card">
-                            <div class="perfil-card-label">NIVEL</div>
-                            <div class="perfil-card-value-row">
-                                <span class="perfil-card-icon">🏆</span>
-                                <span id="cardLevel">1</span>
+                        <div class="perfil-summary-card perfil-tile-level">
+                            <div class="perfil-card-head">
+                                <span class="perfil-card-icon"><i data-lucide="trophy"></i></span>
+                                <span class="perfil-card-label">NIVEL</span>
                             </div>
-                            <div class="perfil-card-sublabel" id="cardLevelLabel">Principiante</div>
+                            <div class="perfil-card-value-row">
+                                <span class="perfil-card-num" id="cardLevel">1</span>
+                                <span class="perfil-card-rank" id="cardLevelLabel">Principiante</span>
+                            </div>
                             <div class="perfil-level-bar-wrap">
                                 <div class="perfil-level-bar-bg">
-                                    <div class="perfil-level-bar-fill" id="levelBarFill" style="width:0%"></div>
+                                    <div class="perfil-level-bar-fill" id="levelBarFill"></div>
                                 </div>
                                 <div class="perfil-level-pct-text" id="levelPctText">0% para el siguiente nivel</div>
                             </div>
                         </div>
-                        <div class="perfil-summary-card">
-                            <div class="perfil-card-label">PUNTOS</div>
-                            <div class="perfil-card-value-row">
-                                <span class="perfil-card-icon">⭐</span>
-                                <span id="cardPoints">0</span>
+                        <div class="perfil-summary-card is-cyan">
+                            <div class="perfil-card-head">
+                                <span class="perfil-card-icon"><i data-lucide="star"></i></span>
+                                <span class="perfil-card-label">PUNTOS</span>
                             </div>
+                            <div class="perfil-card-num" id="cardPoints">0</div>
                             <div class="perfil-card-sublabel">Acumulados</div>
                         </div>
                         <div class="perfil-summary-card">
-                            <div class="perfil-card-label">FAVORITOS</div>
-                            <div class="perfil-card-value-row">
-                                <span class="perfil-card-icon">❤️</span>
-                                <span id="cardFavs">0</span>
+                            <div class="perfil-card-head">
+                                <span class="perfil-card-icon"><i data-lucide="heart"></i></span>
+                                <span class="perfil-card-label">FAVORITOS</span>
                             </div>
+                            <div class="perfil-card-num" id="cardFavs">0</div>
                             <div class="perfil-card-sublabel">Guardados</div>
                         </div>
-                        <div class="perfil-summary-card">
-                            <div class="perfil-card-label">VISTOS</div>
-                            <div class="perfil-card-value-row">
-                                <span class="perfil-card-icon">👁️</span>
-                                <span id="cardViewed">0</span>
+                        <div class="perfil-summary-card is-cyan">
+                            <div class="perfil-card-head">
+                                <span class="perfil-card-icon"><i data-lucide="eye"></i></span>
+                                <span class="perfil-card-label">VISTOS</span>
                             </div>
+                            <div class="perfil-card-num" id="cardViewed">0</div>
                             <div class="perfil-card-sublabel">Videos vistos</div>
                         </div>
                     </div>
@@ -154,45 +165,45 @@
                 <!-- INFORMACIÓN PERSONAL -->
                 <div class="perfil-panel">
                     <div class="perfil-panel-title">
-                        <span class="pp-icon">📋</span> INFORMACIÓN PERSONAL
+                        <span class="pp-icon"><i data-lucide="user"></i></span> INFORMACIÓN PERSONAL
                     </div>
                     <div class="perfil-info-row">
                         <div class="perfil-info-row-left">
-                            <span class="pir-icon">✉️</span> Correo electrónico
+                            <span class="pir-icon"><i data-lucide="mail"></i></span> Correo electrónico
                         </div>
                         <div class="perfil-info-row-val" id="infoEmail">—</div>
                     </div>
                     <div class="perfil-info-row">
                         <div class="perfil-info-row-left">
-                            <span class="pir-icon">🌎</span> País / Región
+                            <span class="pir-icon"><i data-lucide="globe"></i></span> País / Región
                         </div>
                         <div class="perfil-info-row-val" id="infoPais">Argentina 🇦🇷</div>
                     </div>
                     <div class="perfil-info-row">
                         <div class="perfil-info-row-left">
-                            <span class="pir-icon">🌍</span> Idioma
+                            <span class="pir-icon"><i data-lucide="languages"></i></span> Idioma
                         </div>
                         <div class="perfil-info-row-val" id="infoIdioma">Español</div>
                     </div>
                     <div class="perfil-info-row">
                         <div class="perfil-info-row-left">
-                            <span class="pir-icon">🕰️</span> Zona horaria
+                            <span class="pir-icon"><i data-lucide="clock"></i></span> Zona horaria
                         </div>
                         <div class="perfil-info-row-val" id="infoZona">GMT-3 (Buenos Aires)</div>
                     </div>
                     <div class="perfil-panel-footer">
-                        <button class="perfil-panel-btn" id="cambiarInfoBtn">✏️ CAMBIAR INFORMACIÓN</button>
+                        <button type="button" class="perfil-panel-btn" id="cambiarInfoBtn">✏️ CAMBIAR INFORMACIÓN</button>
                     </div>
                 </div>
 
                 <!-- ESTADÍSTICAS -->
                 <div class="perfil-panel">
                     <div class="perfil-panel-title">
-                        <span class="pp-icon">📊</span> ESTADÍSTICAS
+                        <span class="pp-icon"><i data-lucide="trending-up"></i></span> ESTADÍSTICAS
                     </div>
-            <div class="perfil-stat-row">
+                    <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
-                            <div class="perfil-stat-icon-wrap">⏱️</div>
+                            <div class="perfil-stat-icon-wrap"><i data-lucide="clock"></i></div>
                             <div>
                                 <div class="perfil-stat-label">Tiempo en la app</div>
                                 <div class="perfil-stat-sublabel">Total de uso</div>
@@ -200,9 +211,9 @@
                         </div>
                         <div class="perfil-stat-val" id="statTiempo">0m</div>
                     </div>
-                    <div class="perfil-stat-row">
+                            <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
-                            <div class="perfil-stat-icon-wrap">🔄</div>
+                            <div class="perfil-stat-icon-wrap"><i data-lucide="repeat"></i></div>
                             <div>
                                 <div class="perfil-stat-label">Sesiones</div>
                                 <div class="perfil-stat-sublabel">Sesiones iniciadas</div>
@@ -210,9 +221,9 @@
                         </div>
                         <div class="perfil-stat-val" id="statSesiones">0</div>
                     </div>
-                    <div class="perfil-stat-row">
+                            <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
-                            <div class="perfil-stat-icon-wrap">🔔</div>
+                            <div class="perfil-stat-icon-wrap"><i data-lucide="eye"></i></div>
                             <div>
                                 <div class="perfil-stat-label">Contenido explorado</div>
                                 <div class="perfil-stat-sublabel">Elementos vistos</div>
@@ -220,9 +231,9 @@
                         </div>
                         <div class="perfil-stat-val" id="statExplorado">0</div>
                     </div>
-                    <div class="perfil-stat-row">
+                            <div class="perfil-stat-row">
                         <div class="perfil-stat-row-left">
-                            <div class="perfil-stat-icon-wrap">📈</div>
+                            <div class="perfil-stat-icon-wrap"><i data-lucide="trending-up"></i></div>
                             <div>
                                 <div class="perfil-stat-label">Promedio por sesión</div>
                                 <div class="perfil-stat-sublabel">Minutos por sesión</div>
@@ -231,41 +242,41 @@
                         <div class="perfil-stat-val" id="statPromedio">0m</div>
                     </div>
                     <div class="perfil-panel-footer">
-                        <a href="mis-listas.html" class="perfil-panel-btn">📊 VER ESTADÍSTICAS DETALLADAS</a>
+                        <a href="mis-listas.html" class="perfil-panel-btn">VER ESTADÍSTICAS DETALLADAS <i data-lucide="arrow-right"></i></a>
                     </div>
                 </div>
 
                 <!-- PREFERENCIAS -->
                 <div class="perfil-panel">
                     <div class="perfil-panel-title">
-                        <span class="pp-icon">⚙️</span> PREFERENCIAS
+                        <span class="pp-icon"><i data-lucide="settings"></i></span> PREFERENCIAS
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-<span class="perfil-pref-icon">🌙</span> Tema de la app
+                            <span class="perfil-pref-icon"><i data-lucide="palette"></i></span> Tema de la app
                         </div>
                         <div class="perfil-pref-val" id="prefTema">Oscuro 🌙</div>
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-<span class="perfil-pref-icon">🔔</span> Notificaciones
+                            <span class="perfil-pref-icon"><i data-lucide="bell"></i></span> Notificaciones
                         </div>
                         <div class="perfil-pref-val" id="prefNotif">Activadas 🔔</div>
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-<span class="perfil-pref-icon">⭐</span> Contenido sugerido
+                            <span class="perfil-pref-icon"><i data-lucide="sparkles"></i></span> Contenido sugerido
                         </div>
                         <div class="perfil-pref-val" id="prefContenido">Personalizado ⚙️</div>
                     </div>
                     <div class="perfil-pref-row">
                         <div class="perfil-pref-left">
-<span class="perfil-pref-icon">🔒</span> Privacidad
+                            <span class="perfil-pref-icon"><i data-lucide="lock"></i></span> Privacidad
                         </div>
                         <div class="perfil-pref-val" id="prefPrivacidad">Pública 🔒</div>
                     </div>
                     <div class="perfil-panel-footer">
-                        <a href="configuracion.html" class="perfil-panel-btn purple">⚙️ ADMINISTRAR PREFERENCIAS</a>
+                        <a href="configuracion.html" class="perfil-panel-btn purple">ADMINISTRAR PREFERENCIAS <i data-lucide="arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -274,7 +285,7 @@
             <section class="perfil-activity-section">
                 <div class="perfil-activity-head">
                     <div class="perfil-activity-head-title">
-                        <span class="pp-icon">📋</span> ACTIVIDAD RECIENTE
+                        <span class="pp-icon"><i data-lucide="activity"></i></span> ACTIVIDAD RECIENTE
                     </div>
                     <a href="javascript:void(0)" class="perfil-activity-link" id="verActividadBtn">VER TODA LA ACTIVIDAD →</a>
                 </div>
@@ -287,13 +298,13 @@
             <section class="perfil-import-section" id="malImportSection">
                 <div class="perfil-import-panel">
                     <div class="perfil-import-header">
-                        <span class="perfil-import-icon">📷</span> IMPORTAR DESDE MyAnimeList
+                        <span class="perfil-import-icon"><i data-lucide="upload"></i></span> IMPORTAR DESDE MyAnimeList
                     </div>
                     <div class="perfil-import-body">
                         <p class="perfil-import-desc">Subí tu archivo XML exportado desde MyAnimeList para importar tu progreso: episodios y capítulos leídos, estado de seguimiento y series completadas.</p>
                         <div class="perfil-import-upload">
                             <input type="file" id="malFileInput" accept=".xml">
-                            <button class="perfil-btn-import-preview" id="previewMalBtn">👁️ VISTA PREVIA</button>
+                            <button type="button" class="perfil-btn-import-preview" id="previewMalBtn"><i data-lucide="eye"></i> VISTA PREVIA</button>
                         </div>
                         <div id="malPreviewArea" hidden></div>
                         <div id="malImportProgress" hidden></div>
@@ -311,12 +322,12 @@
     </main>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=0b5ecf1e"></script>
-    <script src="js/core/i18n.min.js?v=0b5ecf1e"></script>
-    <script src="js/core/namespace.js?v=0b5ecf1e"></script>
-    <script type="module" src="api/supabase-config.js?v=0b5ecf1e" async></script>
-    <script src="js/core-bundle.min.js?v=0b5ecf1e" defer></script>
-    <script src="js/pages/usuario.js?v=0b5ecf1e" defer></script>
-    <script src="js/pages/import-mal.js?v=0b5ecf1e" defer></script>
+    <script src="js/core/config.js?v=54885f1a"></script>
+    <script src="js/core/i18n.min.js?v=54885f1a"></script>
+    <script src="js/core/namespace.js?v=54885f1a"></script>
+    <script type="module" src="api/supabase-config.js?v=54885f1a" async></script>
+    <script src="js/core-bundle.min.js?v=54885f1a" defer></script>
+    <script src="js/pages/usuario.js?v=54885f1a" defer></script>
+    <script src="js/pages/import-mal.js?v=54885f1a" defer></script>
 </body>
 </html>

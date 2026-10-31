@@ -287,6 +287,8 @@ function renderProfile(user, profile) {
     document.getElementById('cardFavs').textContent = likes;
     document.getElementById('cardViewed').textContent = viewed;
     document.getElementById('levelBarFill').style.width = levelPct + '%';
+    // El anillo del avatar dibuja el mismo progreso (conic-gradient en usuario.css)
+    document.getElementById('avatarRing').style.setProperty('--pct', levelPct);
     document.getElementById('levelPctText').textContent = levelPct + '% para el siguiente nivel';
 
     var sessions = Number(UserStore.getItem('u:' + user.id + '|sessions') || '1');
@@ -362,7 +364,7 @@ function toggleEditMode() {
 
     if (editModeActive) {
         var currentName = nameEl.textContent;
-        nameEl.innerHTML = '<input type="text" id="editNameInput" class="perfil-edit-input" value="' + escapeHtml(currentName) + '" style="width:200px">';
+        nameEl.innerHTML = '<input type="text" id="editNameInput" class="perfil-edit-input perfil-edit-input--name" value="' + escapeHtml(currentName) + '">';
         btn.textContent = '\u2714 GUARDAR';
     } else {
         saveProfile();
@@ -403,7 +405,7 @@ function toggleInfoEdit() {
 
     if (btn.textContent.includes('CAMBIAR')) {
         var currentEmail = emailRow.textContent;
-        emailRow.innerHTML = '<input type="email" id="editEmailInput" class="perfil-edit-input" value="' + escapeHtml(currentEmail) + '" style="width:250px">';
+        emailRow.innerHTML = '<input type="email" id="editEmailInput" class="perfil-edit-input perfil-edit-input--email" value="' + escapeHtml(currentEmail) + '">';
         btn.textContent = '✔ GUARDAR INFORMACIÓN';
     } else {
         saveInfo();
