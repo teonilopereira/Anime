@@ -1,0 +1,10 @@
+# Lo saltean ripgrep y las búsquedas de Claude Code (no afecta a git ni al build).
+# Son archivos generados o pesados: buscar en ellos solo gasta tokens.
+*.min.css
+*.min.js
+js/vendor/
+package-lock.json
+code-map.json
+images/
+tools/character-sheets/
+tools/mascot-sheets/
