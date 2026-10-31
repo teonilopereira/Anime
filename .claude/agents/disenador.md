@@ -59,7 +59,12 @@ rediseñar la identidad. Cambios chicos y precisos que se notan, no reescrituras
 - **Sin dependencias nuevas**, sin fuentes externas nuevas, sin scripts inline
   (el CSP los bloquea). El CSP permite estilos inline, pero no agregues
   `style="..."` nuevos: usá clases. Íconos: Lucide
-  (`<i data-lucide="nombre">`), ya cargado.
+  (`<i data-lucide="nombre">`). El bundle trae solo los íconos listados en
+  `tools/lucide-entry.js`: si usás uno nuevo, sumalo ahí (el build regenera
+  `js/vendor/lucide.min.js`).
+- **Texto chico violeta** (`--neon-purple`) sobre fondo oscuro queda apenas
+  bajo AA (~4.3:1). Para etiquetas chicas preferí `--text-main` sobre un chip
+  tintado de violeta.
 - **No toques** el `<meta>` del CSP en los HTML (lo genera el build), ni
   `js/vendor/`, ni la lógica JS salvo que el formato lo requiera (p. ej. una
   clase que falta en el markup que genera un script).
@@ -87,8 +92,11 @@ Escribí el script de captura en el scratchpad (nunca en el repo). Si
 - `colorScheme: 'dark'` y `'light'`
 - guardá `antes-<pagina>-<estado>-<viewport>-<tema>.png` y luego `despues-...`
 - `fullPage: true` deja la navbar y el dock fijos en medio de la imagen en
-  móvil: ocultalos en la captura (`.destiny-navbar`, dock) o sumá una captura
-  solo del viewport.
+  móvil: ocultalos con `display: none` (`.destiny-navbar`,
+  `.mobile-bottom-nav`, la mascota); `position: static` desarma el layout.
+  También podés sumar una captura solo del viewport.
+- Para detectar desbordes horizontales medí el **ancho del PNG** de página
+  completa: `html { overflow-x: hidden }` hace que `scrollWidth` mienta.
 - Cortá la red externa (`page.route`) y devolvé imágenes de relleno, así las
   capturas antes y después son comparables.
 
@@ -112,6 +120,7 @@ Contá en el resumen qué datos inyectaste.
 
 ```bash
 npm run build
+npm run build   # la primera corrida a veces no estampa versiones; la segunda sí
 npm run check
 npm test
 npm run test:e2e
