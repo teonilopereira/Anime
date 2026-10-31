@@ -18,7 +18,9 @@ rediseñar la identidad. Cambios chicos y precisos que se notan, no reescrituras
    `--control-height`, z-index, fuentes) y `css/theme.css` (tema claro).
 2. Identificá qué CSS carga la página objetivo (mirá los `<link>` del HTML).
    Los bundles `css/*.min.css` y `css/detalle.min.css` son **generados**: editá
-   siempre la fuente (`css/<nombre>.css`), nunca el `.min.css`.
+   siempre la fuente (`css/<nombre>.css`), nunca el `.min.css`. Muchas páginas
+   (p. ej. `mis-listas.html`) tienen sus estilos propios en un `<style>` dentro
+   del HTML: ahí se edita ese bloque.
 3. Sacá una captura **antes** (ver "Capturas") en escritorio y en móvil, en
    oscuro y en claro. Mirala de verdad: listá los problemas que ves antes de
    proponer arreglos.
@@ -41,6 +43,9 @@ rediseñar la identidad. Cambios chicos y precisos que se notan, no reescrituras
 6. **Accesibilidad**: contraste WCAG AA (4.5:1 texto, 3:1 elementos grandes),
    foco visible, objetivos táctiles ≥ 44px en móvil, `prefers-reduced-motion`
    respetado en animaciones nuevas.
+7. **Markup generado por JS**: buscá en `js/pages/<pagina>.js` template strings
+   con `style="..."` y colores fijos (`rgba(255,255,255,…)`, `#fff`): son la
+   causa típica de texto invisible en tema claro. Pasalos a una clase con tokens.
 
 ## Reglas del repo (no negociables)
 
@@ -51,8 +56,9 @@ rediseñar la identidad. Cambios chicos y precisos que se notan, no reescrituras
 - **Tema claro**: si agregás una anulación clara en `css/theme.css`, va **dos
   veces** — dentro de `@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) }`
   y en `:root[data-theme="light"]`. Mantenelos idénticos.
-- **Sin dependencias nuevas**, sin fuentes externas nuevas, sin estilos ni
-  scripts inline nuevos (el CSP los bloquea). Íconos: Lucide
+- **Sin dependencias nuevas**, sin fuentes externas nuevas, sin scripts inline
+  (el CSP los bloquea). El CSP permite estilos inline, pero no agregues
+  `style="..."` nuevos: usá clases. Íconos: Lucide
   (`<i data-lucide="nombre">`), ya cargado.
 - **No toques** el `<meta>` del CSP en los HTML (lo genera el build), ni
   `js/vendor/`, ni la lógica JS salvo que el formato lo requiera (p. ej. una
@@ -63,21 +69,44 @@ rediseñar la identidad. Cambios chicos y precisos que se notan, no reescrituras
 
 ## Capturas
 
+Si no hay `node_modules`, corré `npm ci` primero (hace falta para los tests).
+
 ```bash
-PORT=8130 node tools/serve.cjs >/dev/null 2>&1 &
+PORT=8130 node tools/serve.cjs >/dev/null 2>&1 & echo $! > "$SCRATCH/serve.pid"
 ```
 
-Después, con un script de Node en el scratchpad (Playwright ya está instalado;
-usá `executablePath: '/opt/pw-browsers/chromium'` si existe):
+Al final cerralo con `kill "$(cat "$SCRATCH/serve.pid")"`; **no uses
+`pkill -f`**, que mata también tu propio shell.
+
+Escribí el script de captura en el scratchpad (nunca en el repo). Si
+`require('playwright')` falla desde ahí, usá el Playwright global
+(`npm root -g` → `<raíz>/playwright`); encuentra Chromium solo, sin
+`executablePath`.
 
 - viewports `1366x900` y `390x844`
 - `colorScheme: 'dark'` y `'light'`
-- `fullPage: true`, guardando `antes-<pagina>-<viewport>-<tema>.png` y luego
-  `despues-...png`
+- guardá `antes-<pagina>-<estado>-<viewport>-<tema>.png` y luego `despues-...`
+- `fullPage: true` deja la navbar y el dock fijos en medio de la imagen en
+  móvil: ocultalos en la captura (`.destiny-navbar`, dock) o sumá una captura
+  solo del viewport.
+- Cortá la red externa (`page.route`) y devolvé imágenes de relleno, así las
+  capturas antes y después son comparables.
 
-Abrí las imágenes con Read para compararlas. Si una página depende de datos
-externos (AniList/MangaDex) y sale vacía, decilo y evaluá igual el esqueleto,
-estados de carga y vacíos. Al final, matá el servidor.
+Abrí las imágenes con Read para compararlas.
+
+### Páginas con sesión o datos externos
+
+Si la página sale vacía (sin sesión o sin AniList/MangaDex), evaluá ese estado
+y además poblala **solo desde el script de captura**, sin tocar producción:
+
+- `UserStore` vive en memoria, no en localStorage: después de cargar la página,
+  pisá `window.getCurrentUserId` (y el usuario de sesión que use la página),
+  cargá títulos de ejemplo en `UserStore` y volvé a llamar a las funciones de
+  render de la página (`js/pages/<pagina>.js`).
+- Simulá con stubs las funciones de red que use la página (p. ej.
+  `window.getAiringSchedule`).
+
+Contá en el resumen qué datos inyectaste.
 
 ## Al terminar
 
@@ -89,6 +118,8 @@ npm run test:e2e
 ```
 
 Commiteá las fuentes **y** lo que genera el build (CI falla si no coinciden).
+Es normal que el build cambie la versión estampada (`?v=`) en todos los HTML y
+en `sw.js`: va en el commit.
 Si algo falla, arreglalo o reportalo con la salida; no lo escondas.
 
 ## Qué devolvés
@@ -97,7 +128,8 @@ Un resumen corto en castellano:
 
 - **Página(s)** revisadas.
 - **Problemas encontrados**, ordenados por prioridad (los de la lista de arriba).
-- **Qué cambiaste** y en qué archivo (`css/archivo.css:línea`).
+- **Qué cambiaste** y en qué archivo (`css/archivo.css:línea`,
+  `pagina.html:línea` o `js/...:línea`).
 - **Qué dejaste sin tocar** y por qué (fuera de alcance, requiere decisión de
   producto, riesgo de romper otra página).
 - Rutas a las capturas antes/después.
