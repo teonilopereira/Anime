@@ -224,6 +224,17 @@ function inicializarBusquedaCatalogo() {
         if (clearSearchBtn) clearSearchBtn.hidden = !input.value;
     }
 
+    // El usuario cerró el desplegable (Enter o Escape). Ni una respuesta de la
+    // API que llegue tarde ni el re-render del catálogo (que vuelve a llamar a
+    // esta función) deben reabrirlo encima de los resultados; se vuelve a
+    // permitir al tipear o enfocar el campo. Vive en el input y no en una
+    // variable porque cada re-render crea un closure nuevo.
+    function cerradoPorUsuario() { return input.dataset.sugerenciasCerradas === '1'; }
+    function setCerradoPorUsuario(v) {
+        if (v) input.dataset.sugerenciasCerradas = '1';
+        else delete input.dataset.sugerenciasCerradas;
+    }
+
     // Toggle overflow on the container when suggestions open/close
     function setSuggestionsOpen(open) {
         if (searchContainer) searchContainer.classList.toggle('has-suggestions', open);
@@ -341,6 +352,7 @@ function inicializarBusquedaCatalogo() {
             ).join('');
         clearActiveSuggestion();
         ensureHint();
+        if (cerradoPorUsuario()) return;
         suggestionBox.classList.add('is-open');
         setSuggestionsOpen(true);
     }
@@ -404,6 +416,7 @@ function inicializarBusquedaCatalogo() {
 
         clearActiveSuggestion();
         ensureHint();
+        if (cerradoPorUsuario()) return;
         suggestionBox.classList.add('is-open');
         setSuggestionsOpen(true);
     }
@@ -486,6 +499,14 @@ function inicializarBusquedaCatalogo() {
     // ── API Suggestions (debounced, AniList + MangaDex) ──
     let apiSearchTimer = null;
     let lastApiQuery = '';
+    function cerrarSugerenciasPorUsuario() {
+        setCerradoPorUsuario(true);
+        if (apiSearchTimer) { clearTimeout(apiSearchTimer); apiSearchTimer = null; }
+        if (suggestionBox) {
+            suggestionBox.classList.remove('is-open');
+            setSuggestionsOpen(false);
+        }
+    }
 
     function renderApiSuggestions(rawQuery, items) {
         if (!suggestionBox) return;
@@ -534,7 +555,7 @@ function inicializarBusquedaCatalogo() {
         // Llegaron resultados de la API: quitar el "Buscando…" / "Sin resultados".
         setSuggestionStatus('none');
         ensureHint();
-        if (suggestionBox.classList.contains('is-open') || section.querySelectorAll('a').length) {
+        if (!cerradoPorUsuario() && (suggestionBox.classList.contains('is-open') || section.querySelectorAll('a').length)) {
             suggestionBox.classList.add('is-open');
             setSuggestionsOpen(true);
         }
@@ -739,6 +760,7 @@ function inicializarBusquedaCatalogo() {
 
     // ── Input: local filter + API suggestions ──
     input.addEventListener('input', () => {
+        setCerradoPorUsuario(false);
         syncClearBtn();
         applyFilter();
         debouncedApiSearch();
@@ -762,11 +784,8 @@ function inicializarBusquedaCatalogo() {
             return;
         }
         if (e.key === 'Escape') {
-            if (open) {
-                e.preventDefault();
-                suggestionBox.classList.remove('is-open');
-                setSuggestionsOpen(false);
-            }
+            if (open) e.preventDefault();
+            cerrarSugerenciasPorUsuario();
             return;
         }
         if (e.key === 'Enter') {
@@ -783,15 +802,13 @@ function inicializarBusquedaCatalogo() {
                 window.location.href = current.href;
                 return;
             }
-            if (suggestionBox) {
-                suggestionBox.classList.remove('is-open');
-                setSuggestionsOpen(false);
-            }
+            cerrarSugerenciasPorUsuario();
             reloadCatalog();
         }
     });
     // Al enfocar: con texto, sugerencias; vacío, búsquedas recientes.
     input.addEventListener('focus', () => {
+        setCerradoPorUsuario(false);
         syncClearBtn();
         if (normalizeText(input.value)) renderSuggestions(input.value);
         else renderRecent();

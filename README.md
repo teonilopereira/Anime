@@ -17,6 +17,7 @@ npm install
 node tools/serve.cjs      # servidor estático local
 npm test                  # tests (Vitest)
 npm run test:e2e          # humo en navegador (Playwright): cada página carga sin errores ni violaciones del CSP
+npm run test:personas     # recorridos por tipo de usuario: celular, teclado, inglés, red lenta, AniList caído…
 npm run check             # mojibake en HTML y sintaxis del JS
 npm run build             # regenera bundles y estampa versiones
 ```
