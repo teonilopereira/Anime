@@ -1,0 +1,58 @@
+name: Explorador con IA
+
+# Solo a pedido: cada corrida usa la API de Anthropic y cuesta plata.
+# Necesita el secreto ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions).
+on:
+  workflow_dispatch:
+    inputs:
+      persona:
+        description: Persona (o todas)
+        type: choice
+        default: todas
+        options: [todas, novato, otaku, celular, teclado, ingles, lector]
+      pasos:
+        description: Acciones máximas por persona
+        default: '20'
+      red:
+        description: simulada (AniList falso) o real
+        type: choice
+        default: simulada
+        options: [simulada, real]
+
+jobs:
+  explorar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Explorar
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: >
+          node tools/explorador-ia/explorador.mjs
+          --persona "${{ inputs.persona }}"
+          --pasos "${{ inputs.pasos }}"
+          --red "${{ inputs.red }}"
+
+      - name: Resumen en la corrida
+        if: always()
+        run: |
+          f=$(ls -t reportes-explorador/*/informe.md 2>/dev/null | head -1)
+          [ -n "$f" ] && cat "$f" >> "$GITHUB_STEP_SUMMARY" || echo "No se generó informe." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: informe-explorador
+          path: reportes-explorador/
+          if-no-files-found: ignore

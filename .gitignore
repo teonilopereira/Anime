@@ -72,3 +72,6 @@ __pycache__/
 # Playwright (tests e2e)
 test-results/
 playwright-report/
+
+# Explorador con IA (tools/explorador-ia)
+reportes-explorador/
