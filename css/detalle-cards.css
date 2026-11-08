@@ -1,0 +1,315 @@
+/* detalle-cards.css: rediseño (se carga después del resto de detalle-*.css)
+
+   Cards de contenido de la ficha: Relacionados, "Si te gustó esto",
+   Personajes y la cadena de Temporadas. Todo va acotado a
+   body[data-page="detalle"] porque .wcard también se usa en inicio,
+   calendario, estudio y mis listas (css/cards.css) y no hay que tocarlas.
+
+   - Relacionados: grilla de columnas de ancho fijo (no se estiran cuando hay
+     una o dos obras) y 3 columnas en celular.
+   - Si te gustó esto: carrusel horizontal con scroll-snap. Son hasta 10
+     recomendaciones y en grilla ocupaban media pantalla (en celular, cinco
+     filas de posters gigantes).
+   - Personajes: cards horizontales de alto fijo, personaje a la izquierda y
+     seiyū a la derecha, 2 columnas en escritorio y 1 en celular. */
+
+body[data-page="detalle"] {
+    --dcard-w: 150px;
+    --dcard-gap: 14px;
+}
+
+/* ── Work cards (relacionados + recomendaciones) ── */
+body[data-page="detalle"] .related-grid {
+    gap: 18px var(--dcard-gap);
+    margin-top: 12px;
+}
+
+body[data-page="detalle"] .detail-section-related .related-grid {
+    grid-template-columns: repeat(auto-fill, var(--dcard-w));
+    justify-content: start;
+}
+
+body[data-page="detalle"] .detail-section-recs .related-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: var(--dcard-w);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 4px;
+    /* Aire para que el borde/brillo del hover y el anillo de foco no queden
+       recortados por el overflow del carrusel. */
+    padding: 6px 4px 12px;
+    margin-inline: -4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--ink-rgb), 0.25) transparent;
+}
+
+body[data-page="detalle"] .detail-section-recs .related-grid::-webkit-scrollbar {
+    height: 6px;
+}
+
+body[data-page="detalle"] .detail-section-recs .related-grid::-webkit-scrollbar-thumb {
+    background: rgba(var(--ink-rgb), 0.25);
+    border-radius: 999px;
+}
+
+body[data-page="detalle"] .related-card {
+    gap: 7px;
+    scroll-snap-align: start;
+    border-radius: 12px;
+}
+
+body[data-page="detalle"] .related-card .wcard-media {
+    border-radius: 12px;
+    border-color: rgba(var(--ink-rgb), 0.12);
+    background: rgba(var(--ink-rgb), 0.06);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+body[data-page="detalle"] .related-card:hover .wcard-media {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 8px 22px rgba(0, 242, 255, 0.14);
+    transform: translateY(-3px);
+}
+
+body[data-page="detalle"] .related-card:focus-visible .wcard-media {
+    border-color: var(--accent-cyan);
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+}
+
+body[data-page="detalle"] .related-card .wcard-empty {
+    color: rgba(var(--ink-rgb), 0.25);
+}
+
+/* Píldora de relación: abajo a la izquierda sobre un degradé, así no tapa la
+   cara del poster (el arte suele tener al personaje arriba) y se lee igual
+   sobre portadas claras. */
+body[data-page="detalle"] .related-card .wcard-media::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 38%;
+    background: linear-gradient(to top, rgba(5, 4, 12, 0.75), transparent);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+}
+
+body[data-page="detalle"] .related-card .wcard-media:has(.wcard-pill)::after {
+    opacity: 1;
+}
+
+body[data-page="detalle"] .related-card .wcard-pill {
+    top: auto;
+    bottom: 7px;
+    left: 7px;
+    max-width: calc(100% - 14px);
+    gap: 5px;
+    padding: 3px 7px;
+    font-size: 0.55rem;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(7, 6, 15, 0.85);
+}
+
+body[data-page="detalle"] .related-card .wcard-pill::before {
+    width: 6px;
+    height: 6px;
+}
+
+body[data-page="detalle"] .related-card .wcard-text {
+    gap: 3px;
+}
+
+body[data-page="detalle"] .related-card .wcard-title {
+    font-size: 0.84rem;
+    line-height: 1.25;
+    /* Reserva siempre dos renglones: así los metas quedan alineados en la
+       fila aunque un título ocupe una línea y el de al lado dos. */
+    min-height: 2.5em;
+}
+
+body[data-page="detalle"] .related-card .wcard-meta {
+    font-size: 0.72rem;
+    color: rgba(var(--ink-rgb), 0.55);
+}
+
+/* ── Personajes y seiyuus ── */
+body[data-page="detalle"] .char-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+body[data-page="detalle"] .char-card {
+    --char-h: 84px;
+    display: flex;
+    height: var(--char-h);
+    border-color: rgba(var(--ink-rgb), 0.08);
+    background: rgba(var(--surface-panel-rgb), 0.35);
+}
+
+body[data-page="detalle"] .char-card:hover {
+    border-color: rgba(0, 242, 255, 0.45);
+}
+
+/* Las dos mitades miden lo mismo; sin seiyū, el personaje ocupa todo. */
+body[data-page="detalle"] .char-side {
+    flex: 1 1 0;
+    gap: 10px;
+    height: 100%;
+    outline: none;
+}
+
+body[data-page="detalle"] .char-side-va {
+    border-left: 1px solid rgba(var(--ink-rgb), 0.07);
+}
+
+body[data-page="detalle"] a.char-side:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--accent-cyan);
+    background: rgba(0, 242, 255, 0.06);
+}
+
+body[data-page="detalle"] a.char-side:focus-visible .char-name {
+    color: var(--accent-cyan);
+}
+
+/* Alto fijo y recorte tipo retrato: en una fila compacta lo que importa es la
+   cara, y 'contain' dejaba franjas vacías de distinto ancho en cada card. */
+body[data-page="detalle"] .char-face {
+    width: 58px;
+    height: 100%;
+    align-self: stretch;
+    object-fit: cover;
+    object-position: center 15%;
+    background: rgba(var(--ink-rgb), 0.06);
+}
+
+body[data-page="detalle"] .char-text {
+    padding: 8px 2px;
+    gap: 3px;
+}
+
+body[data-page="detalle"] .char-name {
+    font-size: 0.8rem;
+}
+
+body[data-page="detalle"] .char-role {
+    font-size: 0.6rem;
+    opacity: 1;
+}
+
+body[data-page="detalle"] .char-side-va .char-role {
+    color: rgba(var(--ink-rgb), 0.6);
+}
+
+/* ── Temporadas ── */
+body[data-page="detalle"] .season-chain-item {
+    position: relative;
+    border-color: rgba(var(--ink-rgb), 0.08);
+}
+
+body[data-page="detalle"] a.season-chain-item:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+    border-color: var(--accent-cyan);
+}
+
+body[data-page="detalle"] .season-chain-item.is-current {
+    border-color: rgba(0, 242, 255, 0.45);
+}
+
+body[data-page="detalle"] .season-chain-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Obras sin seiyuus (manga, novelas): cada card es solo el personaje y a dos
+   columnas quedaba media card vacía; entran más por fila. */
+body[data-page="detalle"] .char-grid:not(:has(.char-side-va)) {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+/* ── Tablet / celular ── */
+@media (max-width: 760px) {
+    body[data-page="detalle"] .char-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 520px) {
+    body[data-page="detalle"] {
+        --dcard-gap: 10px;
+    }
+
+    body[data-page="detalle"] .detail-section-related .related-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px var(--dcard-gap);
+    }
+
+    /* Un poco más angostas que un tercio: la card cortada en el borde avisa
+       que el carrusel sigue. */
+    body[data-page="detalle"] .detail-section-recs .related-grid {
+        grid-auto-columns: calc((100% - 2 * var(--dcard-gap)) / 2.7);
+        gap: 14px var(--dcard-gap);
+    }
+
+    body[data-page="detalle"] .related-card .wcard-title {
+        font-size: 0.76rem;
+    }
+
+    body[data-page="detalle"] .related-card .wcard-meta {
+        font-size: 0.66rem;
+    }
+
+    body[data-page="detalle"] .related-card .wcard-pill {
+        bottom: 5px;
+        left: 5px;
+        max-width: calc(100% - 10px);
+        padding: 2px 6px;
+        font-size: 0.5rem;
+        letter-spacing: 0.04em;
+    }
+
+    body[data-page="detalle"] .related-card .wcard-pill::before {
+        display: none;
+    }
+
+    body[data-page="detalle"] .char-card {
+        --char-h: 76px;
+    }
+
+    body[data-page="detalle"] .char-face {
+        width: 52px;
+    }
+
+    /* "ESTÁS ACÁ" en la esquina en vez de un renglón extra que hacía más
+       alta la temporada actual que las demás. */
+    body[data-page="detalle"] .season-chain-here {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        padding: 1px 7px;
+        font-size: 0.5rem;
+    }
+
+    body[data-page="detalle"] .season-chain-item.is-current .season-chain-info {
+        padding-right: 64px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body[data-page="detalle"] .related-card .wcard-media,
+    body[data-page="detalle"] .season-chain-item {
+        transition: none;
+    }
+
+    body[data-page="detalle"] .related-card:hover .wcard-media,
+    body[data-page="detalle"] a.season-chain-item:hover {
+        transform: none;
+    }
+}

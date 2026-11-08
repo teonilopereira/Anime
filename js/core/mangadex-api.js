@@ -404,13 +404,79 @@
     async function getMangaDexVolumeCover(mangaId, volNum) {
         if (!mangaId || !volNum) return null;
         try {
-            var map = await getCoverMapCached(mangaId);
-            var fileName = map[normalizeVolKey(volNum)];
-            if (fileName) return MD_COVER_BASE + '/' + mangaId + '/' + fileName;
+            var map = await getCoverUrlMapCached(mangaId);
+            return map[normalizeVolKey(volNum)] || null;
         } catch (err) {
             console.warn('getMangaDexVolumeCover error:', err);
         }
         return null;
+    }
+
+    // Tipos de relación de MangaDex que son la MISMA obra en otra edición, así
+    // que sus portadas por tomo sirven para completar huecos.
+    var ALT_RELATION_TYPES = { alternate_version: 1, colored: 1 };
+    var MAX_ALT_ENTRIES = 3;
+
+    // IDs de las ediciones alternativas de un manga (p. ej. "Solo Leveling
+    // (Book Version)" para el webtoon). Cacheado en localStorage; una lista
+    // vacía también se cachea porque es una respuesta válida de MangaDex, pero
+    // un error de red no (se reintenta en la próxima carga).
+    var altIdsInFlight = {};
+    function getAlternateMangaIds(mangaId) {
+        var key = 'md_alt_v1_' + mangaId;
+        try {
+            var cached = localStorage.getItem(key);
+            if (cached) {
+                var parsed = JSON.parse(cached);
+                if (Array.isArray(parsed)) return Promise.resolve(parsed);
+            }
+        } catch (_) { /* caché corrupta: se reintenta */ }
+        if (!altIdsInFlight[mangaId]) {
+            altIdsInFlight[mangaId] = mdFetch('/manga/' + encodeURIComponent(mangaId))
+                .then(function (json) {
+                    var rels = json?.data?.relationships || [];
+                    var ids = [];
+                    for (var i = 0; i < rels.length; i++) {
+                        var r = rels[i];
+                        if (r && r.type === 'manga' && ALT_RELATION_TYPES[r.related] &&
+                            isMangaDexUuid(r.id) && ids.indexOf(r.id) < 0) {
+                            ids.push(r.id);
+                        }
+                    }
+                    ids = ids.slice(0, MAX_ALT_ENTRIES);
+                    safeCacheSet(key, JSON.stringify(ids));
+                    return ids;
+                })
+                .catch(function () { return []; })
+                .finally(function () { delete altIdsInFlight[mangaId]; });
+        }
+        return altIdsInFlight[mangaId];
+    }
+
+    // Mapa { volKey: URL completa } de un manga. Primero las portadas de la
+    // propia entrada; los tomos que no tienen portada se completan con las de
+    // sus ediciones alternativas. Sin esto, obras cuya entrada principal solo
+    // trae portadas de los primeros tomos (Solo Leveling webtoon: tomos 1-4,
+    // mientras la Book Version tiene 1-18) mostraban la tapa de la serie, que
+    // es la del tomo 1, en todos los demás.
+    async function getCoverUrlMapCached(mangaId) {
+        var out = {};
+        var own = await getCoverMapCached(mangaId);
+        for (var k in own) {
+            if (own.hasOwnProperty(k) && own[k]) out[k] = MD_COVER_BASE + '/' + mangaId + '/' + own[k];
+        }
+        var altIds = [];
+        try { altIds = await getAlternateMangaIds(mangaId); } catch (_) { altIds = []; }
+        for (var i = 0; i < altIds.length; i++) {
+            var altMap = {};
+            try { altMap = await getCoverMapCached(altIds[i]); } catch (_) { altMap = {}; }
+            for (var ak in altMap) {
+                if (altMap.hasOwnProperty(ak) && altMap[ak] && !(ak in out)) {
+                    out[ak] = MD_COVER_BASE + '/' + altIds[i] + '/' + altMap[ak];
+                }
+            }
+        }
+        return out;
     }
 
     // Junta todos los títulos que trae el ítem (principal, inglés, romaji,
@@ -563,14 +629,7 @@
         var mdId = await resolveMangaDexId(item);
         if (!mdId) return null;
         try {
-            var map = await getCoverMapCached(mdId);
-            var out = {};
-            for (var k in map) {
-                if (map.hasOwnProperty(k) && map[k]) {
-                    out[k] = MD_COVER_BASE + '/' + mdId + '/' + map[k];
-                }
-            }
-            return out;
+            return await getCoverUrlMapCached(mdId);
         } catch (err) {
             console.warn('resolveMangaDexVolumeCoverMap error:', err);
             return null;
@@ -593,7 +652,7 @@
             var json = await mdFetch('/manga/' + encodeURIComponent(mdId) + '/aggregate');
             var volumes = json?.volumes || {};
             var covers = {};
-            try { covers = await getCoverMapCached(mdId); } catch (_) { covers = {}; }
+            try { covers = await getCoverUrlMapCached(mdId); } catch (_) { covers = {}; }
 
             var out = {};
             Object.keys(volumes).forEach(function (volKey) {
@@ -609,7 +668,7 @@
                     count: Object.keys(caps).length,
                     first: capNums.length ? capNums[0] : null,
                     last: capNums.length ? capNums[capNums.length - 1] : null,
-                    cover: file ? (MD_COVER_BASE + '/' + mdId + '/' + file) : null
+                    cover: file || null
                 };
             });
             return out;
@@ -670,13 +729,13 @@
         try {
             var chapVol = await getChapterVolumeMapCached(mdId);
             if (!mapHasEntries(chapVol)) return null;
-            var covers = await getCoverMapCached(mdId);
+            var covers = await getCoverUrlMapCached(mdId);
             if (!mapHasEntries(covers)) return null;
             var out = {};
             for (var cap in chapVol) {
                 if (!chapVol.hasOwnProperty(cap)) continue;
                 var file = covers[chapVol[cap]];
-                if (file) out[cap] = MD_COVER_BASE + '/' + mdId + '/' + file;
+                if (file) out[cap] = file;
             }
             return out;
         } catch (err) {

@@ -1,251 +1,244 @@
-/* advanced-filter.css */
+/* ==========================================
+   advanced-filter.css — Controles del filtro del catálogo
+   (anime / manga / novelas): botón "Filtros y géneros", campos de
+   Refinar (Orden / Año / Temporada / Formato), buscador y chips de
+   género, "Limpiar" y el aviso de edad del NSFW.
+   La ubicación de cada bloque (columna lateral, fila del buscador)
+   vive en catalogo.css. Los colores salen de theme.css:
+   --cx-accent-ink es el acento de la página con contraste AA
+   para texto (lo define catalogo.css por tema).
+========================================== */
+
+/* ── Botón "Filtros y géneros" (solo en pantallas angostas) ── */
 .advanced-filter-toggle {
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    color: rgba(var(--ink-rgb), 0.5);
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    width: 56px;
-    min-height: 52px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    flex-shrink: 0;
-}
-.advanced-filter-toggle:hover,
-.advanced-filter-toggle.is-active {
-    background: rgba(var(--neon-purple-rgb), 0.12);
-    color: rgba(var(--neon-purple-rgb), 0.9);
-}
-.advanced-filter-dropdown {
-    background: rgba(10, 8, 20, 0.95);
-    border-top: 1px solid rgba(var(--neon-purple-rgb), 0.25);
-    border-radius: 0 0 12px 12px;
-    padding: 20px;
-    margin-top: 0;
-    width: 100%;
-    box-sizing: border-box;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4) inset;
-    transition: opacity 0.3s ease;
-}
-.filter-header-row {
-    display: flex;
-    gap: 16px;
+    position: relative;
+    display: inline-flex;
     align-items: center;
-}
-.filter-header-icon-wrap {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: rgba(30, 20, 60, 0.8);
-    display: grid;
-    place-items: center;
-    color: #a855f7;
+    justify-content: center;
+    gap: 8px;
     flex-shrink: 0;
-}
-.filter-header-row-inner {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px 16px;
-    flex-wrap: wrap;
-}
-.filter-header-row-inner h2 {
-    margin: 0;
-    font-size: 1.2rem;
-    line-height: 1.2;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 1px solid rgba(var(--ink-rgb), 0.22);
+    border-radius: 12px;
+    background: rgba(var(--surface-dark-rgb), 0.75);
+    color: var(--text-main);
     font-family: 'Rajdhani', sans-serif;
-    color: var(--text-main);
-    letter-spacing: 0.05em;
-}
-.clear-filters-btn {
-    background: transparent;
-    border: 1px solid rgba(var(--ink-rgb),0.2);
-    color: rgba(var(--ink-rgb),0.7);
-    padding: 6px 12px;
-    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
-.clear-filters-btn:hover {
-    background: rgba(var(--ink-rgb),0.1);
-    color: var(--text-main);
-}
-.nsfw-row-label {
-    display: flex;
-    align-items: center;
-    background: rgba(var(--ink-rgb), 0.03);
-    border-radius: 8px;
-    padding: 12px 16px;
-    cursor: pointer;
-    gap: 15px;
-    border: 1px solid rgba(var(--ink-rgb),0.02);
-    transition: background 0.2s;
-    margin-top: 14px;
-}
-.nsfw-row-label:hover {
+.advanced-filter-toggle:hover {
+    border-color: rgba(var(--ink-rgb), 0.4);
     background: rgba(var(--ink-rgb), 0.06);
 }
-/* NSFW: interruptor estilo QToggle (mismo aspecto que en Configuración). */
-.nsfw-checkbox {
-    position: relative;
-    flex: 0 0 auto;
-    width: 44px;
-    height: 24px;
+.advanced-filter-toggle[aria-expanded="true"],
+.advanced-filter-toggle.is-active {
+    border-color: var(--nav-accent);
+    background: var(--nav-accent-soft, rgba(77, 134, 255, 0.18));
+    color: var(--text-main);
 }
-.nsfw-checkbox input {
-    opacity: 0;
-    position: absolute;
-    inset: 0;
+.advanced-filter-toggle svg {
+    flex-shrink: 0;
+    color: var(--cx-accent-ink, currentColor);
+}
+
+/* ── Panel ── */
+.advanced-filter-dropdown {
     width: 100%;
-    height: 100%;
+    box-sizing: border-box;
+}
+
+/* ── "Limpiar filtros" ── */
+.clear-filters-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(var(--ink-rgb), 0.24);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--cx-accent-ink, var(--text-main));
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
-    z-index: 2;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.clear-filters-btn:hover {
+    border-color: var(--nav-accent);
+    background: var(--nav-accent-soft, rgba(var(--ink-rgb), 0.08));
+}
+.clear-filters-btn[hidden] { display: none; }
+
+/* ── Refinar: Orden / Año / Temporada / Formato ── */
+.filter-advanced-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
     margin: 0;
 }
-.nsfw-checkbox-box {
-    position: absolute;
-    top: 5px;
-    left: 3px;
-    right: 3px;
-    height: 14px;
-    border-radius: 7px;
-    background: rgba(var(--ink-rgb), 0.22);
-    transition: background 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.nsfw-checkbox-box::after {
-    content: '';
-    position: absolute;
-    top: -3px;
-    left: -3px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #f4f1fb;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), background 0.22s, box-shadow 0.22s;
-}
-.nsfw-checkbox-box svg {
-    display: none;
-}
-.nsfw-checkbox input:focus-visible + .nsfw-checkbox-box::after {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 0 8px rgba(var(--ink-rgb), 0.1);
-}
-.nsfw-checkbox input:checked + .nsfw-checkbox-box {
-    background: var(--neon-purple-glow);
-}
-.nsfw-checkbox input:checked + .nsfw-checkbox-box::after {
-    transform: translateX(18px);
-    background: var(--neon-purple);
-}
-.nsfw-text-block {
-    flex: 1;
-    min-width: 0;
+.filter-adv-field {
     display: flex;
     flex-direction: column;
+    gap: 6px;
+    min-width: 0;
 }
-.nsfw-title {
-    color: var(--text-main);
-    font-weight: bold;
-    font-size: 0.95rem;
-}
-.nsfw-desc {
-    color: rgba(var(--ink-rgb), 0.5);
-    font-size: 0.8rem;
-}
-.filter-section-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 25px 0 20px 0;
-}
-.fsd-line {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5));
-}
-.fsd-line:last-child {
-    background: linear-gradient(270deg, transparent, rgba(168, 85, 247, 0.5));
-}
-.fsd-dot {
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: #a855f7;
-}
-.fsd-text {
-    color: #c084fc;
-    font-weight: bold;
+.filter-adv-label {
     font-family: 'Rajdhani', sans-serif;
-    letter-spacing: 0.05em;
-    font-size: 1.1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(var(--ink-rgb), 0.78);
 }
-/* Buscador de géneros */
+.filter-adv-select {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0 36px 0 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(var(--ink-rgb), 0.24);
+    background-color: rgba(var(--ink-rgb), 0.04);
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c9c3dc' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.filter-adv-select:hover {
+    border-color: rgba(var(--ink-rgb), 0.45);
+    background-color: rgba(var(--ink-rgb), 0.07);
+}
+.filter-adv-select:focus-visible {
+    outline: 2px solid var(--cx-accent-ink, var(--accent-cyan));
+    outline-offset: 1px;
+    border-color: transparent;
+}
+/* La lista nativa toma los colores del tema (antes quedaba oscura en claro). */
+.filter-adv-select option {
+    background: rgb(var(--surface-card-rgb));
+    color: var(--text-main);
+}
+/* Temporada y Formato solo aplican a anime. */
+body:not([data-page="anime"]) .filter-anime-only {
+    display: none;
+}
+
+/* ── Buscador de géneros ── */
 .filter-genre-search {
     position: relative;
     display: flex;
     align-items: center;
-    margin: 0 0 14px 0;
+    margin: 0 0 12px;
 }
 .filter-genre-search-icon {
     position: absolute;
-    left: 14px;
-    color: rgba(168, 85, 247, 0.9);
+    left: 12px;
+    color: rgba(var(--ink-rgb), 0.65);
     pointer-events: none;
 }
 .filter-genre-search-input {
     width: 100%;
+    height: 42px;
     box-sizing: border-box;
-    padding: 10px 14px 10px 40px;
+    padding: 0 12px 0 38px;
     border-radius: 10px;
-    border: 1px solid rgba(168, 85, 247, 0.28);
-    background: rgba(var(--ink-rgb), 0.03);
+    border: 1px solid rgba(var(--ink-rgb), 0.24);
+    background: rgba(var(--ink-rgb), 0.04);
     color: var(--text-main);
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 .filter-genre-search-input::placeholder {
-    color: rgba(var(--ink-rgb), 0.4);
+    color: rgba(var(--ink-rgb), 0.65);
+    opacity: 1;
 }
-.filter-genre-search-input:focus {
-    outline: none;
-    border-color: rgba(168, 85, 247, 0.7);
-    background: rgba(var(--ink-rgb), 0.05);
-    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
+.filter-genre-search-input:hover {
+    border-color: rgba(var(--ink-rgb), 0.45);
+}
+.filter-genre-search-input:focus-visible {
+    outline: 2px solid var(--cx-accent-ink, var(--accent-cyan));
+    outline-offset: 1px;
+    border-color: transparent;
 }
 
+/* ── Chips de género ── */
 .fancy-filter-genres {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-start;
-    max-height: 264px;
-    overflow-y: auto;
+    gap: 8px;
     padding: 2px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(168, 85, 247, 0.5) transparent;
 }
-.fancy-filter-genres::-webkit-scrollbar {
-    width: 8px;
-}
-.fancy-filter-genres::-webkit-scrollbar-thumb {
-    background: rgba(168, 85, 247, 0.4);
-    border-radius: 4px;
-}
-.fancy-filter-genres::-webkit-scrollbar-thumb:hover {
-    background: rgba(168, 85, 247, 0.65);
-}
-
 .ff-genre-empty {
     width: 100%;
-    padding: 16px 4px;
+    padding: 12px 4px;
     text-align: center;
-    color: rgba(var(--ink-rgb), 0.45);
+    color: rgba(var(--ink-rgb), 0.7);
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+}
+.ff-genre-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    max-width: 100%;
+    padding: 0 12px;
+    border: 1px solid rgba(var(--ink-rgb), 0.2);
+    border-radius: 999px;
+    background: rgba(var(--ink-rgb), 0.04);
+    color: rgba(var(--ink-rgb), 0.86);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.ff-genre-chip:hover {
+    border-color: rgba(var(--ink-rgb), 0.42);
+    background: rgba(var(--ink-rgb), 0.08);
+    color: var(--text-main);
+}
+.ff-genre-chip.is-active,
+.ff-genre-chip[aria-pressed="true"] {
+    border-color: var(--nav-accent);
+    background: var(--nav-accent-soft, rgba(168, 85, 247, 0.18));
+    color: var(--text-main);
+    font-weight: 700;
+}
+/* Elegido: tilde a la izquierda (no depende solo del color). */
+.ff-genre-chip.is-active::before {
+    content: '';
+    flex-shrink: 0;
+    width: 5px;
+    height: 9px;
+    margin: -3px 1px 0 0;
+    border-right: 2px solid var(--cx-accent-ink, currentColor);
+    border-bottom: 2px solid var(--cx-accent-ink, currentColor);
+    transform: rotate(45deg);
+}
+.ff-genre-chip:focus-visible,
+.toggle-genres-btn:focus-visible,
+.clear-filters-btn:focus-visible,
+.advanced-filter-toggle:focus-visible {
+    outline: 2px solid var(--cx-accent-ink, var(--accent-cyan));
+    outline-offset: 2px;
 }
 
 /* Botón "Ver todos / Ver menos" */
@@ -254,63 +247,28 @@
     align-items: center;
     gap: 6px;
     width: fit-content;
-    margin: 14px auto 0;
-    padding: 8px 18px;
-    border-radius: 20px;
-    border: 1px solid rgba(168, 85, 247, 0.35);
-    background: rgba(168, 85, 247, 0.08);
-    color: #c084fc;
+    min-height: 36px;
+    margin: 12px auto 0;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--ink-rgb), 0.24);
+    background: transparent;
+    color: var(--cx-accent-ink, var(--text-main));
     font-family: 'Rajdhani', sans-serif;
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.03em;
+    font-weight: 700;
+    font-size: 0.92rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 .toggle-genres-btn:hover {
-    background: rgba(168, 85, 247, 0.16);
-    border-color: rgba(168, 85, 247, 0.6);
-    color: var(--text-main);
+    border-color: var(--nav-accent);
+    background: var(--nav-accent-soft, rgba(var(--ink-rgb), 0.08));
 }
 .toggle-genres-btn[hidden] {
     display: none;
 }
-.ff-genre-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background: rgba(var(--ink-rgb), 0.03);
-    border: 1px solid rgba(var(--ink-rgb), 0.08);
-    border-radius: 20px;
-    color: rgba(var(--ink-rgb), 0.8);
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-.ff-genre-chip:hover {
-    background: rgba(var(--ink-rgb), 0.08);
-    color: var(--text-main);
-}
-.ff-genre-chip.is-active {
-    background: rgba(168, 85, 247, 0.15);
-    border-color: rgba(168, 85, 247, 0.5);
-    color: var(--text-main);
-}
-/* Elegido: tilde a la izquierda, como los chips seleccionables de Quasar. */
-.ff-genre-chip.is-active::before {
-    content: '';
-    width: 5px;
-    height: 9px;
-    margin: -2px 0 0 1px;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg);
-}
 
-/* Géneros elegidos, debajo del buscador (los arma js/catalog/search.js). */
+/* Géneros elegidos, arriba de los resultados (los arma js/catalog/search.js). */
 .catalog-active-genres {
     margin-top: 12px;
 }
@@ -318,86 +276,22 @@
     display: none;
 }
 
-@media (max-width: 560px) {
-    .advanced-filter-dropdown {
-        padding: 16px 14px;
-    }
-    .filter-header-row {
-        gap: 12px;
-    }
-    .filter-header-row-inner {
-        gap: 8px 12px;
-    }
-    /* La grilla de refinado pasa a 2 columnas parejas en vez de encogerse */
-    .filter-advanced-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+@media (prefers-reduced-motion: reduce) {
+    .advanced-filter-toggle,
+    .clear-filters-btn,
+    .filter-adv-select,
+    .filter-genre-search-input,
+    .ff-genre-chip,
+    .toggle-genres-btn { transition: none; }
 }
 
-@media (max-width: 480px) {
-    .advanced-filter-toggle {
-        width: 42px;
-        height: 38px;
-    }
-
-    .filter-header-icon-wrap {
-        width: 40px;
-        height: 40px;
-    }
-    .filter-header-icon-wrap svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .filter-header-row-inner h2 {
-        font-size: 0.95rem;
-    }
-
-    .clear-filters-btn {
-        padding: 5px 10px;
-        font-size: 0.78rem;
-    }
-
-    .ff-genre-chip {
-        padding: 4px 10px;
-        font-size: 0.78rem;
-    }
-
-    .nsfw-title {
-        font-size: 0.88rem;
-    }
-    .nsfw-desc {
-        font-size: 0.75rem;
-    }
+/* Flecha de los selects en tema claro: más oscura para que se vea. */
+:root[data-theme="light"] .filter-adv-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23544c6b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
-
-@media (max-width: 400px) {
-    .advanced-filter-toggle {
-        width: 36px;
-        height: 34px;
-    }
-
-    .filter-header-icon-wrap {
-        width: 34px;
-        height: 34px;
-    }
-    .filter-header-icon-wrap svg {
-        width: 17px;
-        height: 17px;
-    }
-
-    .filter-header-row-inner h2 {
-        font-size: 0.85rem;
-    }
-
-    /* En pantallas muy chicas la grilla vuelve a una sola columna */
-    .filter-advanced-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .ff-genre-chip {
-        padding: 3px 8px;
-        font-size: 0.72rem;
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .filter-adv-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23544c6b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     }
 }
 
@@ -504,58 +398,3 @@
     }
 }
 
-/* ── Filtros avanzados: Orden / Año / Temporada / Formato ── */
-.filter-advanced-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    margin: 4px 0 6px;
-}
-.filter-adv-field {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 0;
-}
-.filter-adv-label {
-    font-family: var(--font-display);
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent-cyan);
-    opacity: 0.85;
-}
-.filter-adv-select {
-    width: 100%;
-    height: var(--control-height, 42px);
-    padding: 0 32px 0 12px;
-    border-radius: var(--radius-sm, 10px);
-    border: 1px solid rgba(var(--neon-purple-rgb),0.25);
-    background-color: rgba(var(--surface-panel-rgb, 26,11,46), 0.5);
-    color: var(--text-main);
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300f2ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.filter-adv-select:hover {
-    border-color: rgba(var(--accent-cyan-rgb),0.45);
-}
-.filter-adv-select:focus-visible {
-    outline: none;
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 2px rgba(var(--accent-cyan-rgb),0.2);
-}
-.filter-adv-select option {
-    background: #140a24;
-    color: var(--text-main);
-}
-/* Temporada y Formato solo aplican a anime. */
-body:not([data-page="anime"]) .filter-anime-only {
-    display: none;
-}

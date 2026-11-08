@@ -141,6 +141,9 @@ const PAGE_CSS_BUNDLES = {
         'css/detalle-responsive.css',
         'css/detalle-extras.css',
         'css/detalle-vinetas.css',
+        'css/detalle-layout.css',
+        'css/detalle-volumenes.css',
+        'css/detalle-cards.css',
     ],
 };
 

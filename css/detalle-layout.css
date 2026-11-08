@@ -1,0 +1,476 @@
+/* detalle-layout.css: rediseño (se carga después del resto de detalle-*.css)
+   Jerarquía y ritmo de la ficha (render.js → #detail-local-layout):
+   hero limpio (banner sutil o degradado, portada con sombra, título, badges y
+   datos en grilla pareja), secciones sobrias con un mismo marco, sinopsis
+   legible, géneros con contraste AA e información en dos columnas.
+   No toca volúmenes (.vol-*, .cuadrado-*), comentarios (.comment-*) ni las
+   cards (.wcard*, .related-*, .char-card*, .season-chain*). */
+
+/* ── Tokens locales ── */
+#detail-local-layout {
+    --dl-gap: 20px;
+    --dl-radius: 16px;
+    --dl-pad: 24px 28px;
+    --dl-surface: rgba(var(--surface-card-rgb), 0.72);
+    --dl-border: rgba(var(--ink-rgb), 0.10);
+    --dl-border-strong: rgba(var(--ink-rgb), 0.16);
+    --dl-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.14);
+    --dl-text-soft: rgba(var(--ink-rgb), 0.78);
+    --dl-label: rgba(var(--ink-rgb), 0.70);
+    /* Chips de género: lila claro sobre fondo oscuro (≈ 11:1). */
+    --dl-chip-fg: #e4ccff;
+    --dl-chip-bg: rgba(188, 19, 254, 0.16);
+    --dl-chip-border: rgba(188, 19, 254, 0.40);
+    /* Enlaces y badge "en emisión": en claro se oscurecen (cian #0a8ba6 y
+       verde #4ade80 no llegan a 4.5:1 sobre blanco). */
+    --dl-link: var(--accent-cyan);
+    --dl-airing-fg: #4ade80;
+    width: min(1120px, 100%);
+    margin-inline: auto;
+}
+/* Claro: violeta oscuro (#8a10cf ≈ 7:1 sobre el chip). Mismo patrón que
+   theme.css: preferencia del sistema salvo oscuro forzado, y elección explícita. */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) #detail-local-layout {
+        --dl-surface: rgba(255, 255, 255, 0.82);
+        --dl-shadow: 0 1px 2px rgba(40, 20, 80, 0.06), 0 8px 24px rgba(40, 20, 80, 0.06);
+        --dl-chip-fg: #7a0db8;
+        --dl-chip-bg: rgba(138, 16, 207, 0.08);
+        --dl-chip-border: rgba(138, 16, 207, 0.30);
+        --dl-link: #066f86;
+        --dl-airing-fg: #166534;
+    }
+}
+:root[data-theme="light"] #detail-local-layout {
+    --dl-surface: rgba(255, 255, 255, 0.82);
+    --dl-shadow: 0 1px 2px rgba(40, 20, 80, 0.06), 0 8px 24px rgba(40, 20, 80, 0.06);
+    --dl-chip-fg: #7a0db8;
+    --dl-chip-bg: rgba(138, 16, 207, 0.08);
+    --dl-chip-border: rgba(138, 16, 207, 0.30);
+    --dl-link: #066f86;
+    --dl-airing-fg: #166534;
+}
+
+/* ── Banner: franja sutil que se funde con el fondo ── */
+#detail-local-layout > .detail-banner {
+    margin-top: 8px;
+    height: clamp(96px, 14vw, 180px);
+    border: 0;
+    border-radius: var(--dl-radius);
+    -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 45%, transparent 100%);
+}
+#detail-local-layout > .detail-banner::after {
+    display: none;
+}
+
+/* ── Grilla del hero ── */
+#detail-local-layout > .vn-page {
+    --vn-gap: var(--dl-gap);
+    position: relative;
+    isolation: isolate;
+    grid-template-columns: 240px minmax(0, 1fr);
+    column-gap: 32px;
+    row-gap: var(--dl-gap);
+    align-items: start;
+    margin-top: 8px;
+}
+/* Sin banner: un degradado suave detrás del hero en lugar de la franja. */
+#detail-local-layout:not(:has(> .detail-banner)) > .vn-page {
+    margin-top: 12px;
+    padding-top: 20px;
+}
+#detail-local-layout:not(:has(> .detail-banner)) > .vn-page::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 280px;
+    z-index: -1;
+    border-radius: var(--dl-radius);
+    background:
+        radial-gradient(ellipse 60% 100% at 15% 0%, rgba(188, 19, 254, 0.16), transparent 70%),
+        radial-gradient(ellipse 50% 90% at 85% 0%, rgba(0, 242, 255, 0.10), transparent 70%);
+    pointer-events: none;
+}
+
+/* Orden explícito: volver arriba, después portada + título/datos/acciones. */
+.vn-page > .detail-info > .detail-actions {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin: 0;
+    padding: 0;
+}
+.vn-page > .vn-cover {
+    grid-column: 1;
+    grid-row: 2 / span 3;
+}
+.vn-page > .detail-info > .vn-title { grid-column: 2; grid-row: 2; }
+.vn-page > .detail-info > .detail-stat-grid { grid-column: 2; grid-row: 3; }
+.vn-page > .detail-info > .vn-actions { grid-column: 2; grid-row: 4; }
+
+/* ── Volver al catálogo: enlace discreto arriba de todo ── */
+.vn-page .detail-actions .detail-back {
+    min-height: 40px;
+    padding: 0 16px 0 12px;
+    gap: 6px;
+    border-color: var(--dl-border-strong);
+    background: var(--dl-surface);
+    font-size: 0.72rem;
+}
+.vn-page .detail-actions .detail-back::before {
+    content: "←";
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* ── Portada: sin marco ni trama, con sombra ── */
+.vn-page > .vn-cover {
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    background-image: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 18px 40px rgba(20, 0, 50, 0.35);
+}
+.vn-page > .vn-cover img {
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+}
+
+/* ── Título ── */
+.vn-page > .detail-info > .vn-title {
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    background: none;
+    clip-path: none;
+}
+.vn-page .vn-title .detail-title {
+    font-size: clamp(1.6rem, 3vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: 0;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+    text-shadow: none;
+}
+.vn-title .detail-breadcrumb {
+    font-size: 0.78rem;
+}
+
+#detail-local-layout .detail-breadcrumb a,
+#detail-local-layout .detail-see-more,
+#detail-local-layout .detail-progress-head strong {
+    color: var(--dl-link);
+}
+#detail-local-layout .detail-status.is-airing {
+    color: var(--dl-airing-fg);
+    box-shadow: none;
+}
+
+/* ── Datos: grilla pareja, misma altura ── */
+.vn-page > .detail-info > .detail-stat-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+.vn-page .detail-stat {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    align-content: start;
+    column-gap: 12px;
+    min-height: 76px;
+    padding: 14px 16px;
+    border: 1px solid var(--dl-border);
+    border-radius: 12px;
+    background: var(--dl-surface);
+}
+.vn-page .detail-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--neon-purple-10);
+    color: var(--neon-purple);
+    opacity: 1;
+}
+.vn-page .detail-stat-icon svg {
+    width: 18px;
+    height: 18px;
+}
+.vn-page .detail-stat-content {
+    min-width: 0;
+    gap: 4px;
+}
+.vn-page .detail-stat-content > span:first-child {
+    color: var(--dl-label);
+    opacity: 1;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.vn-page .detail-stat-content strong {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+}
+
+/* ── Acciones ── */
+.vn-page > .detail-info > .vn-actions {
+    padding: 14px 16px;
+    gap: 12px 16px;
+}
+.vn-actions .watch-status-bar {
+    flex: 1 1 320px;
+}
+.vn-page .detail-actions-bar .viewed-btn {
+    min-height: 44px;
+    box-shadow: none;
+}
+
+/* ── Marco común de todas las secciones ── */
+#detail-local-layout .vn-panel,
+.vn-page > .detail-info > .detail-section,
+.vn-page > .detail-info > .detail-progress-card,
+.vn-stack > .detail-section,
+.vn-stack > #comments-section {
+    padding: var(--dl-pad);
+    border: 1px solid var(--dl-border);
+    border-radius: var(--dl-radius);
+    background: var(--dl-surface);
+    box-shadow: var(--dl-shadow);
+}
+/* Portada y título quedan fuera del marco (ver arriba). */
+#detail-local-layout .vn-page > .vn-cover {
+    padding: 0;
+    border: 0;
+    background: none;
+}
+#detail-local-layout .vn-page > .detail-info > .vn-title {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
+
+/* ── Títulos de sección: uno solo, con acento ── */
+#detail-local-layout .detail-section-title,
+#detail-local-layout .detail-section > .detail-h2,
+#detail-local-layout .detail-section > h2:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-main);
+}
+#detail-local-layout .detail-section-title::before,
+#detail-local-layout .detail-section > .detail-h2::before,
+#detail-local-layout .detail-section > h2:first-child::before {
+    content: "";
+    flex: none;
+    width: 4px;
+    height: 1.1em;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--neon-purple), var(--accent-cyan));
+}
+
+/* ── Sinopsis: texto directo, sin caja dentro de la caja ── */
+.vn-synopsis {
+    gap: 0;
+}
+.vn-synopsis .detail-section-title {
+    margin-bottom: 12px;
+}
+#detail-local-layout .vn-synopsis .detail-section-title ~ .detail-section-title {
+    margin-top: 22px;
+    margin-bottom: 12px;
+}
+.vn-page .vn-bubble {
+    align-self: stretch;
+    max-width: 75ch;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+}
+.vn-page .vn-bubble .detail-synopsis-text {
+    font-size: 1.06rem;
+    line-height: 1.7;
+    color: var(--dl-text-soft);
+}
+.vn-page .detail-see-more {
+    margin-top: 8px;
+}
+
+/* ── Chips (géneros, estudios, etiquetas) ── */
+#detail-local-layout .detail-chip {
+    padding: 6px 12px;
+    border-color: var(--dl-chip-border);
+    background: var(--dl-chip-bg);
+    color: var(--dl-chip-fg);
+    opacity: 1;
+}
+#detail-local-layout .detail-chip-tag,
+#detail-local-layout .detail-chip-muted {
+    border-color: var(--dl-border-strong);
+    background: rgba(var(--ink-rgb), 0.04);
+    color: var(--dl-text-soft);
+}
+#detail-local-layout .detail-chip-link:hover,
+#detail-local-layout .detail-chip-link:focus-visible {
+    border-color: var(--accent-cyan);
+    color: var(--text-main);
+}
+
+/* ── Información: dos columnas en desktop ── */
+#detail-local-layout .detail-info-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid var(--dl-border);
+    border-radius: 12px;
+    background: var(--dl-border);
+}
+#detail-local-layout .detail-info-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 12px 16px;
+    background: var(--dl-surface);
+}
+#detail-local-layout .detail-info-row + .detail-info-row {
+    border-top: 0;
+}
+/* Si la cantidad es impar, la última fila ocupa el ancho entero. */
+#detail-local-layout .detail-info-row:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+#detail-local-layout .detail-info-row dt {
+    align-self: start;
+    color: var(--dl-label);
+    opacity: 1;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+#detail-local-layout .detail-info-row dd {
+    font-size: 0.98rem;
+    color: var(--text-main);
+}
+
+/* ── Progreso ── */
+.vn-page > .detail-info > .detail-progress-card .detail-progress-meta {
+    color: var(--dl-label);
+}
+
+/* ── Pila inferior ── */
+#detail-local-layout > .vn-stack {
+    gap: var(--dl-gap);
+    margin-top: var(--dl-gap);
+}
+
+/* ── Contenedores vacíos ── */
+#detail-local-layout .vn-stack > :empty,
+#detail-local-layout .vn-page > .detail-info > :empty,
+#detail-local-layout .detail-section:empty {
+    display: none;
+}
+
+/* ── Tablet / celular: portada chica al costado del título ── */
+@media (max-width: 860px) {
+    #detail-local-layout {
+        --dl-gap: 16px;
+        --dl-pad: 18px 18px;
+        --dl-radius: 14px;
+    }
+    #detail-local-layout > .vn-page {
+        grid-template-columns: 132px minmax(0, 1fr);
+        column-gap: 16px;
+    }
+    .vn-page > .vn-cover {
+        grid-column: 1;
+        grid-row: 2;
+        align-self: start;
+    }
+    .vn-page > .vn-cover img {
+        width: 100%;
+    }
+    .vn-page > .detail-info > .vn-title {
+        grid-column: 2;
+        grid-row: 2;
+        align-self: center;
+    }
+    .vn-page > .detail-info > .detail-stat-grid,
+    .vn-page > .detail-info > .vn-actions {
+        grid-column: 1 / -1;
+    }
+    .vn-page > .detail-info > .detail-stat-grid { grid-row: 3; }
+    .vn-page > .detail-info > .vn-actions { grid-row: 4; }
+    .vn-page > .detail-info > .detail-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .vn-page .vn-title .detail-status {
+        align-self: auto;
+    }
+    .vn-page .vn-title .detail-title {
+        font-size: clamp(1.3rem, 5.4vw, 2rem);
+    }
+    #detail-local-layout .detail-info-list {
+        grid-template-columns: 1fr;
+    }
+    #detail-local-layout .detail-info-row:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    #detail-local-layout > .vn-page {
+        grid-template-columns: 104px minmax(0, 1fr);
+        column-gap: 14px;
+    }
+    .vn-page .detail-stat {
+        grid-template-columns: 1fr;
+        row-gap: 8px;
+        min-height: 0;
+        padding: 12px;
+    }
+    .vn-page .detail-stat-icon {
+        width: 30px;
+        height: 30px;
+    }
+    .vn-page .detail-stat-content strong {
+        font-size: 1.02rem;
+    }
+    .vn-title .detail-breadcrumb {
+        font-size: 0.72rem;
+    }
+    /* Botones de acción táctiles (responsive.css los achica a 32-36px). */
+    .vn-page .detail-actions-bar .action-btn {
+        width: 44px;
+        height: 44px;
+    }
+    .vn-page .detail-actions-bar .viewed-btn {
+        width: auto;
+    }
+    .vn-page .vn-bubble .detail-synopsis-text {
+        font-size: 1rem;
+    }
+}
+
+/* Fondo de página: theme.css lo fija al viewport (attachment: fixed). En
+   capturas de página completa y en algunos navegadores móviles eso deja un
+   corte horizontal a la altura del viewport que atraviesa las cards. En la
+   ficha el degradado acompaña al documento entero y se desvanece suave. */
+body[data-page="detalle"] {
+    background-attachment: scroll;
+    min-height: 100vh;
+}
