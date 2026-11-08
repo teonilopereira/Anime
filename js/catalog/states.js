@@ -574,8 +574,8 @@
             const isViewed = viewedSet.has(itemId);
             const favBtn     = card.querySelector('.fav-btn');
             const viewedBtn  = card.querySelector('.viewed-btn');
-            if (favBtn)    favBtn.classList.toggle('active', isFav);
-            if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
+            if (favBtn)    { favBtn.classList.toggle('active', isFav); favBtn.setAttribute('aria-pressed', isFav ? 'true' : 'false'); }
+            if (viewedBtn) { viewedBtn.classList.toggle('active', isViewed); viewedBtn.setAttribute('aria-pressed', isViewed ? 'true' : 'false'); }
         });
         updateCardProgressIndicators();
     }
@@ -631,8 +631,8 @@
 
             const favBtn  = card.querySelector('.fav-btn');
             const viewedBtn = card.querySelector('.viewed-btn');
-            if (favBtn)    favBtn.classList.toggle('active', isFav);
-            if (viewedBtn) viewedBtn.classList.toggle('active', isViewed);
+            if (favBtn)    { favBtn.classList.toggle('active', isFav); favBtn.setAttribute('aria-pressed', isFav ? 'true' : 'false'); }
+            if (viewedBtn) { viewedBtn.classList.toggle('active', isViewed); viewedBtn.setAttribute('aria-pressed', isViewed ? 'true' : 'false'); }
 
             const statusSel = card.querySelector('.watch-status-select');
             if (statusSel) statusSel.value = getWatchStatus(userId, itemId);
