@@ -17,19 +17,26 @@ var SKELETON_COUNT = AnimeDestiny.Constants.SKELETON_COUNT || 40;
 
 function renderSkeletonCards(container, count) {
     if (!container) return;
+    // Misma silueta que la card real: portada 2:3, dos líneas de título, la
+    // fila de meta y el botón redondo de episodios/volúmenes. Es decorativo:
+    // el contenedor ya anuncia la carga con aria-busy.
     const skeletonHTML = `
-        <div class="skeleton-card">
+        <div class="skeleton-card" aria-hidden="true">
             <div class="skeleton-card-shell">
                 <div class="skeleton-card-inner">
                     <div class="skeleton-card-poster"></div>
                     <div class="skeleton-card-bar">
-                        <div class="skeleton-card-bar-line"></div>
+                        <div class="skeleton-card-bar-lines">
+                            <div class="skeleton-card-bar-line"></div>
+                            <div class="skeleton-card-bar-line skeleton-card-bar-line--short"></div>
+                        </div>
                         <div class="skeleton-card-bar-icon"></div>
                     </div>
                 </div>
             </div>
         </div>`;
     container.innerHTML = skeletonHTML.repeat(count);
+    container.setAttribute('aria-busy', 'true');
 }
 
 function getApiPoster(item) {
@@ -461,7 +468,8 @@ function buildCatalogCardHtml(options) {
         titleAlt = '',
         score = null,
         synopsis = '',
-        genreList = []
+        genreList = [],
+        year = null
     } = options;
 
     const safeId = escapeHtml(String(id));
@@ -504,7 +512,16 @@ function buildCatalogCardHtml(options) {
     // portadas se ocultan por CSS. Solo los trae la lista de la API.
     const scoreNum = Number(score);
     const scoreHtml = score != null && Number.isFinite(scoreNum) && scoreNum > 0
-        ? `<span class="crail-score" aria-label="${escapeHtml(catTr('card.aria.nota', 'Nota'))} ${scoreNum.toFixed(1)}">★ ${scoreNum.toFixed(1)}</span>`
+        ? `<span class="crail-score"><span aria-hidden="true">★ </span><span class="crail-sr">${escapeHtml(catTr('card.aria.nota', 'Nota'))} </span>${scoreNum.toFixed(1)}</span>`
+        : '';
+    // Fila de meta bajo el título: tipo · episodios/volúmenes, año y nota.
+    // .cband-info conserva solo el tipo/episodios (lo lee chapters-modal.js).
+    const yearNum = Number(year);
+    const yearHtml = Number.isInteger(yearNum) && yearNum > 1900
+        ? `<span class="crail-year">${yearNum}</span>`
+        : '';
+    const metaHtml = (captionHtml || yearHtml || scoreHtml)
+        ? `<div class="crail-meta">${captionHtml}${yearHtml}${scoreHtml}</div>`
         : '';
     const shownGenres = (Array.isArray(genreList) ? genreList : []).filter(Boolean).slice(0, 3);
     const Genres = AnimeDestiny.Genres;
@@ -524,8 +541,8 @@ function buildCatalogCardHtml(options) {
             ? `<p class="crail-synopsis" lang="en" data-synopsis-src="${escapeHtml(cleanSynopsis)}">${escapeHtml(cleanSynopsis)}</p>`
             : `<p class="crail-synopsis" data-synopsis-src="${escapeHtml(cleanSynopsis)}" hidden></p>`)
         : '';
-    const extraHtml = (scoreHtml || genresHtml || synopsisHtml)
-        ? `<div class="crail-extra">${scoreHtml}${genresHtml}${synopsisHtml}</div>`
+    const extraHtml = (genresHtml || synopsisHtml)
+        ? `<div class="crail-extra">${genresHtml}${synopsisHtml}</div>`
         : '';
 
     var safeImg = safeUrl(image);
@@ -543,10 +560,10 @@ function buildCatalogCardHtml(options) {
             <img src="${safeImg}"${coverSrcsetAttrs(safeImg)} alt="${escapeHtml(title)}" width="230" height="345" decoding="async" loading="lazy"${imageExtraAttrs}>
             <span class="crail-status" data-tone="${tone}"><span class="crail-dot" aria-hidden="true"></span><span class="cband-status">${escapeHtml(bandLabel)}</span></span>
             <div class="crail-quick">
-                <button class="action-btn fav-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.favorito', 'Favorito'))}" data-item-id="${safeId}" data-action="fav">
+                <button class="action-btn fav-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.favorito', 'Favorito'))}" title="${escapeHtml(catTr('card.aria.favorito', 'Favorito'))}" aria-pressed="false" data-item-id="${safeId}" data-action="fav">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 </button>
-                <button class="action-btn viewed-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.visto', 'Visto'))}" data-item-id="${safeId}" data-action="viewed">
+                <button class="action-btn viewed-btn" type="button" aria-label="${escapeHtml(catTr('card.aria.visto', 'Visto'))}" title="${escapeHtml(catTr('card.aria.visto', 'Visto'))}" aria-pressed="false" data-item-id="${safeId}" data-action="viewed">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
             </div>
@@ -564,7 +581,7 @@ function buildCatalogCardHtml(options) {
         <div class="crail-text">
             ${titleHtml}
             ${chaptersBtn}
-            ${captionHtml}
+            ${metaHtml}
             ${extraHtml}
         </div>
     </div>`;
@@ -664,6 +681,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
             titleAlt: item.title_english || '',
             score: item.score,
             synopsis: item.synopsis || '',
+            year: item.startYear || null,
             genreList: (Array.isArray(item.genres) ? item.genres : []).map((g) => typeof g === 'string' ? g : g?.name),
             progressTotal: categoria === 'anime' ? (item.episodes || 0) : (volCount || chCount || 0),
             volCount: volCount,
@@ -673,6 +691,7 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
     }).join('');
 
     mainContainer.querySelector('.empty-state, .catalog-error')?.remove();
+    mainContainer.removeAttribute('aria-busy');
     if (append) {
         mainContainer.insertAdjacentHTML('beforeend', cardsHtml);
     } else {
@@ -752,6 +771,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
 
         if (!items.length) {
             if (!append) {
+                mainContainer.removeAttribute('aria-busy');
                 window.__catalogSearchItems = AnimeDestiny.internals.__catalogSearchItems = [];
                 mainContainer.innerHTML = `
                     <section class="empty-state">
@@ -779,6 +799,7 @@ async function cargarCatalogoDesdeApi(categoria, mainContainer, page = 1, append
         }
         if (!append) {
             const causa = describirErrorDeApi(error);
+            mainContainer.removeAttribute('aria-busy');
             // Aviso estilo QBanner de Quasar: ícono, causa y acciones. Amarillo
             // cuando hay que esperar (límite, demora, sin red); rojo si falló.
             mainContainer.innerHTML = `
@@ -844,6 +865,7 @@ function renderCatalogCardsFromLocalData(categoria, mainContainer, items, append
             categoria: categoria,
             info: item.info || genres.join(' / '),
             titleAlt: item.title_english || '',
+            year: item.startYear || item.year || null,
             progressTotal: volCount || chCount || Number(item.episodes || 0),
             volCount: volCount,
             chCount: chCount,
