@@ -21,6 +21,10 @@
     --dl-chip-fg: #e4ccff;
     --dl-chip-bg: rgba(188, 19, 254, 0.16);
     --dl-chip-border: rgba(188, 19, 254, 0.40);
+    /* Enlaces y badge "en emisión": en claro se oscurecen (cian #0a8ba6 y
+       verde #4ade80 no llegan a 4.5:1 sobre blanco). */
+    --dl-link: var(--accent-cyan);
+    --dl-airing-fg: #4ade80;
     width: min(1120px, 100%);
     margin-inline: auto;
 }
@@ -33,6 +37,8 @@
         --dl-chip-fg: #7a0db8;
         --dl-chip-bg: rgba(138, 16, 207, 0.08);
         --dl-chip-border: rgba(138, 16, 207, 0.30);
+        --dl-link: #066f86;
+        --dl-airing-fg: #166534;
     }
 }
 :root[data-theme="light"] #detail-local-layout {
@@ -41,6 +47,8 @@
     --dl-chip-fg: #7a0db8;
     --dl-chip-bg: rgba(138, 16, 207, 0.08);
     --dl-chip-border: rgba(138, 16, 207, 0.30);
+    --dl-link: #066f86;
+    --dl-airing-fg: #166534;
 }
 
 /* ── Banner: franja sutil que se funde con el fondo ── */
@@ -102,8 +110,8 @@
 
 /* ── Volver al catálogo: enlace discreto arriba de todo ── */
 .vn-page .detail-actions .detail-back {
-    min-height: 36px;
-    padding: 0 14px 0 10px;
+    min-height: 40px;
+    padding: 0 16px 0 12px;
     gap: 6px;
     border-color: var(--dl-border-strong);
     background: var(--dl-surface);
@@ -151,6 +159,16 @@
 }
 .vn-title .detail-breadcrumb {
     font-size: 0.78rem;
+}
+
+#detail-local-layout .detail-breadcrumb a,
+#detail-local-layout .detail-see-more,
+#detail-local-layout .detail-progress-head strong {
+    color: var(--dl-link);
+}
+#detail-local-layout .detail-status.is-airing {
+    color: var(--dl-airing-fg);
+    box-shadow: none;
 }
 
 /* ── Datos: grilla pareja, misma altura ── */

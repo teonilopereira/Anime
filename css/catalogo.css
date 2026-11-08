@@ -48,22 +48,49 @@
     font-size: 1rem;
 }
 
-/* Buscador: mismo componente (sugerencias incluidas), más compacto. */
+/* Acento de la página apto para texto (AA): en oscuro el neón de la
+   navbar; en claro, una versión oscurecida del mismo tono. */
+body[data-page] { --cx-accent-ink: var(--nav-accent); }
+:root[data-theme="light"] body[data-page="anime"] { --cx-accent-ink: #0e7490; }
+:root[data-theme="light"] body[data-page="manga"] { --cx-accent-ink: #15803d; }
+:root[data-theme="light"] body[data-page="novelas"] { --cx-accent-ink: #be123c; }
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) body[data-page="anime"] { --cx-accent-ink: #0e7490; }
+    :root:not([data-theme="dark"]) body[data-page="manga"] { --cx-accent-ink: #15803d; }
+    :root:not([data-theme="dark"]) body[data-page="novelas"] { --cx-accent-ink: #be123c; }
+}
+
+/* Fila del buscador: el campo crece y, en pantallas angostas, el botón
+   "Filtros y géneros" queda a su derecha con la misma altura. */
+.cx-search-row {
+    flex: 0 1 520px;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+}
 .catalog-search-filter-container.cx-search {
-    flex: 0 1 480px;
-    min-width: 260px;
+    flex: 1 1 auto;
+    min-width: 0;
     margin: 0;
-    border: 1px solid rgba(77, 134, 255, 0.35);
+    border: 1px solid rgba(var(--ink-rgb), 0.24);
     border-radius: 12px;
     box-shadow: none;
     background: rgba(var(--surface-dark-rgb), 0.75);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.catalog-search-filter-container.cx-search:hover {
+    border-color: rgba(var(--ink-rgb), 0.42);
 }
 .catalog-search-filter-container.cx-search:focus-within {
-    border-color: var(--nav-accent);
-    box-shadow: 0 0 0 1px var(--nav-accent-soft);
+    border-color: var(--cx-accent-ink);
+    box-shadow: 0 0 0 1px var(--cx-accent-ink);
 }
+.cx-search .catalog-search-wrap { min-height: 48px; }
 .cx-search .catalog-search-wrap::after { display: none; }
-.cx-search .catalog-search-icon { color: rgba(var(--ink-rgb), 0.55); }
+.cx-search .catalog-search-icon { color: rgba(var(--ink-rgb), 0.65); }
+.cx-search .catalog-search-input { padding: 12px 0; }
+.cx-search .catalog-search-input::placeholder { color: rgba(var(--ink-rgb), 0.65); }
 
 /* ── Cuerpo: columna de filtros + resultados ── */
 .cx-layout {
@@ -79,8 +106,9 @@
 .cx-side {
     flex: 1 1 260px;
     max-width: 100%;
+    min-width: 0;
     border-radius: 16px;
-    border: 1px solid rgba(77, 134, 255, 0.2);
+    border: 1px solid rgba(var(--ink-rgb), 0.14);
     background: rgba(var(--surface-card-rgb), 0.85);
     overflow: hidden;
 }
@@ -93,27 +121,30 @@
     padding: 16px;
 }
 .cx-side-sec + .cx-side-sec,
-.cx-filters .cx-side-sec { border-top: 1px solid rgba(77, 134, 255, 0.14); }
+.cx-filters .cx-side-sec { border-top: 1px solid rgba(var(--ink-rgb), 0.1); }
 .cx-side-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 10px;
+    min-height: 32px;
+    margin-bottom: 12px;
 }
 .cx-side-title {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
     font-family: 'Orbitron', sans-serif;
-    font-size: 0.68rem;
-    font-weight: 600;
+    font-size: 0.72rem;
+    font-weight: 700;
     letter-spacing: 0.12em;
-    color: rgba(var(--ink-rgb), 0.6);
+    line-height: 1.3;
+    color: rgba(var(--ink-rgb), 0.72);
 }
 .cx-side-head .cx-side-title { margin: 0; }
 
-/* Descubrir: las q-tabs pasan a lista vertical. */
+/* Descubrir: en escritorio, lista vertical. */
 .cx-browse.q-tabs {
     flex-direction: column;
+    gap: 2px;
     width: 100%;
     margin: 0;
     border-bottom: 0;
@@ -127,47 +158,43 @@
     border-radius: 10px;
     font-family: 'Rajdhani', sans-serif;
     font-size: 1rem;
+    font-weight: 600;
     letter-spacing: 0;
     text-transform: none;
-    color: rgba(var(--ink-rgb), 0.75);
+    color: rgba(var(--ink-rgb), 0.8);
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
+.cx-browse .q-tab:hover { background: rgba(var(--ink-rgb), 0.06); color: var(--text-main); }
 .cx-browse .q-tab::after,
 .cx-browse .q-tabs__indicator { display: none; }
 .cx-browse .q-tab.is-active,
 .cx-browse .q-tab[aria-selected="true"] {
     color: var(--text-main);
-    background: rgba(77, 134, 255, 0.14);
+    font-weight: 700;
+    background: var(--nav-accent-soft, rgba(77, 134, 255, 0.14));
     box-shadow: inset 3px 0 0 var(--nav-accent);
 }
-
-/* Botón de filtros: solo en pantallas angostas (en escritorio el panel
-   queda siempre abierto). */
-.advanced-filter-toggle.cx-filter-toggle {
-    display: none;
-    width: 100%;
-    min-height: 48px;
-    gap: 10px;
-    padding: 0 16px;
-    border-top: 1px solid rgba(77, 134, 255, 0.14);
-    justify-content: flex-start;
-    color: var(--text-main);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
+/* La columna recorta con overflow: el foco va por dentro para que se vea. */
+.cx-browse .q-tab:focus-visible {
+    outline: 2px solid var(--cx-accent-ink);
+    outline-offset: -2px;
 }
-.cx-filter-toggle[aria-expanded="true"] { color: var(--nav-accent); }
+
+/* El botón de filtros solo aparece en pantallas angostas (en escritorio el
+   panel queda siempre abierto en la columna). */
+.advanced-filter-toggle.cx-filter-toggle { display: none; }
 /* Cantidad de filtros aplicados (lo pone search.js). */
 .cx-filter-count {
     min-width: 22px;
     height: 22px;
-    margin-left: auto;
-    padding: 0 7px;
+    padding: 0 6px;
+    box-sizing: border-box;
     border-radius: 999px;
-    border: 1px solid var(--nav-accent);
-    background: var(--nav-accent-soft, rgba(77, 134, 255, 0.18));
-    color: var(--text-main);
+    background: var(--cx-accent-ink);
+    color: rgb(var(--surface-card-rgb));
     font-size: 0.82rem;
-    line-height: 20px;
+    font-weight: 700;
+    line-height: 22px;
     text-align: center;
 }
 .cx-filter-count[hidden] { display: none; }
@@ -180,24 +207,6 @@
     background: transparent;
     box-shadow: none;
 }
-.cx-clear.clear-filters-btn {
-    min-height: 32px;
-    padding: 0 6px;
-    border: 0;
-    background: transparent;
-    color: var(--nav-accent);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 700;
-    text-transform: none;
-    letter-spacing: 0;
-}
-.cx-fields.filter-advanced-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 10px;
-    margin: 0;
-}
 .cx-nsfw {
     display: flex;
     align-items: flex-start;
@@ -209,10 +218,10 @@
     height: 18px;
     margin: 3px 0 0;
     flex-shrink: 0;
-    accent-color: #bc13fe;
+    accent-color: var(--cx-accent-ink);
 }
 .cx-nsfw-title { display: block; font-weight: 700; color: var(--text-main); }
-.cx-nsfw-desc { display: block; font-size: 0.88rem; color: rgba(var(--ink-rgb), 0.6); }
+.cx-nsfw-desc { display: block; font-size: 0.9rem; color: rgba(var(--ink-rgb), 0.7); }
 
 @media (min-width: 901px) {
     /* En escritorio el panel siempre está a la vista: search.js lo abre y
@@ -226,8 +235,87 @@
         scrollbar-width: thin;
     }
 }
+
 @media (max-width: 900px) {
+    .cx-search-row { flex-basis: 100%; }
     .advanced-filter-toggle.cx-filter-toggle { display: inline-flex; }
+
+    /* Descubrir pasa a una fila de pastillas (se parte en dos si no entra). */
+    .cx-browse-sec .cx-side-title {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+    .cx-browse-sec { padding: 12px; }
+    .cx-browse.q-tabs {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .cx-browse .q-tab {
+        flex: 1 1 auto;
+        width: auto;
+        min-height: 40px;
+        justify-content: center;
+        padding: 0 14px;
+        border: 1px solid rgba(var(--ink-rgb), 0.18);
+        border-radius: 999px;
+    }
+    .cx-browse .q-tab.is-active,
+    .cx-browse .q-tab[aria-selected="true"] {
+        border-color: var(--nav-accent);
+        box-shadow: none;
+    }
+
+    /* Panel desplegable: entra con un fundido corto al abrirse. */
+    .cx-side .cx-filters:not([style*="none"]) { animation: cxFilterIn 0.22s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* Refinar: 4 columnas parejas (2 en manga y novelas, que tienen 2 campos). */
+    .cx-fields.filter-advanced-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    body:not([data-page="anime"]) .cx-fields.filter-advanced-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+    .cx-fields.filter-advanced-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+    /* El botón queda solo con el ícono (el texto sigue para lectores de
+       pantalla) y la cantidad de filtros va en la esquina. */
+    .advanced-filter-toggle.cx-filter-toggle { width: 48px; padding: 0; }
+    .cx-filter-toggle .cx-filter-toggle-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+    .cx-filter-toggle .cx-filter-count {
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        min-width: 20px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 0.75rem;
+    }
+}
+@media (max-width: 420px) {
+    .cx-fields.filter-advanced-grid,
+    body:not([data-page="anime"]) .cx-fields.filter-advanced-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cx-side .cx-filters:not([style*="none"]) { animation: none; }
+    .catalog-search-filter-container.cx-search,
+    .cx-browse .q-tab { transition: none; }
+}
+
+@keyframes cxFilterIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
 }
 
 /* ── Barra de resultados ── */
@@ -280,15 +368,11 @@ body[data-page] .cx-gallery.gallery {
     justify-items: stretch;
 }
 
-/* Datos extra de la ficha (nota, géneros, sinopsis): ocultos en portadas. */
+/* Datos extra de la ficha (géneros, sinopsis): ocultos en portadas. La nota
+   va en la fila de meta (cards.css), visible en las dos vistas. */
 .catalog-rail-card .crail-extra {
     grid-column: 1 / -1;
     display: none;
-}
-.catalog-rail-card .crail-score {
-    color: #f5b83d;
-    font-weight: 700;
-    font-size: 0.95rem;
 }
 .catalog-rail-card .crail-genres {
     display: flex;
@@ -310,34 +394,44 @@ body[data-page] .cx-gallery.gallery {
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-/* Vista de portadas: grilla compacta, la tarjeta de siempre. */
+/* Vista de portadas: grilla pareja, columnas de 176px como mínimo. */
 body[data-page] .cx-gallery[data-view="portadas"] {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 26px 18px;
+    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+    gap: 24px 16px;
 }
 body[data-page] .cx-gallery[data-view="portadas"] .catalog-neon-card { max-width: none; }
+/* Configuración → "Cards compactas": más columnas, portadas más chicas. */
+body.compact-cards[data-page] .cx-gallery[data-view="portadas"] {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 18px 12px;
+}
 
 /* Vista de fichas: portada a la izquierda y datos a la derecha. */
 body[data-page] .cx-gallery[data-view="fichas"] {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr));
 }
-body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card {
+body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card,
+body[data-page] .cx-gallery[data-view="fichas"] .skeleton-card-inner {
     max-width: none;
+    box-sizing: border-box;
     display: grid;
-    grid-template-columns: clamp(130px, 40%, 190px) minmax(0, 1fr);
+    grid-template-columns: clamp(124px, 38%, 180px) minmax(0, 1fr);
     gap: 16px;
-    padding: 14px;
+    padding: 12px;
     border-radius: 16px;
     border: 1px solid rgba(77, 134, 255, 0.22);
     background: rgba(var(--surface-card-rgb), 0.85);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card:hover {
-    transform: none;
+body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, translate 0.25s ease;
+}
+body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card:hover,
+body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card:focus-within {
     border-color: rgba(77, 134, 255, 0.55);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
 }
@@ -353,12 +447,21 @@ body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card:hover {
 .cx-gallery[data-view="fichas"] .catalog-rail-card .crail-title {
     font-family: 'Rajdhani', sans-serif;
     font-size: 1.15rem;
+    min-height: 0;
+}
+.cx-gallery[data-view="fichas"] .catalog-rail-card .crail-meta {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    white-space: normal;
 }
 .cx-gallery[data-view="fichas"] .catalog-rail-card .crail-extra {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
+/* Skeleton de ficha: mismo marco, portada a la izquierda y líneas a la derecha. */
+.cx-gallery[data-view="fichas"] .skeleton-card-poster { border-radius: 10px; }
+.cx-gallery[data-view="fichas"] .skeleton-card-bar { align-items: flex-start; padding: 2px 0 0; }
 
 /* Skeletons: que ocupen una celda normal en ambas vistas. */
 .cx-gallery .skeleton-card { width: 100%; max-width: none; }
@@ -366,13 +469,14 @@ body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card:hover {
 @media (max-width: 600px) {
     .cx-top-inner { padding: 16px; }
     .cx-layout { padding: 16px 16px 48px; gap: 18px; }
-    .catalog-search-filter-container.cx-search { flex-basis: 100%; min-width: 0; }
-    .cx-fields.filter-advanced-grid { grid-template-columns: minmax(0, 1fr); }
-    body[data-page] .cx-gallery[data-view="portadas"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
-    body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card { gap: 12px; padding: 10px; }
+    body[data-page] .cx-gallery[data-view="portadas"],
+    body.compact-cards[data-page] .cx-gallery[data-view="portadas"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; }
+    body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card,
+    body[data-page] .cx-gallery[data-view="fichas"] .skeleton-card-inner { gap: 12px; padding: 10px; }
     .cx-gallery[data-view="fichas"] .catalog-rail-card .crail-synopsis { -webkit-line-clamp: 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card { transition: none; }
+    body[data-page] .cx-gallery[data-view="fichas"] .catalog-rail-card:hover { translate: none; }
 }
