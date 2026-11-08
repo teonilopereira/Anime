@@ -1,1 +1,374 @@
-/* detalle-volumenes.css: rediseño (se carga después del resto de detalle-*.css) */
+/* detalle-volumenes.css: rediseño (se carga después del resto de detalle-*.css)
+ *
+ * Grilla de VOLÚMENES del detalle (manga / novela). Cada tomo es la PORTADA
+ * del volumen (2:3, la tapa real que pinta loadDetailVolCovers vía MangaDex),
+ * con la etiqueta "Vol. 01" sobre un degradado inferior, el estado leído como
+ * anillo verde + tilde (sin tapar la tapa) y el botón "Leído" alineado debajo.
+ *
+ * Todo va bajo .vol-grid para ganarle a cards.css / detalle-responsive.css y
+ * a la variante de viñetas (.vn-page .vol-btn…) sin !important: misma
+ * especificidad, pero este archivo carga después. Los episodios de anime
+ * (.cuadrado-item sin .vol-tomo) no se tocan.
+ */
+
+/* ── Tokens locales (oscuro = base del sitio) ── */
+.vol-grid {
+    --vol-radius: 10px;
+    --vol-gap: 16px;
+    --vol-min: clamp(110px, var(--detail-square-size, 128px), 150px);
+    --vol-border: rgba(var(--ink-rgb), 0.12);
+    --vol-placeholder: rgba(var(--surface-panel-rgb), 0.9);
+    --vol-shadow: 0 6px 18px rgba(0, 0, 0, 0.38);
+    --vol-shadow-hover: 0 12px 26px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--accent-cyan);
+    --vol-read: #22c55e;
+    --vol-read-text: #86efac;
+    --vol-read-soft: rgba(34, 197, 94, 0.16);
+    --vol-btn-text: var(--text-muted, rgba(255, 255, 255, 0.72));
+    --vol-btn-border: rgba(var(--ink-rgb), 0.18);
+    --vol-btn-bg: rgba(var(--ink-rgb), 0.04);
+    --vol-focus: var(--accent-cyan);
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .vol-grid {
+        --vol-border: rgba(var(--ink-rgb), 0.14);
+        --vol-shadow: 0 6px 16px rgba(28, 22, 44, 0.16);
+        --vol-shadow-hover: 0 12px 24px rgba(28, 22, 44, 0.22), 0 0 0 1px var(--accent-cyan);
+        --vol-read: #16a34a;
+        --vol-read-text: #166534;
+        --vol-read-soft: rgba(22, 163, 74, 0.12);
+        --vol-btn-text: #4a4060;
+        --vol-btn-bg: rgba(255, 255, 255, 0.7);
+    }
+}
+
+:root[data-theme="light"] .vol-grid {
+    --vol-border: rgba(var(--ink-rgb), 0.14);
+    --vol-shadow: 0 6px 16px rgba(28, 22, 44, 0.16);
+    --vol-shadow-hover: 0 12px 24px rgba(28, 22, 44, 0.22), 0 0 0 1px var(--accent-cyan);
+    --vol-read: #16a34a;
+    --vol-read-text: #166534;
+    --vol-read-soft: rgba(22, 163, 74, 0.12);
+    --vol-btn-text: #4a4060;
+    --vol-btn-bg: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Grilla de portadas ── */
+.vol-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--vol-min), 1fr));
+    gap: var(--vol-gap) 14px;
+    align-items: start;
+    margin-top: 4px;
+}
+
+.vol-grid .cuadrado-wrapper--tomo {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+}
+
+/* ── El tomo: la portada ocupa toda la tarjeta ── */
+.vol-grid .vol-tomo.has-cover {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--vol-border);
+    border-radius: var(--vol-radius);
+    background: var(--vol-placeholder);
+    box-shadow: var(--vol-shadow);
+    color: #fff;
+    cursor: pointer;
+    transform: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.vol-grid .vol-tomo.has-cover .vol-cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    opacity: 1;
+    transform: none;
+    border-radius: inherit;
+    /* Mientras la imagen (lazy) baja, que no se vea el texto alternativo:
+       queda el fondo del tomo como placeholder. */
+    color: transparent;
+    font-size: 0;
+    z-index: 0;
+    transition: transform 0.3s ease;
+}
+
+/* Brillo sutil arriba para que la tapa se lea como un libro, no un recorte. */
+.vol-grid .vol-tomo.has-cover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    background: linear-gradient(100deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 18%);
+}
+
+/* Etiqueta "Vol. 01" sobre degradado inferior (blanco en ambos temas: va
+   siempre sobre la imagen oscurecida). */
+.vol-grid .vol-tomo.has-cover .num-cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: block;
+    width: auto;
+    padding: 28px 9px 8px;
+    margin: 0;
+    text-align: left;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    color: #fff;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0) 100%);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vol-grid .vol-tomo.has-cover .num-cap::before {
+    content: "Vol. ";
+    font-size: 0.82em;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* ── Hover / foco ── */
+.vol-grid .vol-tomo.has-cover:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-cyan);
+    box-shadow: var(--vol-shadow-hover);
+}
+
+.vol-grid .vol-tomo.has-cover:hover .vol-cover {
+    opacity: 1;
+    transform: scale(1.04);
+}
+
+.vol-grid .vol-tomo.has-cover:focus {
+    outline: none;
+}
+
+.vol-grid .vol-tomo.has-cover:focus-visible {
+    outline: 3px solid var(--vol-focus);
+    outline-offset: 3px;
+    transform: translateY(-3px);
+}
+
+.vol-grid .vol-tomo.has-cover:active {
+    transform: translateY(-1px);
+}
+
+/* ── Estado leído: anillo verde + tilde, la tapa queda intacta ── */
+.vol-grid .vol-leido-badge {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    left: auto;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--vol-read);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.vol-grid .vol-tomo.is-active .vol-leido-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.vol-grid .vol-tomo.has-cover.is-active {
+    border-color: var(--vol-read);
+    box-shadow: 0 0 0 2px var(--vol-read), var(--vol-shadow);
+    background: var(--vol-placeholder);
+}
+
+.vol-grid .vol-tomo.has-cover.is-active:hover {
+    box-shadow: 0 0 0 2px var(--vol-read), var(--vol-shadow-hover);
+}
+
+.vol-grid .vol-tomo.has-cover.is-active .vol-cover {
+    opacity: 1;
+}
+
+/* Franja verde bajo el número: refuerza el estado sin depender solo del color
+   del borde. */
+.vol-grid .vol-tomo.has-cover.is-active .num-cap {
+    box-shadow: inset 0 -3px 0 var(--vol-read);
+}
+
+/* ── Botón "Leído" alineado bajo la portada ── */
+.vol-grid .vol-check-btn {
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 32px;
+    margin: 0;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--vol-btn-border);
+    background: var(--vol-btn-bg);
+    color: var(--vol-btn-text);
+    font-family: var(--font-display);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    cursor: pointer;
+    transform: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.vol-grid .vol-check-btn svg {
+    flex: none;
+    opacity: 0.55;
+}
+
+.vol-grid .vol-check-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--text-main);
+    box-shadow: none;
+}
+
+.vol-grid .vol-check-btn:focus {
+    outline: none;
+}
+
+.vol-grid .vol-check-btn:focus-visible {
+    outline: 3px solid var(--vol-focus);
+    outline-offset: 2px;
+}
+
+.vol-grid .vol-check-btn.is-active {
+    background: var(--vol-read-soft);
+    border-color: var(--vol-read);
+    color: var(--vol-read-text);
+}
+
+.vol-grid .vol-check-btn.is-active svg {
+    opacity: 1;
+    color: var(--vol-read);
+}
+
+/* ── "Mostrar más" ── */
+.vol-grid .vol-grid-more {
+    grid-column: 1 / -1;
+    justify-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    margin-top: 6px;
+    padding: 10px 22px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid var(--accent-cyan);
+    background: transparent;
+    color: var(--accent-cyan);
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vol-grid .vol-grid-more::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+}
+
+.vol-grid .vol-grid-more:hover {
+    background: var(--accent-cyan);
+    color: var(--dark-bg, #050505);
+    box-shadow: 0 0 14px rgba(0, 242, 255, 0.25);
+}
+
+.vol-grid .vol-grid-more:focus {
+    outline: none;
+}
+
+.vol-grid .vol-grid-more:focus-visible {
+    outline: 3px solid var(--vol-focus);
+    outline-offset: 3px;
+}
+
+/* ── Móvil: 3 portadas por fila ── */
+@media (max-width: 560px) {
+    .vol-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px 10px;
+    }
+
+    .vol-grid .vol-tomo.has-cover .num-cap {
+        padding: 22px 7px 7px;
+        font-size: 0.72rem;
+    }
+
+    .vol-grid .vol-leido-badge {
+        top: 5px;
+        right: 5px;
+        width: 22px;
+        height: 22px;
+    }
+
+    .vol-grid .vol-check-btn {
+        min-height: 34px;
+        font-size: 0.62rem;
+        padding: 6px 4px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vol-grid .vol-tomo.has-cover,
+    .vol-grid .vol-tomo.has-cover .vol-cover,
+    .vol-grid .vol-leido-badge {
+        transition: none;
+    }
+
+    .vol-grid .vol-tomo.has-cover:hover,
+    .vol-grid .vol-tomo.has-cover:focus-visible,
+    .vol-grid .vol-tomo.has-cover:hover .vol-cover {
+        transform: none;
+    }
+}
