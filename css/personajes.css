@@ -37,11 +37,11 @@
 .msc-card:hover {
     transform: translateY(-3px);
     border-color: var(--neon-purple);
-    box-shadow: 0 6px 20px rgba(188, 19, 254, 0.18);
+    box-shadow: 0 6px 20px rgba(var(--neon-purple-rgb), 0.18);
 }
 .msc-card.is-selected {
     border-color: var(--accent-cyan);
-    box-shadow: 0 0 0 2px rgba(0, 242, 255, 0.35) inset;
+    box-shadow: 0 0 0 2px rgba(var(--accent-cyan-rgb), 0.35) inset;
 }
 
 .msc-thumb {

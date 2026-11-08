@@ -367,14 +367,14 @@ let currentView = (function () {
 })();
 
 const STATUS_COLORS = Object.freeze({
-    viendo: '#00f2ff',
+    viendo: 'var(--accent-cyan)',
     pendiente: '#f59e0b',
     pausado: '#94a3b8',
     abandonado: '#ef4444',
     visto: '#c77dff'
 });
 
-const CATEGORY_ACCENTS = Object.freeze({ anime: '#00f2ff', manga: '#22c55e', novelas: '#f43f5e' });
+const CATEGORY_ACCENTS = Object.freeze({ anime: 'var(--accent-cyan)', manga: '#22c55e', novelas: '#f43f5e' });
 
 const HEART_SVG = '<svg viewBox="0 0 24 24" fill="#ff5fa2" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.4 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.6 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21z"/></svg>';
 
@@ -533,7 +533,7 @@ function renderContinue() {
         const title = escapeHtml(item.titulo);
         const label = progressLabel(prog, total) || 'Sin progreso marcado';
         return `
-            <article class="ml-cont-card" style="--cont-accent:${CATEGORY_ACCENTS[cat] || '#00f2ff'}">
+            <article class="ml-cont-card" style="--cont-accent:${CATEGORY_ACCENTS[cat] || 'var(--accent-cyan)'}">
                 <img class="ml-cont-cover" src="${safeUrl(anilistCover(item.img, 'medium'))}" alt="" width="76" height="108" decoding="async" loading="lazy" data-fallback-catalog="1" data-title="${title}">
                 <div class="ml-cont-body">
                     <h3 class="ml-cont-title">${title}</h3>
@@ -870,11 +870,11 @@ function renderActividad() {
         const link = getItemLink(entry);
         const epsLabel = entry.__category === 'anime' ? 'eps' : 'vols';
         const badges = [
-            entry.fav ? '<span style="color:#bc13fe;">❤ Me gusta</span>' : '',
-            entry.viewed ? '<span style="color:#00f2ff;">👁 Visto</span>' : ''
+            entry.fav ? '<span style="color:var(--neon-purple);">❤ Me gusta</span>' : '',
+            entry.viewed ? '<span style="color:var(--accent-cyan);">👁 Visto</span>' : ''
         ].filter(Boolean).join(' ');
         
-        const prog = entry.hasProgress ? `<div style="color:#00f2ff; font-weight:bold; font-size: 0.85rem; margin-top:4px;">Último marcado: ${escapeHtml(entry.lastChapter || '')}</div>` : '';
+        const prog = entry.hasProgress ? `<div style="color:var(--accent-cyan); font-weight:bold; font-size: 0.85rem; margin-top:4px;">Último marcado: ${escapeHtml(entry.lastChapter || '')}</div>` : '';
 
         return `
             <article class="list-row-card">
@@ -922,7 +922,7 @@ function renderBarChart(title, rows, accent) {
     const max = Math.max.apply(null, rows.map(r => r.value)) || 1;
     const bars = rows.map(r => {
         const pct = Math.max(4, Math.round((r.value / max) * 100));
-        const color = r.color || accent || '#bc13fe';
+        const color = r.color || accent || 'var(--neon-purple)';
         return `
         <div class="stat-bar-row">
             <span class="stat-bar-label">${escapeHtml(String(r.label))}</span>
@@ -974,8 +974,8 @@ function renderStats() {
 
     const statItems = [
         { label: 'En tus listas', value: totalEnListas, icon: '📚', color: '#a855f7' },
-        { label: 'Total Me gusta', value: totalFav, icon: '❤', color: '#bc13fe' },
-        { label: 'Total Vistos', value: totalViewed, icon: '👁', color: '#00f2ff' },
+        { label: 'Total Me gusta', value: totalFav, icon: '❤', color: 'var(--neon-purple)' },
+        { label: 'Total Vistos', value: totalViewed, icon: '👁', color: 'var(--accent-cyan)' },
         { label: 'Puntos acumulados', value: pts, icon: '⭐', color: '#f59e0b' }
     ];
 
@@ -998,7 +998,7 @@ function renderStats() {
         .map(([label, value]) => ({ label, value }));
 
     // ── Distribución por tipo ──
-    const catColors = { anime: '#00f2ff', manga: '#bc13fe', novelas: '#f59e0b' };
+    const catColors = { anime: 'var(--accent-cyan)', manga: 'var(--neon-purple)', novelas: '#f59e0b' };
     const catRows = Object.entries(byCategory)
         .filter(([, c]) => c.count > 0)
         .sort((a, b) => b[1].count - a[1].count)
@@ -1022,8 +1022,8 @@ function renderStats() {
      }));
 
     const chartsHtml =
-        renderBarChart('Tus géneros favoritos', topGenres, '#bc13fe') +
-        renderBarChart('Distribución por tipo', catRows, '#00f2ff') +
+        renderBarChart('Tus géneros favoritos', topGenres, 'var(--neon-purple)') +
+        renderBarChart('Distribución por tipo', catRows, 'var(--accent-cyan)') +
         renderBarChart('Estados de seguimiento', statusRows, '#4d86ff');
 
     charts.innerHTML = chartsHtml ||
@@ -1034,7 +1034,7 @@ function renderStats() {
 let _recsSignature = null;
 
 function recsMessage(text) {
-    return '<p style="color:rgba(255,255,255,0.4);font-family:Rajdhani,sans-serif;text-align:center;grid-column:1/-1;padding:40px 0">' + escapeHtml(text) + '</p>';
+    return '<p style="color:var(--text-muted);font-family:Rajdhani,sans-serif;text-align:center;grid-column:1/-1;padding:40px 0">' + escapeHtml(text) + '</p>';
 }
 
 async function renderRecommendations() {

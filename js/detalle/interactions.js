@@ -197,7 +197,7 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria, coverHint) 
             html = `
                 <div class="modal-episode-info" style="display: flex; flex-direction: column; gap: 15px;">
                     ${thumbnail ? `
-                        <div class="modal-episode-thumb" style="width: 100%; max-height: 220px; overflow: hidden; border-radius: 8px; border: 1px solid var(--accent-cyan); box-shadow: 0 4px 15px rgba(0, 242, 255, 0.25);">
+                        <div class="modal-episode-thumb" style="width: 100%; max-height: 220px; overflow: hidden; border-radius: 8px; border: 1px solid var(--accent-cyan); box-shadow: 0 4px 15px rgba(var(--accent-cyan-rgb), 0.25);">
                             <img src="${safeUrl(thumbnail)}" alt="${escapeHtml(title)}" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                     ` : ''}
@@ -205,7 +205,7 @@ async function showEpisodeInfoModal(item, epNum, isAnime, categoria, coverHint) 
                     <div class="modal-meta" style="font-size: 0.9rem; color: #aaa;">
                         <p style="margin: 4px 0;"><strong>Número de episodio:</strong> ${epNum}</p>
                         <p style="margin: 4px 0;"><strong>Tipo / Estado:</strong> <span style="color: ${fillerColor}; font-weight: bold; padding: 2px 6px; background: ${fillerColor}15; border: 1px solid ${fillerColor}; border-radius: 4px;">${escapeHtml(fillerLabel)}</span></p>
-                        ${site ? `<p style="margin: 4px 0;"><strong>Streaming Oficial:</strong> <span style="color: #fff; padding: 2px 6px; background: rgba(0, 242, 255, 0.1); border-radius: 4px; border: 1px solid var(--accent-cyan);">${escapeHtml(site)}</span></p>` : ''}
+                        ${site ? `<p style="margin: 4px 0;"><strong>Streaming Oficial:</strong> <span style="color: #fff; padding: 2px 6px; background: rgba(var(--accent-cyan-rgb), 0.1); border-radius: 4px; border: 1px solid var(--accent-cyan);">${escapeHtml(site)}</span></p>` : ''}
                     </div>
                     <div class="modal-synopsis" style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; margin-top: 5px;">
                         <h4 style="margin: 0 0 8px 0; color: #fff; font-size: 1rem;">${epSynopsis ? 'RESUMEN' : 'INFORMACIÓN'}</h4>

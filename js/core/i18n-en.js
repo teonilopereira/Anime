@@ -19,7 +19,7 @@
         "nav.escena":         "Which anime is it?",
         "nav.top":            "Top",
         "nav.top_jugadores":  "Player ranking",
-        "nav.ranking":        "Ranking",
+        "nav.ranking":        "Title ranking",
         "nav.calendario":     "Calendar",
         "nav.retos":          "Challenges",
         "nav.mis_listas":     "My Lists",
@@ -225,12 +225,12 @@
         "detail.modal.cerrar":    "Close",
 
         // ── Top / Ranking ────────────────────────────────────────────────
-        "rank.titulo":        "TOP RANKING",
+        "rank.titulo":        "TITLE RANKING",
         "rank.subtitulo":     "The highest rated by the community.",
         "rank.cargando":      "Loading ranking...",
         "rank.cargar_mas":    "Load more",
         "rank.no_resultados": "No results.",
-        "top.rank.title":     "RANKING",
+        "top.rank.title":     "PLAYER RANKING",
         "top.rank.subtitle":  "Players sorted by level and total experience.",
 
         // ── My Lists ─────────────────────────────────────────────────────

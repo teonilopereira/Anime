@@ -11,8 +11,8 @@
             "nav.comparar":       "Comparar",
             "nav.escena":         "¿Qué anime es?",
             "nav.top":            "Top",
-            "nav.top_jugadores":  "Top de jugadores",
-            "nav.ranking":        "Ranking",
+            "nav.top_jugadores":  "Ranking de jugadores",
+            "nav.ranking":        "Ranking de títulos",
             "nav.calendario":     "Calendario",
             "nav.retos":          "Retos",
             "nav.mis_listas":     "Mis Listas",
@@ -218,12 +218,12 @@
             "detail.modal.cerrar":    "Cerrar",
 
             // ── Top / Ranking ────────────────────────────────────────────────
-            "rank.titulo":       "TOP RANKING",
+            "rank.titulo":       "RANKING DE TÍTULOS",
             "rank.subtitulo":    "Los mejor puntuados por la comunidad.",
             "rank.cargando":     "Cargando ranking...",
             "rank.cargar_mas":   "Cargar más",
             "rank.no_resultados": "Sin resultados.",
-            "top.rank.title":    "RANKING",
+            "top.rank.title":    "RANKING DE JUGADORES",
             "top.rank.subtitle": "Jugadores ordenados por nivel y experiencia total.",
 
             // ── Mis Listas ───────────────────────────────────────────────────

@@ -37,10 +37,10 @@
     const NAV_SECUNDARIOS = [
         { id: "retos", href: "retos.html", icon: "target", i18n: "nav.retos", def: "Retos" },
         { id: "calendario", href: "calendario.html", icon: "calendar-days", i18n: "nav.calendario", def: "Calendario" },
-        { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking" },
+        { id: "ranking", href: "ranking.html", icon: "trophy", i18n: "nav.ranking", def: "Ranking de títulos" },
         { id: "comparar", href: "comparar.html", icon: "columns-2", i18n: "nav.comparar", def: "Comparar" },
         { id: "escena", href: "escena.html", icon: "scan-search", i18n: "nav.escena", def: "\u00BFQu\u00E9 anime es?" },
-        { id: "top", href: "top.html", icon: "crown", i18n: "nav.top_jugadores", def: "Top de jugadores" },
+        { id: "top", href: "top.html", icon: "crown", i18n: "nav.top_jugadores", def: "Ranking de jugadores" },
         { id: "configuracion", href: "configuracion.html", icon: "settings", i18n: "nav.configuracion", def: "Configuración" }
     ];
 
@@ -303,6 +303,15 @@
         backdrop.setAttribute('aria-hidden', 'true');
         document.body.appendChild(backdrop);
 
+        // En celular la hoja cerrada vive fuera de pantalla pero sus links seguían
+        // en el orden de tabulación: los primeros Tab caían en lugares invisibles.
+        // `inert` la saca del foco y de los lectores de pantalla mientras está cerrada.
+        const mqMobile = window.matchMedia('(max-width: 700px)');
+        const sincronizarInert = () => {
+            const navbar = document.querySelector('.destiny-navbar');
+            if (navbar) navbar.inert = mqMobile.matches && !moreBtn.classList.contains('is-open');
+        };
+
         const abrirHoja = (estado) => {
             const navbar = document.querySelector('.destiny-navbar');
             if (!navbar) return;
@@ -310,8 +319,11 @@
             moreBtn.classList.toggle('is-open', estado);
             moreBtn.setAttribute('aria-expanded', String(estado));
             document.body.classList.toggle('nav-sheet-open', estado);
+            sincronizarInert();
         };
         const hojaAbierta = () => moreBtn.classList.contains('is-open');
+        sincronizarInert();
+        mqMobile.addEventListener('change', sincronizarInert);
 
         moreBtn.addEventListener('click', (e) => {
             // Sin esto el click sigue subiendo hasta el listener que cierra
@@ -407,11 +419,11 @@
             col2: { title: "Cuenta", text: "Todo se guarda con tu cuenta de Supabase. Nunca perd\u00E9s tu progreso." }
         },
         top: {
-            col1: { title: "Ranking", text: "Jugadores ordenados por nivel y experiencia total acumulada." },
+            col1: { title: "Ranking de jugadores", text: "Jugadores ordenados por nivel y experiencia total acumulada." },
             col2: { title: "F2P / P2W", text: "Pr\u00F3ximamente m\u00E1s categor\u00EDas de ranking." }
         },
         ranking: {
-            col1: { title: "Top Ranking", text: "Anime, manga y novelas ordenados por la puntuaci\u00F3n de la comunidad." },
+            col1: { title: "Ranking de t\u00EDtulos", text: "Anime, manga y novelas ordenados por la puntuaci\u00F3n de la comunidad." },
             col2: { title: "Detalle", text: "Toc\u00E1 cualquier fila para abrir la ficha completa del t\u00EDtulo." }
         }
     };
@@ -449,7 +461,8 @@
                 else if (title === "Perfil") title = "Profile";
                 else if (title === "Acciones") title = "Actions";
                 else if (title === "Tus listas") title = "Your lists";
-                else if (title === "Ranking") title = "Ranking";
+                else if (title === "Ranking de jugadores") title = "Player ranking";
+                else if (title === "Ranking de t\u00EDtulos") title = "Title ranking";
                 else if (title === "F2P / P2W") title = "F2P / P2W";
 
                 if (text.includes("b\u00FAsqueda para filtrar")) {

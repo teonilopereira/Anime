@@ -79,8 +79,8 @@
     gap: 6px;
     padding: 8px 18px;
     border-radius: 8px;
-    border: 1px solid rgba(0,242,255,0.3);
-    background: rgba(0,242,255,0.07);
+    border: 1px solid rgba(var(--accent-cyan-rgb),0.3);
+    background: rgba(var(--accent-cyan-rgb),0.07);
     color: var(--accent-cyan);
     font-family: var(--font-display);
     font-size: 0.68rem;
@@ -89,8 +89,8 @@
     transition: all 0.2s;
 }
 .cfg-back-btn:hover {
-    background: rgba(0,242,255,0.15);
-    border-color: rgba(0,242,255,0.6);
+    background: rgba(var(--accent-cyan-rgb),0.15);
+    border-color: rgba(var(--accent-cyan-rgb),0.6);
 }
 
 /* Layout: menú lateral fijo + una sección a la vez */
@@ -105,7 +105,7 @@
     position: sticky;
     top: 96px;
     background: rgba(var(--surface-card-rgb),0.82);
-    border: 1px solid rgba(188,19,254,0.18);
+    border: 1px solid rgba(var(--neon-purple-rgb),0.18);
     border-radius: 16px;
     padding: 16px 12px;
     backdrop-filter: blur(10px);
@@ -138,7 +138,7 @@
     color: var(--text-main);
 }
 .cfg-nav-btn.active {
-    background: rgba(188,19,254,0.16);
+    background: rgba(var(--neon-purple-rgb),0.16);
     color: var(--text-main);
     box-shadow: inset 3px 0 0 var(--neon-purple);
 }
@@ -172,14 +172,14 @@
 /* Panel base */
 .cfg-panel {
     background: rgba(var(--surface-card-rgb),0.82);
-    border: 1px solid rgba(188,19,254,0.18);
+    border: 1px solid rgba(var(--neon-purple-rgb),0.18);
     border-radius: 16px;
     padding: 22px 24px;
     backdrop-filter: blur(10px);
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .cfg-panel:hover {
-    border-color: rgba(188,19,254,0.35);
+    border-color: rgba(var(--neon-purple-rgb),0.35);
     box-shadow: 0 8px 32px var(--neon-purple-glow);
 }
 .cfg-panel-title {
@@ -217,7 +217,7 @@
     box-sizing: border-box;
     padding: 10px 14px;
     border-radius: 10px;
-    border: 1px solid rgba(0,242,255,0.18);
+    border: 1px solid rgba(var(--accent-cyan-rgb),0.18);
     background: rgba(var(--surface-dark-rgb),0.4);
     color: var(--text-main);
     font-family: var(--font-body);
@@ -355,8 +355,8 @@
 }
 .cfg-bg-mode-btn.active,
 .cfg-bg-mode-btn:hover {
-    border-color: rgba(0,242,255,0.4);
-    background: rgba(0,242,255,0.08);
+    border-color: rgba(var(--accent-cyan-rgb),0.4);
+    background: rgba(var(--accent-cyan-rgb),0.08);
     color: var(--accent-cyan);
 }
 .cfg-bg-mode-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
@@ -382,13 +382,13 @@
     transition: all 0.2s;
 }
 .cfg-btn-primary {
-    background: linear-gradient(135deg, rgba(0,242,255,0.2), rgba(188,19,254,0.2));
-    border: 1px solid rgba(0,242,255,0.3);
+    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb),0.2), rgba(var(--neon-purple-rgb),0.2));
+    border: 1px solid rgba(var(--accent-cyan-rgb),0.3);
     color: var(--accent-cyan);
 }
 .cfg-btn-primary:hover {
-    background: linear-gradient(135deg, rgba(0,242,255,0.3), rgba(188,19,254,0.3));
-    border-color: rgba(0,242,255,0.6);
+    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb),0.3), rgba(var(--neon-purple-rgb),0.3));
+    border-color: rgba(var(--accent-cyan-rgb),0.6);
 }
 .cfg-btn-secondary {
     background: rgba(var(--ink-rgb),0.04);
@@ -417,7 +417,7 @@
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: rgba(var(--surface-card-rgb),0.95);
-    border: 1px solid rgba(0,242,255,0.3);
+    border: 1px solid rgba(var(--accent-cyan-rgb),0.3);
     border-radius: 12px;
     padding: 12px 24px;
     font-family: var(--font-display);
