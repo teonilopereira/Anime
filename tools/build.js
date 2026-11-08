@@ -144,7 +144,6 @@ const PAGE_CSS_BUNDLES = {
         'css/detalle-layout.css',
         'css/detalle-volumenes.css',
         'css/detalle-cards.css',
-        'css/detalle-comentarios.css',
     ],
 };
 
