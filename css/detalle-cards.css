@@ -107,9 +107,9 @@ body[data-page="detalle"] .related-card .wcard-pill {
     left: 7px;
     max-width: calc(100% - 14px);
     gap: 5px;
-    padding: 3px 8px;
+    padding: 3px 7px;
     font-size: 0.55rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(7, 6, 15, 0.85);
 }
@@ -198,11 +198,11 @@ body[data-page="detalle"] .char-name {
 
 body[data-page="detalle"] .char-role {
     font-size: 0.6rem;
-    opacity: 0.75;
+    opacity: 1;
 }
 
 body[data-page="detalle"] .char-side-va .char-role {
-    color: rgba(var(--ink-rgb), 0.55);
+    color: rgba(var(--ink-rgb), 0.6);
 }
 
 /* ── Temporadas ── */
@@ -228,6 +228,12 @@ body[data-page="detalle"] .season-chain-title {
     overflow: hidden;
 }
 
+/* Obras sin seiyuus (manga, novelas): cada card es solo el personaje y a dos
+   columnas quedaba media card vacía; entran más por fila. */
+body[data-page="detalle"] .char-grid:not(:has(.char-side-va)) {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
 /* ── Tablet / celular ── */
 @media (max-width: 760px) {
     body[data-page="detalle"] .char-grid {
@@ -248,7 +254,7 @@ body[data-page="detalle"] .season-chain-title {
     /* Un poco más angostas que un tercio: la card cortada en el borde avisa
        que el carrusel sigue. */
     body[data-page="detalle"] .detail-section-recs .related-grid {
-        grid-auto-columns: calc((100% - 3 * var(--dcard-gap)) / 3.3);
+        grid-auto-columns: calc((100% - 2 * var(--dcard-gap)) / 2.7);
         gap: 14px var(--dcard-gap);
     }
 
