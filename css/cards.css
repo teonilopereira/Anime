@@ -29,6 +29,7 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
+    min-height: 60px; /* = título (2 líneas) + fila de meta de la card real */
     padding: 0 2px;
 }
 
@@ -36,8 +37,8 @@
     flex: 1;
     min-width: 0;
     display: grid;
-    gap: 8px;
-    padding-top: 3px;
+    gap: 10px;
+    padding-top: 4px;
 }
 
 .skeleton-card-bar-line {

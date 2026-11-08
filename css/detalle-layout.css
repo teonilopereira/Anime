@@ -465,3 +465,12 @@
         font-size: 1rem;
     }
 }
+
+/* Fondo de página: theme.css lo fija al viewport (attachment: fixed). En
+   capturas de página completa y en algunos navegadores móviles eso deja un
+   corte horizontal a la altura del viewport que atraviesa las cards. En la
+   ficha el degradado acompaña al documento entero y se desvanece suave. */
+body[data-page="detalle"] {
+    background-attachment: scroll;
+    min-height: 100vh;
+}
