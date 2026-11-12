@@ -360,6 +360,31 @@
         "config.tema.claro":      "☀️ Light",
         "config.notif.titulo":    "Notifications",
         "config.notif.desc":      "Receive alerts and app updates.",
+        // ── Notificaciones por categoría (retencion-notificaciones) ──
+        "config.notif.lead": "Choose which alerts you get, how many per day and when not to disturb you.",
+        "config.notif.episodios.titulo": "New episodes",
+        "config.notif.episodios.desc": "When an episode of an anime you follow comes out.",
+        "config.notif.racha.titulo": "Streak at risk",
+        "config.notif.racha.desc": "Reminds you to drop by so you don't lose your daily streak.",
+        "config.notif.retos.titulo": "Challenges and missions",
+        "config.notif.retos.desc": "Completed missions and available challenges.",
+        "config.notif.comunidad.titulo": "Community",
+        "config.notif.comunidad.desc": "Likes and replies from other users, once available.",
+        "config.notif.push.titulo": "Browser push alerts",
+        "config.notif.push.desc": "New episodes even when the app is closed. Requires login and permission.",
+        "config.notif.limite": "Max alerts per day",
+        "config.notif.silencio.titulo": "Quiet hours",
+        "config.notif.silencio.desc": "Don't show alerts during the hours you choose.",
+        "config.notif.silencio.desde": "From",
+        "config.notif.silencio.hasta": "To",
+        "config.notif.pausa1": "Pause all for 1 day",
+        "config.notif.pausa7": "Pause all for 7 days",
+        "config.notif.reanudar": "Resume alerts",
+        "config.notif.pausado": "⏸ Alerts paused until {fecha}",
+        "config.notif.toast_pausa1": "⏸ Alerts paused for 1 day",
+        "config.notif.toast_pausa7": "⏸ Alerts paused for 7 days",
+        "config.notif.toast_reanudar": "🔔 Alerts resumed",
+        // ── fin retencion-notificaciones ──
         "config.mascota.titulo":  "Rimuru character",
         "config.mascota.desc":    "Rimuru the slime announces notifications by speaking on-screen.",
         "config.roam.titulo":     "Roaming Rimuru",
@@ -562,6 +587,11 @@
         "privacy.s5.p":     "You have the right at any time to request the complete deletion of your account and all associated data. You can do it directly from the profile settings section in our application.",
         "privacy.h6":       "6. Contact",
         "privacy.s6.p":     "If you have any questions about our privacy policy, you can contact us at:",
+        // ── mejora-comunidad: public profile and wall (privacidad.html) ──
+        "privacy.social.h":  "Public profile and community wall",
+        "privacy.social.p1": "Your profile is private by default. Only if you turn on “Public profile” in Settings → Privacy can other people see, at usuario.html?u=your-username, your name, photo, title, level and how many favorites and watched items you have, and your “Likes” and “Watched” show up on the community wall.",
+        "privacy.social.p2": "Your email and sign-in provider are never shown. You can switch back to private at any time: from then on your profile and activity stop being shown, because the filter is applied in the database.",
+        // ── end mejora-comunidad ──
 
         // ── Terms (terminos.html) ────────────────────────────────────────
         "terms.intro":  "Welcome to Mirudoku. By accessing and using this website, you agree to comply with the following terms and conditions of use.",
@@ -582,12 +612,31 @@
         "offline.retry": "Retry",
         "offline.home":  "Go to home",
 
+        // ── Recomendaciones (retencion-recomendaciones · js/core/recommend.js) ──
+        "reco.motivo.origen": "Because you liked {titulo}",
+        "reco.motivo.estudio": "From the studio of {titulo}",
+        "reco.motivo.genero": "{genero}, like {titulo}",
+        "reco.motivo.genero_solo": "Because you like {genero}",
+        "reco.vacio": "Mark something as watched to get suggestions.",
+
         // ── General ──────────────────────────────────────────────────────
         "general.cargando":  "Loading...",
         "general.guardando": "Saving...",
         "general.hecho":     "Done",
         "general.cancelar":  "Cancel",
-        "general.cerrar":    "Close"
+        "general.cerrar":    "Close",
+
+        // ── Novedades para vos (retencion-novedades · js/core/novedades.js) ──
+        "novedades.titulo": "What's new for you",
+        "novedades.episodios": "New episodes",
+        "novedades.estrenos": "This season's premieres",
+        "novedades.motivo.salio": "Ep. {ep} is out",
+        "novedades.motivo.sale_hoy": "Ep. {ep} airs today",
+        "novedades.motivo.sale": "Ep. {ep} airs {dia}",
+        "novedades.motivo.genero": "Premiere · {generos}",
+        "novedades.badge.nuevo": "New",
+        "novedades.badge.pronto": "Soon",
+        "novedades.badge.estreno": "Premiere"
     };
 
     var dicts = window.__i18nDicts = window.__i18nDicts || {};

@@ -11,8 +11,9 @@ Todo se apoya en tablas que **ya existían** (`comments`, `user_activity_log`,
 | **Likes en comentarios** | ✅ Completo (base + cliente + UI) | `comments.js`, `supabase-client.js`, `009_social_phase1.sql` |
 | **Muro de actividad** (backend) | ✅ Función + cliente listos | `get_activity_feed()`, `loadActivityFeed()` |
 | **Perfil público** (backend) | ✅ Función + cliente listos | `get_public_profile()`, `getPublicProfile()` |
-| Muro de actividad (página/UI) | ⏳ Siguiente paso | — |
-| Perfil público (ruta `usuario.html?u=`) | ⏳ Siguiente paso | — |
+| Muro de actividad (página/UI) | ✅ Sección en `usuario.html`, paginada | `loadMuroPagina()` en `js/pages/usuario.js` |
+| Perfil público (ruta `usuario.html?u=`) | ✅ | `initPerfilPublico()` en `js/pages/usuario.js` |
+| Opt-in de visibilidad en la base | ✅ | `profiles.is_public`, `013_social_privacy_public_profile.sql` |
 
 La UI visible que entra ahora es **el like en comentarios**. El feed y el
 perfil público quedan con su capa de datos completa y probada; falta solo
@@ -61,9 +62,55 @@ await AppSupabase.getPublicProfile("nombre");    // { username, level, apodo, to
   plano; si la base falla, revierte y avisa por toast.
 - Un guard evita dobles envíos mientras el like está en vuelo.
 
-## Notas de privacidad
+## Privacidad (migración 013)
 
-El muro de actividad expone acciones públicas (`liked` / `viewed`) con el
-nombre y la obra — nunca email ni provider, igual que el ranking que ya era
-público. Cuando se sume la UI del feed conviene ofrecer un opt-out en
-`configuracion.html` antes de darle mucha visibilidad.
+Aplicar **después de 009**, en Supabase → SQL Editor:
+
+```
+server/migrations/013_social_privacy_public_profile.sql
+```
+
+Qué hace (idempotente y aditiva):
+
+- `profiles.is_public BOOLEAN NOT NULL DEFAULT false`. Default **conservador**:
+  nadie aparece en el muro ni en `usuario.html?u=` hasta activarlo a mano.
+- `GRANT UPDATE (is_public)` a `authenticated` (grant por columna, como 007/012;
+  la fila la limita la policy `profiles: update own`).
+- `get_activity_feed()` y `get_public_profile()` con la **misma firma** pero
+  filtrando `p.is_public IS TRUE` en la base. Privado e inexistente devuelven
+  lo mismo (0 filas): no se puede averiguar si un username existe.
+- Offset del muro acotado a 1000 y límite a 100 (anti-volcado), índice parcial
+  `idx_activity_feed_recent` para el `ORDER BY created_at DESC`.
+
+**Sin 013:** el muro y los perfiles quedan expuestos como en 009, y el switch
+de Configuración no se puede guardar (revierte y avisa).
+
+### Cómo se persiste `prefPublic`
+
+- `configuracion.html` → Privacidad → «Perfil público» (`#prefPublic`).
+- `js/pages/configuracion.js` (`wirePublicToggle`): con sesión lee
+  `AppSupabase.getProfileVisibility()` y escribe con
+  `AppSupabase.setProfileVisibility(bool)` → `UPDATE profiles SET is_public`.
+  La base es la fuente de verdad; `localStorage['pref:privacidad']`
+  (`publica`/`privada`, default ahora `privada`) es solo cache.
+- Sin sesión no se puede activar (no hay perfil que publicar).
+
+### Qué expone cada cosa
+
+| Fuente | Campos que llegan a la UI |
+|---|---|
+| `getPublicProfile()` | `username, display_name, photo_url, level, apodo, total_likes, total_viewed` (lista blanca en el cliente; la RPC también trae `id, exp, created_at`, que se descartan) |
+| `loadActivityFeed()` | `username, display_name, photo_url, action, category, item_id, titulo, img, created_at` (se descarta `actor_id`) |
+
+Nunca email ni provider. Además `armarPerfilPublico()` / `armarItemMuro()` en
+`usuario.js` filtran URLs de imagen (solo `https:` o `data:image/`) y pintan
+todo con `textContent`. Tests: `tests/unit/usuario-publico.test.js`.
+
+### UI
+
+- `usuario.html?u=<username>`: tarjeta pública (nombre, @usuario, apodo, nivel,
+  favoritos, vistos) o estado vacío «Este perfil no está disponible». Funciona
+  sin sesión (carga el SDK bajo demanda con `__loadSupabase`).
+- Muro «Muro de la comunidad» al pie de `usuario.html` (con y sin sesión): pide
+  21 filas para mostrar 20 y saber si hay más; botón «Cargar más». Se carga
+  recién cuando la sección entra en pantalla.

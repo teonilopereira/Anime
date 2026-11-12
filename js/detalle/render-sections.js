@@ -83,7 +83,7 @@ function buildRelatedHtml(item, cadenaTemporadas) {
 // Card de otra obra (Relacionados y "Si te gustó esto"). Segunda linea: año y
 // cantidad de episodios/capitulos, lo que haya. Sin esto dos secuelas del
 // mismo año eran indistinguibles.
-function buildMediaCardHtml(r, cat, pill) {
+function buildMediaCardHtml(r, cat, pill, reason) {
     var partes = [];
     if (r.seasonYear) partes.push(r.seasonYear);
     if (r.episodes) partes.push(r.episodes + (r.episodes === 1 ? ' ep' : ' eps'));
@@ -103,6 +103,7 @@ function buildMediaCardHtml(r, cat, pill) {
         '<span class="wcard-text">' +
             '<span class="wcard-title">' + escapeHtml(r.title) + '</span>' +
             (meta ? '<span class="wcard-meta">' + escapeHtml(meta) + '</span>' : '') +
+            (reason ? '<span class="wcard-reason">' + escapeHtml(reason) + '</span>' : '') +
         '</span>' +
         '</a>';
 }
@@ -110,7 +111,27 @@ function buildMediaCardHtml(r, cat, pill) {
 // ── Si te gustó esto ──
 // Recomendaciones de la comunidad de AniList, ordenadas por votos. Vienen en
 // la misma query por id que la ficha. Se saltean las que ya están en
-// Relacionados o en Temporadas: recomendar la secuela no aporta nada.
+// Relacionados o en Temporadas (recomendar la secuela no aporta nada), las que
+// la persona ya marcó (visto, favorito, en curso, pendiente, abandonado) y el
+// +18 salvo pref:nsfw. Cada card lleva el motivo: "Porque te gustó <obra>".
+
+// ¿La persona ya marcó esta obra? Lee los estados locales (UserStore), que la
+// ficha y la sync con Supabase mantienen al día. Sin sesión o sin UserStore: no.
+function recoYaMarcada(id) {
+    try {
+        var uid = typeof window.getCurrentUserIdSafe === 'function' ? window.getCurrentUserIdSafe() : 'Invitado';
+        var store = window.UserStore;
+        if (!uid || uid === 'Invitado' || !store || typeof store.getItem !== 'function') return false;
+        var key = function (type) {
+            return typeof window.statusStorageKey === 'function'
+                ? window.statusStorageKey(uid, id, type)
+                : 'u:' + uid + '|item:' + id + '|' + type;
+        };
+        return !!(store.getItem(key('fav')) || store.getItem(key('viewed')) ||
+            store.getItem('u:' + uid + '|item:' + id + '|wstatus'));
+    } catch (_) { return false; }
+}
+
 function buildRecommendationsHtml(item, cadenaTemporadas) {
     var recs = Array.isArray(item.recommendations) ? item.recommendations : [];
     if (!recs.length) return '';
@@ -120,12 +141,22 @@ function buildRecommendationsHtml(item, cadenaTemporadas) {
     if (cadenaTemporadas && Array.isArray(cadenaTemporadas.eslabones)) {
         cadenaTemporadas.eslabones.forEach(function (r) { excluir.add(String(r.id)); });
     }
-    var lista = recs.filter(function (r) { return !excluir.has(String(r.id)); }).slice(0, 10);
+    var origen = item.title || item.titulo || '';
+    var Reco = window.AppRecommend || null;
+    var allowNsfw = Reco ? Reco.allowNsfw() : false;
+    var lista = recs.filter(function (r) {
+        if (!r || excluir.has(String(r.id))) return false;
+        if (!allowNsfw && r.isAdult) return false;
+        return !recoYaMarcada(r.id);
+    }).slice(0, 10);
     if (!lista.length) return '';
+    var motivo = origen
+        ? (Reco ? Reco.reasonFromOrigin(origen) : 'Porque te gustó ' + origen)
+        : '';
     return '<div class="detail-section detail-section-recs"><h2 class="detail-h2">Si te gustó esto</h2><div class="wcard-grid related-grid">' +
         lista.map(function (r) {
             var cat = r.format === 'NOVEL' ? 'novelas' : (r.type === 'ANIME' ? 'anime' : 'manga');
-            return buildMediaCardHtml(r, cat, '');
+            return buildMediaCardHtml(r, cat, '', motivo);
         }).join('') +
         '</div></div>';
 }

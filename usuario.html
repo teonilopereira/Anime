@@ -23,15 +23,15 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=80432ed4">
+        <link rel="stylesheet" href="css/bundle.min.css?v=e5dc889a">
 
-    <link rel="stylesheet" href="css/usuario.css?v=80432ed4">
+    <link rel="stylesheet" href="css/usuario.css?v=e5dc889a">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=80432ed4">
-    <script src="js/vendor/lucide.min.js?v=80432ed4" defer></script>
-    <script src="js/core/theme.js?v=80432ed4"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=e5dc889a">
+    <script src="js/vendor/lucide.min.js?v=e5dc889a" defer></script>
+    <script src="js/core/theme.js?v=e5dc889a"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="usuario">
@@ -46,8 +46,8 @@
     <main class="perfil-page" id="main-content">
         <!-- Encabezado de página -->
         <header class="perfil-page-header">
-            <h1>MI PERFIL</h1>
-            <p>Gestiona tu información, personaliza tu experiencia y sigue tu progreso.</p>
+            <h1 id="perfilPageTitle">MI PERFIL</h1>
+            <p id="perfilPageLead">Gestiona tu información, personaliza tu experiencia y sigue tu progreso.</p>
         </header>
 
         <div class="app-loader" id="perfilLoader">
@@ -308,15 +308,71 @@
                 <div class="perfil-footer-dot"></div>
             </div>
         </div><!-- /perfilContent -->
+
+        <!-- Perfil público de otro usuario: usuario.html?u=<username> -->
+        <section class="perfil-publico" id="perfilPublico" hidden aria-labelledby="ppubNombre">
+            <div class="ppub-card">
+                <div class="ppub-avatar" id="ppubAvatar"><span id="ppubIniciales"></span></div>
+                <div class="ppub-info">
+                    <div class="perfil-user-label">USUARIO</div>
+                    <h2 class="ppub-nombre" id="ppubNombre">—</h2>
+                    <div class="ppub-username" id="ppubUsername"></div>
+                    <div class="perfil-apodo" id="ppubApodo" hidden></div>
+                </div>
+            </div>
+            <div class="ppub-stats">
+                <div class="perfil-summary-card">
+                    <div class="perfil-card-label">NIVEL</div>
+                    <div class="perfil-card-value-row"><span class="perfil-card-icon" aria-hidden="true">🏆</span><span id="ppubNivel">1</span></div>
+                    <div class="perfil-card-sublabel" id="ppubNivelLabel">Principiante</div>
+                </div>
+                <div class="perfil-summary-card">
+                    <div class="perfil-card-label">FAVORITOS</div>
+                    <div class="perfil-card-value-row"><span class="perfil-card-icon" aria-hidden="true">❤️</span><span id="ppubLikes">0</span></div>
+                    <div class="perfil-card-sublabel">Me gusta</div>
+                </div>
+                <div class="perfil-summary-card">
+                    <div class="perfil-card-label">VISTOS</div>
+                    <div class="perfil-card-value-row"><span class="perfil-card-icon" aria-hidden="true">👁️</span><span id="ppubVistos">0</span></div>
+                    <div class="perfil-card-sublabel">Obras marcadas</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Perfil privado o inexistente: mismo mensaje en los dos casos -->
+        <section class="perfil-guest" id="perfilPublicoVacio" hidden>
+            <div class="perfil-guest-icon" aria-hidden="true">🔒</div>
+            <h2 class="perfil-guest-title">ESTE PERFIL NO ESTÁ DISPONIBLE</h2>
+            <p class="perfil-guest-text" id="perfilPublicoVacioTexto">El perfil es privado o no existe. Cada persona decide si su perfil se muestra.</p>
+            <div class="perfil-guest-btns">
+                <a href="usuario.html" class="perfil-guest-btn-back">← IR A MI PERFIL</a>
+            </div>
+        </section>
+
+        <!-- Muro de actividad de la comunidad (solo perfiles públicos, lo filtra la base) -->
+        <section class="perfil-muro" id="muroActividad" aria-labelledby="muroTitulo">
+            <div class="perfil-activity-head">
+                <h2 class="perfil-activity-head-title" id="muroTitulo">
+                    <span class="pp-icon" aria-hidden="true">🌐</span> MURO DE LA COMUNIDAD
+                </h2>
+                <a href="configuracion.html" class="perfil-activity-link" id="muroPrivacidadLink">¿Querés aparecer? Hacé público tu perfil →</a>
+            </div>
+            <p class="muro-nota">Solo se muestra la actividad de quienes activaron "Perfil público" en Configuración.</p>
+            <ul class="muro-lista" id="muroLista" aria-live="polite"></ul>
+            <p class="muro-estado" id="muroEstado" role="status"></p>
+            <div class="muro-acciones">
+                <button type="button" class="perfil-panel-btn" id="muroMasBtn" hidden>CARGAR MÁS</button>
+            </div>
+        </section>
     </main>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=80432ed4"></script>
-    <script src="js/core/i18n.min.js?v=80432ed4"></script>
-    <script src="js/core/namespace.js?v=80432ed4"></script>
-    <script type="module" src="api/supabase-config.js?v=80432ed4" async></script>
-    <script src="js/core-bundle.min.js?v=80432ed4" defer></script>
-    <script src="js/pages/usuario.js?v=80432ed4" defer></script>
-    <script src="js/pages/import-mal.js?v=80432ed4" defer></script>
+    <script src="js/core/config.js?v=e5dc889a"></script>
+    <script src="js/core/i18n.min.js?v=e5dc889a"></script>
+    <script src="js/core/namespace.js?v=e5dc889a"></script>
+    <script type="module" src="api/supabase-config.js?v=e5dc889a" async></script>
+    <script src="js/core-bundle.min.js?v=e5dc889a" defer></script>
+    <script src="js/pages/usuario.js?v=e5dc889a" defer></script>
+    <script src="js/pages/import-mal.js?v=e5dc889a" defer></script>
 </body>
 </html>

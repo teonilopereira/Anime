@@ -542,21 +542,67 @@ async function loadMyCommentLikes(commentIds) {
 }
 
 // ─── Muro de actividad ───────────────────────────────────────────
+// La base (013) ya filtra a los perfiles con is_public = true: el opt-out se
+// respeta en el servidor, no acá. El cliente igual devuelve solo los campos
+// que pinta la UI (lista blanca) y descarta actor_id.
+const FEED_FIELDS = ["username", "display_name", "photo_url", "action", "category", "item_id", "titulo", "img", "created_at"];
+
 async function loadActivityFeed(limit = 30, offset = 0) {
     const { data, error } = await supabase
         .rpc("get_activity_feed", { p_limit: Number(limit) || 30, p_offset: Number(offset) || 0 });
     if (error) { console.warn("loadActivityFeed:", error.message); return []; }
-    return data || [];
+    return (data || []).map((row) => {
+        const out = {};
+        FEED_FIELDS.forEach((k) => { out[k] = row[k] ?? null; });
+        return out;
+    });
 }
 
 // ─── Perfil público de otro usuario ──────────────────────────────
+// get_public_profile devuelve 0 filas si el perfil es privado o no existe
+// (013); los dos casos se ven igual a propósito. De lo que viene se queda
+// solo con la lista blanca: nunca id, email, provider ni exp.
+const PUBLIC_PROFILE_FIELDS = ["username", "display_name", "photo_url", "level", "apodo", "total_likes", "total_viewed"];
+
 async function getPublicProfile(username) {
     const uname = String(username || "").trim();
     if (!uname) return null;
     const { data, error } = await supabase
         .rpc("get_public_profile", { p_username: uname });
     if (error) { console.warn("getPublicProfile:", error.message); return null; }
-    return (data && data[0]) || null;
+    const row = data && data[0];
+    if (!row) return null;
+    const out = {};
+    PUBLIC_PROFILE_FIELDS.forEach((k) => { out[k] = row[k] ?? null; });
+    return out;
+}
+
+// ─── Visibilidad del propio perfil (profiles.is_public, 013) ──────
+// null = no se pudo saber (sin sesión o migración 013 sin aplicar).
+async function getProfileVisibility() {
+    const user = await getCurrentUserAsync();
+    if (!user) return null;
+    const { data, error } = await supabase
+        .from("profiles").select("is_public").eq("id", user.id).maybeSingle();
+    if (error) { console.warn("getProfileVisibility:", error.message); return null; }
+    if (!data || typeof data.is_public !== "boolean") return null;
+    return data.is_public;
+}
+
+async function setProfileVisibility(isPublic) {
+    const user = await getCurrentUserAsync();
+    if (!user) throw new Error("Tenés que iniciar sesión.");
+    const { data, error } = await supabase
+        .from("profiles")
+        .update({ is_public: !!isPublic, updated_at: new Date().toISOString() })
+        .eq("id", user.id)
+        .select("is_public");
+    if (error) {
+        console.warn("setProfileVisibility:", error.message);
+        throw new Error("No se pudo guardar la visibilidad del perfil.");
+    }
+    if (!data || !data.length) throw new Error("No se encontró tu perfil.");
+    return !!data[0].is_public;
 }
 
 async function addComment(category, itemId, body, parentId, refType, refNumber, spoiler) {
@@ -658,6 +704,8 @@ const AppSupabase = Object.freeze({
     loadMyCommentLikes,
     loadActivityFeed,
     getPublicProfile,
+    getProfileVisibility,
+    setProfileVisibility,
 
     signInWithGoogle,
     signOutGoogle,

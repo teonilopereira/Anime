@@ -91,6 +91,104 @@ var APODO_LABELS = {
     leyenda: 'Leyenda Mirudoku'
 };
 
+/* ── Comunidad: helpers puros (perfil público y muro) ──
+ * Sin DOM ni red, para poder testearlos (tests/unit/usuario-publico.test.js).
+ * La privacidad la hace cumplir la base (migración 013: solo is_public = true);
+ * estos helpers son una segunda capa: lista blanca de campos y URLs seguras.
+ */
+var USERNAME_MAX = 128;
+
+/** Lee ?u=<username> de un location.search. '' si no hay o es inválido. */
+function leerUsernameDeUrl(search) {
+    var raw = '';
+    try { raw = new URLSearchParams(search || '').get('u') || ''; } catch (_) { return ''; }
+    raw = raw.replace(/[\u0000-\u001f\u007f]/g, '').trim();
+    if (!raw || raw.length > USERNAME_MAX) return '';
+    return raw;
+}
+
+/** Solo https: o data:image/ (avatar redimensionado que guarda usuario.js). */
+function urlImagenSegura(url) {
+    if (!url || typeof url !== 'string') return '';
+    if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(url)) return url;
+    try {
+        var u = new URL(url);
+        return u.protocol === 'https:' ? u.href : '';
+    } catch (_) { return ''; }
+}
+
+function enteroNoNegativo(v, min) {
+    var n = Math.floor(Number(v));
+    if (!isFinite(n)) n = 0;
+    return Math.max(min || 0, n);
+}
+
+/**
+ * Arma la tarjeta pública a partir de lo que devuelve getPublicProfile.
+ * Lista blanca: aunque la fila traiga email, provider, id o exp, no salen.
+ */
+function armarPerfilPublico(row) {
+    if (!row || typeof row !== 'object') return null;
+    var username = String(row.username || '').trim();
+    if (!username) return null;
+    var nombre = String(row.display_name || '').trim() || username;
+    return {
+        nombre: nombre,
+        username: username,
+        foto: urlImagenSegura(row.photo_url),
+        nivel: Math.min(enteroNoNegativo(row.level, 1), 50),
+        apodo: row.apodo && APODO_LABELS[row.apodo] ? APODO_LABELS[row.apodo] : '',
+        likes: enteroNoNegativo(row.total_likes),
+        vistos: enteroNoNegativo(row.total_viewed)
+    };
+}
+
+function tiempoRelativo(iso, ahora) {
+    var t = new Date(iso).getTime();
+    if (!isFinite(t)) return '';
+    var diff = Math.max(0, Math.round(((ahora || Date.now()) - t) / 1000));
+    if (diff < 60) return 'hace un momento';
+    var min = Math.floor(diff / 60);
+    if (min < 60) return 'hace ' + min + ' min';
+    var h = Math.floor(min / 60);
+    if (h < 24) return 'hace ' + h + ' h';
+    var d = Math.floor(h / 24);
+    if (d < 30) return d === 1 ? 'hace 1 día' : 'hace ' + d + ' días';
+    try { return new Date(t).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    catch (_) { return ''; }
+}
+
+var MURO_VERBOS = { liked: 'le dio me gusta a', viewed: 'marcó como vista' };
+var MURO_CATS = { anime: 1, manga: 1, novelas: 1 };
+
+/** Convierte una fila de loadActivityFeed en datos listos para pintar (o null). */
+function armarItemMuro(row, ahora) {
+    if (!row || !row.username || !MURO_VERBOS[row.action] || !row.item_id) return null;
+    var cat = MURO_CATS[row.category] ? row.category : '';
+    var username = String(row.username);
+    return {
+        quien: String(row.display_name || '').trim() || username,
+        perfilHref: 'usuario.html?u=' + encodeURIComponent(username),
+        verbo: MURO_VERBOS[row.action],
+        titulo: String(row.titulo || '').trim() || 'una obra',
+        obraHref: cat ? 'detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(String(row.item_id)) : '',
+        img: urlImagenSegura(row.img),
+        cuando: tiempoRelativo(row.created_at, ahora)
+    };
+}
+
+window.PerfilPublico = {
+    leerUsernameDeUrl: leerUsernameDeUrl,
+    urlImagenSegura: urlImagenSegura,
+    armarPerfilPublico: armarPerfilPublico,
+    armarItemMuro: armarItemMuro,
+    tiempoRelativo: tiempoRelativo
+};
+
+// Antes de initPage(): decide si la página es el perfil propio o uno público.
+var _usernamePublico = leerUsernameDeUrl(window.location.search);
+var _perfilPublicoCargado = false;
+
 /* ── Init ── */
 applyBackgroundPreference();
 
@@ -146,6 +244,7 @@ function showGuest() {
 }
 
 async function initPage() {
+    if (_usernamePublico) { await initPerfilPublico(); return; }
     showLoader();
     var supabase = typeof window.waitForSupabase === 'function' ? await window.waitForSupabase() : window.AppSupabase;
     if (!supabase) { hideLoader(); showGuest(); return; }
@@ -302,7 +401,11 @@ function renderProfile(user, profile) {
     document.getElementById('prefTema').textContent = read('pref:bgMode', 'default') === 'default' ? 'Oscuro 🌙' : read('pref:bgMode') === 'color' ? 'Color 🎨' : 'Imagen 🖼';
     document.getElementById('prefNotif').textContent = read('pref:notif', 'on') === 'off' ? 'Desactivadas 🔕' : 'Activadas 🔔';
     document.getElementById('prefContenido').textContent = read('pref:contenido', 'personalizado') === 'general' ? 'General ⭐' : 'Personalizado ⭐';
-    document.getElementById('prefPrivacidad').textContent = read('pref:privacidad', 'publica') === 'privada' ? 'Privada 🔒' : 'Pública 🔒';
+    // La fuente de verdad es profiles.is_public (013); sin la columna, el cache local.
+    var esPublico = profile && typeof profile.is_public === 'boolean'
+        ? profile.is_public
+        : read('pref:privacidad', 'privada') === 'publica';
+    document.getElementById('prefPrivacidad').textContent = esPublico ? 'Pública 🌐' : 'Privada 🔒';
 
     var rawActivity = [];
     try {
@@ -557,3 +660,189 @@ avatarInput.addEventListener('change', function() {
     }
 })();
 
+
+
+/* ══════════════════════════════════════════════════════════════
+   Comunidad: perfil público (usuario.html?u=<username>) y muro
+   ══════════════════════════════════════════════════════════════ */
+
+
+/** Cliente de Supabase también para visitantes sin sesión (carga diferida). */
+async function clienteComunidad() {
+    if (window.AppSupabase) return window.AppSupabase;
+    try {
+        if (typeof window.waitForSupabase === 'function') {
+            var sb = await window.waitForSupabase();
+            if (sb) return sb;
+        }
+        if (typeof window.__loadSupabase === 'function') return await window.__loadSupabase();
+    } catch (e) { console.warn('[comunidad] Supabase no disponible:', e); }
+    return window.AppSupabase || null;
+}
+
+function mostrarSolo(idVisible) {
+    ['perfilGuest', 'perfilPublico', 'perfilPublicoVacio'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.hidden = id !== idVisible;
+    });
+    var content = document.getElementById('perfilContent');
+    if (content) content.classList.add('perfil-init-hidden');
+}
+
+function pintarAvatar(contenedor, iniciales, foto, nombre) {
+    var vieja = contenedor.querySelector('img');
+    if (vieja) vieja.remove();
+    iniciales.textContent = nombre.slice(0, 2).toUpperCase();
+    iniciales.style.display = '';
+    if (!foto) return;
+    var img = document.createElement('img');
+    img.alt = '';
+    img.src = foto;
+    img.onerror = function () { img.remove(); iniciales.style.display = ''; };
+    iniciales.style.display = 'none';
+    contenedor.appendChild(img);
+}
+
+async function initPerfilPublico() {
+    if (_perfilPublicoCargado) return;
+    _perfilPublicoCargado = true;
+    showLoader();
+
+    var title = document.getElementById('perfilPageTitle');
+    var lead = document.getElementById('perfilPageLead');
+    if (title) title.textContent = 'PERFIL';
+    if (lead) lead.textContent = 'Lo que esta persona eligió mostrar en Mirudoku.';
+
+    var perfil = null;
+    var sb = await clienteComunidad();
+    if (sb && sb.getPublicProfile) {
+        try { perfil = armarPerfilPublico(await sb.getPublicProfile(_usernamePublico)); }
+        catch (e) { console.warn('[comunidad] getPublicProfile:', e); }
+    }
+    hideLoader();
+
+    if (!perfil) {
+        var texto = document.getElementById('perfilPublicoVacioTexto');
+        if (texto && !sb) texto.textContent = 'No pudimos cargar perfiles ahora. Probá de nuevo en un rato.';
+        mostrarSolo('perfilPublicoVacio');
+        return;
+    }
+
+    document.title = 'Mirudoku | ' + perfil.nombre;
+    document.getElementById('ppubNombre').textContent = perfil.nombre;
+    document.getElementById('ppubUsername').textContent = '@' + perfil.username;
+    var apodo = document.getElementById('ppubApodo');
+    apodo.hidden = !perfil.apodo;
+    apodo.textContent = perfil.apodo ? '★ ' + perfil.apodo : '';
+    document.getElementById('ppubNivel').textContent = String(perfil.nivel);
+    document.getElementById('ppubNivelLabel').textContent = levelName(perfil.nivel);
+    document.getElementById('ppubLikes').textContent = String(perfil.likes);
+    document.getElementById('ppubVistos').textContent = String(perfil.vistos);
+    pintarAvatar(document.getElementById('ppubAvatar'), document.getElementById('ppubIniciales'), perfil.foto, perfil.nombre);
+    mostrarSolo('perfilPublico');
+}
+
+/* ── Muro de actividad paginado ── */
+var MURO_PAGINA = 20;
+var _muroOffset = 0;
+var _muroCargando = false;
+var _muroIniciado = false;
+
+function nodoItemMuro(item) {
+    var li = document.createElement('li');
+    li.className = 'muro-item';
+    if (item.img) {
+        var img = document.createElement('img');
+        img.className = 'muro-item-img';
+        img.src = item.img;
+        img.alt = '';
+        img.loading = 'lazy';
+        img.onerror = function () { img.remove(); };
+        li.appendChild(img);
+    }
+    var texto = document.createElement('div');
+    texto.className = 'muro-item-texto';
+    var quien = document.createElement('a');
+    quien.href = item.perfilHref;
+    quien.textContent = item.quien;
+    texto.appendChild(quien);
+    texto.appendChild(document.createTextNode(' ' + item.verbo + ' '));
+    var obra = document.createElement(item.obraHref ? 'a' : 'strong');
+    if (item.obraHref) obra.href = item.obraHref;
+    obra.textContent = item.titulo;
+    texto.appendChild(obra);
+    if (item.cuando) {
+        var cuando = document.createElement('span');
+        cuando.className = 'muro-item-cuando';
+        cuando.textContent = item.cuando;
+        texto.appendChild(cuando);
+    }
+    li.appendChild(texto);
+    return li;
+}
+
+async function loadMuroPagina() {
+    if (_muroCargando) return;
+    var lista = document.getElementById('muroLista');
+    var estado = document.getElementById('muroEstado');
+    var mas = document.getElementById('muroMasBtn');
+    if (!lista) return;
+    _muroCargando = true;
+    if (mas) mas.disabled = true;
+    if (estado) estado.textContent = 'Cargando actividad…';
+
+    var filas = null;
+    var sb = await clienteComunidad();
+    if (sb && sb.loadActivityFeed) {
+        // Se pide uno de más para saber si hay otra página sin un COUNT.
+        try { filas = await sb.loadActivityFeed(MURO_PAGINA + 1, _muroOffset); }
+        catch (e) { console.warn('[comunidad] loadActivityFeed:', e); }
+    }
+    _muroCargando = false;
+    if (mas) mas.disabled = false;
+
+    if (!Array.isArray(filas)) {
+        if (estado) estado.textContent = 'No pudimos cargar el muro ahora. Probá de nuevo en un rato.';
+        if (mas) mas.hidden = _muroOffset === 0;
+        return;
+    }
+
+    var hayMas = filas.length > MURO_PAGINA;
+    var pagina = filas.slice(0, MURO_PAGINA);
+    _muroOffset += pagina.length;
+    var ahora = Date.now();
+    pagina.forEach(function (row) {
+        var item = armarItemMuro(row, ahora);
+        if (item) lista.appendChild(nodoItemMuro(item));
+    });
+
+    if (estado) {
+        estado.textContent = lista.children.length ? (hayMas ? '' : 'Llegaste al final del muro.')
+            : 'Todavía no hay actividad pública. Cuando alguien con perfil público marque una obra, aparece acá.';
+    }
+    if (mas) mas.hidden = !hayMas;
+}
+
+function initMuro() {
+    var seccion = document.getElementById('muroActividad');
+    if (!seccion || _muroIniciado) return;
+    var arrancar = function () {
+        if (_muroIniciado) return;
+        _muroIniciado = true;
+        loadMuroPagina();
+    };
+    var mas = document.getElementById('muroMasBtn');
+    if (mas) mas.addEventListener('click', function () { loadMuroPagina(); });
+    // Diferido hasta que se ve: para un visitante sin sesión el muro es lo
+    // único que obliga a descargar el SDK de Supabase.
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+            if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); arrancar(); }
+        }, { rootMargin: '200px' });
+        io.observe(seccion);
+    } else {
+        arrancar();
+    }
+}
+
+initMuro();

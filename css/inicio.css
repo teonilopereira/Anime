@@ -131,6 +131,58 @@ body.menu-page #main-content {
     color: rgba(255, 255, 255, 0.78);
 }
 
+/* Siguiente paso concreto: "Sigue: Ep. 5 de 12", "Empezar", "Al día". */
+.home-stage-step {
+    margin: 0;
+    font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+    font-weight: 700;
+    color: var(--accent-cyan);
+}
+
+/* Acción rápida "+1 visto / +1 leído". */
+.home-plus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.6);
+    background: rgba(var(--accent-cyan-rgb), 0.12);
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.home-plus:hover { background: rgba(var(--accent-cyan-rgb), 0.24); }
+.home-plus:disabled { opacity: 0.6; cursor: progress; }
+
+.home-plus--mini {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 14px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.home-stage-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.home-stage-row .home-stage-mini {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.home-stage-mini-copy .home-stage-next {
+    color: var(--accent-cyan);
+    font-weight: 600;
+}
+
 .home-stage-actions {
     display: flex;
     flex-wrap: wrap;
@@ -682,6 +734,7 @@ a.home-top-slat:hover {
     .home-top-strip,
     .home-mini-track { scroll-behavior: auto; }
     .home-stage-btn,
+    .home-plus,
     .home-top-slat,
     .home-dock-list a { transition: none; }
 }

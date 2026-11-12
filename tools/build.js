@@ -89,6 +89,7 @@ const CSS_LITE_SOURCES = CSS_SOURCES.filter((rel) => !CSS_LITE_EXCLUDE.has(rel))
 const JS_SOURCES = [
     'js/core/constants.js',
     'js/core/genres.js',
+    'js/core/recommend.js',
     'js/core/api.js',
     'js/core/api-mangadex.js',
     'js/datos.js',
@@ -112,8 +113,10 @@ const JS_SOURCES = [
     'js/catalog/search.js',
     'js/catalog/pagination.js',
     'js/core/common-ui.js',
+    'js/core/notif-prefs.js',
     'js/core/reminders.js',
     'js/core/missions.js',
+    'js/core/novedades.js',
 ];
 
 // Mascota: bundle aparte que mascot-loader.js pide cuando la pagina ya cargo.
