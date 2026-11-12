@@ -44,15 +44,15 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=80432ed4">
-    <link rel="stylesheet" href="css/inicio.css?v=80432ed4">
+        <link rel="stylesheet" href="css/bundle.min.css?v=7be696ad">
+    <link rel="stylesheet" href="css/inicio.css?v=7be696ad">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=80432ed4">
+    <link rel="stylesheet" href="css/fonts.css?v=7be696ad">
 
-    <script src="js/vendor/lucide.min.js?v=80432ed4" defer></script>
-    <script src="js/core/theme.js?v=80432ed4"></script>
+    <script src="js/vendor/lucide.min.js?v=7be696ad" defer></script>
+    <script src="js/core/theme.js?v=7be696ad"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body class="menu-page" data-page="index">
@@ -74,6 +74,9 @@
          (se rellena en js/pages/inicio.js). Sin datos queda oculto y la
          portada arranca directo en los populares. -->
     <section id="homeStage" class="home-stage" aria-labelledby="homeStageLabel" hidden></section>
+
+    <!-- Novedades (las rellena js/core/novedades.js vía inicio.js; vacío y oculto si no hay). -->
+    <section id="homeNovedades" hidden></section>
 
     <!-- Racha diaria (se rellena en js/pages/inicio.js; oculto sin sesión) -->
     <section id="streakWidget" class="streak-widget" aria-label="Racha diaria" hidden></section>
@@ -109,13 +112,13 @@
     </section>
 
     <div class="home-bottom">
-        <!-- Invitación a crear cuenta: inicio.js la oculta cuando hay sesión. -->
-        <section class="home-join" id="homeJoin" aria-labelledby="homeJoinTitle">
+        <!-- Invitación a crear cuenta: arranca oculta e inicio.js la muestra solo sin sesión confirmada. -->
+        <section class="home-join" id="homeJoin" aria-labelledby="homeJoinTitle" hidden>
             <div class="home-join-copy">
                 <h2 id="homeJoinTitle" data-i18n="index.join.title">Guardá por dónde vas</h2>
                 <p data-i18n="index.join.body">Con una cuenta, Mirudoku recuerda el episodio que te toca y lo pone primero cuando volvés.</p>
             </div>
-            <a class="home-join-btn" href="Login.html" data-i18n="index.join.cta">Crear cuenta</a>
+            <a class="home-join-btn" href="Login.html?modo=registro" data-i18n="index.join.cta">Crear cuenta</a>
         </section>
 
         <a class="home-reto" href="retos.html#anime">
@@ -127,13 +130,13 @@
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=80432ed4"></script>
-    <script src="js/core/i18n.min.js?v=80432ed4"></script>
-    <script src="js/core/namespace.js?v=80432ed4"></script>
-    <script type="module" src="api/supabase-config.js?v=80432ed4" async></script>
-    <script src="js/core-bundle.min.js?v=80432ed4" defer></script>
-    <script src="js/pages/script.js?v=80432ed4" defer></script>
-    <script src="js/pages/inicio.js?v=80432ed4" defer></script>
+    <script src="js/core/config.js?v=7be696ad"></script>
+    <script src="js/core/i18n.min.js?v=7be696ad"></script>
+    <script src="js/core/namespace.js?v=7be696ad"></script>
+    <script type="module" src="api/supabase-config.js?v=7be696ad" async></script>
+    <script src="js/core-bundle.min.js?v=7be696ad" defer></script>
+    <script src="js/pages/script.js?v=7be696ad" defer></script>
+    <script src="js/pages/inicio.js?v=7be696ad" defer></script>
 </body>
 </html>
 

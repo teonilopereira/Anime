@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { leerCspCabecera, cspParaMeta } from './csp.js';
 
@@ -124,11 +125,129 @@ for (const name of fs.readdirSync(ROOT).filter((f) => f.endsWith('.html'))) {
   }
 }
 
+// ─── Verificaciones de HTML entre páginas ────────────────────────────
+// Cubren todos los *.html de la raíz (no solo HTML_FILES):
+//  1. enlaces internos rotos: href a un .html propio que no existe (incluye
+//     canonical/hreflang al dominio publicado). Case-sensitive como GitHub Pages.
+//  2. ids duplicados dentro de un mismo HTML (rompen getElementById y los
+//     aria-labelledby / label for).
+//  3. data-i18n con una clave que no está en el diccionario "es" de js/core/i18n.js
+//     (en pantalla se vería "[clave]").
+// Comentarios y <script> inline se ignoran para no tomar ids/links de strings JS.
+// Si una de estas verificaciones tuviera falsos positivos legítimos, pasarla a
+// WARN_ONLY en vez de borrarla.
+const SITE_ORIGINS = ['https://mirudoku.netlify.app/'];
+const WARN_ONLY = new Set([]); // p. ej. 'ids' para que solo avise
+const ROOT_HTML = fs.readdirSync(ROOT).filter((f) => f.endsWith('.html')).sort();
+
+function loadSpanishI18nKeys() {
+  const noop = () => {};
+  const document = {
+    readyState: 'complete',
+    querySelectorAll: () => [],
+    documentElement: { setAttribute: noop },
+    addEventListener: noop,
+    createElement: () => ({}),
+    head: { appendChild: noop }
+  };
+  const storage = { getItem: () => null, setItem: noop, removeItem: noop };
+  const window = { document, localStorage: storage, navigator: { language: 'es' }, addEventListener: noop, dispatchEvent: noop };
+  const sandbox = { window, document, localStorage: storage, navigator: window.navigator, console, CustomEvent: function () {} };
+  vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/core/i18n.js'), 'utf8'), sandbox, { filename: 'js/core/i18n.js' });
+  const es = sandbox.window.AppI18n?._translations?.es;
+  if (!es) throw new Error('js/core/i18n.js no expuso AppI18n._translations.es');
+  return es;
+}
+
+function hasI18nKey(dict, key) {
+  if (dict[key] != null) return true;
+  let current = dict;
+  for (const part of key.split('.')) {
+    if (current == null) return false;
+    current = current[part];
+  }
+  return current != null && typeof current !== 'object';
+}
+
+// Blanquea (sin borrar) comentarios y <script>: así los índices y números de
+// línea siguen coincidiendo con el archivo original.
+const blank = (chunk) => chunk.replace(/[^\n]/g, ' ');
+const stripNonMarkup = (html) => html
+  .replace(/<!--[\s\S]*?-->/g, blank)
+  .replace(/<script\b[\s\S]*?<\/script>/gi, blank);
+
+function lineOf(text, index) {
+  return text.slice(0, index).split('\n').length;
+}
+
+const htmlIssues = { links: [], ids: [], i18n: [] };
+let esDict = null;
+try {
+  esDict = loadSpanishI18nKeys();
+} catch (error) {
+  failed = true;
+  issueCount += 1;
+  console.log(`I18N no se pudo leer el diccionario: ${error.message}`);
+}
+
+for (const name of ROOT_HTML) {
+  const raw = fs.readFileSync(path.join(ROOT, name), 'utf8');
+  const text = stripNonMarkup(raw);
+
+  for (const m of text.matchAll(/\shref=["']([^"']+)["']/gi)) {
+    let href = m[1].trim();
+    const origin = SITE_ORIGINS.find((o) => href.startsWith(o));
+    if (origin) href = href.slice(origin.length);
+    else if (/^([a-z][a-z0-9+.-]*:|\/\/)/i.test(href)) continue; // externo, mailto:, javascript:
+    const target = href.split(/[?#]/)[0].replace(/^\.?\//, '');
+    if (!target.endsWith('.html')) continue;
+    if (!fs.existsSync(path.join(ROOT, target))) {
+      htmlIssues.links.push(`${name}:${lineOf(text, m.index)} enlaza a "${m[1]}", que no existe`);
+    }
+  }
+
+  const seen = new Map();
+  for (const m of text.matchAll(/\sid=["']([^"']+)["']/g)) {
+    const id = m[1];
+    if (seen.has(id)) {
+      htmlIssues.ids.push(`${name}:${lineOf(text, m.index)} id="${id}" repetido (primero en línea ${seen.get(id)})`);
+    } else {
+      seen.set(id, lineOf(text, m.index));
+    }
+  }
+
+  if (esDict) {
+    for (const m of text.matchAll(/\sdata-i18n=["']([^"']*)["']/g)) {
+      const key = m[1].trim();
+      if (key && !hasI18nKey(esDict, key)) {
+        htmlIssues.i18n.push(`${name}:${lineOf(text, m.index)} data-i18n="${key}" no está en js/core/i18n.js`);
+      }
+    }
+  }
+}
+
+const HTML_CHECK_LABELS = {
+  links: 'Enlaces internos rotos',
+  ids: 'Ids duplicados',
+  i18n: 'Claves data-i18n inexistentes'
+};
+for (const [kind, list] of Object.entries(htmlIssues)) {
+  if (!list.length) continue;
+  const warnOnly = WARN_ONLY.has(kind);
+  console.log(`${warnOnly ? 'AVISO' : 'HTML'} ${HTML_CHECK_LABELS[kind]} (${list.length}):`);
+  for (const line of list.slice(0, 30)) console.log(`  ${line}`);
+  if (!warnOnly) {
+    failed = true;
+    issueCount += list.length;
+  }
+}
+
 if (failed) {
   console.error(`\nQuality check failed: ${issueCount} issue(s) found.`);
   process.exit(1);
 }
 
-console.log(`Quality check passed: ${HTML_FILES.length} HTML file(s) and ${jsFiles.length} JS file(s) verified.`);
+console.log(`Quality check passed: ${HTML_FILES.length} HTML file(s) and ${jsFiles.length} JS file(s) verified; links, ids and data-i18n checked in ${ROOT_HTML.length} HTML file(s).`);
 
 

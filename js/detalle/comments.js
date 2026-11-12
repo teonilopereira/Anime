@@ -295,6 +295,13 @@
         var isOwn = user && comment.user_id === user.id;
         var wasEdited = comment.updated_at !== comment.created_at;
         var initials = getInitials(author.display_name || author.username);
+        // Enlace al perfil público si el autor tiene username (sin perfil
+        // cargado queda el "Usuario" de siempre, sin enlace). Un perfil privado
+        // abre el estado vacío de usuario.html.
+        var authorUname = String(author.username || "").trim();
+        var authorHtml = authorUname
+            ? '<a class="comment-author" href="usuario.html?u=' + encodeURIComponent(authorUname) + '" style="color:inherit">' + name + '</a>'
+            : '<span class="comment-author">' + name + '</span>';
 
         var avatarHtml;
         if (photoUrl) {
@@ -328,7 +335,7 @@
         var html = '<div class="comment-card" data-comment-id="' + esc(comment.id) + '" data-depth="' + depth + '">' +
             '<div class="comment-header">' +
                 avatarHtml +
-                '<span class="comment-author">' + name + '</span>' +
+                authorHtml +
                 refTag +
                 (comment.spoiler ? '<span class="comment-spoiler-tag">Spoiler</span>' : '') +
                 '<span class="comment-date">' + date + '</span>' +

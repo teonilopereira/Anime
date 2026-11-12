@@ -19,17 +19,17 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle-lite.min.css?v=80432ed4">
+        <link rel="stylesheet" href="css/bundle-lite.min.css?v=7be696ad">
 
-        <link rel="stylesheet" href="css/mascot.min.css?v=80432ed4">
+        <link rel="stylesheet" href="css/mascot.min.css?v=7be696ad">
 
-    <link rel="stylesheet" href="css/configuracion.css?v=80432ed4">
+    <link rel="stylesheet" href="css/configuracion.css?v=7be696ad">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=80432ed4">
-    <script src="js/vendor/lucide.min.js?v=80432ed4" defer></script>
-    <script src="js/core/theme.js?v=80432ed4"></script>
+    <link rel="stylesheet" href="css/fonts.css?v=7be696ad">
+    <script src="js/vendor/lucide.min.js?v=7be696ad" defer></script>
+    <script src="js/core/theme.js?v=7be696ad"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="configuracion">
@@ -146,15 +146,97 @@
                             <span class="cfg-switch-slider"></span>
                         </label>
                     </div>
-                    <div class="cfg-toggle-row">
-                        <div class="cfg-toggle-left">
-                            <div class="cfg-toggle-label" data-i18n="config.notif.titulo">Notificaciones</div>
-                            <div class="cfg-toggle-desc" data-i18n="config.notif.desc">Recibir alertas y novedades de la app.</div>
+                    <!-- Avisos por categoría (retencion-notificaciones). La lógica vive en
+                         js/core/notif-prefs.js (window.AppNotifPrefs). -->
+                    <div class="cfg-notif" id="cfgNotif" role="group" aria-labelledby="cfgNotifTitle">
+                        <h3 class="cfg-notif-title" id="cfgNotifTitle" data-i18n="config.notif.titulo">Notificaciones</h3>
+                        <p class="cfg-toggle-desc" data-i18n="config.notif.lead">Elegí qué avisos recibís, cuántos por día y cuándo no molestar.</p>
+                        <div class="cfg-notif-pause" id="notifPauseStatus" role="status" aria-live="polite" hidden></div>
+                        <div class="cfg-toggle-row">
+                            <div class="cfg-toggle-left">
+                                <label class="cfg-toggle-label" for="notifEpisodios" data-i18n="config.notif.episodios.titulo">Episodios nuevos</label>
+                                <div class="cfg-toggle-desc" id="notifEpisodiosDesc" data-i18n="config.notif.episodios.desc">Cuando sale un episodio de un anime que seguís.</div>
+                            </div>
+                            <label class="cfg-switch">
+                                <input type="checkbox" id="notifEpisodios" aria-describedby="notifEpisodiosDesc">
+                                <span class="cfg-switch-slider"></span>
+                            </label>
                         </div>
-                        <label class="cfg-switch">
-                            <input type="checkbox" id="prefNotif">
-                            <span class="cfg-switch-slider"></span>
-                        </label>
+                        <div class="cfg-toggle-row">
+                            <div class="cfg-toggle-left">
+                                <label class="cfg-toggle-label" for="notifRacha" data-i18n="config.notif.racha.titulo">Racha en riesgo</label>
+                                <div class="cfg-toggle-desc" id="notifRachaDesc" data-i18n="config.notif.racha.desc">Te avisa cuando tu racha diaria lleva un día sin actividad. Faltar un día no la corta.</div>
+                            </div>
+                            <label class="cfg-switch">
+                                <input type="checkbox" id="notifRacha" aria-describedby="notifRachaDesc">
+                                <span class="cfg-switch-slider"></span>
+                            </label>
+                        </div>
+                        <div class="cfg-toggle-row">
+                            <div class="cfg-toggle-left">
+                                <label class="cfg-toggle-label" for="notifRetos" data-i18n="config.notif.retos.titulo">Retos y misiones</label>
+                                <div class="cfg-toggle-desc" id="notifRetosDesc" data-i18n="config.notif.retos.desc">Misiones completadas y retos disponibles.</div>
+                            </div>
+                            <label class="cfg-switch">
+                                <input type="checkbox" id="notifRetos" aria-describedby="notifRetosDesc">
+                                <span class="cfg-switch-slider"></span>
+                            </label>
+                        </div>
+                        <div class="cfg-toggle-row">
+                            <div class="cfg-toggle-left">
+                                <label class="cfg-toggle-label" for="notifComunidad" data-i18n="config.notif.comunidad.titulo">Comunidad</label>
+                                <div class="cfg-toggle-desc" id="notifComunidadDesc" data-i18n="config.notif.comunidad.desc">Likes y respuestas de otros usuarios, cuando estén disponibles.</div>
+                            </div>
+                            <label class="cfg-switch">
+                                <input type="checkbox" id="notifComunidad" aria-describedby="notifComunidadDesc">
+                                <span class="cfg-switch-slider"></span>
+                            </label>
+                        </div>
+                        <div class="cfg-toggle-row">
+                            <div class="cfg-toggle-left">
+                                <label class="cfg-toggle-label" for="prefNotif" data-i18n="config.notif.push.titulo">Avisos push del navegador</label>
+                                <div class="cfg-toggle-desc" id="prefNotifDesc" data-i18n="config.notif.push.desc">Episodios nuevos aunque la app esté cerrada. Requiere sesión y permiso.</div>
+                            </div>
+                            <label class="cfg-switch">
+                                <input type="checkbox" id="prefNotif" aria-describedby="prefNotifDesc">
+                                <span class="cfg-switch-slider"></span>
+                            </label>
+                        </div>
+                        <div class="cfg-field cfg-notif-field">
+                            <label for="notifMaxPerDay" data-i18n="config.notif.limite">Máximo de avisos por día</label>
+                            <select id="notifMaxPerDay">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                        <div class="cfg-toggle-row">
+                            <div class="cfg-toggle-left">
+                                <label class="cfg-toggle-label" for="notifQuiet" data-i18n="config.notif.silencio.titulo">Silencio nocturno</label>
+                                <div class="cfg-toggle-desc" id="notifQuietDesc" data-i18n="config.notif.silencio.desc">No mostrar avisos en el horario que elijas.</div>
+                            </div>
+                            <label class="cfg-switch">
+                                <input type="checkbox" id="notifQuiet" aria-describedby="notifQuietDesc">
+                                <span class="cfg-switch-slider"></span>
+                            </label>
+                        </div>
+                        <div class="cfg-notif-quiet" id="notifQuietHours">
+                            <div class="cfg-field cfg-notif-field">
+                                <label for="notifQuietStart" data-i18n="config.notif.silencio.desde">Desde</label>
+                                <select id="notifQuietStart"></select>
+                            </div>
+                            <div class="cfg-field cfg-notif-field">
+                                <label for="notifQuietEnd" data-i18n="config.notif.silencio.hasta">Hasta</label>
+                                <select id="notifQuietEnd"></select>
+                            </div>
+                        </div>
+                        <div class="cfg-btn-row cfg-notif-actions">
+                            <button type="button" class="cfg-btn cfg-btn-secondary" id="notifPause1" data-i18n="config.notif.pausa1">Pausar todo 1 día</button>
+                            <button type="button" class="cfg-btn cfg-btn-secondary" id="notifPause7" data-i18n="config.notif.pausa7">Pausar todo 7 días</button>
+                            <button type="button" class="cfg-btn cfg-btn-primary" id="notifResume" data-i18n="config.notif.reanudar" hidden>Reanudar avisos</button>
+                        </div>
                     </div>
                 </section>
 
@@ -326,6 +408,14 @@
                         <button class="cfg-btn cfg-btn-secondary cfg-btn-full" id="resetAll" data-i18n="config.restablecer">🔄 RESTABLECER LA APARIENCIA</button>
                         <button class="cfg-btn cfg-btn-danger cfg-btn-full" id="logoutBtn" data-i18n="config.cerrar_sesion">🚪 CERRAR SESIÓN</button>
                     </div>
+                    <!-- retencion-engagement: estado de la cola de sincronización (AppSyncMetrics, solo con sesión) -->
+                    <div class="cfg-sync" id="cfgSync" hidden>
+                        <h3 class="cfg-sync-title"><i data-lucide="activity" aria-hidden="true"></i><span data-i18n="config.sync.titulo">Sincronización</span></h3>
+                        <p class="cfg-sync-status" id="cfgSyncPending" role="status" aria-live="polite">Todo sincronizado.</p>
+                        <p class="cfg-sync-error" id="cfgSyncError" hidden></p>
+                        <button type="button" class="cfg-btn cfg-btn-secondary" id="cfgSyncRetry" data-i18n="config.sync.reintentar">Reintentar</button>
+                        <p class="cfg-note" data-i18n="config.sync.nota">Si un cambio no se pudo guardar en tu cuenta, queda en este dispositivo y se reintenta solo al volver la conexión o la sesión.</p>
+                    </div>
                     <p class="cfg-note" data-i18n="config.datos_nota">Restablecer solo afecta cómo se ve la app en este dispositivo. Tus listas y tu progreso están guardados en tu cuenta y no se tocan.</p>
                 </section>
 
@@ -339,20 +429,24 @@
     <!-- Toast -->
     <div class="cfg-toast" id="cfgToast"></div>
 
-    <script src="js/core/config.js?v=80432ed4"></script>
-    <script src="js/core/i18n.min.js?v=80432ed4"></script>
+    <script src="js/core/config.js?v=7be696ad"></script>
+    <script src="js/core/i18n.min.js?v=7be696ad"></script>
 
-    <script src="js/core/constants.js?v=80432ed4"></script>
-    <script src="js/core/namespace.js?v=80432ed4"></script>
-<script type="module" src="api/supabase-config.js?v=80432ed4" async></script>
-    <script src="js/core/user-store.js?v=80432ed4" defer></script>
-    <script src="js/core/auth.js?v=80432ed4" defer></script>
-    <script src="js/core/push.js?v=80432ed4" defer></script>
+    <script src="js/core/constants.js?v=7be696ad"></script>
+    <script src="js/core/namespace.js?v=7be696ad"></script>
+<script type="module" src="api/supabase-config.js?v=7be696ad" async></script>
+    <script src="js/core/user-store.js?v=7be696ad" defer></script>
+    <script src="js/core/auth.js?v=7be696ad" defer></script>
+    <script src="js/core/notif-prefs.js?v=7be696ad" defer></script>
+    <script src="js/core/push.js?v=7be696ad" defer></script>
 
-    <script src="js/mascot.min.js?v=80432ed4" defer></script>
-    <script src="js/pages/configuracion.js?v=80432ed4" defer></script>
-    <script src="js/ui/ripple.js?v=80432ed4" defer></script>
-    <script src="js/ui/tooltip.js?v=80432ed4" defer></script>
-    <script src="js/core/common-ui.js?v=80432ed4" defer></script>
+    <script src="js/mascot.min.js?v=7be696ad" defer></script>
+    <!-- utils.js + states.js: solo para AppSyncMetrics (bloque Sincronización) -->
+    <script src="js/utils.js?v=7be696ad" defer></script>
+    <script src="js/catalog/states.js?v=7be696ad" defer></script>
+    <script src="js/pages/configuracion.js?v=7be696ad" defer></script>
+    <script src="js/ui/ripple.js?v=7be696ad" defer></script>
+    <script src="js/ui/tooltip.js?v=7be696ad" defer></script>
+    <script src="js/core/common-ui.js?v=7be696ad" defer></script>
 </body>
 </html>

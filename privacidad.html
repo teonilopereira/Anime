@@ -23,11 +23,11 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle-lite.min.css?v=80432ed4">
+        <link rel="stylesheet" href="css/bundle-lite.min.css?v=7be696ad">
 
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=80432ed4">
+    <link rel="stylesheet" href="css/fonts.css?v=7be696ad">
     <style>
         .legal-container {
             max-width: 800px;
@@ -62,8 +62,8 @@
             margin-bottom: 16px;
         }
     </style>
-    <script src="js/vendor/lucide.min.js?v=80432ed4" defer></script>
-    <script src="js/core/theme.js?v=80432ed4"></script>
+    <script src="js/vendor/lucide.min.js?v=7be696ad" defer></script>
+    <script src="js/core/theme.js?v=7be696ad"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body class="menu-page" data-page="privacidad">
@@ -77,7 +77,7 @@
 
     <main class="legal-container" id="main-content">
         <h1 data-i18n="privacy.title">Política de Privacidad</h1>
-        <p data-i18n="privacy.updated">Última actualización: Julio 2026</p>
+        <p data-i18n="privacy.updated">Última actualización: Noviembre 2026</p>
 
         <p data-i18n="privacy.intro">En Mirudoku valoramos y respetamos tu privacidad. Esta política describe cómo recopilamos, utilizamos y protegemos la información personal que nos proporcionas al usar nuestra plataforma.</p>
 
@@ -87,6 +87,7 @@
             <li><strong data-i18n="privacy.s1.li1.k">Información de registro:</strong> <span data-i18n="privacy.s1.li1.v">Correo electrónico y nombre de usuario provisto a través del sistema de autenticación de Supabase.</span></li>
             <li><strong data-i18n="privacy.s1.li2.k">Datos de actividad:</strong> <span data-i18n="privacy.s1.li2.v">Tu progreso de lectura o visualización, tus listas de favoritos («Me gusta») y marcados como «Vistos».</span></li>
             <li><strong data-i18n="privacy.s1.li3.k">Estadísticas básicas:</strong> <span data-i18n="privacy.s1.li3.v">Puntajes y niveles ganados por interacción de experiencia (XP).</span></li>
+            <li><strong data-i18n="privacy.s1.li4.k">Registro de actividad:</strong> <span data-i18n="privacy.s1.li4.v">Las acciones que hacés en tu cuenta (por ejemplo marcar «Me gusta» o «Visto») con su fecha. Se guardan 90 días como máximo y se usan para el muro de la comunidad y tus estadísticas; lo más viejo se borra automáticamente.</span></li>
         </ul>
 
         <h2 data-i18n="privacy.h2">2. Uso de la información</h2>
@@ -97,11 +98,26 @@
             <li data-i18n="privacy.s2.li3">Mejorar el sistema de recomendaciones locales basado en tu historial.</li>
         </ul>
 
+        <h2 data-i18n="privacy.social.h">Perfil público y muro de la comunidad</h2>
+        <p data-i18n="privacy.social.p1">Tu perfil es privado por defecto. Solo si activás «Perfil público» en Configuración → Privacidad, otras personas pueden ver en usuario.html?u=tu-usuario tu nombre, foto, apodo, nivel y la cantidad de favoritos y vistos, y tus «Me gusta» y «Vistos» aparecen en el muro de la comunidad.</p>
+        <p data-i18n="privacy.social.p2">Nunca se muestran tu correo ni el proveedor con el que iniciás sesión. Podés volver a privado cuando quieras: desde ese momento tu perfil y tu actividad dejan de mostrarse, porque el filtro se aplica en la base de datos.</p>
+        <p data-i18n="privacy.social.p3">El ranking global muestra tu nombre, foto, nivel, EXP y apodo aunque tu perfil sea privado. Lo que el perfil privado oculta es tu página de perfil (usuario.html?u=…) y tu actividad en el muro.</p>
+
         <h2 data-i18n="privacy.h3">3. Almacenamiento y protección de datos</h2>
         <p data-i18n="privacy.s3.p">Todos tus datos de autenticación y listas se almacenan de manera segura en las bases de datos de Supabase. Nosotros no vendemos ni compartimos tu información personal con terceros bajo ningún concepto.</p>
 
         <h2 data-i18n="privacy.h4">4. Cookies y almacenamiento local</h2>
-        <p data-i18n="privacy.s4.p">Utilizamos almacenamiento local (localStorage) para guardar temporalmente tus preferencias estéticas (como el color del tema visual o el tamaño de las cards) y para mantener tu sesión activa de manera segura mediante el token de autenticación provisto por Supabase.</p>
+        <p data-i18n="privacy.s4.p">No usamos cookies de seguimiento. Usamos el almacenamiento local del navegador (localStorage) para guardar tus preferencias visuales (como el color del tema o el tamaño de las cards) y para mantener tu sesión activa mediante el token de autenticación de Supabase.</p>
+        <p data-i18n="privacy.s4.intro">Además, guardamos en este dispositivo datos que la app necesita para funcionar:</p>
+        <ul>
+            <li data-i18n="privacy.s4.li1">Racha diaria (ad:streak:*) y misiones y retos (ad:mis:*): contadores de días activos y de lo que hiciste cada día, semana y mes.</li>
+            <li data-i18n="privacy.s4.li2">Cola de sincronización (syncQueue, progressSyncQueue): cambios que todavía no se pudieron guardar en tu cuenta, hasta que se envían.</li>
+            <li data-i18n="privacy.s4.li3">Métricas de sincronización (ad:metrics:sync): solo cuántos guardados salieron bien o fallaron y el código y la fecha del último error; sin tu usuario ni mensajes.</li>
+            <li data-i18n="privacy.s4.li4">Preferencias de notificación (pref:notif:*): qué categorías de avisos tenés activas, el límite diario, el horario silencioso, las pausas y cuántos avisos se mostraron hoy.</li>
+            <li data-i18n="privacy.s4.li5">Recordatorios (ad:remind:*): los títulos con recordatorio y los avisos ya mostrados, para no repetirlos.</li>
+            <li data-i18n="privacy.s4.li6">Calendario (ad:cal:onlyMine): si elegiste ver solo lo que seguís.</li>
+        </ul>
+        <p data-i18n="privacy.s4.p2">Todo esto es por dispositivo y navegador: no se sincroniza entre dispositivos ni lo usamos para otra cosa (la cola solo existe para mandar tus cambios a tu cuenta). Se borra al eliminar los datos del sitio en tu navegador.</p>
 
         <h2 data-i18n="privacy.h5">5. Tus derechos</h2>
         <p data-i18n="privacy.s5.p">Tienes derecho en cualquier momento a solicitar la eliminación completa de tu cuenta y todos tus datos asociados. Puedes hacerlo directamente desde la sección de configuración de perfil en nuestra aplicación.</p>
@@ -112,16 +128,16 @@
 
     <div id="footer-container"></div>
 
-    <script src="js/core/config.js?v=80432ed4"></script>
-    <script src="js/core/i18n.min.js?v=80432ed4"></script>
-    <script src="js/core/constants.js?v=80432ed4"></script>
-    <script src="js/core/namespace.js?v=80432ed4"></script>
-    <script src="js/datos.js?v=80432ed4" defer></script>
-    <script type="module" src="api/supabase-config.js?v=80432ed4" async></script>
+    <script src="js/core/config.js?v=7be696ad"></script>
+    <script src="js/core/i18n.min.js?v=7be696ad"></script>
+    <script src="js/core/constants.js?v=7be696ad"></script>
+    <script src="js/core/namespace.js?v=7be696ad"></script>
+    <script src="js/datos.js?v=7be696ad" defer></script>
+    <script type="module" src="api/supabase-config.js?v=7be696ad" async></script>
 
-    <script src="js/ui/ripple.js?v=80432ed4" defer></script>
-    <script src="js/ui/tooltip.js?v=80432ed4" defer></script>
-    <script src="js/core/common-ui.js?v=80432ed4" defer></script>
+    <script src="js/ui/ripple.js?v=7be696ad" defer></script>
+    <script src="js/ui/tooltip.js?v=7be696ad" defer></script>
+    <script src="js/core/common-ui.js?v=7be696ad" defer></script>
 </body>
 </html>
 

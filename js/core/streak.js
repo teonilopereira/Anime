@@ -2,8 +2,9 @@
  * streak.js — Racha diaria de días activos (window.AppStreak).
  *
  * Retención: premia volver cada día. La racha sube si el usuario estuvo
- * activo AYER, se mantiene si ya contó HOY, y se reinicia a 1 si faltó uno o
- * más días. Todo vive en localStorage por usuario (los datos de racha son
+ * activo AYER o ANTEAYER (un día de gracia: faltar un día no la corta), se
+ * mantiene si ya contó HOY, y se reinicia a 1 si faltó dos días o más. El
+ * récord (best) nunca baja. Todo vive en localStorage por usuario (los datos de racha son
  * un contador local; no necesitan viajar al servidor para funcionar).
  *
  * No otorga EXP por sí solo: devuelve cuánto subió para que quien lo llama
@@ -49,13 +50,19 @@
         return Number.isFinite(n) && n > 0 ? n : 0;
     }
 
+    // Días sin actividad que se toleran sin cortar la racha.
+    var GRACE_DAYS = 1;
+    var MAX_GAP = GRACE_DAYS + 1; // gap 1 = ayer, gap 2 = anteayer (día de gracia)
+
     // Estado actual sin modificar nada. Devuelve además si la racha ya se contó
-    // hoy y si está "en riesgo" (activa pero todavía sin contar hoy) para que la
-    // UI muestre el recordatorio.
+    // hoy y si está "en riesgo" para que la UI muestre el recordatorio. Con el
+    // día de gracia, "en riesgo" es recién el segundo día sin actividad (gap 2):
+    // si no entra hoy, mañana la racha arranca de nuevo. daysLeft dice cuántos
+    // días (contando hoy) quedan para seguirla: 2 = hoy o mañana, 1 = solo hoy.
     function getStreak(uid) {
         var id = String(uid || '');
         if (!id || id === 'Invitado') {
-            return { count: 0, best: 0, lastDay: null, countedToday: false, atRisk: false };
+            return { count: 0, best: 0, lastDay: null, countedToday: false, atRisk: false, daysLeft: 0 };
         }
         var count = readNum(K_COUNT, id);
         var best  = readNum(K_BEST, id);
@@ -63,16 +70,17 @@
         var today = dayStr();
         var gap = lastDay ? daysBetween(lastDay, today) : null;
 
-        // Si pasó más de un día desde la última cuenta, la racha ya está rota:
-        // se refleja como 0 aunque el contador guardado siga en su último valor
-        // (se normaliza al llamar a recordActivity).
-        var alive = gap === 0 || gap === 1;
+        // Si pasaron más días que la gracia, la racha ya está rota: se refleja
+        // como 0 aunque el contador guardado siga en su último valor (se
+        // normaliza al llamar a recordActivity).
+        var alive = gap !== null && gap >= 0 && gap <= MAX_GAP && count > 0;
         return {
             count: alive ? count : 0,
             best: best,
             lastDay: lastDay,
             countedToday: gap === 0,
-            atRisk: gap === 1 && count > 0
+            atRisk: alive && gap === MAX_GAP,
+            daysLeft: alive && gap > 0 ? MAX_GAP - gap + 1 : 0
         };
     }
 
@@ -94,8 +102,8 @@
             if (count < 1) count = 1;
         } else {
             var gap = lastDay ? daysBetween(lastDay, today) : null;
-            if (gap === 1) {
-                count = count + 1;   // día consecutivo
+            if (gap !== null && gap >= 1 && gap <= MAX_GAP) {
+                count = count + 1;   // día consecutivo o dentro de la gracia
             } else {
                 count = 1;           // primera vez o racha rota
             }
@@ -126,6 +134,7 @@
         getStreak: getStreak,
         recordActivity: recordActivity,
         bonusForStreak: bonusForStreak,
+        GRACE_DAYS: GRACE_DAYS,
         _dayStr: dayStr // expuesto para tests
     });
 })(window);

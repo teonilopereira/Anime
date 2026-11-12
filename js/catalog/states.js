@@ -32,6 +32,57 @@
         saveSyncQueue(queue);
     }
 
+    // ─── Métricas locales de sincronización ──────────────────────────
+    // Solo contadores en este navegador (sin user_id, sin mensajes de error):
+    // { ok, fail, retry, lastCode, lastAt }. ok/fail cuentan intentos de
+    // guardado directos y desde la cola; retry cuenta operaciones de la cola
+    // reintentadas. lastCode/lastAt describen el último fallo.
+    const SYNC_METRICS_KEY = "ad:metrics:sync";
+
+    function emptySyncMetrics() {
+        return { ok: 0, fail: 0, retry: 0, lastCode: "", lastAt: 0 };
+    }
+
+    function getSyncMetrics() {
+        const base = emptySyncMetrics();
+        try {
+            const raw = JSON.parse(localStorage.getItem(SYNC_METRICS_KEY));
+            if (!raw || typeof raw !== "object") return base;
+            for (const k of ["ok", "fail", "retry", "lastAt"]) {
+                const n = Number(raw[k]);
+                base[k] = Number.isFinite(n) && n >= 0 ? n : 0;
+            }
+            base.lastCode = typeof raw.lastCode === "string" ? raw.lastCode.slice(0, 32) : "";
+        } catch (e) { /* datos corruptos: se arranca de cero */ }
+        return base;
+    }
+
+    // Código corto y no identificable: status HTTP, código PostgREST/Postgres
+    // o una categoría genérica. Nunca el mensaje (puede traer datos).
+    function syncErrorCode(error) {
+        if (!error) return "unknown";
+        if (Number.isInteger(error.status) && error.status > 0) return String(error.status);
+        const code = String(error.code || "");
+        if (/^[A-Za-z0-9_]{1,16}$/.test(code)) return code;
+        if (error.name === "TypeError") return "network";
+        if (isSessionExpired(error)) return "session";
+        return "unknown";
+    }
+
+    function recordSyncMetric(kind, error) {
+        try {
+            const m = getSyncMetrics();
+            if (kind === "ok") m.ok += 1;
+            else if (kind === "retry") m.retry += 1;
+            else if (kind === "fail") {
+                m.fail += 1;
+                m.lastCode = syncErrorCode(error);
+                m.lastAt = Date.now();
+            }
+            localStorage.setItem(SYNC_METRICS_KEY, JSON.stringify(m));
+        } catch (e) { /* localStorage lleno o bloqueado: la métrica no es crítica */ }
+    }
+
     async function drainSyncQueue() {
         const client = window.AppSupabase;
         if (!client?.isSignedIn?.()) return;
@@ -39,13 +90,16 @@
         if (!queue.length) return;
         const remaining = [];
         for (const op of queue) {
+            recordSyncMetric("retry");
             try {
                 if (op.type === "item_state") {
                     await client.saveItemState(op.payload);
                 } else if (op.type === "experience") {
                     await client.addExperience(op.payload.delta);
                 }
+                recordSyncMetric("ok");
             } catch (error) {
+                recordSyncMetric("fail", error);
                 if (isSessionExpired(error)) showSyncToast(stTr('toast.session.pending', 'Sesión expirada. Los cambios pendientes se reintentarán automáticamente.'), 'session-expired');
                 remaining.push(op);
             }
@@ -68,7 +122,8 @@
             enqueueSync({ type: "item_state", payload });
             return;
         }
-        client.saveItemState(payload).catch((error) => {
+        client.saveItemState(payload).then(() => recordSyncMetric("ok"), (error) => {
+            recordSyncMetric("fail", error);
             if (isSessionExpired(error)) showSyncToast(stTr('toast.session.progress', 'Sesión expirada. Tu progreso se guardó y se sincronizará al reconectar.'), 'session-expired');
             console.warn('No se pudo sincronizar estado a Supabase:', error);
             enqueueSync({ type: "item_state", payload });
@@ -102,7 +157,9 @@
     }
 
     // status: '' para quitar. meta opcional {titulo, img, info, total, __category}.
-    function setWatchStatus(itemId, status, meta) {
+    // opts.silent: no mostrar el toast "Estado: …" (lo usa la ficha al marcar el
+    // primer episodio, que avisa el cambio dentro del toast del progreso).
+    function setWatchStatus(itemId, status, meta, opts) {
         const userId = getCurrentUserId();
         if (userId === 'Invitado') {
             if (typeof window.pedirLogin === 'function') window.pedirLogin(); else window.location.href = 'Login.html';
@@ -142,7 +199,7 @@
             String(itemId), fav, viewed, metaObj, clean
         );
 
-        if (window.Toast) {
+        if (window.Toast && !(opts && opts.silent)) {
             if (clean) window.Toast.success(stTr('toast.estado', 'Estado: {label}', { label: WATCH_STATUS_LABELS[clean] }));
             else window.Toast.info(stTr('toast.estado_quitado', 'Estado de seguimiento quitado'));
         }
@@ -177,7 +234,8 @@
             enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
             return;
         }
-        client.addExperience(effectiveDelta).catch((error) => {
+        client.addExperience(effectiveDelta).then(() => recordSyncMetric("ok"), (error) => {
+            recordSyncMetric("fail", error);
             if (isSessionExpired(error)) showSyncToast(stTr('toast.session.exp', 'Sesión expirada. La experiencia se sincronizará al reconectar.'), 'session-expired');
             enqueueSync({ type: "experience", payload: { delta: effectiveDelta } });
         });
@@ -715,5 +773,13 @@
     window.getWatchStatus = getWatchStatus;
     window.WATCH_STATUSES = WATCH_STATUSES;
     window.WATCH_STATUS_LABELS = WATCH_STATUS_LABELS;
+    // Contadores locales de sincronización (ver recordSyncMetric) y tamaño de
+    // la cola pendiente, para mostrarlos en configuración o depurar.
+    window.AppSyncMetrics = Object.freeze({
+        get: getSyncMetrics,
+        pending: () => getSyncQueue().length,
+        reset: () => { try { localStorage.removeItem(SYNC_METRICS_KEY); } catch (e) { /* sin storage */ } },
+        drain: drainSyncQueue
+    });
 
 })(window);

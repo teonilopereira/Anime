@@ -102,6 +102,25 @@
         } catch (e) {}
     }
 
+    // La card manda el estado crudo de la API (RELEASING, FINISHED...); antes
+    // se mostraba tal cual en el hero.
+    var ESTADOS = {
+        RELEASING: 'En emisión', FINISHED: 'Finalizado', NOT_YET_RELEASED: 'Próximamente',
+        CANCELLED: 'Cancelado', HIATUS: 'En pausa', UNKNOWN: 'Sin estado'
+    };
+    function estadoLegible(estado) {
+        var raw = String(estado || '').trim();
+        return ESTADOS[raw.toUpperCase()] || raw;
+    }
+
+    // Total desconocido: si la obra sigue en curso lo dice; si no, "sin dato".
+    // Nunca se inventa un número.
+    function totalDesconocido(estado) {
+        return /RELEASING|EMISI|PUBLIC/i.test(String(estado || ''))
+            ? 'En emisión (sin total)'
+            : 'Sin dato';
+    }
+
     function render() {
         var id = param('id');
         var category = param('cat') || 'manga';
@@ -163,16 +182,17 @@
         var tipoTxt = (isAnime ? 'Anime' : (category === 'novelas' ? 'Novela' : 'Manga')) + (tipo ? (' · ' + tipo) : '');
         if (q('[data-hero-tipo]')) q('[data-hero-tipo]').textContent = tipoTxt;
         if (q('[data-hero-title]')) q('[data-hero-title]').textContent = title;
-        if (q('[data-hero-estado]')) q('[data-hero-estado]').textContent = estado || '—';
+        if (q('[data-hero-estado]')) q('[data-hero-estado]').textContent = estadoLegible(estado) || '—';
+        var sinTotal = totalDesconocido(estado);
         if (q('[data-dl1]')) q('[data-dl1]').textContent = isAnime ? 'Episodios' : (prefix === 'CH' ? 'Capítulos' : 'Volúmenes');
-        if (q('[data-dv1]')) q('[data-dv1]').textContent = total > 0 ? String(total) : '?';
+        if (q('[data-dv1]')) q('[data-dv1]').textContent = total > 0 ? String(total) : sinTotal;
         if (q('[data-dl2]')) q('[data-dl2]').textContent = isAnime ? 'Vistos' : 'Leídos';
-        if (q('[data-dv2]')) q('[data-dv2]').textContent = doneCount + '/' + (total > 0 ? total : '?');
+        if (q('[data-dv2]')) q('[data-dv2]').textContent = total > 0 ? (doneCount + '/' + total) : '—';
         if (q('[data-dv3]')) q('[data-dv3]').textContent = pct + '%';
 
         var word = unitWord(category, prefix);
         if (q('[data-caps-title]')) q('[data-caps-title]').textContent = isAnime ? 'EPISODIOS' : (prefix === 'CH' ? 'CAPÍTULOS' : 'VOLÚMENES');
-        if (q('[data-caps-count]')) q('[data-caps-count]').textContent = doneCount + '/' + (total > 0 ? total : '?') + ' completados';
+        if (q('[data-caps-count]')) q('[data-caps-count]').textContent = total > 0 ? (doneCount + '/' + total + ' completados') : sinTotal;
 
         // Enlace al detalle completo
         var detailUrl = 'detalle.html?cat=' + encodeURIComponent(category) + '&id=' + encodeURIComponent(id) + '&nombre=' + encodeURIComponent(title);
@@ -219,7 +239,13 @@
             }
         } else {
             list.innerHTML = '';
-            if (empty) empty.hidden = false;
+            if (empty) {
+                var unidad = isAnime ? 'episodios' : (isChapter ? 'capítulos' : 'volúmenes');
+                empty.textContent = sinTotal === 'Sin dato'
+                    ? 'La API no informó ' + unidad + ' para este título.'
+                    : 'En emisión: la API todavía no informa el total de ' + unidad + '.';
+                empty.hidden = false;
+            }
         }
     }
 

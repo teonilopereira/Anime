@@ -80,7 +80,7 @@
         const el = document.getElementById("nav-brand-container");
         if (!el) return;
         el.innerHTML = `<a class="nav-brand" href="index.html" aria-label="Mirudoku">
-<span class="nav-brand-mark"><img src="images/brand/mirudoku-mark.svg" alt="Mirudoku logo" aria-hidden="true"></span>
+<span class="nav-brand-mark"><img src="images/brand/mirudoku-mark.svg" alt="" aria-hidden="true"></span>
 <span class="nav-brand-copy">
 <span class="nav-brand-name"><span class="nav-brand-anime">Miru</span><span class="nav-brand-destiny">doku</span></span>
 <span class="nav-brand-jp">&gt; \u898B\u308B\u30FB\u8AAD\u3080 &lt;</span>
@@ -134,10 +134,20 @@
 <button class="nav-btn nav-more-btn${secundarioActivo ? " active" : ""}" type="button" aria-expanded="false" aria-haspopup="true" aria-controls="nav-more-menu">
 <span class="nav-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span><span data-i18n="nav.mas">${t("nav.mas", "Más")}</span>
 </button>
-<div class="nav-more-menu" id="nav-more-menu" role="menu" hidden>${itemsMas}</div>
+<div class="nav-more-menu" id="nav-more-menu" hidden>${itemsMas}</div>
 </div>`;
 
-        el.innerHTML = `<div class="nav-links" aria-label="Navegación principal">${html}</div>`;
+        // Un solo landmark de navegación: si el contenedor ya está dentro de
+        // <nav class="destiny-navbar"> (todas las páginas), la etiqueta va en
+        // ese <nav>; si no, el div hace de navegación. Nunca <nav> anidados.
+        const navLabel = t("nav.aria_principal", "Navegación principal");
+        const outerNav = el.closest("nav");
+        if (outerNav) {
+            if (!outerNav.hasAttribute("aria-label")) outerNav.setAttribute("aria-label", navLabel);
+            el.innerHTML = `<div class="nav-links">${html}</div>`;
+        } else {
+            el.innerHTML = `<div class="nav-links" role="navigation" aria-label="${navLabel}">${html}</div>`;
+        }
         wireNavMore(el);
     };
 
@@ -649,6 +659,65 @@
             }
         }, true);
     };
+    // ── MODAL #resumenModal (ficha) ──
+    // interactions.js lo abre/cierra con style.display; acá se suma lo que
+    // pide un diálogo: foco al abrir, Escape, Tab atrapado y foco de vuelta
+    // al botón que lo abrió. Observa el atributo style para no tocar quien abre.
+    const wireResumenModal = () => {
+        const modal = document.getElementById("resumenModal");
+        if (!modal || modal.dataset.a11yBound === "1") return;
+        modal.dataset.a11yBound = "1";
+        const dialog = modal.querySelector('[role="dialog"]') || modal;
+        const isOpen = () => !!modal.style.display && modal.style.display !== "none" && !modal.hidden;
+        const focusables = () => Array.from(dialog.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+        ));
+        let opener = null;
+        let wasOpen = isOpen();
+        const onChange = () => {
+            const open = isOpen();
+            if (open === wasOpen) return;
+            wasOpen = open;
+            if (open) {
+                const active = document.activeElement;
+                opener = active && active !== document.body && !modal.contains(active) ? active : null;
+                const closeBtn = dialog.querySelector(".modal-close-btn");
+                try { (closeBtn || dialog).focus(); } catch (_) {}
+            } else if (opener) {
+                const back = opener;
+                opener = null;
+                if (document.contains(back)) { try { back.focus(); } catch (_) {} }
+            }
+        };
+        if (typeof MutationObserver === "function") {
+            new MutationObserver(onChange).observe(modal, { attributes: true, attributeFilter: ["style", "hidden"] });
+        }
+        const close = () => { modal.style.display = "none"; };
+        document.addEventListener("keydown", (e) => {
+            if (!isOpen()) return;
+            if (e.key === "Escape" || e.key === "Esc") {
+                e.preventDefault();
+                close();
+                return;
+            }
+            if (e.key !== "Tab") return;
+            const items = focusables();
+            if (!items.length) { e.preventDefault(); dialog.focus(); return; }
+            const first = items[0];
+            const last = items[items.length - 1];
+            const inside = modal.contains(document.activeElement);
+            if (e.shiftKey && (document.activeElement === first || !inside)) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
+        // Tocar el fondo oscuro también cierra.
+        modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+    };
+
     ensureMainTarget();
     injectNavBrand();
     injectNavLinks();
@@ -657,5 +726,6 @@
     injectLoginButton();
     injectFooter();
     installSecurityHandlers();
+    wireResumenModal();
 
 })();

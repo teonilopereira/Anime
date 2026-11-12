@@ -234,6 +234,16 @@ async function signUpWithEmail(email, password, username) {
     return data;
 }
 
+// Reenvía el correo de confirmación de registro. Lanza el error de Supabase
+// (p. ej. rate limit) para que la página lo muestre.
+async function resendSignupEmail(email) {
+    const clean = String(email || "").trim();
+    if (!clean) throw new Error("Falta el correo");
+    const { data, error } = await supabase.auth.resend({ type: "signup", email: clean });
+    if (error) throw error;
+    return data;
+}
+
 async function signInWithEmail(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -260,6 +270,15 @@ async function signInWithEmail(email, password) {
 // Si la función no existe en la base (migración no aplicada), cae a v2 y el
 // estado de seguimiento queda solo en el almacenamiento local.
 let _rpcV3Available = true;
+// save_item_state_v4 (016) agrega p_total. Se usa solo si meta.total es un
+// número > 0; si la base no la tiene, se marca y se sigue con v3/v2.
+let _rpcV4Available = true;
+
+// 42883 = undefined_function; PGRST202 = function not found en PostgREST
+function isMissingRpc(error, name) {
+    return !!error && (error.code === '42883' || error.code === 'PGRST202' ||
+        new RegExp(name).test(String(error.message || '')));
+}
 
 async function saveItemState({ category, itemId, fav = false, viewed = false, meta = {}, watchStatus }) {
     const user = await getCurrentUserAsync();
@@ -278,14 +297,29 @@ async function saveItemState({ category, itemId, fav = false, viewed = false, me
         p_item_data: itemData
     };
 
+    const total = Number(meta && meta.total);
+    if (_rpcV4Available && Number.isFinite(total) && total > 0) {
+        const { error } = await supabase.rpc('save_item_state_v4', {
+            ...baseParams,
+            // null = no tocar el estado guardado (ver 016_item_states_total.sql)
+            p_watch_status: watchStatus === undefined ? null : String(watchStatus || ""),
+            p_total: Math.floor(total)
+        });
+        if (!error) return;
+        if (isMissingRpc(error, 'save_item_state_v4')) {
+            _rpcV4Available = false;
+        } else {
+            throw error;
+        }
+    }
+
     if (_rpcV3Available && watchStatus !== undefined) {
         const { error } = await supabase.rpc('save_item_state_v3', {
             ...baseParams,
             p_watch_status: String(watchStatus || "")
         });
         if (!error) return;
-        // 42883 = undefined_function; PGRST202 = function not found en PostgREST
-        if (error.code === '42883' || error.code === 'PGRST202' || /save_item_state_v3/.test(String(error.message || ''))) {
+        if (isMissingRpc(error, 'save_item_state_v3')) {
             _rpcV3Available = false;
         } else {
             throw error;
@@ -302,29 +336,52 @@ async function loadItemStates(category = "") {
 
     // watch_status solo existe si se aplicó la migración; si la columna
     // no está en la vista, reintentar sin ella.
-    const buildQuery = (withWatchStatus) => {
-        const cols = "id, category, fav, viewed, titulo, img, info, status, updated_at"
-            + (withWatchStatus ? ", watch_status" : "");
-        let q = supabase.from("item_states_with_details").select(cols);
-        if (category) q = q.eq("category", category);
-        return q;
-    };
+    // "*" en vez de una lista fija: así, si una migración agrega a la vista
+    // watch_status, total o un JSON meta, llegan sin que la consulta falle
+    // por pedir una columna que todavía no existe (hoy la vista de
+    // 016_item_states_total.sql agrega total; sin 016 no viene y queda 0).
+    let q = supabase.from("item_states_with_details").select("*");
+    if (category) q = q.eq("category", category);
 
-    let { data, error } = await buildQuery(true);
-    if (error && /watch_status/.test(String(error.message || ''))) {
-        ({ data, error } = await buildQuery(false));
-    }
+    const { data, error } = await q;
     if (error) { console.warn("loadItemStates:", error.message); return []; }
 
-    return (data || []).map((row) => ({
+    return (data || []).map(mapItemStateRow);
+}
+
+// Total de episodios/volúmenes si la fila lo trae (columna total o meta.total).
+// 0 = desconocido.
+function itemStateTotal(row) {
+    const meta = row && row.meta && typeof row.meta === "object" ? row.meta : null;
+    const n = Number((row && row.total) ?? (meta && meta.total) ?? 0);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+
+function mapItemStateRow(row) {
+    const meta = { titulo: row.titulo, img: row.img, info: row.info, status: row.status };
+    const total = itemStateTotal(row);
+    if (total) meta.total = total;
+    return {
         item_id:   row.id,
         category:  row.category || '',
         fav:       row.fav    ? 1 : 0,
         viewed:    row.viewed ? 1 : 0,
         watch_status: row.watch_status || '',
-        meta:      { titulo: row.titulo, img: row.img, info: row.info, status: row.status },
+        meta,
         updated_at: row.updated_at
-    }));
+    };
+}
+
+// XP por marcar progreso: la misma regla que maybeGrantProgressXp de
+// js/detalle/render.js (XP_PROGRESS por marca activa + misión "progress"),
+// expuesta para que la home no la duplique. Devuelve la XP otorgada.
+function grantProgressXp(userId) {
+    if (!userId || userId === "Invitado" || typeof window.addUserPoints !== "function") return 0;
+    const C = (window.AnimeDestiny && window.AnimeDestiny.Constants) || {};
+    const xp = C.XP_PROGRESS || 2;
+    window.addUserPoints(userId, xp);
+    if (window.AppMissions && typeof window.AppMissions.track === "function") window.AppMissions.track("progress");
+    return xp;
 }
  
 async function addExperience(delta) {
@@ -434,7 +491,9 @@ async function loadAllProgress() {
 
     const { data, error } = await supabase
         .from("progress_keys")
-        .select("category, item_id, pkey, value")
+        // updated_at alimenta "seguir viendo" en inicio.js y el orden por
+        // actividad en mis-listas.js (ambos lo usan solo si llega).
+        .select("category, item_id, pkey, value, updated_at")
         .eq("user_id", user.id)
         .eq("value", true);
 
@@ -542,21 +601,67 @@ async function loadMyCommentLikes(commentIds) {
 }
 
 // ─── Muro de actividad ───────────────────────────────────────────
+// La base (013) ya filtra a los perfiles con is_public = true: el opt-out se
+// respeta en el servidor, no acá. El cliente igual devuelve solo los campos
+// que pinta la UI (lista blanca) y descarta actor_id.
+const FEED_FIELDS = ["username", "display_name", "photo_url", "action", "category", "item_id", "titulo", "img", "created_at"];
+
 async function loadActivityFeed(limit = 30, offset = 0) {
     const { data, error } = await supabase
         .rpc("get_activity_feed", { p_limit: Number(limit) || 30, p_offset: Number(offset) || 0 });
     if (error) { console.warn("loadActivityFeed:", error.message); return []; }
-    return data || [];
+    return (data || []).map((row) => {
+        const out = {};
+        FEED_FIELDS.forEach((k) => { out[k] = row[k] ?? null; });
+        return out;
+    });
 }
 
 // ─── Perfil público de otro usuario ──────────────────────────────
+// get_public_profile devuelve 0 filas si el perfil es privado o no existe
+// (013); los dos casos se ven igual a propósito. De lo que viene se queda
+// solo con la lista blanca: nunca id, email, provider ni exp.
+const PUBLIC_PROFILE_FIELDS = ["username", "display_name", "photo_url", "level", "apodo", "total_likes", "total_viewed"];
+
 async function getPublicProfile(username) {
     const uname = String(username || "").trim();
     if (!uname) return null;
     const { data, error } = await supabase
         .rpc("get_public_profile", { p_username: uname });
     if (error) { console.warn("getPublicProfile:", error.message); return null; }
-    return (data && data[0]) || null;
+    const row = data && data[0];
+    if (!row) return null;
+    const out = {};
+    PUBLIC_PROFILE_FIELDS.forEach((k) => { out[k] = row[k] ?? null; });
+    return out;
+}
+
+// ─── Visibilidad del propio perfil (profiles.is_public, 013) ──────
+// null = no se pudo saber (sin sesión o migración 013 sin aplicar).
+async function getProfileVisibility() {
+    const user = await getCurrentUserAsync();
+    if (!user) return null;
+    const { data, error } = await supabase
+        .from("profiles").select("is_public").eq("id", user.id).maybeSingle();
+    if (error) { console.warn("getProfileVisibility:", error.message); return null; }
+    if (!data || typeof data.is_public !== "boolean") return null;
+    return data.is_public;
+}
+
+async function setProfileVisibility(isPublic) {
+    const user = await getCurrentUserAsync();
+    if (!user) throw new Error("Tenés que iniciar sesión.");
+    const { data, error } = await supabase
+        .from("profiles")
+        .update({ is_public: !!isPublic, updated_at: new Date().toISOString() })
+        .eq("id", user.id)
+        .select("is_public");
+    if (error) {
+        console.warn("setProfileVisibility:", error.message);
+        throw new Error("No se pudo guardar la visibilidad del perfil.");
+    }
+    if (!data || !data.length) throw new Error("No se encontró tu perfil.");
+    return !!data[0].is_public;
 }
 
 async function addComment(category, itemId, body, parentId, refType, refNumber, spoiler) {
@@ -658,11 +763,15 @@ const AppSupabase = Object.freeze({
     loadMyCommentLikes,
     loadActivityFeed,
     getPublicProfile,
+    getProfileVisibility,
+    setProfileVisibility,
 
     signInWithGoogle,
     signOutGoogle,
     signInWithEmail,
     signUpWithEmail,
+    resendSignupEmail,
+    grantProgressXp,
 
     onAuthChange(listener) {
         if (typeof listener !== "function") return () => {};

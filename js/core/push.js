@@ -149,6 +149,28 @@
         }
     }
 
+    // ── Preferencias de avisos (js/core/notif-prefs.js) ──
+    // El push solo avisa de episodios nuevos. Sin AppNotifPrefs cargado se
+    // comporta como antes (todo permitido).
+    function prefs() { return window.AppNotifPrefs || null; }
+
+    // ¿Se puede mostrar ahora un aviso de episodios? (categoría, pausa,
+    // silencio nocturno y límite diario). Lo puede usar cualquier aviso local
+    // de episodios; el push que llega al service worker NO pasa por acá.
+    function shouldNotify(now) {
+        const P = prefs();
+        return P ? P.isAllowed('episodios', now) : true;
+    }
+
+    // Si la categoría episodios quedó apagada, borra la suscripción para que el
+    // servidor deje de mandar. Devuelve el estado resultante.
+    async function syncWithPrefs() {
+        const P = prefs();
+        if (!P || P.isEnabled('episodios')) return getState();
+        const st = await getState();
+        return st === 'on' ? disable() : st;
+    }
+
     const PushNotifs = Object.freeze({
         urlBase64ToUint8Array,
         isSupported,
@@ -156,6 +178,8 @@
         getState,
         enable,
         disable,
+        shouldNotify,
+        syncWithPrefs,
     });
 
     window.PushNotifs = PushNotifs;

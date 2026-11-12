@@ -173,7 +173,7 @@ function matchesFilter(entry, filterMode) {
     return entry.fav || entry.viewed || !!entry.wstatus;
 }
 
-function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', match = null, isRow = false, index = 1 }) {
+function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', match = null, isRow = false, index = 1, reason = '' }) {
     const link = getItemLink(item);
     const category = CATEGORY_LABELS[item.__category] || item.__category || 'Lista';
     const wsBadge = WSTATUS_BADGES[wstatus];
@@ -210,7 +210,8 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
     }
 
     // Para recomendaciones: la misma card "portada con riel" que el resto de
-    // la app (.wcard), con el género que motivó la recomendación en la píldora.
+    // la app (.wcard), con el motivo de la sugerencia debajo del título
+    // (AppRecommend) o, sin ese módulo, el género en la píldora.
     const safeId = escapeHtml(String(item.id));
     const title = escapeHtml(item.titulo);
     return `
@@ -222,6 +223,7 @@ function renderMediaCard({ item, fav = false, viewed = false, wstatus = '', matc
         <span class="wcard-text">
             <span class="wcard-title">${title}</span>
             <span class="wcard-meta">${escapeHtml(category)}</span>
+            ${reason ? `<span class="wcard-reason">${escapeHtml(reason)}</span>` : ''}
         </span>
     </a>
     `;
@@ -504,6 +506,45 @@ function render(filterMode) {
 }
 
 // ─── Continuar: lo que tenés en "Viendo", con el progreso marcado ───
+// Filtro por categoría y orden propios (no comparten estado con la biblioteca).
+let continueCatFilter = 'all';
+let continueSort = 'progreso';
+
+// Último progreso marcado; si nunca marcó nada, cae al último cambio de estado.
+function getProgressTs(userId, itemId) {
+    const raw = UserStore.getItem('u:' + userId + '|item:' + itemId + '|progressTs') || '';
+    const t = raw ? new Date(raw).getTime() : 0;
+    return Number.isFinite(t) && t > 0 ? t : getItemTs(userId, itemId);
+}
+
+function ensureContinueTools(section) {
+    if (document.getElementById('continueCat')) return;
+    const head = section.querySelector('.ml-section-head');
+    if (!head) return;
+    const tools = document.createElement('div');
+    tools.className = 'ml-tools';
+    tools.innerHTML = `
+        <label for="continueCat" class="sr-only">Filtrar en curso por categoría</label>
+        <select id="continueCat" class="ml-select">
+            <option value="all">Todo</option>
+            <option value="anime">Anime</option>
+            <option value="manga">Manga</option>
+            <option value="novelas">Novelas</option>
+        </select>
+        <label for="continueSort" class="sr-only">Ordenar en curso</label>
+        <select id="continueSort" class="ml-select">
+            <option value="progreso">Último progreso</option>
+            <option value="az">A–Z</option>
+        </select>`;
+    head.appendChild(tools);
+    const cat = tools.querySelector('#continueCat');
+    const sort = tools.querySelector('#continueSort');
+    cat.value = continueCatFilter;
+    sort.value = continueSort;
+    cat.addEventListener('change', () => { continueCatFilter = cat.value || 'all'; renderContinue(); });
+    sort.addEventListener('change', () => { continueSort = sort.value || 'progreso'; renderContinue(); });
+}
+
 function renderContinue() {
     const section = document.getElementById('continueSection');
     const rail = document.getElementById('continueRail');
@@ -512,17 +553,28 @@ function renderContinue() {
     const userId = getCurrentUserIdSafe();
     if (userId === 'Invitado') { section.hidden = true; return; }
 
-    const entries = getAllItems()
+    const all = getAllItems()
         .map((item) => getUserItemState(userId, item))
-        .filter((e) => e.wstatus === 'viendo')
-        .sort((a, b) => getItemTs(userId, b.item.id) - getItemTs(userId, a.item.id))
+        .filter((e) => e.wstatus === 'viendo');
+
+    section.hidden = !all.length;
+    if (!all.length) { rail.innerHTML = ''; return; }
+    ensureContinueTools(section);
+
+    const entries = all
+        .filter((e) => continueCatFilter === 'all' || e.item.__category === continueCatFilter)
+        .sort(continueSort === 'az'
+            ? (a, b) => String(a.item.titulo || '').localeCompare(String(b.item.titulo || ''), 'es')
+            : (a, b) => getProgressTs(userId, b.item.id) - getProgressTs(userId, a.item.id))
         .slice(0, 12);
 
-    section.hidden = !entries.length;
-    if (!entries.length) { rail.innerHTML = ''; return; }
-
     const countEl = document.getElementById('continueCount');
-    if (countEl) countEl.textContent = entries.length === 1 ? '1 en curso' : `${entries.length} en curso`;
+    if (countEl) countEl.textContent = all.length === 1 ? '1 en curso' : `${all.length} en curso`;
+
+    if (!entries.length) {
+        rail.innerHTML = '<p class="ml-muted">No tenés nada en curso en esta categoría.</p>';
+        return;
+    }
 
     const progress = buildProgressIndex(userId);
     rail.innerHTML = entries.map(({ item }) => {
@@ -1030,11 +1082,39 @@ function renderStats() {
         '<p class="stat-label" style="text-align:center;padding:20px 0">Marcá contenido en tus listas para ver tu perfil de gustos.</p>';
 }
 
-// ─── Recomendaciones reales basadas en los géneros que mirás ───
+// ─── Recomendaciones reales basadas en lo que marcaste ───
+// El cálculo (perfil, exclusión de lo marcado y del +18, motivo de cada card)
+// vive en js/core/recommend.js (window.AppRecommend). Si ese módulo no está
+// cargado se cae al filtro viejo (excluir lo guardado, género en la píldora).
 let _recsSignature = null;
 
 function recsMessage(text) {
     return '<p style="color:var(--text-muted);font-family:Rajdhani,sans-serif;text-align:center;grid-column:1/-1;padding:40px 0">' + escapeHtml(text) + '</p>';
+}
+
+function recsT(key, fallback) {
+    try {
+        if (window.AppI18n && typeof window.AppI18n.t === 'function') {
+            const txt = window.AppI18n.t(key);
+            if (txt && txt.charAt(0) !== '[') return txt;
+        }
+    } catch (_) { /* sin i18n */ }
+    return fallback;
+}
+
+// Normaliza un resultado del catálogo (AniList / respaldo) a la forma de card.
+function recsCandidateToItem(r, category) {
+    const img = (r.images && (
+        (r.images.webp && (r.images.webp.large_image_url || r.images.webp.image_url)) ||
+        (r.images.jpg && (r.images.jpg.large_image_url || r.images.jpg.image_url))
+    )) || r.img || '';
+    return {
+        id: r.id != null ? r.id : r.mal_id,
+        titulo: r.title || r.titulo || '',
+        img: img,
+        info: (r.genres || []).map(function (g) { return g.name || g; }).join('|'),
+        __category: category
+    };
 }
 
 async function renderRecommendations() {
@@ -1057,10 +1137,15 @@ async function renderRecommendations() {
         .map(function (item) { return getUserItemState(userId, item); })
         .filter(function (e) { return e.viewed || e.fav || e.wstatus; });
 
-    if (!profileEntries.length) {
+    const Reco = window.AppRecommend || null;
+    const profile = Reco ? Reco.buildProfile(profileEntries) : null;
+
+    // Sin historial (o solo abandonados): estado vacío, no populares disfrazados.
+    if (!profileEntries.length || (profile && !profile.signalCount)) {
         _recsSignature = null;
-        setSub('Marcá algo como "Visto" o "Me gusta" para recibir recomendaciones.');
-        grid.innerHTML = recsMessage('Agregá contenido a tus listas para ver recomendaciones.');
+        const vacio = recsT('reco.vacio', 'Marcá algo como visto para recibir sugerencias.');
+        setSub(vacio);
+        grid.innerHTML = recsMessage(vacio);
         return;
     }
 
@@ -1072,7 +1157,7 @@ async function renderRecommendations() {
         const c = e.item.__category;
         if (c) catCount[c] = (catCount[c] || 0) + 1;
     });
-    const preferredCat = Object.keys(catCount)
+    const preferredCat = (profile && profile.topCategory) || Object.keys(catCount)
         .sort(function (a, b) { return catCount[b] - catCount[a]; })[0] || 'anime';
 
     // Evitar re-fetch si nada cambió
@@ -1081,7 +1166,10 @@ async function renderRecommendations() {
     _recsSignature = signature;
 
     setSub(topGenres.length
-        ? 'Basado en tus gustos: ' + topGenres.join(', ') + '.'
+        ? 'Basado en tus gustos: ' + topGenres.map(function (g) {
+            const G = window.AnimeDestiny && AnimeDestiny.Genres;
+            return G && typeof G.etiqueta === 'function' ? G.etiqueta(g) : g;
+        }).join(', ') + '.'
         : 'Basado en lo que marcaste.');
     grid.innerHTML = recsMessage('Buscando recomendaciones...');
 
@@ -1101,33 +1189,34 @@ async function renderRecommendations() {
 
     try {
         const results = await fetcher(1, topGenres.length ? { genres: topGenres } : {});
-        const recs = (Array.isArray(results) ? results : [])
-            .filter(function (r) { return !savedIds.has(String(r.id != null ? r.id : r.mal_id)); })
-            .slice(0, max);
+        const list = Array.isArray(results) ? results : [];
 
         if (_recsSignature !== signature) return; // otra llamada la reemplazó
 
-        if (!recs.length) {
+        let cards;
+        if (Reco) {
+            cards = Reco.scoreCandidates(list, profile, {
+                allowNsfw: Reco.allowNsfw(),
+                category: preferredCat,
+                max: max
+            }).map(function (r) {
+                return renderMediaCard({ item: recsCandidateToItem(r.item, preferredCat), reason: r.reason });
+            });
+        } else {
+            cards = list
+                .filter(function (r) { return !savedIds.has(String(r.id != null ? r.id : r.mal_id)); })
+                .slice(0, max)
+                .map(function (r) {
+                    return renderMediaCard({ item: recsCandidateToItem(r, preferredCat), match: topGenres[0] || '' });
+                });
+        }
+
+        if (!cards.length) {
             grid.innerHTML = recsMessage('No encontramos títulos nuevos para recomendarte por ahora.');
             return;
         }
 
-        grid.innerHTML = recs.map(function (r) {
-            const img = (r.images && (
-                (r.images.webp && (r.images.webp.large_image_url || r.images.webp.image_url)) ||
-                (r.images.jpg && (r.images.jpg.large_image_url || r.images.jpg.image_url))
-            )) || r.img || '';
-            return renderMediaCard({
-                item: {
-                    id: r.id != null ? r.id : r.mal_id,
-                    titulo: r.title || r.titulo || '',
-                    img: img,
-                    info: (r.genres || []).map(function (g) { return g.name || g; }).join('|'),
-                    __category: preferredCat
-                },
-                match: topGenres[0] || ''
-            });
-        }).join('');
+        grid.innerHTML = cards.join('');
 
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
             window.lucide.createIcons();

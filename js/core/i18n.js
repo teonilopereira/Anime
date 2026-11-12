@@ -18,6 +18,8 @@
             "nav.mis_listas":     "Mis Listas",
             "nav.listas":         "Listas",
             "nav.mas":            "Más",
+            // ── mejora (experiencia y accesibilidad) ──
+            "nav.aria_principal": "Navegación principal",
             "nav.configuracion":  "Configuración",
             "nav.cuenta":         "Cuenta",
             "nav.ingresar":       "Ingresar",
@@ -122,6 +124,10 @@
             "card.status.upcoming":     "Próximamente",
             "card.status.cancelled":    "Cancelado",
             "card.status.hiatus":       "En pausa",
+            // -- agente descubrimiento-contenido (catálogo): estado y total desconocidos --
+            "card.status.unknown":      "Sin estado",
+            "card.unit.sin_total":      "sin total",
+            // -- fin agente descubrimiento-contenido --
             "card.btn.detalle":         "DETALLE",
             "card.btn.ver_episodios":   "Ver episodios",
             "card.btn.ver_vols":        "Ver volúmenes y capítulos",
@@ -335,6 +341,13 @@
             "login.msg.sesion_cerrada":  "Sesión cerrada.",
             "login.msg.file_warn":       "⚠️ Estás usando file://. Usá un servidor local: node tools/serve.cjs",
             "login.msg.volviendo":       "Sesión iniciada. Volviendo...",
+            // ── Login: reenvío del correo de confirmación (agente continuidad / Seguir viendo) ──
+            "login.resend.nota":         "¿No te llegó? Mirá en spam o correo no deseado.",
+            "login.resend.boton":        "Reenviar correo",
+            "login.resend.espera":       "Reenviar en {s} s",
+            "login.resend.enviando":     "Reenviando...",
+            "login.resend.ok":           "Te reenviamos el correo de confirmación a {email}.",
+            "login.resend.error":        "No se pudo reenviar el correo: {message}",
 
             // ── Configuración ────────────────────────────────────────────────
             "config.titulo":         "CONFIGURACIÓN",
@@ -353,6 +366,31 @@
             "config.tema.claro":     "☀️ Claro",
             "config.notif.titulo":   "Notificaciones",
             "config.notif.desc":     "Recibir alertas y novedades de la app.",
+            // ── Notificaciones por categoría (retencion-notificaciones) ──
+            "config.notif.lead": "Elegí qué avisos recibís, cuántos por día y cuándo no molestar.",
+            "config.notif.episodios.titulo": "Episodios nuevos",
+            "config.notif.episodios.desc": "Cuando sale un episodio de un anime que seguís.",
+            "config.notif.racha.titulo": "Racha en riesgo",
+            "config.notif.racha.desc": "Te avisa cuando tu racha diaria lleva un día sin actividad. Faltar un día no la corta.",
+            "config.notif.retos.titulo": "Retos y misiones",
+            "config.notif.retos.desc": "Misiones completadas y retos disponibles.",
+            "config.notif.comunidad.titulo": "Comunidad",
+            "config.notif.comunidad.desc": "Likes y respuestas de otros usuarios, cuando estén disponibles.",
+            "config.notif.push.titulo": "Avisos push del navegador",
+            "config.notif.push.desc": "Episodios nuevos aunque la app esté cerrada. Requiere sesión y permiso.",
+            "config.notif.limite": "Máximo de avisos por día",
+            "config.notif.silencio.titulo": "Silencio nocturno",
+            "config.notif.silencio.desc": "No mostrar avisos en el horario que elijas.",
+            "config.notif.silencio.desde": "Desde",
+            "config.notif.silencio.hasta": "Hasta",
+            "config.notif.pausa1": "Pausar todo 1 día",
+            "config.notif.pausa7": "Pausar todo 7 días",
+            "config.notif.reanudar": "Reanudar avisos",
+            "config.notif.pausado": "⏸ Avisos pausados hasta el {fecha}",
+            "config.notif.toast_pausa1": "⏸ Avisos pausados por 1 día",
+            "config.notif.toast_pausa7": "⏸ Avisos pausados por 7 días",
+            "config.notif.toast_reanudar": "🔔 Avisos reanudados",
+            // ── fin retencion-notificaciones ──
             "config.mascota.titulo": "Personaje Rimuru",
             "config.mascota.desc":   "Rimuru, el slime, anuncia las notificaciones hablando en pantalla.",
             "config.roam.titulo":    "Rimuru en movimiento",
@@ -475,7 +513,7 @@
             "error.sesion_expirada": "Sesión expirada. Tus cambios se guardaron y se sincronizarán al reconectar.",
             "error.volver_inicio":   "Volver al inicio",
             "privacy.title":         "Política de Privacidad",
-            "privacy.updated":       "Última actualización: Julio 2026",
+            "privacy.updated":       "Última actualización: Noviembre 2026",
             "terms.title":           "Términos de Servicio",
             "terms.updated":         "Última actualización: Julio 2026",
 
@@ -550,11 +588,50 @@
             "privacy.h3":       "3. Almacenamiento y protección de datos",
             "privacy.s3.p":     "Todos tus datos de autenticación y listas se almacenan de manera segura en las bases de datos de Supabase. Nosotros no vendemos ni compartimos tu información personal con terceros bajo ningún concepto.",
             "privacy.h4":       "4. Cookies y almacenamiento local",
-            "privacy.s4.p":     "Utilizamos almacenamiento local (localStorage) para guardar temporalmente tus preferencias estéticas (como el color del tema visual o el tamaño de las cards) y para mantener tu sesión activa de manera segura mediante el token de autenticación provisto por Supabase.",
+            "privacy.s4.p":     "No usamos cookies de seguimiento. Usamos el almacenamiento local del navegador (localStorage) para guardar tus preferencias visuales (como el color del tema o el tamaño de las cards) y para mantener tu sesión activa mediante el token de autenticación de Supabase.",
             "privacy.h5":       "5. Tus derechos",
             "privacy.s5.p":     "Tienes derecho en cualquier momento a solicitar la eliminación completa de tu cuenta y todos tus datos asociados. Puedes hacerlo directamente desde la sección de configuración de perfil en nuestra aplicación.",
             "privacy.h6":       "6. Contacto",
             "privacy.s6.p":     "Si tienes alguna consulta sobre nuestra política de privacidad, puedes contactarnos en:",
+            // ── mejora-comunidad: perfil público y muro (privacidad.html) ──
+            "privacy.social.h":  "Perfil público y muro de la comunidad",
+            "privacy.social.p1": "Tu perfil es privado por defecto. Solo si activás «Perfil público» en Configuración → Privacidad, otras personas pueden ver en usuario.html?u=tu-usuario tu nombre, foto, apodo, nivel y la cantidad de favoritos y vistos, y tus «Me gusta» y «Vistos» aparecen en el muro de la comunidad.",
+            "privacy.social.p2": "Nunca se muestran tu correo ni el proveedor con el que iniciás sesión. Podés volver a privado cuando quieras: desde ese momento tu perfil y tu actividad dejan de mostrarse, porque el filtro se aplica en la base de datos.",
+            // ── fin mejora-comunidad ──
+            // ── retencion-engagement: privacidad (#3), sincronización en Configuración (#6), perfil público y muro (#19) ──
+            "privacy.s1.li4.k":          "Registro de actividad:",
+            "privacy.s1.li4.v":          "Las acciones que hacés en tu cuenta (por ejemplo marcar «Me gusta» o «Visto») con su fecha. Se guardan 90 días como máximo y se usan para el muro de la comunidad y tus estadísticas; lo más viejo se borra automáticamente.",
+            "privacy.social.p3":         "El ranking global muestra tu nombre, foto, nivel, EXP y apodo aunque tu perfil sea privado. Lo que el perfil privado oculta es tu página de perfil (usuario.html?u=…) y tu actividad en el muro.",
+            "privacy.s4.intro":          "Además, guardamos en este dispositivo datos que la app necesita para funcionar:",
+            "privacy.s4.li1":            "Racha diaria (ad:streak:*) y misiones y retos (ad:mis:*): contadores de días activos y de lo que hiciste cada día, semana y mes.",
+            "privacy.s4.li2":            "Cola de sincronización (syncQueue, progressSyncQueue): cambios que todavía no se pudieron guardar en tu cuenta, hasta que se envían.",
+            "privacy.s4.li3":            "Métricas de sincronización (ad:metrics:sync): solo cuántos guardados salieron bien o fallaron y el código y la fecha del último error; sin tu usuario ni mensajes.",
+            "privacy.s4.li4":            "Preferencias de notificación (pref:notif:*): qué categorías de avisos tenés activas, el límite diario, el horario silencioso, las pausas y cuántos avisos se mostraron hoy.",
+            "privacy.s4.li5":            "Recordatorios (ad:remind:*): los títulos con recordatorio y los avisos ya mostrados, para no repetirlos.",
+            "privacy.s4.li6":            "Calendario (ad:cal:onlyMine): si elegiste ver solo lo que seguís.",
+            "privacy.s4.p2":             "Todo esto es por dispositivo y navegador: no se sincroniza entre dispositivos ni lo usamos para otra cosa (la cola solo existe para mandar tus cambios a tu cuenta). Se borra al eliminar los datos del sitio en tu navegador.",
+            "config.sync.titulo":        "Sincronización",
+            "config.sync.al_dia":        "Todo sincronizado.",
+            "config.sync.pendiente_uno": "1 cambio pendiente",
+            "config.sync.pendientes":    "{n} cambios pendientes",
+            "config.sync.ultimo_error":  "Último error: {code} ({fecha})",
+            "config.sync.reintentar":    "Reintentar",
+            "config.sync.ok":            "✅ Todo sincronizado",
+            "config.sync.quedan":        "Quedan {n} cambios pendientes. Se reintentan solos.",
+            "config.sync.nota":          "Si un cambio no se pudo guardar en tu cuenta, queda en este dispositivo y se reintenta solo al volver la conexión o la sesión.",
+            "perfil.pub.usuario":        "USUARIO",
+            "perfil.pub.nivel":          "NIVEL",
+            "perfil.pub.favoritos":      "FAVORITOS",
+            "perfil.pub.me_gusta":       "Me gusta",
+            "perfil.pub.vistos":         "VISTOS",
+            "perfil.pub.obras":          "Obras marcadas",
+            "perfil.pub.no_disponible":  "ESTE PERFIL NO ESTÁ DISPONIBLE",
+            "perfil.pub.ir_mi_perfil":   "← IR A MI PERFIL",
+            "muro.titulo":               "MURO DE LA COMUNIDAD",
+            "muro.aparecer":             "¿Querés aparecer? Hacé público tu perfil →",
+            "muro.nota":                 "Solo se muestra la actividad de quienes activaron \"Perfil público\" en Configuración.",
+            "muro.mas":                  "CARGAR MÁS",
+            // ── fin retencion-engagement ──
 
             // ── Términos (terminos.html) ─────────────────────────────────────
             "terms.intro":  "Bienvenido a Mirudoku. Al acceder y utilizar este sitio web, aceptas cumplir con los siguientes términos y condiciones de uso.",
@@ -575,12 +652,31 @@
             "offline.retry": "Reintentar",
             "offline.home":  "Ir al inicio",
 
+            // ── Recomendaciones (retencion-recomendaciones · js/core/recommend.js) ──
+            "reco.motivo.origen": "Porque te gustó {titulo}",
+            "reco.motivo.estudio": "Del estudio de {titulo}",
+            "reco.motivo.genero": "{genero}, como {titulo}",
+            "reco.motivo.genero_solo": "Por tu gusto por {genero}",
+            "reco.vacio": "Marcá algo como visto para recibir sugerencias.",
+
             // ── General ──────────────────────────────────────────────────────
             "general.cargando":  "Cargando...",
             "general.guardando": "Guardando...",
             "general.hecho":     "Hecho",
             "general.cancelar":  "Cancelar",
-            "general.cerrar":    "Cerrar"
+            "general.cerrar":    "Cerrar",
+
+            // ── Novedades para vos (retencion-novedades · js/core/novedades.js) ──
+            "novedades.titulo": "Novedades para vos",
+            "novedades.episodios": "Episodios nuevos",
+            "novedades.estrenos": "Estrenos de la temporada",
+            "novedades.motivo.salio": "Ya salió el ep. {ep}",
+            "novedades.motivo.sale_hoy": "Ep. {ep} sale hoy",
+            "novedades.motivo.sale": "Ep. {ep} sale el {dia}",
+            "novedades.motivo.genero": "Estreno · {generos}",
+            "novedades.badge.nuevo": "Nuevo",
+            "novedades.badge.pronto": "Pronto",
+            "novedades.badge.estreno": "Estreno"
         }
     };
 

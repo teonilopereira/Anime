@@ -60,9 +60,15 @@ function translateCatalogFormat(format) {
     return catTr('card.format.' + f.toLowerCase(), fallbacks[f]);
 }
 
+// En emisión/publicación sin total informado (AniList manda null): se dice
+// "sin total" en vez de omitirlo o mostrar 0, sin inventar un número.
+function sinTotalLabel(item) {
+    return catalogStatusTone(item?.status) === 'releasing' ? catTr('card.unit.sin_total', 'sin total') : '';
+}
+
 function getApiCatalogInfo(categoria, item) {
     if (categoria === 'anime') {
-        const eps = item?.episodes ? `${item.episodes} ${catTr('card.unit.eps', 'eps')}` : '';
+        const eps = item?.episodes ? `${item.episodes} ${catTr('card.unit.eps', 'eps')}` : sinTotalLabel(item);
         const parts = [translateCatalogFormat(item?.type), eps, item?.status].filter(Boolean);
         return parts.join(' / ') || catTr('card.type.anime', 'Anime');
     }
@@ -74,7 +80,7 @@ function getApiCatalogInfo(categoria, item) {
             : (item?.type || catTr('card.type.manga', 'Manga')));
     const volcap = item?.volumes
         ? `${item.volumes} ${catTr('card.unit.vol', 'vol.')}`
-        : (item?.chapters ? `${item.chapters} ${catTr('card.unit.cap', 'cap.')}` : '');
+        : (item?.chapters ? `${item.chapters} ${catTr('card.unit.cap', 'cap.')}` : sinTotalLabel(item));
     const parts = [typeLabel, volcap, item?.status].filter(Boolean);
     if (categoria === 'novelas') return parts.join(' / ') || catTr('card.type.novela', 'Novela');
     return parts.join(' / ') || catTr('card.type.manga', 'Manga');
@@ -273,7 +279,11 @@ function translateCatalogStatus(status) {
         'NOT YET AIRED': 'card.status.upcoming',
         'CANCELLED': 'card.status.cancelled',
         'HIATUS': 'card.status.hiatus',
-        'ON HIATUS': 'card.status.hiatus'
+        'ON HIATUS': 'card.status.hiatus',
+        // Sin estado conocido (MangaDex sin status, items viejos): antes salía
+        // el texto crudo "UNKNOWN" con el tono verde de "en emisión".
+        'UNKNOWN': 'card.status.unknown',
+        '': 'card.status.unknown'
     };
     const fallbacks = {
         'card.status.releasing': 'En emisión',
@@ -281,7 +291,8 @@ function translateCatalogStatus(status) {
         'card.status.finished': 'Finalizado',
         'card.status.upcoming': 'Próximamente',
         'card.status.cancelled': 'Cancelado',
-        'card.status.hiatus': 'En pausa'
+        'card.status.hiatus': 'En pausa',
+        'card.status.unknown': 'Sin estado'
     };
     const key = map[s];
     return key ? catTr(key, fallbacks[key]) : String(status || '').trim();
@@ -307,11 +318,23 @@ function captionFromInfo(info, status) {
 // Tono del punto de estado (color por estado, además del texto).
 function catalogStatusTone(status) {
     const s = String(status || '').trim().toUpperCase();
-    if (/FINISHED|COMPLETED/.test(s)) return 'finished';
-    if (/HIATUS/.test(s)) return 'hiatus';
-    if (/CANCELLED/.test(s)) return 'cancelled';
-    if (/NOT_YET|NOT YET|UPCOMING/.test(s)) return 'upcoming';
-    return 'releasing';
+    if (/FINISHED|COMPLETED|FINALIZAD/.test(s)) return 'finished';
+    if (/HIATUS|PAUSA/.test(s)) return 'hiatus';
+    if (/CANCELLED|CANCELAD/.test(s)) return 'cancelled';
+    if (/NOT_YET|NOT YET|UPCOMING|PRÓXIM|PROXIM/.test(s)) return 'upcoming';
+    if (/RELEASING|AIRING|PUBLISHING|EMISIÓN|EMISION|PUBLICÁNDOSE|PUBLICANDOSE/.test(s)) return 'releasing';
+    // Desconocido o vacío: tono neutro, no se afirma que esté en emisión.
+    return 'unknown';
+}
+
+// Expuestas para tests (tests/unit/catalogo-datos.test.js).
+if (window.AnimeDestiny) {
+    AnimeDestiny.internals = AnimeDestiny.internals || {};
+    AnimeDestiny.internals.catalogStatus = {
+        translate: translateCatalogStatus,
+        tone: catalogStatusTone,
+        info: getApiCatalogInfo
+    };
 }
 
 function catalogLang() {
@@ -473,7 +496,7 @@ function buildCatalogCardHtml(options) {
     } = options;
 
     const safeId = escapeHtml(String(id));
-    const bandLabel = translateCatalogStatus(status) || catTr('card.status.releasing', 'En emisión');
+    const bandLabel = translateCatalogStatus(status) || catTr('card.status.unknown', 'Sin estado');
     const tone = catalogStatusTone(status);
     const captionInfo = captionFromInfo(info, status);
     // Página de volúmenes/episodios (volumenes.html): una lista donde cada
@@ -672,7 +695,8 @@ function renderCatalogItems(categoria, mainContainer, items, append) {
             title: title,
             image: image,
             detailUrl: detailUrl,
-            status: item.status || 'RELEASING',
+            // Sin estado no se asume "en emisión": cae en "Sin estado".
+            status: item.status || 'UNKNOWN',
             searchIndex: searchIndex,
             genres: genres.join('|'),
             genresNorm: genresNorm,

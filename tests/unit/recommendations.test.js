@@ -19,6 +19,7 @@ beforeAll(async () => {
   await import('../../js/core/constants.js');
   await import('../../js/core/genres.js');
   await import('../../js/core/api.js');
+  await import('../../js/core/recommend.js');
   // render-sections.js declara funciones globales sueltas (no es un IIFE):
   // se evalúa en el scope global igual que lo hace el <script> de la página.
   const src = fs.readFileSync(path.resolve(__dirname, '../../js/detalle/render-sections.js'), 'utf8');
@@ -94,5 +95,34 @@ describe('buildRecommendationsHtml', () => {
     expect(html).toContain('cat=anime&id=9');
     expect(html).not.toContain('<b>x</b>');
     expect(html).toContain('&lt;b&gt;x&lt;/b&gt;');
+  });
+});
+
+describe('buildRecommendationsHtml: motivo y exclusión', () => {
+  it('cada card dice "Porque te gustó <obra origen>"', () => {
+    const html = buildRecommendationsHtml({ id: 1, title: 'Frieren', recommendations: [
+      { id: 60, type: 'ANIME', title: 'R' }
+    ] }, null);
+    expect(html).toContain('class="wcard-reason">Porque te gustó Frieren<');
+  });
+
+  it('saltea lo que la persona ya marcó y el +18 salvo pref:nsfw', () => {
+    window.getCurrentUserIdSafe = () => 'u1';
+    window.UserStore = { getItem: (k) => (k === 'u:u1|item:61|viewed' || k === 'u:u1|item:62|wstatus' ? '1' : null) };
+    const item = { id: 1, title: 'B', recommendations: [
+      { id: 61, type: 'ANIME', title: 'Vista' },
+      { id: 62, type: 'ANIME', title: 'En curso' },
+      { id: 63, type: 'ANIME', title: 'Adulta', isAdult: true },
+      { id: 64, type: 'ANIME', title: 'Nueva' }
+    ] };
+    let html = buildRecommendationsHtml(item, null);
+    expect(html).toContain('id=64');
+    expect(html).not.toMatch(/id=6[123]"/);
+    localStorage.setItem('pref:nsfw', 'true');
+    html = buildRecommendationsHtml(item, null);
+    expect(html).toContain('id=63');
+    localStorage.removeItem('pref:nsfw');
+    delete window.UserStore;
+    delete window.getCurrentUserIdSafe;
   });
 });

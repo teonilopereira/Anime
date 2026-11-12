@@ -14,7 +14,9 @@
  * mes que usa el resumen mensual de retos.html.
  *
  * Claves:
- *   ad:mis:<uid>:d:<YYYY-MM-DD>  → { counts, done } del día (se borran los viejos)
+ *   ad:mis:<uid>:d:<YYYY-MM-DD>  → { counts, done } del día (se guardan los
+ *                                  últimos 7 días para el logro "Semana Intensa"
+ *                                  de mis-listas; los más viejos se borran)
  *   ad:mis:<uid>:w:<YYYY-MM-DD>  → { counts, done } de la semana (lunes)
  *   ad:mis:<uid>:m:<YYYY-MM>     → { counts } del mes
  */
@@ -22,6 +24,9 @@
     'use strict';
 
     var PREFIX = 'ad:mis:';
+    // Días de historial diario que se conservan (hoy + 6 anteriores). Alcanza
+    // para sumar "lo de los últimos 7 días" sin agregar contadores nuevos.
+    var RETAIN_DAYS = 7;
 
     // Diarias: 'quiz' va siempre (es el motivo para entrar cada día); las otras
     // dos salen del resto según la fecha, iguales para todos ese día.
@@ -113,15 +118,20 @@
         return { counts: b.counts || {}, done: b.done || {} };
     }
 
-    // Solo interesa el día de hoy: los días anteriores se borran para no
-    // acumular una clave por día para siempre.
-    function pruneOldDays(uid, keepKey) {
+    // Se conservan los últimos RETAIN_DAYS días (para getRecentCount); los
+    // anteriores se borran para no acumular una clave por día para siempre.
+    function pruneOldDays(uid, now) {
         var dayPrefix = PREFIX + uid + ':d:';
         var weekPrefix = PREFIX + uid + ':w:';
-        var keepWeek = weekKey(uid);
+        var keepWeek = weekKey(uid, now);
+        var today = new Date(dayStr(now) + 'T00:00:00');
         lsKeys().forEach(function (k) {
             if (!k) return;
-            if (k.indexOf(dayPrefix) === 0 && k !== keepKey) lsRemove(k);
+            if (k.indexOf(dayPrefix) === 0) {
+                var d = new Date(k.slice(dayPrefix.length) + 'T00:00:00');
+                var age = Math.round((today - d) / 86400000);
+                if (isNaN(age) || age < 0 || age >= RETAIN_DAYS) lsRemove(k);
+            }
             if (k.indexOf(weekPrefix) === 0 && k !== keepWeek) lsRemove(k);
         });
     }
@@ -136,9 +146,21 @@
         });
     }
 
+    // La EXP se da siempre. El toast de misión cumplida es la respuesta
+    // inmediata a algo que el usuario acaba de hacer en pantalla, no un aviso
+    // que lo interrumpe: respeta la categoría 'retos' apagada y la pausa de
+    // notif-prefs.js, pero NO llama a recordSent (no gasta el límite diario,
+    // que queda para los avisos reales: recordatorios, push) ni mira el
+    // silencio nocturno (el usuario está usando la app en ese momento).
     function grant(uid, xp, message) {
         if (typeof window.addUserPoints === 'function') window.addUserPoints(uid, xp);
-        if (window.Toast) window.Toast.success(message + ' (+' + xp + ' EXP)', 5000);
+        if (!window.Toast) return;
+        var prefs = window.AppNotifPrefs;
+        if (prefs) {
+            if (typeof prefs.isEnabled === 'function' && !prefs.isEnabled('retos')) return;
+            if (typeof prefs.isPaused === 'function' && prefs.isPaused()) return;
+        }
+        window.Toast.success(message + ' (+' + xp + ' EXP)', 5000);
     }
 
     function notify() {
@@ -193,7 +215,7 @@
         lsSet(dKey, JSON.stringify(day));
         lsSet(wKey, JSON.stringify(week));
         lsSet(mKey, JSON.stringify({ counts: month.counts }));
-        pruneOldDays(uid, dKey);
+        pruneOldDays(uid, now);
 
         completed.forEach(function (m) { grant(uid, m.xp, 'Misión cumplida: ' + m.label); });
         if (bonus) grant(uid, DAILY_BONUS_XP, '¡Completaste todas las misiones de hoy!');
@@ -223,6 +245,23 @@
         return (b && b.counts) || {};
     }
 
+    /**
+     * Suma de una acción en los últimos `days` días (hoy incluido, máximo
+     * RETAIN_DAYS). Devuelve null sin sesión: no hay datos, no "cero".
+     */
+    function getRecentCount(action, days, date) {
+        var uid = currentUserId();
+        if (!uid || !action) return null;
+        var n = Math.min(Math.max(1, Number(days) || RETAIN_DAYS), RETAIN_DAYS);
+        var base = date || new Date();
+        var total = 0;
+        for (var i = 0; i < n; i++) {
+            var d = new Date(base.getFullYear(), base.getMonth(), base.getDate() - i, 12);
+            total += Number(readBucket(dayKey(uid, d)).counts[action]) || 0;
+        }
+        return total;
+    }
+
     // 'visit' se registra solo, en cuanto hay sesión.
     // (track ya ignora las repeticiones del mismo día).
     function trackVisit() { track('visit'); }
@@ -242,6 +281,7 @@
         track: track,
         getState: getState,
         getMonth: getMonth,
+        getRecentCount: getRecentCount,
         dailyMissions: dailyMissions,
         weekly: WEEKLY.slice(),
         dayStr: dayStr,

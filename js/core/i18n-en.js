@@ -25,6 +25,8 @@
         "nav.mis_listas":     "My Lists",
         "nav.listas":         "Lists",
         "nav.mas":            "More",
+        // ── mejora (experiencia y accesibilidad) ──
+        "nav.aria_principal": "Main navigation",
         "nav.configuracion":  "Settings",
         "nav.cuenta":         "Account",
         "nav.ingresar":       "Log In",
@@ -129,6 +131,10 @@
         "card.status.upcoming":     "Upcoming",
         "card.status.cancelled":    "Cancelled",
         "card.status.hiatus":       "On hiatus",
+        // -- agente descubrimiento-contenido (catálogo): estado y total desconocidos --
+        "card.status.unknown":      "No status",
+        "card.unit.sin_total":      "no total yet",
+        // -- fin agente descubrimiento-contenido --
         "card.btn.detalle":         "DETAILS",
         "card.btn.ver_episodios":   "View episodes",
         "card.btn.ver_vols":        "View volumes and chapters",
@@ -342,6 +348,13 @@
         "login.msg.sesion_cerrada":  "Logged out.",
         "login.msg.file_warn":       "⚠️ You're using file://. Use a local server: node tools/serve.cjs",
         "login.msg.volviendo":       "Logged in. Returning...",
+        // ── Login: confirmation email resend (agente continuidad / Seguir viendo) ──
+        "login.resend.nota":         "Didn't get it? Check your spam or junk folder.",
+        "login.resend.boton":        "Resend email",
+        "login.resend.espera":       "Resend in {s} s",
+        "login.resend.enviando":     "Resending...",
+        "login.resend.ok":           "We resent the confirmation email to {email}.",
+        "login.resend.error":        "Couldn't resend the email: {message}",
 
         // ── Settings ─────────────────────────────────────────────────────
         "config.titulo":          "SETTINGS",
@@ -360,6 +373,31 @@
         "config.tema.claro":      "☀️ Light",
         "config.notif.titulo":    "Notifications",
         "config.notif.desc":      "Receive alerts and app updates.",
+        // ── Notificaciones por categoría (retencion-notificaciones) ──
+        "config.notif.lead": "Choose which alerts you get, how many per day and when not to disturb you.",
+        "config.notif.episodios.titulo": "New episodes",
+        "config.notif.episodios.desc": "When an episode of an anime you follow comes out.",
+        "config.notif.racha.titulo": "Streak at risk",
+        "config.notif.racha.desc": "Lets you know when your daily streak has gone a day without activity. Missing one day doesn't break it.",
+        "config.notif.retos.titulo": "Challenges and missions",
+        "config.notif.retos.desc": "Completed missions and available challenges.",
+        "config.notif.comunidad.titulo": "Community",
+        "config.notif.comunidad.desc": "Likes and replies from other users, once available.",
+        "config.notif.push.titulo": "Browser push alerts",
+        "config.notif.push.desc": "New episodes even when the app is closed. Requires login and permission.",
+        "config.notif.limite": "Max alerts per day",
+        "config.notif.silencio.titulo": "Quiet hours",
+        "config.notif.silencio.desc": "Don't show alerts during the hours you choose.",
+        "config.notif.silencio.desde": "From",
+        "config.notif.silencio.hasta": "To",
+        "config.notif.pausa1": "Pause all for 1 day",
+        "config.notif.pausa7": "Pause all for 7 days",
+        "config.notif.reanudar": "Resume alerts",
+        "config.notif.pausado": "⏸ Alerts paused until {fecha}",
+        "config.notif.toast_pausa1": "⏸ Alerts paused for 1 day",
+        "config.notif.toast_pausa7": "⏸ Alerts paused for 7 days",
+        "config.notif.toast_reanudar": "🔔 Alerts resumed",
+        // ── fin retencion-notificaciones ──
         "config.mascota.titulo":  "Rimuru character",
         "config.mascota.desc":    "Rimuru the slime announces notifications by speaking on-screen.",
         "config.roam.titulo":     "Roaming Rimuru",
@@ -482,7 +520,7 @@
         "error.sesion_expirada": "Session expired. Your changes were saved and will sync on reconnect.",
         "error.volver_inicio":   "Back to home",
         "privacy.title":         "Privacy Policy",
-        "privacy.updated":       "Last updated: July 2026",
+        "privacy.updated":       "Last updated: November 2026",
         "terms.title":           "Terms of Service",
         "terms.updated":         "Last updated: July 2026",
 
@@ -557,11 +595,50 @@
         "privacy.h3":       "3. Data storage and protection",
         "privacy.s3.p":     "All your authentication data and lists are stored securely in Supabase databases. We do not sell or share your personal information with third parties under any circumstances.",
         "privacy.h4":       "4. Cookies and local storage",
-        "privacy.s4.p":     "We use local storage (localStorage) to temporarily save your visual preferences (such as the theme color or card size) and to keep your session active securely through the authentication token provided by Supabase.",
+        "privacy.s4.p":     "We do not use tracking cookies. We use the browser's local storage (localStorage) to save your visual preferences (such as the theme color or card size) and to keep your session active through the Supabase authentication token.",
         "privacy.h5":       "5. Your rights",
         "privacy.s5.p":     "You have the right at any time to request the complete deletion of your account and all associated data. You can do it directly from the profile settings section in our application.",
         "privacy.h6":       "6. Contact",
         "privacy.s6.p":     "If you have any questions about our privacy policy, you can contact us at:",
+        // ── mejora-comunidad: public profile and wall (privacidad.html) ──
+        "privacy.social.h":  "Public profile and community wall",
+        "privacy.social.p1": "Your profile is private by default. Only if you turn on “Public profile” in Settings → Privacy can other people see, at usuario.html?u=your-username, your name, photo, title, level and how many favorites and watched items you have, and your “Likes” and “Watched” show up on the community wall.",
+        "privacy.social.p2": "Your email and sign-in provider are never shown. You can switch back to private at any time: from then on your profile and activity stop being shown, because the filter is applied in the database.",
+        // ── end mejora-comunidad ──
+        // ── retencion-engagement: privacy (#3), sync in Settings (#6), public profile and wall (#19) ──
+        "privacy.s1.li4.k":          "Activity log:",
+        "privacy.s1.li4.v":          "The actions you take with your account (for example marking “Like” or “Watched”) and their date. They are kept for 90 days at most and are used for the community wall and your statistics; older entries are deleted automatically.",
+        "privacy.social.p3":         "The global ranking shows your name, photo, level, EXP and title even if your profile is private. What a private profile hides is your profile page (usuario.html?u=…) and your activity on the wall.",
+        "privacy.s4.intro":          "We also store on this device data the app needs to work:",
+        "privacy.s4.li1":            "Daily streak (ad:streak:*) and missions and challenges (ad:mis:*): counters of active days and of what you did each day, week and month.",
+        "privacy.s4.li2":            "Sync queue (syncQueue, progressSyncQueue): changes that could not be saved to your account yet, until they are sent.",
+        "privacy.s4.li3":            "Sync metrics (ad:metrics:sync): only how many saves succeeded or failed and the code and date of the last error; no username or messages.",
+        "privacy.s4.li4":            "Notification preferences (pref:notif:*): which notification categories are on, the daily limit, quiet hours, pauses and how many notifications were shown today.",
+        "privacy.s4.li5":            "Reminders (ad:remind:*): the titles with a reminder and the notifications already shown, so they are not repeated.",
+        "privacy.s4.li6":            "Calendar (ad:cal:onlyMine): whether you chose to see only what you follow.",
+        "privacy.s4.p2":             "All of this is per device and browser: it is not synced across devices and we do not use it for anything else (the queue only exists to send your changes to your account). It is deleted when you clear the site data in your browser.",
+        "config.sync.titulo":        "Sync",
+        "config.sync.al_dia":        "Everything is synced.",
+        "config.sync.pendiente_uno": "1 pending change",
+        "config.sync.pendientes":    "{n} pending changes",
+        "config.sync.ultimo_error":  "Last error: {code} ({fecha})",
+        "config.sync.reintentar":    "Retry",
+        "config.sync.ok":            "✅ Everything is synced",
+        "config.sync.quedan":        "{n} changes still pending. They will be retried automatically.",
+        "config.sync.nota":          "If a change could not be saved to your account, it stays on this device and is retried automatically when the connection or session comes back.",
+        "perfil.pub.usuario":        "USER",
+        "perfil.pub.nivel":          "LEVEL",
+        "perfil.pub.favoritos":      "FAVORITES",
+        "perfil.pub.me_gusta":       "Likes",
+        "perfil.pub.vistos":         "WATCHED",
+        "perfil.pub.obras":          "Titles marked",
+        "perfil.pub.no_disponible":  "THIS PROFILE IS NOT AVAILABLE",
+        "perfil.pub.ir_mi_perfil":   "← GO TO MY PROFILE",
+        "muro.titulo":               "COMMUNITY WALL",
+        "muro.aparecer":             "Want to show up? Make your profile public →",
+        "muro.nota":                 "Only activity from people who turned on \"Public profile\" in Settings is shown.",
+        "muro.mas":                  "LOAD MORE",
+        // ── end retencion-engagement ──
 
         // ── Terms (terminos.html) ────────────────────────────────────────
         "terms.intro":  "Welcome to Mirudoku. By accessing and using this website, you agree to comply with the following terms and conditions of use.",
@@ -582,12 +659,31 @@
         "offline.retry": "Retry",
         "offline.home":  "Go to home",
 
+        // ── Recomendaciones (retencion-recomendaciones · js/core/recommend.js) ──
+        "reco.motivo.origen": "Because you liked {titulo}",
+        "reco.motivo.estudio": "From the studio of {titulo}",
+        "reco.motivo.genero": "{genero}, like {titulo}",
+        "reco.motivo.genero_solo": "Because you like {genero}",
+        "reco.vacio": "Mark something as watched to get suggestions.",
+
         // ── General ──────────────────────────────────────────────────────
         "general.cargando":  "Loading...",
         "general.guardando": "Saving...",
         "general.hecho":     "Done",
         "general.cancelar":  "Cancel",
-        "general.cerrar":    "Close"
+        "general.cerrar":    "Close",
+
+        // ── Novedades para vos (retencion-novedades · js/core/novedades.js) ──
+        "novedades.titulo": "What's new for you",
+        "novedades.episodios": "New episodes",
+        "novedades.estrenos": "This season's premieres",
+        "novedades.motivo.salio": "Ep. {ep} is out",
+        "novedades.motivo.sale_hoy": "Ep. {ep} airs today",
+        "novedades.motivo.sale": "Ep. {ep} airs {dia}",
+        "novedades.motivo.genero": "Premiere · {generos}",
+        "novedades.badge.nuevo": "New",
+        "novedades.badge.pronto": "Soon",
+        "novedades.badge.estreno": "Premiere"
     };
 
     var dicts = window.__i18nDicts = window.__i18nDicts || {};

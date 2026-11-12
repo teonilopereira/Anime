@@ -88,44 +88,52 @@
         return title?.romaji || title?.english || '';
     }
 
+    // Cadena principal + secuelas directas. Cada temporada lleva su cantidad
+    // en una sola unidad (`unit`: episodes | chapters | volumes) y `count`;
+    // antes en manga se mezclaba `chapters || volumes`, así que una entrada
+    // podía contar capítulos y la siguiente tomos sin que se notara.
+    // En manga la unidad es capítulos si alguna entrada los informa; si
+    // ninguna, tomos. `count` 0 = total desconocido (no se inventa).
+    // `episodes` se mantiene por compatibilidad y solo tiene valor en anime.
     function buildSeasonsFromItem(item, type) {
         var seasons = [];
         var isAnime = type === 'anime';
-        var mainCount = isAnime ? (item.episodes || 0) : (item.chapters || item.volumes || 0);
+        var edges = item.relations?.edges || [];
+        var sequelEdges = edges.filter(function (e) {
+            return e && e.relationType === 'SEQUEL' && e.node;
+        });
+        if (!sequelEdges.length) return seasons;
 
-        if (item.relations?.edges) {
-            var sequelEdges = item.relations.edges.filter(function (e) {
-                return e.relationType === 'SEQUEL';
+        var unit = 'episodes';
+        if (!isAnime) {
+            var hayCapitulos = (Number(item.chapters) > 0) || sequelEdges.some(function (e) {
+                return Number(e.node.chapters) > 0;
             });
-
-            if (sequelEdges.length > 0) {
-                seasons.push({
-                    id: item.id,
-                    episodes: mainCount,
-                    season: item.season || null,
-                    seasonYear: item.seasonYear || null,
-                    title: extractTitle(item.title) || 'Temporada 1',
-                    format: item.format || null,
-                    img: item.coverImage?.extraLarge || item.coverImage?.large || ''
-                });
-                sequelEdges.forEach(function (edge) {
-                    var node = edge.node;
-                    var count = isAnime ? (node.episodes || 0) : (node.chapters || node.volumes || 0);
-                    if (count > 0) {
-                        seasons.push({
-                            id: node.id,
-                            episodes: count,
-                            season: node.season || null,
-                            seasonYear: node.seasonYear || null,
-                            title: extractTitle(node.title) || 'Secuela',
-                            format: node.format || null,
-                            img: node.coverImage?.large || ''
-                        });
-                    }
-                });
-            }
+            unit = hayCapitulos ? 'chapters' : 'volumes';
+        }
+        function entry(src, count, fallbackTitle, img) {
+            return {
+                id: src.id,
+                unit: unit,
+                count: count,
+                episodes: isAnime ? count : 0,
+                chapters: isAnime ? 0 : (Number(src.chapters) || 0),
+                volumes: isAnime ? 0 : (Number(src.volumes) || 0),
+                season: src.season || null,
+                seasonYear: src.seasonYear || null,
+                title: extractTitle(src.title) || fallbackTitle,
+                format: src.format || null,
+                img: img
+            };
         }
 
+        seasons.push(entry(item, Number(item[unit]) || 0, 'Temporada 1',
+            item.coverImage?.extraLarge || item.coverImage?.large || ''));
+        sequelEdges.forEach(function (edge) {
+            var node = edge.node;
+            var count = Number(node[unit]) || 0;
+            if (count > 0) seasons.push(entry(node, count, 'Secuela', node.coverImage?.large || ''));
+        });
         return seasons;
     }
 
@@ -165,7 +173,7 @@
             mal_id: item.idMal,
             title: title,
             title_english: altTitle,
-            synopsis: cleanDesc || 'Sin sinopsis disponible.',
+            synopsis: cleanDesc || window.SIN_SINOPSIS || 'Sin sinopsis disponible.',
             status: item.status || 'UNKNOWN',
             type: friendlyType,
             episodes: isAnime ? (item.episodes || 0) : 0,
@@ -293,7 +301,10 @@
         var isAnime = type === 'ANIME';
         var fields = isAnime
             ? 'id idMal title { romaji english } coverImage { extraLarge large } episodes status genres averageScore description type format season seasonYear source duration countryOfOrigin studios { nodes { name } }'
-            : 'id idMal title { romaji english } coverImage { extraLarge large } chapters volumes status genres averageScore description type format countryOfOrigin source';
+            // startDate { year }: el manga no tiene seasonYear y sin esto las
+            // cards de manga/novelas quedaban sin año (anilistItemToLocal lo
+            // mapea a startYear).
+            : 'id idMal title { romaji english } coverImage { extraLarge large } chapters volumes status genres averageScore description type format countryOfOrigin source startDate { year }';
 
         // Build variable declarations
         var varDecls = ['$page: Int', '$perPage: Int'];
@@ -383,6 +394,13 @@
         return { season: season, year: now.getFullYear() };
     }
     window.getCurrentSeason = getCurrentSeason;
+    // Mappers puros expuestos para los tests (tests/unit/catalogo-datos.test.js).
+    if (window.AnimeDestiny) {
+        AnimeDestiny.internals = AnimeDestiny.internals || {};
+        AnimeDestiny.internals.anilistItemToLocal = anilistItemToLocal;
+        AnimeDestiny.internals.buildSeasonsFromItem = buildSeasonsFromItem;
+        AnimeDestiny.internals.buildQueryParts = buildQueryParts;
+    }
 
     // browse: 'populares' (default) | 'tendencias' | 'puntuados' | 'temporada' (solo anime)
     function browseToQueryOpts(browse, isAnime) {
@@ -906,6 +924,7 @@
                         title { romaji english }
                         coverImage { large }
                         format
+                        episodes
                         genres
                         isAdult
                         countryOfOrigin
@@ -919,7 +938,7 @@
         var now = Math.floor(Date.now() / 1000);
         var end = now + span * 86400;
 
-        var cacheKey = 'weeklyAiring_' + span + '_' + Math.floor(now / 3600); // bucket horario
+        var cacheKey = 'weeklyAiring_v2_' + span + '_' + Math.floor(now / 3600); // bucket horario
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
@@ -941,6 +960,8 @@
                         img: (m.coverImage && m.coverImage.large) || '',
                         format: m.format || '',
                         genres: Array.isArray(m.genres) ? m.genres : [],
+                        // Total de episodios (null si AniList no lo sabe todavía).
+                        totalEpisodes: Number(m.episodes) > 0 ? Number(m.episodes) : null,
                         episode: Number(row.episode) || 0,
                         airingAt: Number(row.airingAt) || 0
                     });

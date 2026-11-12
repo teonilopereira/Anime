@@ -78,6 +78,19 @@
                 '<span class="rank-h-exp">EXP TOTAL</span>' +
             '</div>';
 
+        // Nombre con enlace al perfil público (usuario.html?u=) SOLO si la base
+        // dice que es público (is_public === true, migración 015). Si el campo
+        // no viene (015 sin aplicar) o es privado, el nombre va sin enlace: no
+        // se manda a nadie a un estado vacío.
+        function nickHtml(p, name) {
+            var uname = String(p.username || '').trim();
+            if (!uname || p.is_public !== true) {
+                return '<span class="rank-player-nick" title="' + name + '">' + name + '</span>';
+            }
+            return '<a class="rank-player-nick rank-player-link" href="usuario.html?u=' + encodeURIComponent(uname) + '"' +
+                ' title="Ver perfil de ' + name + '">' + name + '</a>';
+        }
+
         for (var i = 0; i < players.length; i++) {
             var p = players[i];
             var name = escapeHtml(p.display_name || p.username || "Jugador");
@@ -112,7 +125,7 @@
                         // antes del apodo: al envolver, los dos quedan juntos
                         // en el renglon de abajo.
                         '<div class="rank-player-name">' +
-                            '<span class="rank-player-nick" title="' + name + '">' + name + '</span>' +
+                            nickHtml(p, name) +
                             (isCurrentUser ? '<span class="ranking-badge">TÚ</span>' : '') +
                             '<span class="rank-sub-level">Nv. ' + level + '</span>' +
                             getApodoHtml(p) +

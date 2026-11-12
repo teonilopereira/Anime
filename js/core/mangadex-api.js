@@ -8,25 +8,95 @@
     var NO_COVER_PLACEHOLDER =
         "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect fill='%231a0a2e' width='200' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23a855f7' font-family='sans-serif' font-size='13' text-anchor='middle' dominant-baseline='middle'%3ESin portada%3C/text%3E%3C/svg%3E";
 
-    function safeCacheSet(key, value) {
-        try {
-            localStorage.setItem(key, value);
-        } catch (e) {
-            // Si el almacenamiento local se llena (QuotaExceededError)
-            if (e.name === 'QuotaExceededError' || e.code === 22) {
-                // Eliminar claves antiguas de MangaDex para liberar espacio
-                try {
-                    for (var i = localStorage.length - 1; i >= 0; i--) {
-                        var k = localStorage.key(i);
-                        if (k && (k.indexOf('md_cov_') === 0 || k.indexOf('md_id_') === 0)) {
-                            localStorage.removeItem(k);
-                        }
-                    }
-                    // Reintentar guardar
-                    localStorage.setItem(key, value);
-                } catch (_) {}
-            }
+    // Caché de MangaDex en localStorage.
+    // Las resoluciones (id de MangaDex, ediciones alternativas y mapa de
+    // portadas por tomo) vencen a los 7 días: antes no vencían nunca, así que
+    // un tomo nuevo o una portada corregida en MangaDex no llegaban jamás.
+    // Se guardan envueltas como {"t": <ms>, "v": "<valor>"}; un valor viejo sin
+    // envoltorio se trata como vencido y se vuelve a pedir una vez.
+    var MD_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+    var MD_TTL_PREFIXES = ['md_cov_map_v2_', 'md_alt_v1_', 'md_id_v3_'];
+    var MD_PRUNE_PREFIXES = ['md_cov_', 'md_id_', 'md_alt_', 'md_chapvol_'];
+
+    function startsWithAny(key, prefixes) {
+        for (var i = 0; i < prefixes.length; i++) {
+            if (String(key).indexOf(prefixes[i]) === 0) return true;
         }
+        return false;
+    }
+
+    function parseEnvelope(raw) {
+        if (!raw || raw.charAt(0) !== '{') return null;
+        try {
+            var o = JSON.parse(raw);
+            if (o && typeof o.t === 'number' && typeof o.v === 'string') return o;
+        } catch (_) {}
+        return null;
+    }
+
+    // Lee una entrada; null si falta, venció o es del formato viejo.
+    function cacheGet(key) {
+        var raw;
+        try { raw = localStorage.getItem(key); } catch (_) { return null; }
+        if (raw == null) return null;
+        if (!startsWithAny(key, MD_TTL_PREFIXES)) return raw;
+        var env = parseEnvelope(raw);
+        if (!env || Date.now() - env.t > MD_CACHE_TTL_MS) {
+            try { localStorage.removeItem(key); } catch (_) {}
+            return null;
+        }
+        return env.v;
+    }
+
+    // Antigüedad de una entrada para la poda: las que no tienen fecha
+    // (formato viejo, portadas por tomo, mapa capítulo→tomo) cuentan como
+    // las más viejas y se van primero.
+    function entryTime(key) {
+        try {
+            var env = parseEnvelope(localStorage.getItem(key));
+            return env ? env.t : 0;
+        } catch (_) { return 0; }
+    }
+
+    // Ante cuota llena borra entradas de MangaDex de a tandas, de la más vieja
+    // a la más nueva, hasta que entra el valor. Antes se borraba toda la caché
+    // de portadas e ids de una, aunque bastara con liberar un poco.
+    function safeCacheSet(key, value) {
+        var stored = startsWithAny(key, MD_TTL_PREFIXES)
+            ? JSON.stringify({ t: Date.now(), v: String(value) })
+            : value;
+        try {
+            localStorage.setItem(key, stored);
+            return true;
+        } catch (e) {
+            if (!(e && (e.name === 'QuotaExceededError' || e.code === 22))) return false;
+        }
+        var candidatas = [];
+        try {
+            for (var i = 0; i < localStorage.length; i++) {
+                var k = localStorage.key(i);
+                if (k && k !== key && startsWithAny(k, MD_PRUNE_PREFIXES)) candidatas.push({ k: k, t: entryTime(k) });
+            }
+        } catch (_) { return false; }
+        candidatas.sort(function (a, b) { return a.t - b.t; });
+        var tanda = Math.max(5, Math.ceil(candidatas.length * 0.2));
+        while (candidatas.length) {
+            candidatas.splice(0, tanda).forEach(function (c) {
+                try { localStorage.removeItem(c.k); } catch (_) {}
+            });
+            try {
+                localStorage.setItem(key, stored);
+                return true;
+            } catch (_) { /* sigue podando */ }
+        }
+        return false;
+    }
+
+    if (window.AnimeDestiny) {
+        window.AnimeDestiny.internals = window.AnimeDestiny.internals || {};
+        window.AnimeDestiny.internals.mdCache = {
+            get: cacheGet, set: safeCacheSet, TTL_MS: MD_CACHE_TTL_MS
+        };
     }
 
     /**
@@ -146,8 +216,10 @@
             mal_id: null,
             title: title,
             title_english: title,
-            synopsis: desc || 'Sin sinopsis disponible.',
-            status: status === 'completed' ? 'FINISHED' : (status === 'ongoing' ? 'RELEASING' : (status === 'hiatus' ? 'HIATUS' : 'UNKNOWN')),
+            synopsis: desc || window.SIN_SINOPSIS || 'Sin sinopsis disponible.',
+            status: typeof window.mdStatusToLocal === 'function'
+                ? window.mdStatusToLocal(status)
+                : ({ completed: 'FINISHED', ongoing: 'RELEASING', hiatus: 'HIATUS', cancelled: 'CANCELLED' }[status] || 'UNKNOWN'),
             type: friendlyType,
             episodes: 0,
             chapters: chCnt,
@@ -389,7 +461,7 @@
         // portada del nuevo idioma en vez de servir la del anterior.
         var mapKey = 'md_cov_map_v2_' + coverLangTag() + '_' + mangaId;
         try {
-            var cachedMap = localStorage.getItem(mapKey);
+            var cachedMap = cacheGet(mapKey);
             if (cachedMap) {
                 var parsed = JSON.parse(cachedMap);
                 if (mapHasEntries(parsed)) return parsed;
@@ -425,7 +497,7 @@
     function getAlternateMangaIds(mangaId) {
         var key = 'md_alt_v1_' + mangaId;
         try {
-            var cached = localStorage.getItem(key);
+            var cached = cacheGet(key);
             if (cached) {
                 var parsed = JSON.parse(cached);
                 if (Array.isArray(parsed)) return Promise.resolve(parsed);
@@ -528,7 +600,7 @@
             ? 'md_id_v3_al_' + alId
             : 'md_id_v3_' + candidates[0].replace(/\s+/g, '_').toLowerCase();
         try {
-            var cached = localStorage.getItem(cacheKey);
+            var cached = cacheGet(cacheKey);
             if (cached) return cached;
         } catch (_) {}
 

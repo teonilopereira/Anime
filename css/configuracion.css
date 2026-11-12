@@ -544,6 +544,45 @@
 .cfg-save-title { font-family: var(--font-display); font-size: 0.8rem; color: var(--text-main); margin-bottom: 4px; }
 .cfg-save-desc { font-size: 0.82rem; color: rgba(var(--ink-rgb),0.45); font-family: var(--font-body); }
 
+/* ── Notificaciones por categoría (retencion-notificaciones) ── */
+.cfg-notif {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(var(--ink-rgb),0.07);
+}
+.cfg-notif-title {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-main);
+    margin: 0 0 4px;
+}
+.cfg-notif-pause {
+    margin: 12px 0 4px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(var(--accent-cyan-rgb),0.3);
+    background: var(--accent-cyan-10);
+    color: var(--accent-cyan);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+}
+.cfg-notif-pause[hidden] { display: none; }
+.cfg-notif-field { margin: 12px 0 0; }
+.cfg-notif-quiet {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.cfg-notif-quiet[hidden] { display: none; }
+.cfg-notif-actions { margin-top: 16px; }
+.cfg-notif-actions .cfg-btn[hidden] { display: none; }
+.cfg-notif .cfg-switch input:disabled + .cfg-switch-slider { cursor: not-allowed; }
+@media (max-width: 480px) {
+    .cfg-notif-quiet { grid-template-columns: 1fr; gap: 0; }
+}
+
 /* Responsive: el menú pasa a ser una fila deslizable arriba del contenido */
 @media (max-width: 768px) {
     .cfg-layout { grid-template-columns: 1fr; gap: 14px; }
@@ -600,4 +639,41 @@
     .cfg-color-item input[type="color"] { width: 36px; height: 36px; }
     .cfg-btn { padding: 8px 16px; font-size: 0.65rem; }
     .cfg-range { min-width: 80px; }
+}
+
+/* ── Sincronización (retencion-engagement · AppSyncMetrics) ── */
+.cfg-sync {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(var(--ink-rgb),0.07);
+}
+.cfg-sync[hidden] { display: none; }
+.cfg-sync-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-main);
+    margin: 0 0 6px;
+}
+.cfg-sync-title svg { width: 16px; height: 16px; color: var(--accent-cyan); }
+.cfg-sync-status {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0 0 4px;
+}
+.cfg-sync-status.has-pending { color: var(--accent-cyan); }
+.cfg-sync-error {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--text-faint);
+    margin: 0 0 10px;
+}
+.cfg-sync .cfg-btn { margin-top: 6px; }
+@media (max-width: 480px) {
+    .cfg-sync .cfg-btn { width: 100%; justify-content: center; }
 }

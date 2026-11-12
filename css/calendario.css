@@ -139,6 +139,53 @@
     text-shadow: 0 0 8px rgba(255, 207, 90, 0.6);
 }
 
+/* Celda: la card + (si la seguís) el botón "Avisame" debajo. */
+.cal-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.cal-remind {
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--neon-purple-18);
+    background: rgba(var(--surface-card-rgb), 0.6);
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.cal-remind:hover {
+    border-color: rgba(var(--neon-purple-rgb), 0.5);
+    color: var(--text-main);
+}
+
+.cal-remind:focus-visible {
+    outline: 2px solid var(--accent-cyan);
+    outline-offset: 2px;
+}
+
+.cal-remind.is-on {
+    border-color: rgba(var(--neon-purple-rgb), 0.6);
+    background: var(--neon-purple-15);
+    color: var(--text-main);
+}
+
+/* Resumen de lo seguido arriba de la tira. */
+.cal-summary {
+    margin: 0 0 14px;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+}
+
+.cal-summary strong {
+    color: var(--accent-cyan);
+}
 
 @media (max-width: 640px) {
     /* En el celular la tira se desliza de costado en vez de apretarse. */
@@ -153,4 +200,9 @@
     .cal-chip { flex: 0 0 64px; }
     .calendar-toolbar { justify-content: stretch; }
     .calendar-filter { width: 100%; justify-content: center; }
+}
+
+/* "Faltan X de Y" en las cards de lo seguido (segunda línea de meta). */
+.wcard-meta.cal-left {
+    color: var(--accent-cyan);
 }

@@ -61,6 +61,177 @@ function franquiciaVista(vistos, clave) {
     return (FRANQUICIAS[clave] || []).some(function (id) { return vistos.has(String(id)); });
 }
 
+// ─── Logros de progreso real (opcionales) ───
+// Premian avanzar en lo que ya seguís, no volver cada día. Se calculan con
+// datos que ya existen (estados de la lista, progreso marcado y el historial
+// diario de misiones); no agregan contadores. Si falta un dato, el logro
+// simplemente queda bloqueado: nunca se resta nada.
+const LOGRO_SEMANA_META = 10;
+
+// Función pura (testeable): recibe los datos ya juntados y dice qué se cumple.
+//   entries:  [{ category, id, fav, viewed, wstatus, total }]
+//   progress: Map | objeto  "<categoria>:<id>" → { count } | número
+//   recentProgress: episodios/capítulos registrados en los últimos 7 días, o null
+function evaluarLogrosProgreso(datos) {
+    const d = datos || {};
+    const entries = Array.isArray(d.entries) ? d.entries.filter(function (e) { return e && e.id != null && e.category; }) : [];
+    const prog = d.progress instanceof Map ? d.progress : new Map(Object.entries(d.progress || {}));
+    const countOf = function (e) {
+        const p = prog.get(e.category + ':' + e.id);
+        const n = Number(p && typeof p === 'object' ? p.count : p);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+    };
+    const totalOf = function (e) {
+        const n = Number(e.total);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+    };
+
+    // 1) Terminar una serie: todos sus episodios/capítulos marcados (hace
+    //    falta conocer el total; sin total no se puede afirmar).
+    const finSerie = entries.some(function (e) { const t = totalOf(e); return t > 0 && countOf(e) >= t; });
+
+    // 2) Lista en curso al día: hay algo en "Viendo" y ninguna obra en curso
+    //    está atrasada. Con total conocido = todo marcado; sin total (suele ser
+    //    algo en emisión) alcanza con tener progreso registrado.
+    const viendo = entries.filter(function (e) { return e.wstatus === 'viendo'; });
+    const alDia = viendo.length > 0 && viendo.every(function (e) {
+        const c = countOf(e);
+        const t = totalOf(e);
+        return c > 0 && (t === 0 || c >= t);
+    });
+    const atrasadas = viendo.filter(function (e) {
+        const c = countOf(e);
+        const t = totalOf(e);
+        return !(c > 0 && (t === 0 || c >= t));
+    }).length;
+
+    // 3) Explorar: primera obra de una segunda categoría (anime/manga/novelas).
+    const cats = new Set();
+    entries.forEach(function (e) {
+        if (e.fav || e.viewed || e.wstatus || countOf(e) > 0) cats.add(e.category);
+    });
+    prog.forEach(function (v, key) {
+        const n = Number(v && typeof v === 'object' ? v.count : v);
+        if (n > 0) cats.add(String(key).split(':')[0]);
+    });
+    const categorias = Array.from(cats).filter(function (c) { return c === 'anime' || c === 'manga' || c === 'novelas'; });
+    const nuevaCategoria = categorias.length >= 2;
+
+    // 4) N capítulos/episodios en 7 días (historial diario de misiones).
+    const recent = typeof d.recentProgress === 'number' && Number.isFinite(d.recentProgress) ? d.recentProgress : null;
+    const semanaIntensa = recent !== null && recent >= LOGRO_SEMANA_META;
+
+    return {
+        fin_serie: finSerie,
+        al_dia: alDia,
+        nueva_categoria: nuevaCategoria,
+        semana_intensa: semanaIntensa,
+        detalle: { viendo: viendo.length, atrasadas: atrasadas, categorias: categorias.length, recent: recent }
+    };
+}
+
+// Junta los datos del usuario para evaluarLogrosProgreso. Tolerante: si falta
+// una pieza (sin sesión, sin AppMissions, sin metadatos) devuelve lo que haya.
+function recolectarDatosProgreso(userId) {
+    const vacio = { entries: [], progress: new Map(), recentProgress: null };
+    if (!userId || userId === 'Invitado') return vacio;
+    let items = [];
+    try { items = typeof getAllItems === 'function' ? getAllItems() : []; } catch (_) { items = []; }
+    const entries = items.map(function (item) {
+        let st = null;
+        try { st = typeof getUserItemState === 'function' ? getUserItemState(userId, item) : null; } catch (_) { st = null; }
+        let total = Number(item.total || item.episodes || item.chapters || item.volumes || 0);
+        if (!(total > 0)) {
+            try {
+                const meta = JSON.parse(UserStore.getItem('u:' + userId + '|itemMeta:' + item.id) || 'null');
+                total = Number(meta && meta.total) || 0;
+            } catch (_) { total = 0; }
+        }
+        return {
+            category: item.__category,
+            id: String(item.id),
+            fav: st ? !!st.fav : !!UserStore.getItem('u:' + userId + '|item:' + item.id + '|fav'),
+            viewed: st ? !!st.viewed : !!UserStore.getItem('u:' + userId + '|item:' + item.id + '|viewed'),
+            wstatus: st ? st.wstatus : (UserStore.getItem('u:' + userId + '|item:' + item.id + '|wstatus') || ''),
+            total: total
+        };
+    });
+    let progress = new Map();
+    try { if (typeof buildProgressIndex === 'function') progress = buildProgressIndex(userId); } catch (_) { progress = new Map(); }
+    let recentProgress = null;
+    try {
+        if (window.AppMissions && typeof window.AppMissions.getRecentCount === 'function') {
+            recentProgress = window.AppMissions.getRecentCount('progress', 7);
+        }
+    } catch (_) { recentProgress = null; }
+    return { entries: entries, progress: progress, recentProgress: recentProgress };
+}
+
+// Grupo colapsable (<details>) con el estado abierto/cerrado recordado por
+// navegador. Es solo una comodidad: si localStorage falla, usa el default.
+function _achvOpenKey(id) { return 'ad:achvOpen:' + id; }
+function _achvDetails(id, defaultOpen) {
+    let det = document.getElementById(id);
+    if (det) return det;
+    det = document.createElement('details');
+    det.id = id;
+    det.className = 'achv-group';
+    det.style.marginTop = '12px';
+    const saved = _lsGet(_achvOpenKey(id));
+    det.open = saved === null ? !!defaultOpen : saved === '1';
+    const sum = document.createElement('summary');
+    sum.className = 'achv-group-summary';
+    sum.style.cursor = 'pointer';
+    sum.style.fontFamily = 'var(--font-display)';
+    sum.style.color = 'var(--accent-cyan)';
+    sum.style.letterSpacing = '0.6px';
+    sum.style.padding = '8px 0';
+    det.appendChild(sum);
+    det.addEventListener('toggle', function () { _lsSet(_achvOpenKey(id), det.open ? '1' : '0'); });
+    return det;
+}
+
+// Arma (una sola vez) los dos grupos alrededor de #achievementsGrid sin tocar
+// el HTML: "Logros de progreso" (opcionales, cerrado por defecto) y "Todos los
+// logros" (abierto). Devuelve la grilla de progreso, o null si no se pudo.
+function _achvEnsureGroups(host) {
+    if (!host || !host.parentNode) return null;
+    let todos = document.getElementById('achvGroupTodos');
+    if (!todos) {
+        todos = _achvDetails('achvGroupTodos', true);
+        host.parentNode.insertBefore(todos, host);
+        todos.appendChild(host);
+    }
+    let prog = document.getElementById('achvGroupProgreso');
+    if (!prog) {
+        prog = _achvDetails('achvGroupProgreso', false);
+        const grid = document.createElement('div');
+        grid.id = 'achvProgresoGrid';
+        grid.className = 'achievements-grid';
+        prog.appendChild(grid);
+        todos.parentNode.insertBefore(prog, todos);
+    }
+    return document.getElementById('achvProgresoGrid');
+}
+
+function _achvCardHtml(r, unlocked) {
+    const isSecret = r.secret && !unlocked;
+    return '<div class="achievement-card ' + (unlocked ? 'is-unlocked' : 'is-locked') + '">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<span class="achievement-icon" aria-hidden="true">' + (isSecret ? '❓' : escapeHtml(r.icon)) + '</span>' +
+            '<span class="achievement-state">' + (unlocked ? 'Desbloqueado' : 'Bloqueado') + '</span>' +
+        '</div>' +
+        '<div>' +
+            '<div class="achievement-title">' + (isSecret ? '???' : escapeHtml(r.title)) + '</div>' +
+            (isSecret ? '' : '<div class="achievement-desc">' + escapeHtml(r.desc) + '</div>') +
+            (!isSecret && !unlocked && r.hint ? '<div class="achievement-desc" style="color:var(--text-faint)">' + escapeHtml(r.hint) + '</div>' : '') +
+        '</div>' +
+    '</div>';
+}
+
+// Expuesto para tests y para que otras páginas (usuario.html) puedan reusarlo.
+window.AppLogrosProgreso = Object.freeze({ evaluar: evaluarLogrosProgreso, meta: LOGRO_SEMANA_META });
+
 function renderAchievements() {
     const host = document.getElementById('achievementsGrid');
     if (!host) return;
@@ -105,6 +276,9 @@ function renderAchievements() {
         ? window.AppStreak.getStreak(userId)
         : { count: 0, best: 0 };
     const bestStreak = Math.max(Number(streakInfo.best) || 0, Number(streakInfo.count) || 0);
+
+    // Logros de progreso real (ver evaluarLogrosProgreso)
+    const logrosProg = evaluarLogrosProgreso(recolectarDatosProgreso(userId));
 
     const rules = [
         // — Me gusta —
@@ -173,7 +347,15 @@ function renderAchievements() {
         { id: 'fr_big3',     title: 'Los Tres Grandes',            desc: 'Marcá Naruto, One Piece y Bleach como "Visto".',              req: fr('naruto') && fr('onepiece') && fr('bleach'), icon: '⚓', secret: true },
 
         // — Global —
-        { id: 'library100', title: 'Biblioteca Viviente', desc: 'Acumulá 100 títulos entre "Me gusta" y "Visto".', req: totalSaved >= 100, icon: '🏛️', secret: true }
+        { id: 'library100', title: 'Biblioteca Viviente', desc: 'Acumulá 100 títulos entre "Me gusta" y "Visto".', req: totalSaved >= 100, icon: '🏛️', secret: true },
+
+        // — Progreso real (opcionales, grupo aparte y colapsable) —
+        { id: 'prog_fin',     group: 'progreso', title: 'Hasta el Final',  desc: 'Terminá una serie marcando todos sus episodios o capítulos.', req: logrosProg.fin_serie, icon: '🏁' },
+        { id: 'prog_aldia',   group: 'progreso', title: 'Al Día',          desc: 'Tené todo lo que estás viendo al día: cada obra en "Viendo" con progreso y sin capítulos pendientes.', req: logrosProg.al_dia, icon: '✅',
+          hint: logrosProg.detalle.viendo ? (logrosProg.detalle.atrasadas + ' de ' + logrosProg.detalle.viendo + ' en "Viendo" con pendientes.') : 'Marcá algo como "Viendo" para empezar.' },
+        { id: 'prog_explora', group: 'progreso', title: 'Nuevo Horizonte', desc: 'Sumá tu primera obra de otra categoría (anime, manga o novela).', req: logrosProg.nueva_categoria, icon: '🧭' },
+        { id: 'prog_semana',  group: 'progreso', title: 'Semana Intensa',  desc: 'Registrá ' + LOGRO_SEMANA_META + ' episodios o capítulos en los últimos 7 días.', req: logrosProg.semana_intensa, icon: '📈',
+          hint: logrosProg.detalle.recent === null ? '' : ('Llevás ' + Math.min(logrosProg.detalle.recent, LOGRO_SEMANA_META) + ' de ' + LOGRO_SEMANA_META + ' en 7 días.') }
     ];
 
     // Detección de logros recién desbloqueados para premiar EXP + notificar.
@@ -182,6 +364,10 @@ function renderAchievements() {
     // del usuario con el sistema se siembran los flags en silencio (sin EXP ni
     // toast) para no regalar EXP retroactiva ni spamear a usuarios existentes.
     const userInited = _lsGet(_achvInitKey(userId)) === '1';
+    // Los logros de progreso llegaron después: para quien ya usaba el sistema
+    // se siembran en silencio la primera vez (sin EXP retroactiva ni toasts).
+    const progInitKey = 'ad:achvInit:prog:' + userId;
+    const progInited = _lsGet(progInitKey) === '1';
     const newlyUnlocked = [];
 
     rules.forEach(function(r) {
@@ -190,7 +376,7 @@ function renderAchievements() {
             const granted = _lsGet(_achvGrantKey(userId, r.id)) === '1';
             if (!granted) {
                 _lsSet(_achvGrantKey(userId, r.id), '1');
-                if (userInited) newlyUnlocked.push(r);
+                if (userInited && (r.group !== 'progreso' || progInited)) newlyUnlocked.push(r);
             }
         }
     });
@@ -198,22 +384,33 @@ function renderAchievements() {
     if (!userInited && userId !== 'Invitado') {
         _lsSet(_achvInitKey(userId), '1');
     }
+    if (!progInited && userId !== 'Invitado') {
+        _lsSet(progInitKey, '1');
+    }
 
-    host.innerHTML = rules.map(function(r) {
-        var unlocked = UserStore.getItem('u:' + userId + '|achievement:' + r.id) === '1';
-        var isSecret = r.secret && !unlocked;
+    // Un logro ganado no se pierde: si la condición deja de cumplirse (se
+    // desmarcó algo, salió un episodio nuevo) sigue mostrándose desbloqueado.
+    const isUnlockedRule = function (r) {
+        if (userId === 'Invitado') return false;
+        return UserStore.getItem('u:' + userId + '|achievement:' + r.id) === '1'
+            || _lsGet(_achvGrantKey(userId, r.id)) === '1';
+    };
 
-        return '<div class="achievement-card ' + (unlocked ? 'is-unlocked' : 'is-locked') + '">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-                '<span class="achievement-icon" aria-hidden="true">' + (isSecret ? '❓' : escapeHtml(r.icon)) + '</span>' +
-                '<span class="achievement-state">' + (unlocked ? 'Desbloqueado' : 'Bloqueado') + '</span>' +
-            '</div>' +
-            '<div>' +
-                '<div class="achievement-title">' + (isSecret ? '???' : escapeHtml(r.title)) + '</div>' +
-                (isSecret ? '' : '<div class="achievement-desc">' + escapeHtml(r.desc) + '</div>') +
-            '</div>' +
-        '</div>';
-    }).join('');
+    const progGrid = _achvEnsureGroups(host);
+    const mainRules = progGrid ? rules.filter(function (r) { return r.group !== 'progreso'; }) : rules;
+    host.innerHTML = mainRules.map(function (r) { return _achvCardHtml(r, isUnlockedRule(r)); }).join('');
+    const todosSum = document.querySelector('#achvGroupTodos > summary');
+    if (todosSum) {
+        todosSum.textContent = 'Todos los logros · ' + mainRules.filter(isUnlockedRule).length + ' de ' + mainRules.length;
+    }
+    if (progGrid) {
+        const progRules = rules.filter(function (r) { return r.group === 'progreso'; });
+        progGrid.innerHTML = progRules.map(function (r) { return _achvCardHtml(r, isUnlockedRule(r)); }).join('');
+        const progSum = document.querySelector('#achvGroupProgreso > summary');
+        if (progSum) {
+            progSum.textContent = 'Logros de progreso (opcionales) · ' + progRules.filter(isUnlockedRule).length + ' de ' + progRules.length;
+        }
+    }
 
     renderNextAchievement(rules, userId);
 
@@ -240,7 +437,10 @@ function renderNextAchievement(rules, userId) {
         host.innerHTML = '<p class="ml-achv-desc">Iniciá sesión para desbloquear logros.</p>';
         return;
     }
-    const isUnlocked = function (r) { return UserStore.getItem('u:' + userId + '|achievement:' + r.id) === '1'; };
+    const isUnlocked = function (r) {
+        return UserStore.getItem('u:' + userId + '|achievement:' + r.id) === '1'
+            || _lsGet(_achvGrantKey(userId, r.id)) === '1';
+    };
     const done = rules.filter(isUnlocked).length;
     const next = rules.find(function (r) { return !r.secret && !isUnlocked(r); });
     const pct = Math.round((done / rules.length) * 100);

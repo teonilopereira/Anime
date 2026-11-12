@@ -12,6 +12,9 @@
     --neon-purple-15: rgba(var(--neon-purple-rgb), 0.15);
     --neon-purple-10: rgba(var(--neon-purple-rgb), 0.10);
     --neon-purple-glow: rgba(var(--neon-purple-rgb), 0.40);
+    /* Violeta para TEXTO chico: --neon-purple no llega a 4.5:1 sobre tarjetas
+       y paneles oscuros; este pasa AA (5.3:1 sobre panel). En claro usa el acento. */
+    --neon-purple-text: #c94dff;
     --accent-cyan: #00f2ff;
     --accent-cyan-rgb: 0, 242, 255;
     --accent-cyan-18: rgba(var(--accent-cyan-rgb), 0.18);
@@ -138,4 +141,31 @@ textarea:focus-visible,
 [tabindex]:focus-visible {
     outline: 2px solid var(--accent-cyan);
     outline-offset: 2px;
+}
+
+/* Violeta de texto en tema claro: el acento ya viene oscurecido (theme.css). */
+:root[data-theme="light"] { --neon-purple-text: var(--neon-purple); }
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) { --neon-purple-text: var(--neon-purple); }
+}
+
+/* Movimiento reducido: global, para el sistema (prefers-reduced-motion) y para
+   la preferencia de la app (body.reduce-motion, la pone states.js). Las
+   animaciones terminan al instante en vez de desaparecer, así los
+   animationend/transitionend siguen disparando. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
 }

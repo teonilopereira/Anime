@@ -49,10 +49,14 @@ function avisarGuardado(msg) {
  * sumar una linea aca y el <input> en el HTML: el wiring es automatico.
  */
 const TOGGLES = {
-    prefPublic:       { key: 'pref:privacidad', def: true,  onOff: ['publica', 'privada'] },
+    // def false: igual que profiles.is_public en la base (013). La fuente de
+    // verdad con sesión es la base; esta clave es solo el cache local.
+    prefPublic:       { key: 'pref:privacidad', def: false, onOff: ['publica', 'privada'] },
     prefNsfw:         { key: 'pref:nsfw',       def: false },
     prefContenido:    { key: 'pref:contenido',  def: true,  onOff: ['personalizado', 'general'] },
-    prefNotif:        { key: 'pref:notif',      def: false, onOff: ['on', 'off'] },
+    // Solo la suscripcion push. Las categorias de avisos van por AppNotifPrefs
+    // (ver "Notificaciones por categoria" mas abajo); pref:notif quedo de legado.
+    prefNotif:        { key: 'pref:notif:push', def: false, onOff: ['on', 'off'] },
     prefCompact:      { key: 'pref:compactCards',  def: false },
     prefReduceMotion: { key: 'pref:reduceMotion',  def: false },
     prefMascot:       { key: 'pref:mascot',     def: true,  onOff: ['on', 'off'] },
@@ -233,6 +237,8 @@ function syncUI() {
     const sqVal = (sqSaved >= SQ_MIN() && sqSaved <= SQ_MAX()) ? sqSaved : SQ_DEF();
     $('sqSizeSlider').value = sqVal;
     $('sqSizeValue').textContent = sqVal;
+
+    syncNotifUI();
 }
 
 /* ── Wiring: cada control guarda al cambiar ── */
@@ -255,6 +261,8 @@ for (const id in TOGGLES) {
     // prefNotif se maneja aparte: además de guardar la preferencia, activa o
     // desactiva la suscripción push real (ver más abajo).
     if (id === 'prefNotif') continue;
+    // prefPublic también va aparte: se guarda en profiles.is_public (ver abajo).
+    if (id === 'prefPublic') continue;
     const cfg = TOGGLES[id];
     $(id).addEventListener('change', function () {
         escribirToggle(cfg, this.checked);
@@ -288,11 +296,192 @@ for (const id in TOGGLES) {
                 return;
             }
             escribirToggle(TOGGLES.prefNotif, true);
+            // Push sin la categoria encendida no tiene sentido: se prende sola.
+            if (window.AppNotifPrefs && !window.AppNotifPrefs.isEnabled('episodios')) {
+                window.AppNotifPrefs.setCategory('episodios', true);
+                syncNotifUI();
+            }
         } else {
             await window.PushNotifs.disable();
             escribirToggle(TOGGLES.prefNotif, false);
         }
     });
+})();
+
+// ── Perfil público (profiles.is_public) ──
+// El opt-in vive en la base: get_activity_feed() y get_public_profile() filtran
+// por esa columna (server/migrations/013_*). pref:privacidad queda como cache
+// local. Sin sesión no hay perfil que publicar; si la base falla (o 013 no está
+// aplicada) se revierte el switch y se avisa.
+(function wirePublicToggle() {
+    const el = $('prefPublic');
+    if (!el) return;
+    const cfg = TOGGLES.prefPublic;
+
+    async function cliente() {
+        try {
+            const sb = typeof window.waitForSupabase === 'function' ? await window.waitForSupabase() : window.AppSupabase;
+            return sb && sb.isSignedIn && sb.isSignedIn() ? sb : null;
+        } catch (e) { return null; }
+    }
+
+    async function sincronizar() {
+        const sb = await cliente();
+        if (!sb || !sb.getProfileVisibility) return;
+        const remoto = await sb.getProfileVisibility();
+        if (typeof remoto !== 'boolean') return;
+        el.checked = remoto;
+        escribirToggle(cfg, remoto);
+    }
+    sincronizar();
+    window.addEventListener('supabase-auth-changed', function () { sincronizar(); });
+
+    el.addEventListener('change', async function () {
+        const on = this.checked;
+        const sb = await cliente();
+        if (!sb || !sb.setProfileVisibility) {
+            if (on) {
+                this.checked = false;
+                escribirToggle(cfg, false);
+                toast('Iniciá sesión para tener un perfil público', true);
+            } else {
+                escribirToggle(cfg, false);
+                avisarGuardado();
+            }
+            return;
+        }
+        this.disabled = true;
+        try {
+            const guardado = await sb.setProfileVisibility(on);
+            this.checked = guardado;
+            escribirToggle(cfg, guardado);
+            avisarGuardado(guardado ? '✅ Tu perfil ahora es público' : '✅ Tu perfil ahora es privado');
+        } catch (e) {
+            this.checked = !on;
+            toast((e && e.message) || 'No se pudo guardar la visibilidad del perfil', true);
+        } finally {
+            this.disabled = false;
+        }
+    });
+})();
+
+// ── Notificaciones por categoria (retencion-notificaciones) ──
+// Cada categoria, el limite diario, el silencio nocturno y la pausa se guardan
+// en pref:notif:* via window.AppNotifPrefs (js/core/notif-prefs.js), que es lo
+// que consultan reminders.js y push.js antes de avisar.
+const NOTIF_CAT_IDS = {
+    notifEpisodios: 'episodios',
+    notifRacha:     'racha',
+    notifRetos:     'retos',
+    notifComunidad: 'comunidad'
+};
+
+function notifT(key, fallback, args) {
+    var txt = window.AppI18n && window.AppI18n.t ? window.AppI18n.t(key, args) : null;
+    if (!txt || txt === key) txt = fallback;
+    if (args) txt = txt.replace(/\{(\w+)\}/g, function (m, k) { return args[k] != null ? String(args[k]) : m; });
+    return txt;
+}
+
+function formatHora(h) { return (h < 10 ? '0' : '') + h + ':00'; }
+
+function syncNotifUI() {
+    var P = window.AppNotifPrefs;
+    var box = $('cfgNotif');
+    if (!box) return;
+    if (!P) { box.hidden = true; return; }
+    var st = P.get();
+    for (var id in NOTIF_CAT_IDS) {
+        if (NOTIF_CAT_IDS.hasOwnProperty(id) && $(id)) $(id).checked = !!st.categories[NOTIF_CAT_IDS[id]];
+    }
+    var sel = $('notifMaxPerDay');
+    if (sel) {
+        var v = String(st.maxPerDay);
+        if (!Array.prototype.some.call(sel.options, function (o) { return o.value === v; })) {
+            var opt = document.createElement('option');
+            opt.value = v; opt.textContent = v;
+            sel.appendChild(opt);
+        }
+        sel.value = v;
+    }
+    $('notifQuiet').checked = st.quiet.enabled;
+    $('notifQuietHours').hidden = !st.quiet.enabled;
+    $('notifQuietStart').value = String(st.quiet.start);
+    $('notifQuietEnd').value = String(st.quiet.end);
+
+    var status = $('notifPauseStatus');
+    var paused = st.pausedUntil > 0;
+    if (paused) {
+        var hasta = new Date(st.pausedUntil).toLocaleString(r('pref:lang', 'es') === 'en' ? 'en-US' : 'es-AR',
+            { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        status.textContent = notifT('config.notif.pausado', '⏸ Avisos pausados hasta el {fecha}', { fecha: hasta });
+    }
+    status.hidden = !paused;
+    $('notifResume').hidden = !paused;
+}
+
+(function wireNotifPrefs() {
+    var P = window.AppNotifPrefs;
+    if (!$('cfgNotif') || !P) return;
+
+    ['notifQuietStart', 'notifQuietEnd'].forEach(function (id) {
+        var sel = $(id);
+        for (var h = 0; h < 24; h++) {
+            var opt = document.createElement('option');
+            opt.value = String(h);
+            opt.textContent = formatHora(h);
+            sel.appendChild(opt);
+        }
+    });
+
+    Object.keys(NOTIF_CAT_IDS).forEach(function (id) {
+        $(id).addEventListener('change', async function () {
+            var cat = NOTIF_CAT_IDS[id];
+            P.setCategory(cat, this.checked);
+            // Apagar episodios corta tambien el push, que solo avisa de eso.
+            if (cat === 'episodios' && !this.checked && $('prefNotif') && $('prefNotif').checked) {
+                $('prefNotif').checked = false;
+                escribirToggle(TOGGLES.prefNotif, false);
+                if (window.PushNotifs) await window.PushNotifs.disable();
+            }
+            avisarGuardado();
+        });
+    });
+
+    $('notifMaxPerDay').addEventListener('change', function () {
+        P.set({ maxPerDay: parseInt(this.value, 10) });
+        avisarGuardado();
+    });
+
+    $('notifQuiet').addEventListener('change', function () {
+        P.set({ quiet: { enabled: this.checked } });
+        $('notifQuietHours').hidden = !this.checked;
+        avisarGuardado();
+    });
+    $('notifQuietStart').addEventListener('change', function () {
+        P.set({ quiet: { start: parseInt(this.value, 10) } });
+        avisarGuardado();
+    });
+    $('notifQuietEnd').addEventListener('change', function () {
+        P.set({ quiet: { end: parseInt(this.value, 10) } });
+        avisarGuardado();
+    });
+
+    $('notifPause1').addEventListener('click', function () {
+        P.pause(1); syncNotifUI();
+        toast(notifT('config.notif.toast_pausa1', '⏸ Avisos pausados por 1 día'));
+    });
+    $('notifPause7').addEventListener('click', function () {
+        P.pause(7); syncNotifUI();
+        toast(notifT('config.notif.toast_pausa7', '⏸ Avisos pausados por 7 días'));
+    });
+    $('notifResume').addEventListener('click', function () {
+        P.resume(); syncNotifUI();
+        toast(notifT('config.notif.toast_reanudar', '🔔 Avisos reanudados'));
+        $('notifPause1').focus();
+    });
+
+    syncNotifUI();
 })();
 
 // La mascota se enciende/apaga en vivo en esta misma página (además de guardar
@@ -423,7 +612,7 @@ $('exportData').addEventListener('click', async () => {
     const username = supaUser.user_metadata?.username || supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || supaUser.id;
     const data = { user: username, exportedAt: new Date().toISOString(), prefs: {}, lists: {} };
 
-    PREF_KEYS.forEach(k => {
+    PREF_KEYS.concat(window.AppNotifPrefs ? window.AppNotifPrefs.KEYS : [], ['pref:notif:push']).forEach(k => {
         const v = localStorage.getItem(k);
         if (v !== null) data.prefs[k] = v;
     });
@@ -491,6 +680,99 @@ window.addEventListener('supabase-ready', () => {
     if (nameEl) nameEl.textContent = getCurrentUserName();
     if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
 }, { once: true });
+
+/* ── Sincronización (retencion-engagement) ──
+   Muestra la cola de cambios sin guardar en la cuenta y el último error, leídos
+   de window.AppSyncMetrics (js/catalog/states.js, solo lectura). "Reintentar"
+   llama a AppSyncMetrics.drain(). Sin sesión el bloque queda oculto: la cola
+   solo se manda con una cuenta. Si states.js no cargó, también se oculta. */
+(function wireSyncStatus() {
+    const box = $('cfgSync');
+    if (!box) return;
+    const pendingEl = $('cfgSyncPending');
+    const errorEl = $('cfgSyncError');
+    const btn = $('cfgSyncRetry');
+    let draining = false;
+
+    function metrics() {
+        const m = window.AppSyncMetrics;
+        return m && typeof m.get === 'function' && typeof m.pending === 'function' ? m : null;
+    }
+
+    function signedIn() {
+        try { return !!(window.AppSupabase && window.AppSupabase.isSignedIn && window.AppSupabase.isSignedIn()); }
+        catch (e) { return false; }
+    }
+
+    function formatFecha(ms) {
+        try {
+            const lang = window.AppI18n && window.AppI18n.getLang ? window.AppI18n.getLang() : 'es';
+            return new Date(ms).toLocaleString(lang === 'en' ? 'en' : 'es', { dateStyle: 'short', timeStyle: 'short' });
+        } catch (e) { return new Date(ms).toISOString().slice(0, 16).replace('T', ' '); }
+    }
+
+    function render() {
+        const m = metrics();
+        if (!m || !signedIn()) { box.hidden = true; return; }
+        box.hidden = false;
+
+        let n = 0;
+        let data = null;
+        try { n = Number(m.pending()) || 0; } catch (e) { n = 0; }
+        try { data = m.get(); } catch (e) { data = null; }
+
+        pendingEl.textContent = n === 0
+            ? notifT('config.sync.al_dia', 'Todo sincronizado.')
+            : n === 1
+                ? notifT('config.sync.pendiente_uno', '1 cambio pendiente')
+                : notifT('config.sync.pendientes', '{n} cambios pendientes', { n: n });
+        pendingEl.classList.toggle('has-pending', n > 0);
+
+        const code = data && data.lastCode ? String(data.lastCode) : '';
+        const at = data && Number(data.lastAt) > 0 ? Number(data.lastAt) : 0;
+        if (code && at) {
+            errorEl.textContent = notifT('config.sync.ultimo_error', 'Último error: {code} ({fecha})', { code: code, fecha: formatFecha(at) });
+            errorEl.hidden = false;
+        } else {
+            errorEl.textContent = '';
+            errorEl.hidden = true;
+        }
+
+        btn.disabled = draining || n === 0;
+    }
+
+    btn.addEventListener('click', async function () {
+        const m = metrics();
+        if (!m || typeof m.drain !== 'function' || draining) return;
+        draining = true;
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        try { await m.drain(); }
+        catch (e) { console.warn('[config] sync drain:', e); }
+        draining = false;
+        btn.removeAttribute('aria-busy');
+        render();
+        let left = 0;
+        try { left = Number(m.pending()) || 0; } catch (e) { left = 0; }
+        if (left === 0) toast(notifT('config.sync.ok', '✅ Todo sincronizado'));
+        else toast(notifT('config.sync.quedan', 'Quedan {n} cambios pendientes. Se reintentan solos.', { n: left }), true);
+    });
+
+    render();
+    window.addEventListener('supabase-auth-changed', render);
+    window.addEventListener('online', function () { setTimeout(render, 1500); });
+    window.addEventListener('i18n:changed', render);
+    window.addEventListener('storage', function (e) {
+        if (!e.key || e.key === 'syncQueue' || e.key === 'ad:metrics:sync') render();
+    });
+    // states.js y supabase-config cargan defer/async: repintar cuando ya estén.
+    window.addEventListener('load', render);
+    if (typeof window.waitForSupabase === 'function') {
+        Promise.resolve().then(() => window.waitForSupabase()).then(render, function () { /* sin Supabase: queda oculto */ });
+    }
+
+    window.CfgSync = Object.freeze({ render: render });
+})();
 
 /* ── Menú lateral: muestra una sección a la vez ──
    La sección activa va en el hash (#colores, #datos...) para poder volver
