@@ -8,6 +8,7 @@
  *  - save() drena lo pendiente antes de mandar lo nuevo
  *  - sin cliente de Supabase la cola no se toca
  *  - datos corruptos en la cola no rompen
+ *  - sin sesión no drena; al loguear drena solo las ops de esa cuenta (#2)
  *
  * Se testea solo por la interfaz pública (DetalleProgress.save, eventos y
  * localStorage) para no depender de funciones internas del archivo.
@@ -96,5 +97,75 @@ describe('progressSyncQueue: drenar', () => {
     localStorage.setItem(KEY, '{no-json');
     await window.DetalleProgress.save('anime', '9', 's:0|ep:4', true);
     expect(queue()).toHaveLength(1);
+  });
+});
+
+describe('progressSyncQueue: sesión y cuenta correcta (#2)', () => {
+  const pending = [op('s:0|ep:1')];
+
+  it('sin sesión (isSignedIn false) no manda nada ni toca la cola', async () => {
+    localStorage.setItem(KEY, JSON.stringify(pending));
+    const setProgress = vi.fn(() => Promise.resolve());
+    window.AppSupabase = { setProgress, isSignedIn: () => false, getCurrentUserSync: () => null };
+    window.dispatchEvent(new Event('online'));
+    window.dispatchEvent(new Event('supabase-auth-changed'));
+    await flush();
+    expect(setProgress).not.toHaveBeenCalled();
+    expect(queue()).toEqual(pending);
+  });
+
+  it('sin isSignedIn usa getCurrentUserSync', async () => {
+    localStorage.setItem(KEY, JSON.stringify(pending));
+    const setProgress = vi.fn(() => Promise.resolve());
+    window.AppSupabase = { setProgress, getCurrentUserSync: () => null };
+    await window.DetalleProgress.drain();
+    expect(setProgress).not.toHaveBeenCalled();
+    expect(queue()).toHaveLength(1);
+  });
+
+  it('al iniciar sesión se vacía con esa cuenta', async () => {
+    localStorage.setItem(KEY, JSON.stringify(pending));
+    let user = null;
+    const setProgress = vi.fn(() => Promise.resolve());
+    window.AppSupabase = { setProgress, isSignedIn: () => !!user, getCurrentUserSync: () => user };
+    await window.DetalleProgress.drain();
+    expect(setProgress).not.toHaveBeenCalled();
+    user = { id: 'sb-1' };
+    window.dispatchEvent(new Event('supabase-auth-changed'));
+    await flush();
+    expect(setProgress).toHaveBeenCalledTimes(1);
+    expect(queue()).toEqual([]);
+  });
+
+  it('cada op guarda su dueño y otra cuenta no la manda', async () => {
+    const setProgress = vi.fn(() => Promise.reject({ status: 500 }));
+    let user = { id: 'sb-A' };
+    window.AppSupabase = { setProgress, isSignedIn: () => !!user, getCurrentUserSync: () => user };
+    await window.DetalleProgress.save('anime', '9', 's:0|ep:5', true);
+    await flush();
+    expect(queue()[0]).toMatchObject({ key: 's:0|ep:5', owner: 'sb-A' });
+
+    // Entra otra cuenta: la op de A queda en la cola sin mandarse.
+    user = { id: 'sb-B' };
+    setProgress.mockClear();
+    setProgress.mockImplementation(() => Promise.resolve());
+    await window.DetalleProgress.drain();
+    expect(setProgress).not.toHaveBeenCalled();
+    expect(queue().map((o) => o.owner)).toEqual(['sb-A']);
+
+    // Vuelve A: se manda y la cola queda vacía.
+    user = { id: 'sb-A' };
+    await window.DetalleProgress.drain();
+    expect(setProgress).toHaveBeenCalledTimes(1);
+    expect(queue()).toEqual([]);
+  });
+
+  it('ops viejas sin dueño (o de la home) se mandan con la cuenta activa', async () => {
+    localStorage.setItem(KEY, JSON.stringify(pending));
+    const setProgress = vi.fn(() => Promise.resolve());
+    window.AppSupabase = { setProgress, isSignedIn: () => true, getCurrentUserSync: () => ({ id: 'sb-1' }) };
+    await window.DetalleProgress.drain();
+    expect(setProgress).toHaveBeenCalledTimes(1);
+    expect(queue()).toEqual([]);
   });
 });

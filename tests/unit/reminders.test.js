@@ -7,6 +7,7 @@
  *  - recordatorio por título (UserStore `u:<uid>|remind:<id>` + persistencia)
  *  - selectEpisodeReminders: ventana, dedupe por (id, episodio), opt-in por título
  *  - checkEpisodes: respeta AppNotifPrefs y no repite avisos
+ *  - checkStreak: texto sin presión, un aviso por día, respeta AppNotifPrefs
  */
 
 import { beforeAll, beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
@@ -31,6 +32,7 @@ afterEach(() => {
   delete window.AppSupabase;
   delete window.getAiringSchedule;
   delete window.Toast;
+  delete window.AppStreak;
   vi.useRealTimers();
 });
 
@@ -157,5 +159,46 @@ describe('checkEpisodes', () => {
     await R()._checkEpisodes(UID);
     expect(window.Toast.info).toHaveBeenCalledTimes(2);
     expect(window.AppNotifPrefs.recordSent).toHaveBeenCalledWith('episodios');
+  });
+});
+
+describe('checkStreak', () => {
+  function setup(streak) {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    window.AppStreak = { getStreak: vi.fn(() => streak) };
+    window.Toast = { info: vi.fn(), success: vi.fn() };
+  }
+
+  it('en riesgo: texto sin presión y una sola vez por día', () => {
+    setup({ count: 4, countedToday: false, atRisk: true, daysLeft: 1 });
+    R()._checkStreak(UID);
+    expect(window.Toast.info).toHaveBeenCalledTimes(1);
+    const msg = window.Toast.info.mock.calls[0][0];
+    expect(msg).toContain('Tu racha de 4 días sigue viva si entrás hoy');
+    expect(msg).not.toMatch(/perder|termina/i);
+    R()._checkStreak(UID);
+    expect(window.Toast.info).toHaveBeenCalledTimes(1);
+  });
+
+  it('con dos días por delante dice "hoy o mañana"', () => {
+    setup({ count: 2, countedToday: false, atRisk: true, daysLeft: 2 });
+    R()._checkStreak(UID);
+    expect(window.Toast.info.mock.calls[0][0]).toContain('sigue viva si entrás hoy o mañana');
+  });
+
+  it('dentro de la gracia sin riesgo (ayer activo) no avisa', () => {
+    setup({ count: 3, countedToday: false, atRisk: false, daysLeft: 2 });
+    R()._checkStreak(UID);
+    expect(window.Toast.info).not.toHaveBeenCalled();
+    expect(window.Toast.success).not.toHaveBeenCalled();
+  });
+
+  it('respeta la categoría racha de AppNotifPrefs', () => {
+    setup({ count: 4, countedToday: false, atRisk: true, daysLeft: 1 });
+    window.AppNotifPrefs = { isAllowed: vi.fn(() => false), recordSent: vi.fn() };
+    R()._checkStreak(UID);
+    expect(window.Toast.info).not.toHaveBeenCalled();
+    expect(window.AppNotifPrefs.isAllowed).toHaveBeenCalledWith('racha');
   });
 });

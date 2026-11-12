@@ -147,3 +147,51 @@ server/migrations/014_activity_log_hardening.sql
 - Sin `username` (perfil no cargado) queda el texto sin enlace, como antes. El
   ranking y los comentarios no conocen `is_public`: si el perfil es privado, el
   enlace abre el estado vacío «Este perfil no está disponible».
+
+## Migración 015 — el ranking solo enlaza perfiles públicos
+
+```
+server/migrations/015_ranking_is_public.sql
+```
+
+- `get_ranking_profiles()` agrega `is_public` a su `RETURNS` (DROP + CREATE +
+  GRANT a `anon`/`authenticated`, como en 005). Mantiene los topes de 007 y suma
+  `p.id` como desempate para que el paginado sea estable. Requiere 013.
+- El ranking **sigue listando a todos** (nombre, nivel, EXP, apodo); solo cambia
+  a quién se enlaza.
+- `js/pages/ranking.js` (`nickHtml`) enlaza a `usuario.html?u=<username>` solo si
+  `is_public === true`. Si el campo no viene (015 sin aplicar) o es privado, el
+  nombre queda sin enlace: nadie llega a un estado vacío desde el ranking.
+- El estilo del enlace es la clase `.rank-player-link` en `css/components.css`
+  (entra en `bundle.min.css`; antes era un `style` inline).
+- Los comentarios (`js/detalle/comments.js`) siguen enlazando a todo autor con
+  `username` (`get_profiles_by_ids` no trae `is_public`); un privado abre el
+  estado vacío.
+
+## Migración 016 — total de episodios en `item_states`
+
+```
+server/migrations/016_item_states_total.sql
+```
+
+- `item_states.total INTEGER` (NULL = desconocido, si no, entre 1 y 100000).
+- `item_states_with_details` expone `total`. `mapItemStateRow` en
+  `api/supabase-client.js` ya lo lee y lo deja en `meta.total`.
+- `save_item_state_v4` = v3 + `p_total` (v2 y v3 siguen existiendo). En v4,
+  `p_watch_status` y `p_total` en NULL significan «no tocar lo guardado».
+- Cliente (`saveItemState`): si `meta.total` es un número > 0 usa v4; si la base
+  no la tiene (`PGRST202` / `42883`) la marca como ausente y cae a v3 (con
+  `watchStatus`) o v2, el mismo patrón que ya había para v3. Test:
+  `tests/unit/supabase-save-state-v4.test.js`.
+
+## Orden de migraciones y `schema.sql`
+
+Orden: 001 … 010, 012, 013, 014, 015, 016 (no existe 011). 003-016 son
+idempotentes; 001 y 002 no se pueden volver a correr sobre una base al día.
+
+`server/schema.sql` deja en una base vacía lo mismo que esas migraciones
+(tablas, constraints, policies, funciones, vistas, índices y permisos por
+columna), salvo los jobs de pg_cron de 010 y 014, que se crean corriendo esas
+dos migraciones. Lo verifiqué con Postgres 16 local y stubs de `auth`,
+`storage` y `cron`: `pg_dump -s` de «schema.sql» y de «schema viejo + 001…016»
+coincide. Si alguna vez difieren, mandan las migraciones.

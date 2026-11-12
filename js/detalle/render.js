@@ -114,7 +114,10 @@ function renderDetalle(item, nombreUrl, categoria) {
     const isMangaOrNovela = isManga || isNovela;
     const rawStatus = item.status || item.estado || '';
     const isAiring = String(rawStatus).toUpperCase() === 'RELEASING';
-    const status = formatMediaStatus(rawStatus, categoria) || 'No especificado';
+    const status = formatMediaStatus(rawStatus, categoria) || 'Sin dato';
+    // Total desconocido: en emisión no es un faltante sino algo que todavía no
+    // existe; terminada (o sin estado) es un dato que la API no trae.
+    const missingTotal = detailMissingTotalLabel(rawStatus);
 
     // Próximo episodio (solo anime en emisión; airingAt es epoch absoluto,
     // así el countdown queda bien aunque el detalle venga del cache de 1h)
@@ -155,7 +158,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         ? `<span class="q-rating q-rating--readonly" role="img" aria-label="${escapeHtml(String(scoreNum))} de 10" style="--q-rating-pct:${Math.min(100, Math.round(scoreNum * 10))}%"></span>`
         : '';
     const countLabel = isMangaOrNovela ? 'Volúmenes' : isAnime ? 'Capítulos' : 'Capítulos';
-    const countValue = isMangaOrNovela ? (volumenes || 'No especificado') : isAnime ? (item.capitulos || item.episodios || item.episodes || 'No especificado') : 'No especificado';
+    const countValue = isMangaOrNovela ? (volumenes || missingTotal) : isAnime ? (item.capitulos || item.episodios || item.episodes || missingTotal) : missingTotal;
     // Segunda tarjeta: antes decía "Vol." y repetía los volúmenes con un "1"
     // de relleno cuando la API no los informaba (obras en curso), así que la
     // ficha anunciaba un solo tomo aunque la grilla mostrara todos. Ahora el
@@ -196,7 +199,7 @@ function renderDetalle(item, nombreUrl, categoria) {
 
     const generosHtml = generos.length
         ? generos.map(g => `<span class="detail-chip">${escapeHtml(g)}</span>`).join('')
-        : `<span class="detail-chip detail-chip-muted">No especificado</span>`;
+        : `<span class="detail-chip detail-chip-muted">Sin dato</span>`;
 
     // Estudios (solo anime): chips que enlazan a la ficha del estudio. Se
     // enlaza por nombre (no tenemos el id acá) y estudio.html lo resuelve.
@@ -519,8 +522,13 @@ function renderDetalle(item, nombreUrl, categoria) {
         total: totalVols || item.episodes || 0,
         __category: categoria || 'manga'
     });
+    // Devuelve true si la obra pasó a "Viendo" (el toast del progreso lo avisa).
     const markWatchingIfNeeded = () => {
-        if (typeof ensureWatchingOnProgress === 'function' && ensureWatchingOnProgress(item, watchStatusMeta())) syncWatchPills();
+        if (typeof ensureWatchingOnProgress === 'function' && ensureWatchingOnProgress(item, watchStatusMeta())) {
+            syncWatchPills();
+            return true;
+        }
+        return false;
     };
     const wsBar = localLayout.querySelector('.watch-status-bar');
     if (wsBar && typeof window.getWatchStatus === 'function') {
@@ -847,6 +855,13 @@ function renderDetalle(item, nombreUrl, categoria) {
                 });
             };
 
+            // #epGrid desde la home: llevar a la vista la grilla de tomos una vez
+            // que tiene contenido (o el aviso de que no hay).
+            const focusVolGrid = () => {
+                if (typeof focusProgressGridFromHash === 'function') focusProgressGridFromHash(grid);
+            };
+            if (totalVols > 0) focusVolGrid();
+
             // Completa la grilla cuando la API no declaró tomos: pinta `count`
             // tomos, muestra el panel de progreso y engancha portadas/estado.
             const populateVols = (count) => {
@@ -869,6 +884,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 loadDetailVolCovers();
                 syncVolStates();
                 renderProgressPanel();
+                focusVolGrid();
             };
 
             // Si la API no informó cantidad de tomos, se resuelve contra MangaDex
@@ -904,8 +920,9 @@ function renderDetalle(item, nombreUrl, categoria) {
                     if (loadingEl) loadingEl.hidden = true;
                     if (count > 0) {
                         populateVols(count);
-                    } else if (emptyEl) {
-                        emptyEl.hidden = false;
+                    } else {
+                        if (emptyEl) emptyEl.hidden = false;
+                        focusVolGrid();
                     }
                 })();
             } else if (totalVols === 0) {
@@ -915,6 +932,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 const emptyEl = localLayout.querySelector('[data-vol-empty]');
                 if (loadingEl) loadingEl.hidden = true;
                 if (emptyEl) emptyEl.hidden = false;
+                focusVolGrid();
             }
 
             // Traer progreso desde SQL y reflejarlo en la UI (si hay sesión).
@@ -952,8 +970,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                     const wrapper = checkBtn.closest('.cuadrado-wrapper');
                     const tomo = wrapper ? wrapper.querySelector('button.vol-btn') : null;
                     if (tomo) tomo.classList.toggle('is-active', isActive);
-                    saveProgressToSupabase(categoria, item.id, progressSqlKeyVolume(vol), isActive);
-                    if (isActive) markWatchingIfNeeded();
+                    const nowWatching = isActive && markWatchingIfNeeded();
+                    saveProgressToSupabase(categoria, item.id, progressSqlKeyVolume(vol), isActive, { nowWatching });
                     renderProgressPanel();
                     maybeGrantProgressXp(isActive);
                     maybeGrantCompletionBonus();
@@ -994,7 +1012,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             const eps = applyAiring ? Math.max(rawEps, nextEpNum) : rawEps;
 
             if (!eps) {
-                epGrid.innerHTML = `<span class="detail-chip detail-chip-muted">Episodios no especificados</span>`;
+                epGrid.innerHTML = `<span class="detail-chip detail-chip-muted">Episodios: ${escapeHtml(missingTotal)}</span>`;
                 _epRenderMore = null;
                 return;
             }
@@ -1066,6 +1084,7 @@ function renderDetalle(item, nombreUrl, categoria) {
 
         // Render inmediato con UserStore, luego sync desde Supabase
         renderEpisodes(0);
+        if (typeof focusProgressGridFromHash === 'function') focusProgressGridFromHash(epGrid);
         syncProgressFromSupabase('anime', item.id).then(() => {
             renderEpisodes(0);
             renderProgressPanel();
@@ -1100,8 +1119,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                 const isActive = btn.classList.toggle('is-active');
                 if (isActive) UserStore.setItem(key, '1');
                 else UserStore.removeItem(key);
-                saveProgressToSupabase('anime', item.id, progressSqlKeyEpisode(seasonIndex, ep), isActive);
-                if (isActive) markWatchingIfNeeded();
+                const nowWatching = isActive && markWatchingIfNeeded();
+                saveProgressToSupabase('anime', item.id, progressSqlKeyEpisode(seasonIndex, ep), isActive, { nowWatching });
                 renderProgressPanel();
                 maybeGrantProgressXp(isActive);
                 maybeGrantCompletionBonus();

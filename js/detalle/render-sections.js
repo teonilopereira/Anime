@@ -42,6 +42,44 @@ function buildTrailerHtml(item) {
 // ── Related items ──
 // Secuelas/precuelas en formato de serie ya salen en la sección "Temporadas",
 // así que se filtran acá (cadenaTemporadas) para no repetirlas.
+// Texto cuando falta el total de episodios/tomos (js/detalle/render.js):
+// "En emisión (sin total)" si la obra sigue saliendo, "Sin dato" si no.
+function detailMissingTotalLabel(rawStatus) {
+    return String(rawStatus || '').toUpperCase() === 'RELEASING' ? 'En emisión (sin total)' : 'Sin dato';
+}
+
+// Cantidades de una temporada (buildSeasonsFromItem en js/core/api.js) para
+// la card: solo la de su unidad (`unit`: episodes/chapters/volumes), así un
+// manga muestra "N caps" o "N vols" en vez de quedar sin cantidad. Las
+// temporadas cacheadas antes de `unit` caen a lo que traigan.
+function seasonCardCounts(s) {
+    var unit = s && s.unit;
+    var n = function (v) { return Number(v) || 0; };
+    if (unit === 'episodes') return { episodes: n(s.episodes) || n(s.count), chapters: 0, volumes: 0 };
+    if (unit === 'chapters') return { episodes: 0, chapters: n(s.chapters) || n(s.count), volumes: 0 };
+    if (unit === 'volumes') return { episodes: 0, chapters: 0, volumes: n(s.volumes) || n(s.count) };
+    return { episodes: n(s && s.episodes), chapters: n(s && s.chapters), volumes: n(s && s.volumes) };
+}
+
+// Ancla #epGrid (enlace "Seguir viendo" de la home): cuando la grilla de
+// episodios/tomos ya está pintada se la lleva a la vista y recibe el foco
+// (tabindex=-1, para que el lector de pantalla y el teclado arranquen ahí).
+// Una sola vez por carga: re-renders de la grilla (pestañas, sync) no vuelven
+// a mover la página. Devuelve true si actuó.
+var _detailGridAnchorDone = false;
+function focusProgressGridFromHash(grid) {
+    if (_detailGridAnchorDone || !grid) return false;
+    if (String(window.location.hash || '') !== '#epGrid') return false;
+    _detailGridAnchorDone = true;
+    if (!grid.hasAttribute('tabindex')) grid.setAttribute('tabindex', '-1');
+    var reduce = false;
+    try { reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (_) { /* sin matchMedia */ }
+    var target = (grid.closest && grid.closest('.detail-section')) || grid;
+    try { target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); } catch (_) { /* jsdom/navegador viejo */ }
+    try { grid.focus({ preventScroll: true }); } catch (_) { grid.focus(); }
+    return true;
+}
+
 function buildRelatedHtml(item, cadenaTemporadas) {
     var Temporadas = window.DetalleTemporadas;
     var relationTypeLabels = {
@@ -68,7 +106,7 @@ function buildRelatedHtml(item, cadenaTemporadas) {
     if (Array.isArray(item.seasons)) {
         item.seasons.forEach(function (s, i) {
             if (i === 0) return;
-            pushRelated({ relationType: 'SEQUEL', id: s.id, title: s.title, episodes: s.episodes || 0, format: s.format, seasonYear: s.seasonYear, img: s.img });
+            pushRelated(Object.assign({ relationType: 'SEQUEL', id: s.id, title: s.title, format: s.format, seasonYear: s.seasonYear, img: s.img }, seasonCardCounts(s)));
         });
     }
     var relatedList = Object.keys(relatedMap).map(function (k) { return relatedMap[k]; }).slice(0, 12);
@@ -87,7 +125,7 @@ function buildMediaCardHtml(r, cat, pill, reason) {
     var partes = [];
     if (r.seasonYear) partes.push(r.seasonYear);
     if (r.episodes) partes.push(r.episodes + (r.episodes === 1 ? ' ep' : ' eps'));
-    else if (r.chapters) partes.push(r.chapters + ' caps');
+    else if (r.chapters) partes.push(r.chapters + (r.chapters === 1 ? ' cap' : ' caps'));
     else if (r.volumes) partes.push(r.volumes + (r.volumes === 1 ? ' vol' : ' vols'));
     var meta = partes.join(' · ');
     // Sin portada la card queda igual de alta que el resto: el hueco
@@ -416,7 +454,7 @@ function buildDetailFaq(ctx) {
         entries.push({ q: `¿En qué año ${isMangaOrNovela ? 'se publicó' : 'se estrenó'} ${t}?`, a: `${t} ${verbo} en ${anio}.` });
     }
 
-    if (status && status !== 'No especificado') {
+    if (status && status !== 'No especificado' && status !== 'Sin dato') {
         entries.push({ q: `¿${t} ya terminó?`, a: `Estado de ${t}: ${status}.` });
     }
 
@@ -449,3 +487,13 @@ function buildDetailFaq(ctx) {
 
     return { html, entries };
 }
+
+// Expuesto para tests (tests/unit/detalle-render-sections.test.js).
+window.DetalleSections = {
+    missingTotalLabel: detailMissingTotalLabel,
+    seasonCardCounts: seasonCardCounts,
+    mediaCardHtml: buildMediaCardHtml,
+    relatedHtml: buildRelatedHtml,
+    focusGridFromHash: focusProgressGridFromHash,
+    _resetGridAnchor: function () { _detailGridAnchorDone = false; }
+};

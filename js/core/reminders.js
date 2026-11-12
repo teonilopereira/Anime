@@ -288,7 +288,11 @@
         if (celebrate) {
             toast('success', '🔥 ¡Racha de ' + s.count + ' días! Seguí así.');
         } else {
-            var msg = '🔥 Tu racha de ' + s.count + ' días termina hoy. ¡Entrá para no perderla!';
+            // Sin presión: con el día de gracia, atRisk llega recién el segundo
+            // día sin actividad (daysLeft 1 = solo hoy); si algún día se avisa
+            // antes (daysLeft 2), el texto dice "hoy o mañana".
+            var cuando = (s.daysLeft || 1) >= 2 ? 'hoy o mañana' : 'hoy';
+            var msg = '🔥 Tu racha de ' + s.count + ' días sigue viva si entrás ' + cuando + '.';
             toast('info', msg);
             systemNotify('Mirudoku', msg, '/index.html');
         }

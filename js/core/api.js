@@ -924,6 +924,7 @@
                         title { romaji english }
                         coverImage { large }
                         format
+                        episodes
                         genres
                         isAdult
                         countryOfOrigin
@@ -937,7 +938,7 @@
         var now = Math.floor(Date.now() / 1000);
         var end = now + span * 86400;
 
-        var cacheKey = 'weeklyAiring_' + span + '_' + Math.floor(now / 3600); // bucket horario
+        var cacheKey = 'weeklyAiring_v2_' + span + '_' + Math.floor(now / 3600); // bucket horario
         var cached = getApiCache(cacheKey);
         if (cached) return cached;
 
@@ -959,6 +960,8 @@
                         img: (m.coverImage && m.coverImage.large) || '',
                         format: m.format || '',
                         genres: Array.isArray(m.genres) ? m.genres : [],
+                        // Total de episodios (null si AniList no lo sabe todavía).
+                        totalEpisodes: Number(m.episodes) > 0 ? Number(m.episodes) : null,
                         episode: Number(row.episode) || 0,
                         airingAt: Number(row.airingAt) || 0
                     });

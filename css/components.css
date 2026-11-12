@@ -2492,3 +2492,15 @@ body.reduce-motion .q-linear--indeterminate .q-linear__bar {
 .q-badge--outline.q-badge--fav {
     --q-badge-color: var(--neon-purple);
 }
+
+/* Ranking: nombre del jugador enlazado a su perfil público (js/pages/ranking.js,
+   solo cuando is_public === true). Hereda el estilo del nick. */
+.rank-player-link {
+    color: inherit;
+    text-decoration: none;
+}
+.rank-player-link:hover,
+.rank-player-link:focus-visible {
+    color: var(--accent-cyan);
+    text-decoration: underline;
+}

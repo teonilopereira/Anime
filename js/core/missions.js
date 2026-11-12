@@ -146,15 +146,21 @@
         });
     }
 
-    // La EXP se da siempre; el aviso respeta las preferencias de la categoría
-    // 'retos' (apagada, pausa, silencio nocturno, límite diario) de notif-prefs.js.
+    // La EXP se da siempre. El toast de misión cumplida es la respuesta
+    // inmediata a algo que el usuario acaba de hacer en pantalla, no un aviso
+    // que lo interrumpe: respeta la categoría 'retos' apagada y la pausa de
+    // notif-prefs.js, pero NO llama a recordSent (no gasta el límite diario,
+    // que queda para los avisos reales: recordatorios, push) ni mira el
+    // silencio nocturno (el usuario está usando la app en ese momento).
     function grant(uid, xp, message) {
         if (typeof window.addUserPoints === 'function') window.addUserPoints(uid, xp);
         if (!window.Toast) return;
         var prefs = window.AppNotifPrefs;
-        if (prefs && typeof prefs.isAllowed === 'function' && !prefs.isAllowed('retos')) return;
+        if (prefs) {
+            if (typeof prefs.isEnabled === 'function' && !prefs.isEnabled('retos')) return;
+            if (typeof prefs.isPaused === 'function' && prefs.isPaused()) return;
+        }
         window.Toast.success(message + ' (+' + xp + ' EXP)', 5000);
-        if (prefs && typeof prefs.recordSent === 'function') prefs.recordSent('retos');
     }
 
     function notify() {

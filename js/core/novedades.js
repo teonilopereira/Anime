@@ -6,7 +6,11 @@
  * géneros de sus listas. El host (`<section id="homeNovedades" hidden>`) lo pone
  * la página; este módulo lo rellena y le quita el `hidden` solo si hay algo.
  *
- *   AppNovedades.render(hostElement) → Promise<boolean>  (true si pintó algo)
+ *   AppNovedades.render(hostElement, opts?) → Promise<boolean>  (true si pintó algo)
+ *     opts.states    (opcional) lo mismo que devuelve loadItemStates('')
+ *     opts.progress  (opcional) lo mismo que devuelve loadAllProgress()
+ *     Si la página ya los cargó (inicio.js), se pasan y no se vuelve a llamar
+ *     a Supabase; cada uno que falte se carga como siempre.
  *
  * Datos:
  *   - Seguidos: AppSupabase.loadItemStates('') (fav / visto / viendo / pendiente,
@@ -15,6 +19,10 @@
  *     PRÓXIMO episodio (nextAiringEpisode); el anterior se infiere: si el ep. N
  *     sale dentro de 7 días, el N-1 ya salió (cadencia semanal). Si el usuario
  *     ya marcó ese episodio en su progreso, no se muestra como novedad.
+ *     No se usa getWeeklyAiringSchedule (airingSchedules por rango) para el
+ *     "ya salió": hoy solo consulta desde ahora hacia adelante y la home no lo
+ *     llama, así que tener el pasado real costaría una consulta más a AniList
+ *     por carga. Se mantiene la inferencia (puede fallar en semanas de pausa).
  *   - Estrenos: getTopAnimes(1, { browse: 'temporada', genres }) con los géneros
  *     que más pesan en sus listas, sin lo que ya tiene marcado.
  *
@@ -357,23 +365,27 @@
     }
 
     var _pending = null;
-    async function doRender(host) {
+    async function doRender(host, opts) {
+        opts = opts || {};
         if (!host) return false;
         if (window.AppSupabaseReady && typeof window.AppSupabaseReady.then === 'function') {
             try { await window.AppSupabaseReady; } catch (_) { /* sin cliente */ }
         }
         var user = signedInUser();
         var client = window.AppSupabase;
-        if (!user || typeof client.loadItemStates !== 'function') return false;
+        if (!user) return false;
+        if (!Array.isArray(opts.states) && typeof client.loadItemStates !== 'function') return false;
 
         var states = [];
         var progress = [];
         try {
             var r = await Promise.all([
-                client.loadItemStates(''),
-                typeof client.loadAllProgress === 'function'
-                    ? client.loadAllProgress().catch(function () { return []; })
-                    : Promise.resolve([])
+                Array.isArray(opts.states) ? opts.states : client.loadItemStates(''),
+                Array.isArray(opts.progress)
+                    ? opts.progress
+                    : (typeof client.loadAllProgress === 'function'
+                        ? client.loadAllProgress().catch(function () { return []; })
+                        : Promise.resolve([]))
             ]);
             states = Array.isArray(r[0]) ? r[0] : [];
             progress = Array.isArray(r[1]) ? r[1] : [];
@@ -400,10 +412,10 @@
         return true;
     }
 
-    function render(host) {
+    function render(host, opts) {
         // Dos llamadas seguidas sobre el mismo host comparten la misma carga.
         if (_pending && _pending.host === host) return _pending.promise;
-        var p = doRender(host).catch(function (e) {
+        var p = doRender(host, opts).catch(function (e) {
             console.warn('[novedades] render:', e);
             return false;
         }).finally(function () { if (_pending && _pending.promise === p) _pending = null; });

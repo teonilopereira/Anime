@@ -1,17 +1,21 @@
 -- ════════════════════════════════════════════════════════════════
 -- SCHEMA OPTIMIZADO — Mirudoku v2
 -- ────────────────────────────────────────────────────────────────
--- ⚠ FUENTE DE VERDAD: server/migrations/001 … 014 (no existe 011).
+-- ⚠ FUENTE DE VERDAD: server/migrations/001 … 016 (no existe 011).
 --   Si este archivo y una migración difieren, MANDA LA MIGRACIÓN.
 --   Este script es una foto de referencia para proyectos NUEVOS: empieza
 --   con DROP TABLE … CASCADE, así que NO correrlo sobre una base con datos.
---   Para una base nueva: correr este archivo y después TODAS las
---   migraciones en orden (son idempotentes). Sincronizado a mano con
---   013 (profiles.is_public, muro/perfil público filtrados) y 014 (log de
---   actividad sin INSERT del cliente, cron de limpieza, tope en
---   get_profiles_by_ids). Lo de 001-012 que no está acá (comment_likes,
---   push_subscriptions, push_sent, save_item_state_v3, grants por
---   columna de 007/012, etc.) sale solo de las migraciones.
+--   En una base VACÍA este archivo deja lo mismo que 001-016 aplicadas
+--   (tablas, columnas, constraints, policies, funciones, vistas, índices
+--   y permisos), salvo los jobs de pg_cron: 'notify-new-episodes' y
+--   'push-sent-cleanup' (010) y 'activity-cleanup' (014) dependen de
+--   extensiones y de la edge function desplegada; para tenerlos, correr
+--   010 y 014 después (son idempotentes). Verificado en Postgres 16
+--   local con stubs de auth/storage/cron: pg_dump -s de "schema.sql" y de
+--   "schema viejo + 001…016" dan la misma estructura y los mismos permisos.
+--   OJO: 001 y 002 NO son re-ejecutables sobre una base al día (001 choca
+--   con el RETURNS de get_ranking_profiles; 002 hace ADD CONSTRAINT sin
+--   IF NOT EXISTS). 003-016 sí se pueden volver a correr.
 -- ────────────────────────────────────────────────────────────────
 -- Este script reemplaza TODAS las versiones anteriores de SQL.
 -- Ejecutar en SQL Editor de Supabase (proyecto nuevo o existente).
@@ -37,6 +41,8 @@ DROP FUNCTION IF EXISTS public.sync_progress_keys_to_user_progress() CASCADE;
 DROP FUNCTION IF EXISTS public.rebuild_user_progress_row(UUID, TEXT, TEXT) CASCADE;
 DROP FUNCTION IF EXISTS public.log_item_state_activity() CASCADE;
 DROP FUNCTION IF EXISTS public.update_profiles_timestamp() CASCADE;
+-- get_ranking_profiles cambió su RETURNS (005, 015): CREATE OR REPLACE no alcanza.
+DROP FUNCTION IF EXISTS public.get_ranking_profiles(INT, INT);
 
 -- Eliminar tablas en orden correcto para evitar conflictos de claves foráneas
 DROP TABLE IF EXISTS public.user_activity_log CASCADE;
@@ -81,10 +87,17 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     total_viewed     INT         NOT NULL DEFAULT 0,
     apodo            TEXT        DEFAULT 'novato',
     -- 013: opt-in del perfil público / muro. Default conservador (privado).
-    is_public        BOOLEAN     NOT NULL DEFAULT false,
     updated_stats_at TIMESTAMPTZ,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    -- 012: tope diario de EXP (lo usa add_user_exp)
+    exp_day          DATE,
+    exp_day_total    INT         NOT NULL DEFAULT 0,
+    -- 013: opt-in del perfil público / muro. Default conservador (privado).
+    is_public        BOOLEAN     NOT NULL DEFAULT false,
+    -- 001
+    CONSTRAINT profiles_level_check CHECK (level BETWEEN 1 AND 50),
+    CONSTRAINT profiles_exp_check   CHECK (exp >= 0)
 );
 
 DROP TRIGGER IF EXISTS trg_profiles_updated_at ON public.profiles;
@@ -93,6 +106,9 @@ CREATE TRIGGER trg_profiles_updated_at
     FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- 001: se elimina la vieja policy USING(true) que exponía email/provider.
+DROP POLICY IF EXISTS "profiles: read public fields" ON public.profiles;
 
 -- Lectura restringida: solo el propio usuario puede ver su perfil completo (email, etc.)
 -- Para rankings/comparación usar la función get_ranking_profiles() (no expone email).
@@ -186,8 +202,16 @@ CREATE TABLE IF NOT EXISTS public.item_states (
     viewed     BOOLEAN     NOT NULL DEFAULT FALSE,
     meta       JSONB       NOT NULL DEFAULT '{}',
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    -- 003: estado de seguimiento
+    watch_status TEXT      NOT NULL DEFAULT ''
+        CHECK (watch_status IN ('', 'viendo', 'pendiente', 'pausado', 'abandonado')),
+    -- 016: total de episodios/capítulos/volúmenes (NULL = desconocido)
+    total      INTEGER,
+    CONSTRAINT item_states_total_check CHECK (total IS NULL OR total BETWEEN 1 AND 100000),
     PRIMARY KEY (user_id, category, item_id),
-    CONSTRAINT meta_size_limit CHECK (octet_length(meta::text) < 500)
+    CONSTRAINT meta_size_limit CHECK (octet_length(meta::text) < 500),
+    -- 001
+    CONSTRAINT item_states_category_check CHECK (category IN ('anime', 'manga', 'novelas', 'listas'))
 );
 
 DROP TRIGGER IF EXISTS trg_item_states_updated_at ON public.item_states;
@@ -234,7 +258,9 @@ CREATE TABLE IF NOT EXISTS public.progress_keys (
     pkey         TEXT         NOT NULL,
     value        BOOLEAN      NOT NULL DEFAULT TRUE,
     updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (user_id, category, item_id, pkey)
+    PRIMARY KEY (user_id, category, item_id, pkey),
+    -- 001
+    CONSTRAINT progress_keys_category_check CHECK (category IN ('anime', 'manga', 'novelas'))
 );
 
 DROP TRIGGER IF EXISTS trg_progress_keys_updated_at ON public.progress_keys;
@@ -308,11 +334,13 @@ SELECT
     s.item_id  AS id,
     s.fav,
     s.viewed,
+    s.watch_status,   -- 003
     s.updated_at,
     c.titulo,
     c.img,
     c.info,
-    c.status
+    c.status,
+    s.total           -- 016
 FROM public.item_states s
 LEFT JOIN public.catalog_items c ON c.category = s.category AND c.id = s.item_id;
 
@@ -424,25 +452,49 @@ CREATE TRIGGER update_user_stats_trigger
 -- add_user_exp() — Suma experiencia y recalcula nivel
 --    Nivel 1-50. Cada nivel requiere ×1.2 más exp que el anterior.
 -- ────────────────────────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION public.add_user_exp(
-    p_user_id UUID,
-    p_delta   INT
-) RETURNS void LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public AS $$
+-- Versión de 012: tope de [-100, 100] por llamada y 2000 de EXP por día.
+CREATE OR REPLACE FUNCTION public.add_user_exp(p_user_id UUID, p_delta INT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
+    MAX_POR_LLAMADA CONSTANT INT := 100;
+    MAX_POR_DIA     CONSTANT INT := 2000;
     v_level INT;
     v_exp   INT;
     v_need  INT;
+    v_day   DATE;
+    v_total INT;
+    v_hoy   DATE := (NOW() AT TIME ZONE 'UTC')::DATE;
+    v_delta INT := LEAST(GREATEST(COALESCE(p_delta, 0), -MAX_POR_LLAMADA), MAX_POR_LLAMADA);
 BEGIN
     IF p_user_id IS DISTINCT FROM auth.uid() THEN
         RAISE EXCEPTION 'No podes modificar la experiencia de otro usuario';
     END IF;
 
-    SELECT level, exp INTO v_level, v_exp
+    SELECT level, exp, exp_day, exp_day_total
+      INTO v_level, v_exp, v_day, v_total
     FROM public.profiles WHERE id = p_user_id
     FOR UPDATE;
 
-    v_exp := v_exp + p_delta;
+    IF NOT FOUND THEN
+        RETURN;
+    END IF;
+
+    IF v_day IS DISTINCT FROM v_hoy THEN
+        v_day := v_hoy;
+        v_total := 0;
+    END IF;
+
+    -- Solo lo que se gana cuenta para el tope; restar (desmarcar) siempre vale.
+    IF v_delta > 0 THEN
+        v_delta := LEAST(v_delta, GREATEST(MAX_POR_DIA - v_total, 0));
+        v_total := v_total + v_delta;
+    END IF;
+
+    v_exp := GREATEST(v_exp + v_delta, 0);
     v_need := 100;
 
     WHILE v_exp >= v_need AND v_level < 50 LOOP
@@ -452,7 +504,11 @@ BEGIN
     END LOOP;
 
     UPDATE public.profiles
-    SET level = v_level, exp = v_exp, updated_stats_at = NOW()
+    SET level = v_level,
+        exp = v_exp,
+        exp_day = v_day,
+        exp_day_total = v_total,
+        updated_stats_at = NOW()
     WHERE id = p_user_id;
 END;
 $$;
@@ -559,14 +615,155 @@ GRANT EXECUTE ON FUNCTION public.save_item_state_v2 TO authenticated;
 
 
 -- ────────────────────────────────────────────────────────────────
+-- save_item_state_v3() — v2 + watch_status (003). Es la que usa el
+--    cliente; si no existe, cae a v2 (api/supabase-client.js).
+-- ────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.save_item_state_v3(
+    p_user_id      UUID,
+    p_category     TEXT,
+    p_item_id      TEXT,
+    p_fav          BOOLEAN DEFAULT FALSE,
+    p_viewed       BOOLEAN DEFAULT FALSE,
+    p_item_data    JSONB   DEFAULT NULL,
+    p_watch_status TEXT    DEFAULT ''
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
+BEGIN
+    -- Validar identidad PRIMERO (antes de cualquier escritura)
+    IF p_user_id IS DISTINCT FROM auth.uid() THEN
+        RAISE EXCEPTION 'No podes modificar el estado de otro usuario';
+    END IF;
+
+    -- Upsert en catalog_items (datos compartidos del ítem)
+    IF p_item_data IS NOT NULL AND p_item_data ? 'titulo' THEN
+        INSERT INTO public.catalog_items (category, id, titulo, img, info, status)
+        VALUES (
+            p_category,
+            p_item_id,
+            p_item_data->>'titulo',
+            p_item_data->>'img',
+            p_item_data->>'info',
+            p_item_data->>'status'
+        )
+        ON CONFLICT (category, id) DO UPDATE SET
+            titulo     = COALESCE(NULLIF(EXCLUDED.titulo, ''), catalog_items.titulo),
+            img        = COALESCE(NULLIF(EXCLUDED.img, ''), catalog_items.img),
+            info       = COALESCE(NULLIF(EXCLUDED.info, ''), catalog_items.info),
+            status     = COALESCE(NULLIF(EXCLUDED.status, ''), catalog_items.status),
+            updated_at = NOW();
+    END IF;
+
+    -- Si no queda ningún estado, limpiar la fila
+    IF NOT p_fav AND NOT p_viewed AND COALESCE(p_watch_status, '') = '' THEN
+        DELETE FROM public.item_states
+        WHERE user_id = p_user_id AND category = p_category AND item_id = p_item_id;
+        IF p_category <> 'listas' THEN
+            DELETE FROM public.item_states
+            WHERE user_id = p_user_id AND category = 'listas' AND item_id = p_item_id;
+        END IF;
+        RETURN;
+    END IF;
+
+    -- Upsert del estado del usuario
+    INSERT INTO public.item_states (user_id, category, item_id, fav, viewed, watch_status, meta, updated_at)
+    VALUES (p_user_id, p_category, p_item_id, p_fav, p_viewed, COALESCE(p_watch_status, ''), '{}'::jsonb, NOW())
+    ON CONFLICT (user_id, category, item_id) DO UPDATE SET
+        fav          = p_fav,
+        viewed       = p_viewed,
+        watch_status = COALESCE(p_watch_status, ''),
+        updated_at   = NOW();
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.save_item_state_v3(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN, JSONB, TEXT) TO authenticated;
+
+
+-- ────────────────────────────────────────────────────────────────
+-- save_item_state_v4() — v3 + p_total (016). El cliente la usa cuando
+--    meta.total > 0 y cae a v3/v2 si no existe. NULL = no tocar.
+-- ────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION public.save_item_state_v4(
+    p_user_id      UUID,
+    p_category     TEXT,
+    p_item_id      TEXT,
+    p_fav          BOOLEAN DEFAULT FALSE,
+    p_viewed       BOOLEAN DEFAULT FALSE,
+    p_item_data    JSONB   DEFAULT NULL,
+    p_watch_status TEXT    DEFAULT NULL,
+    p_total        INTEGER DEFAULT NULL
+) RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
+DECLARE
+    v_ws    TEXT;
+    v_total INTEGER := CASE WHEN p_total BETWEEN 1 AND 100000 THEN p_total ELSE NULL END;
+BEGIN
+    -- Validar identidad PRIMERO (antes de cualquier escritura)
+    IF p_user_id IS DISTINCT FROM auth.uid() THEN
+        RAISE EXCEPTION 'No podes modificar el estado de otro usuario';
+    END IF;
+
+    -- Upsert en catalog_items (datos compartidos del ítem)
+    IF p_item_data IS NOT NULL AND p_item_data ? 'titulo' THEN
+        INSERT INTO public.catalog_items (category, id, titulo, img, info, status)
+        VALUES (
+            p_category,
+            p_item_id,
+            p_item_data->>'titulo',
+            p_item_data->>'img',
+            p_item_data->>'info',
+            p_item_data->>'status'
+        )
+        ON CONFLICT (category, id) DO UPDATE SET
+            titulo     = COALESCE(NULLIF(EXCLUDED.titulo, ''), catalog_items.titulo),
+            img        = COALESCE(NULLIF(EXCLUDED.img, ''), catalog_items.img),
+            info       = COALESCE(NULLIF(EXCLUDED.info, ''), catalog_items.info),
+            status     = COALESCE(NULLIF(EXCLUDED.status, ''), catalog_items.status),
+            updated_at = NOW();
+    END IF;
+
+    -- watch_status efectivo: el pedido, o el guardado si viene NULL.
+    v_ws := COALESCE(
+        p_watch_status,
+        (SELECT s.watch_status FROM public.item_states s
+          WHERE s.user_id = p_user_id AND s.category = p_category AND s.item_id = p_item_id),
+        ''
+    );
+
+    -- Si no queda ningún estado, limpiar la fila (igual que v3)
+    IF NOT p_fav AND NOT p_viewed AND v_ws = '' THEN
+        DELETE FROM public.item_states
+        WHERE user_id = p_user_id AND category = p_category AND item_id = p_item_id;
+        IF p_category <> 'listas' THEN
+            DELETE FROM public.item_states
+            WHERE user_id = p_user_id AND category = 'listas' AND item_id = p_item_id;
+        END IF;
+        RETURN;
+    END IF;
+
+    INSERT INTO public.item_states (user_id, category, item_id, fav, viewed, watch_status, total, meta, updated_at)
+    VALUES (p_user_id, p_category, p_item_id, p_fav, p_viewed, v_ws, v_total, '{}'::jsonb, NOW())
+    ON CONFLICT (user_id, category, item_id) DO UPDATE SET
+        fav          = p_fav,
+        viewed       = p_viewed,
+        watch_status = v_ws,
+        total        = COALESCE(v_total, item_states.total),
+        updated_at   = NOW();
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.save_item_state_v4(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN, JSONB, TEXT, INTEGER) TO authenticated;
+
+
+-- ────────────────────────────────────────────────────────────────
 -- get_ranking_profiles() — Ranking seguro para todos los usuarios
 --    SECURITY DEFINER: bypasea RLS para devolver solo campos
 --    públicos (id, username, display_name, photo_url, level, exp,
---    apodo).
+--    apodo, is_public).
 --    Reemplaza el SELECT directo sobre profiles_public que
 --    exponía todas las columnas via USING(true) policy.
 -- ────────────────────────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION public.get_ranking_profiles(
+-- Versión de 015: topes de 007, desempate por id e is_public para el enlace.
+CREATE FUNCTION public.get_ranking_profiles(
     p_limit  INT DEFAULT 50,
     p_offset INT DEFAULT 0
 ) RETURNS TABLE (
@@ -576,9 +773,13 @@ CREATE OR REPLACE FUNCTION public.get_ranking_profiles(
     photo_url    TEXT,
     level        INT,
     exp          INT,
-    apodo        TEXT
-) LANGUAGE plpgsql SECURITY DEFINER
+    apodo        TEXT,
+    is_public    BOOLEAN
+) LANGUAGE plpgsql STABLE SECURITY DEFINER
 SET search_path = public AS $$
+DECLARE
+    v_limit  INT := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
+    v_offset INT := GREATEST(COALESCE(p_offset, 0), 0);
 BEGIN
     RETURN QUERY
     SELECT
@@ -588,10 +789,11 @@ BEGIN
         p.photo_url,
         p.level,
         p.exp,
-        p.apodo
+        p.apodo,
+        p.is_public
     FROM public.profiles p
-    ORDER BY p.level DESC, p.exp DESC, p.total_likes DESC
-    LIMIT p_limit OFFSET p_offset;
+    ORDER BY p.level DESC, p.exp DESC, p.total_likes DESC, p.id
+    LIMIT v_limit OFFSET v_offset;
 END;
 $$;
 
@@ -802,6 +1004,10 @@ CREATE POLICY "avatars: delete own"
 -- ÍNDICES
 -- ════════════════════════════════════════════════════════════════
 
+-- Activity log: limpieza global por fecha (001)
+CREATE INDEX IF NOT EXISTS idx_activity_created
+    ON public.user_activity_log (created_at);
+
 -- Activity log: búsqueda por usuario + orden cronológico
 CREATE INDEX IF NOT EXISTS idx_activity_user_created
     ON public.user_activity_log (user_id, created_at DESC);
@@ -840,11 +1046,22 @@ DROP INDEX IF EXISTS idx_progress_keys_value;
 -- ════════════════════════════════════════════════════════════════
 
 -- Tablas: el acceso real lo controla RLS, pero necesitan permisos base
-GRANT SELECT, INSERT, UPDATE        ON public.profiles          TO authenticated;
+-- profiles: SELECT de tabla; INSERT/UPDATE SOLO por columna (007/012/013).
+-- level, exp, total_likes, total_viewed, updated_stats_at, exp_day y
+-- exp_day_total quedan para las funciones SECURITY DEFINER y los triggers.
+GRANT SELECT                        ON public.profiles          TO authenticated;
+REVOKE INSERT, UPDATE ON public.profiles FROM anon, authenticated;
+REVOKE INSERT, UPDATE (level, exp, total_likes, total_viewed, updated_stats_at, created_at)
+    ON public.profiles FROM anon, authenticated;
+GRANT INSERT (id, username, display_name, email, photo_url, provider, apodo, updated_at)
+    ON public.profiles TO authenticated;
+GRANT UPDATE (id, username, display_name, email, photo_url, provider, apodo, updated_at)
+    ON public.profiles TO authenticated;
 GRANT SELECT                        ON public.catalog_items     TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.item_states       TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.progress_keys     TO authenticated;
 GRANT SELECT                        ON public.user_activity_log  TO authenticated;  -- 014: sin INSERT
+REVOKE INSERT ON public.user_activity_log FROM anon, authenticated;  -- 014: solo escriben los triggers
 
 -- Vistas
 GRANT SELECT ON public.item_states_with_details TO authenticated;
@@ -854,17 +1071,21 @@ GRANT SELECT ON public.profiles_public          TO authenticated;
 GRANT EXECUTE ON FUNCTION public.add_user_exp         TO authenticated;
 GRANT EXECUTE ON FUNCTION public.save_item_state_v2   TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_catalog_item  TO authenticated;
+GRANT EXECUTE ON FUNCTION public.save_item_state_v3(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN, JSONB, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_ranking_profiles  TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_ranking_profiles  TO anon;
 GRANT EXECUTE ON FUNCTION public.get_profiles_by_ids   TO authenticated;
 
 -- REVOKE: funciones SECURITY DEFINER que NO deben ser llamables por anon
-REVOKE EXECUTE ON FUNCTION public.add_user_exp FROM anon;
-REVOKE EXECUTE ON FUNCTION public.save_item_state_v2 FROM anon;
-REVOKE EXECUTE ON FUNCTION public.upsert_catalog_item FROM anon;
+-- 012: el EXECUTE venía de PUBLIC, así que se revoca de PUBLIC también.
+REVOKE EXECUTE ON FUNCTION public.add_user_exp(UUID, INT) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.save_item_state_v2(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN, JSONB) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.save_item_state_v3(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN, JSONB, TEXT) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.save_item_state_v4(UUID, TEXT, TEXT, BOOLEAN, BOOLEAN, JSONB, TEXT, INTEGER) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.upsert_catalog_item(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC, anon;
 -- get_profiles_by_ids: 002 la habilita para anon (comentarios sin login).
 GRANT EXECUTE ON FUNCTION public.get_profiles_by_ids TO anon;
-REVOKE EXECUTE ON FUNCTION public.cleanup_old_activity FROM anon;
+REVOKE EXECUTE ON FUNCTION public.cleanup_old_activity FROM anon, authenticated;  -- 001
 
 -- REVOKE: funciones internas (triggers) que no deben ser llamables vía RPC
 REVOKE EXECUTE ON FUNCTION public.handle_new_user FROM anon, authenticated;
@@ -878,10 +1099,182 @@ GRANT SELECT ON public.catalog_items   TO anon;
 
 
 -- ════════════════════════════════════════════════════════════════
+-- COMMENTS (001 + 002 referencia + 006 spoiler + 009 likes_count)
+-- ════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS public.comments (
+    id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id     UUID         NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    category    TEXT         NOT NULL CHECK (category IN ('anime', 'manga', 'novelas')),
+    item_id     TEXT         NOT NULL,
+    body        TEXT         NOT NULL CHECK (char_length(body) <= 2000),
+    parent_id   UUID         REFERENCES public.comments(id) ON DELETE CASCADE,
+    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    ref_type    TEXT         CHECK (ref_type IN ('episode', 'volume', 'chapter')),     -- 002
+    ref_number  INTEGER      CHECK (ref_number > 0),                                   -- 002
+    spoiler     BOOLEAN      NOT NULL DEFAULT false,                                   -- 006
+    likes_count INT          NOT NULL DEFAULT 0,                                       -- 009
+    CONSTRAINT comments_ref_check CHECK (
+        (ref_type IS NULL AND ref_number IS NULL)
+        OR
+        (ref_type IS NOT NULL AND ref_number IS NOT NULL)
+    )
+);
+
+CREATE INDEX IF NOT EXISTS idx_comments_item
+    ON public.comments (category, item_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comments_parent
+    ON public.comments (parent_id)
+    WHERE parent_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_comments_ref
+    ON public.comments (category, item_id, ref_type, ref_number);
+
+ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "comments: read"    ON public.comments;
+DROP POLICY IF EXISTS "comments: insert"  ON public.comments;
+DROP POLICY IF EXISTS "comments: update"  ON public.comments;
+DROP POLICY IF EXISTS "comments: delete"  ON public.comments;
+CREATE POLICY "comments: read"
+    ON public.comments FOR SELECT USING (true);
+CREATE POLICY "comments: insert"
+    ON public.comments FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "comments: update"
+    ON public.comments FOR UPDATE
+    USING (auth.uid() = user_id);
+CREATE POLICY "comments: delete"
+    ON public.comments FOR DELETE
+    USING (auth.uid() = user_id);
+
+DROP TRIGGER IF EXISTS trg_comments_updated_at ON public.comments;
+CREATE TRIGGER trg_comments_updated_at
+    BEFORE UPDATE ON public.comments
+    FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+GRANT SELECT ON public.comments TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.comments TO authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- COMMENT_LIKES (009) + trigger que mantiene comments.likes_count
+-- ════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS public.comment_likes (
+    comment_id UUID        NOT NULL REFERENCES public.comments(id) ON DELETE CASCADE,
+    user_id    UUID        NOT NULL REFERENCES auth.users(id)      ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (comment_id, user_id)
+);
+
+ALTER TABLE public.comment_likes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "comment_likes: read"       ON public.comment_likes;
+CREATE POLICY "comment_likes: read"
+    ON public.comment_likes FOR SELECT
+    USING (true);
+DROP POLICY IF EXISTS "comment_likes: insert own" ON public.comment_likes;
+CREATE POLICY "comment_likes: insert own"
+    ON public.comment_likes FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "comment_likes: delete own" ON public.comment_likes;
+CREATE POLICY "comment_likes: delete own"
+    ON public.comment_likes FOR DELETE
+    USING (auth.uid() = user_id);
+
+CREATE OR REPLACE FUNCTION public.update_comment_likes_count()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        UPDATE public.comments
+        SET likes_count = likes_count + 1
+        WHERE id = NEW.comment_id;
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE public.comments
+        SET likes_count = GREATEST(0, likes_count - 1)
+        WHERE id = OLD.comment_id;
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_comment_likes_count ON public.comment_likes;
+CREATE TRIGGER trg_comment_likes_count
+    AFTER INSERT OR DELETE ON public.comment_likes
+    FOR EACH ROW EXECUTE FUNCTION public.update_comment_likes_count();
+
+CREATE INDEX IF NOT EXISTS idx_comment_likes_user
+    ON public.comment_likes (user_id, comment_id);
+
+GRANT SELECT                 ON public.comment_likes TO anon;
+GRANT SELECT, INSERT, DELETE ON public.comment_likes TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.update_comment_likes_count() FROM anon, authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- PUSH_SUBSCRIPTIONS (008) — Web Push de nuevos episodios
+--    La edge function notify-new-episodes la lee con service role.
+-- ════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    endpoint   TEXT NOT NULL UNIQUE,
+    p256dh     TEXT NOT NULL,
+    auth       TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS push_subscriptions_user_id_idx
+    ON public.push_subscriptions (user_id);
+
+DROP TRIGGER IF EXISTS push_subscriptions_set_updated_at ON public.push_subscriptions;
+CREATE TRIGGER push_subscriptions_set_updated_at
+    BEFORE UPDATE ON public.push_subscriptions
+    FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "push: select own" ON public.push_subscriptions;
+CREATE POLICY "push: select own" ON public.push_subscriptions
+    FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "push: insert own" ON public.push_subscriptions;
+CREATE POLICY "push: insert own" ON public.push_subscriptions
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "push: update own" ON public.push_subscriptions;
+CREATE POLICY "push: update own" ON public.push_subscriptions
+    FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "push: delete own" ON public.push_subscriptions;
+CREATE POLICY "push: delete own" ON public.push_subscriptions
+    FOR DELETE USING (auth.uid() = user_id);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.push_subscriptions TO authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- PUSH_SENT (010) — avisos ya enviados, para no repetir.
+--    RLS sin policies: solo la service role (edge function) la usa.
+--    Los jobs de pg_cron de 010 NO se crean acá (ver encabezado).
+-- ════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS public.push_sent (
+    user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    tag        TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, tag)
+);
+
+ALTER TABLE public.push_sent ENABLE ROW LEVEL SECURITY;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- CAPA SOCIAL (009 + 013) — muro y perfil público, solo is_public
 --    Versión vigente: 013_social_privacy_public_profile.sql.
 -- ════════════════════════════════════════════════════════════════
 GRANT UPDATE (is_public) ON public.profiles TO authenticated;
+COMMENT ON COLUMN public.profiles.is_public IS
+    'Opt-in del usuario: si es true aparece en get_activity_feed() y get_public_profile(). Lo escribe el cliente desde configuracion.html (prefPublic).';
 
 CREATE OR REPLACE FUNCTION public.get_activity_feed(
     p_limit  INT DEFAULT 30,
@@ -959,5 +1352,6 @@ CREATE INDEX IF NOT EXISTS idx_activity_feed_recent
 
 
 -- ════════════════════════════════════════════════════════════════
--- FIN — 5 tablas, 2 vistas, 8 funciones/triggers, 6 índices
+-- FIN — 9 tablas, 2 vistas, 16 funciones (RPC + triggers), 13 índices
+--       (+ jobs de pg_cron de 010 y 014, fuera de este archivo)
 -- ════════════════════════════════════════════════════════════════

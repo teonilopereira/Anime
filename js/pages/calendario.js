@@ -11,6 +11,10 @@
  * recordatorio por título de window.AppReminders (clave UserStore
  * `u:<userId>|remind:<animeId>` = '1'; ver js/core/reminders.js).
  *
+ * Las cards de lo seguido muestran "faltan X de Y" cuando AniList da el
+ * total de episodios (X = total − episodio que sale; ver remainingLabel).
+ * Sin total no se muestra nada.
+ *
  * Retención: da un motivo predecible para volver ("mañana sale el ep. X").
  * Todo es best-effort: sin sesión funciona igual, solo sin resaltado.
  */
@@ -91,6 +95,22 @@
         return _followed;
     }
 
+    // Episodios que quedan después del que sale: { faltan, total } o null si
+    // AniList no da el total (o el dato no cierra, p. ej. episodio > total).
+    function remaining(ep) {
+        var total = Number(ep && ep.totalEpisodes);
+        var n = Number(ep && ep.episode);
+        if (!(total > 0) || !(n > 0) || n > total) return null;
+        return { faltan: total - n, total: total };
+    }
+
+    // Texto corto para la card: "Faltan 4 de 12" o "Episodio final".
+    function remainingLabel(ep) {
+        var r = remaining(ep);
+        if (!r) return '';
+        return r.faltan === 0 ? 'Episodio final' : 'Faltan ' + r.faltan + ' de ' + r.total;
+    }
+
     // Botón "Avisame" (toggle, aria-pressed) de un estreno seguido. Solo con
     // sesión y si AppReminders ya expone los recordatorios por título.
     function remindButtonHtml(ep) {
@@ -110,6 +130,7 @@
     function cardHtml(ep) {
         var d = new Date(ep.airingAt * 1000);
         var mine = _followed && _followed.has(String(ep.id));
+        var left = mine ? remainingLabel(ep) : '';
         var poster = ep.img
             ? '<img class="cal-poster-img" loading="lazy" src="' + esc(ep.img) + '" alt="' + esc(ep.title) +
               '" data-title="' + esc(ep.title) + '" data-fallback-catalog="1">'
@@ -124,6 +145,7 @@
                     '<span class="wcard-text">' +
                         '<span class="wcard-title">' + esc(ep.title) + '</span>' +
                         '<span class="wcard-meta">Episodio ' + (ep.episode || '?') + '</span>' +
+                        (left ? '<span class="wcard-meta cal-left">' + esc(left) + '</span>' : '') +
                     '</span>' +
                 '</a>' +
                 (mine ? remindButtonHtml(ep) : '') +
@@ -169,17 +191,33 @@
     }
 
     // Resumen de lo seguido: cuántos estrenos hay en la semana y cuántos
-    // faltan salir. Solo si hay algo seguido (nada de mensajes genéricos).
+    // faltan salir; si alguno emite su episodio final, cuántos terminan.
+    // Solo si hay algo seguido (nada de mensajes genéricos).
     function summaryHtml(now) {
         if (!_followed || !_followed.size) return '';
         var mine = filterMine(_all);
         if (!mine.length) return '';
-        var faltan = mine.filter(function (ep) { return ep.airingAt * 1000 > now; }).length;
+        var s = summarize(mine, now);
         return '<p class="cal-summary" role="status">' +
-                    '<strong>' + mine.length + '</strong> ' + (mine.length === 1 ? 'estreno' : 'estrenos') +
+                    '<strong>' + s.total + '</strong> ' + (s.total === 1 ? 'estreno' : 'estrenos') +
                     ' de lo que seguís esta semana · ' +
-                    '<strong>' + faltan + '</strong> ' + (faltan === 1 ? 'episodio por salir' : 'episodios por salir') +
+                    '<strong>' + s.porSalir + '</strong> ' + (s.porSalir === 1 ? 'episodio por salir' : 'episodios por salir') +
+                    (s.finales
+                        ? ' · <strong>' + s.finales + '</strong> ' + (s.finales === 1 ? 'termina' : 'terminan')
+                        : '') +
                 '</p>';
+    }
+
+    // Cuentas del resumen (puro). `finales`: títulos distintos cuyo episodio
+    // final todavía no salió en la ventana.
+    function summarize(list, now) {
+        var futuros = list.filter(function (ep) { return ep.airingAt * 1000 > now; });
+        var fin = {};
+        futuros.forEach(function (ep) {
+            var r = remaining(ep);
+            if (r && r.faltan === 0) fin[String(ep.id)] = 1;
+        });
+        return { total: list.length, porSalir: futuros.length, finales: Object.keys(fin).length };
     }
 
     function filterMine(list) {
@@ -284,6 +322,13 @@
             loadFollowed().then(render);
         });
     }
+
+    // Solo para tests (lógica pura, sin red ni DOM).
+    window.AppCalendario = Object.freeze({
+        _remaining: remaining,
+        _remainingLabel: remainingLabel,
+        _summarize: summarize
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);

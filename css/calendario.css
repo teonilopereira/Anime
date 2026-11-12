@@ -201,3 +201,8 @@
     .calendar-toolbar { justify-content: stretch; }
     .calendar-filter { width: 100%; justify-content: center; }
 }
+
+/* "Faltan X de Y" en las cards de lo seguido (segunda línea de meta). */
+.wcard-meta.cal-left {
+    color: var(--accent-cyan);
+}

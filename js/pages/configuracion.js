@@ -681,6 +681,99 @@ window.addEventListener('supabase-ready', () => {
     if (typeof window.refreshUserUi === 'function') window.refreshUserUi();
 }, { once: true });
 
+/* ── Sincronización (retencion-engagement) ──
+   Muestra la cola de cambios sin guardar en la cuenta y el último error, leídos
+   de window.AppSyncMetrics (js/catalog/states.js, solo lectura). "Reintentar"
+   llama a AppSyncMetrics.drain(). Sin sesión el bloque queda oculto: la cola
+   solo se manda con una cuenta. Si states.js no cargó, también se oculta. */
+(function wireSyncStatus() {
+    const box = $('cfgSync');
+    if (!box) return;
+    const pendingEl = $('cfgSyncPending');
+    const errorEl = $('cfgSyncError');
+    const btn = $('cfgSyncRetry');
+    let draining = false;
+
+    function metrics() {
+        const m = window.AppSyncMetrics;
+        return m && typeof m.get === 'function' && typeof m.pending === 'function' ? m : null;
+    }
+
+    function signedIn() {
+        try { return !!(window.AppSupabase && window.AppSupabase.isSignedIn && window.AppSupabase.isSignedIn()); }
+        catch (e) { return false; }
+    }
+
+    function formatFecha(ms) {
+        try {
+            const lang = window.AppI18n && window.AppI18n.getLang ? window.AppI18n.getLang() : 'es';
+            return new Date(ms).toLocaleString(lang === 'en' ? 'en' : 'es', { dateStyle: 'short', timeStyle: 'short' });
+        } catch (e) { return new Date(ms).toISOString().slice(0, 16).replace('T', ' '); }
+    }
+
+    function render() {
+        const m = metrics();
+        if (!m || !signedIn()) { box.hidden = true; return; }
+        box.hidden = false;
+
+        let n = 0;
+        let data = null;
+        try { n = Number(m.pending()) || 0; } catch (e) { n = 0; }
+        try { data = m.get(); } catch (e) { data = null; }
+
+        pendingEl.textContent = n === 0
+            ? notifT('config.sync.al_dia', 'Todo sincronizado.')
+            : n === 1
+                ? notifT('config.sync.pendiente_uno', '1 cambio pendiente')
+                : notifT('config.sync.pendientes', '{n} cambios pendientes', { n: n });
+        pendingEl.classList.toggle('has-pending', n > 0);
+
+        const code = data && data.lastCode ? String(data.lastCode) : '';
+        const at = data && Number(data.lastAt) > 0 ? Number(data.lastAt) : 0;
+        if (code && at) {
+            errorEl.textContent = notifT('config.sync.ultimo_error', 'Último error: {code} ({fecha})', { code: code, fecha: formatFecha(at) });
+            errorEl.hidden = false;
+        } else {
+            errorEl.textContent = '';
+            errorEl.hidden = true;
+        }
+
+        btn.disabled = draining || n === 0;
+    }
+
+    btn.addEventListener('click', async function () {
+        const m = metrics();
+        if (!m || typeof m.drain !== 'function' || draining) return;
+        draining = true;
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        try { await m.drain(); }
+        catch (e) { console.warn('[config] sync drain:', e); }
+        draining = false;
+        btn.removeAttribute('aria-busy');
+        render();
+        let left = 0;
+        try { left = Number(m.pending()) || 0; } catch (e) { left = 0; }
+        if (left === 0) toast(notifT('config.sync.ok', '✅ Todo sincronizado'));
+        else toast(notifT('config.sync.quedan', 'Quedan {n} cambios pendientes. Se reintentan solos.', { n: left }), true);
+    });
+
+    render();
+    window.addEventListener('supabase-auth-changed', render);
+    window.addEventListener('online', function () { setTimeout(render, 1500); });
+    window.addEventListener('i18n:changed', render);
+    window.addEventListener('storage', function (e) {
+        if (!e.key || e.key === 'syncQueue' || e.key === 'ad:metrics:sync') render();
+    });
+    // states.js y supabase-config cargan defer/async: repintar cuando ya estén.
+    window.addEventListener('load', render);
+    if (typeof window.waitForSupabase === 'function') {
+        Promise.resolve().then(() => window.waitForSupabase()).then(render, function () { /* sin Supabase: queda oculto */ });
+    }
+
+    window.CfgSync = Object.freeze({ render: render });
+})();
+
 /* ── Menú lateral: muestra una sección a la vez ──
    La sección activa va en el hash (#colores, #datos...) para poder volver
    directo a ella o compartir el enlace. */

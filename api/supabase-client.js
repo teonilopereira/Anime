@@ -234,6 +234,16 @@ async function signUpWithEmail(email, password, username) {
     return data;
 }
 
+// Reenvía el correo de confirmación de registro. Lanza el error de Supabase
+// (p. ej. rate limit) para que la página lo muestre.
+async function resendSignupEmail(email) {
+    const clean = String(email || "").trim();
+    if (!clean) throw new Error("Falta el correo");
+    const { data, error } = await supabase.auth.resend({ type: "signup", email: clean });
+    if (error) throw error;
+    return data;
+}
+
 async function signInWithEmail(email, password) {
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -260,6 +270,15 @@ async function signInWithEmail(email, password) {
 // Si la función no existe en la base (migración no aplicada), cae a v2 y el
 // estado de seguimiento queda solo en el almacenamiento local.
 let _rpcV3Available = true;
+// save_item_state_v4 (016) agrega p_total. Se usa solo si meta.total es un
+// número > 0; si la base no la tiene, se marca y se sigue con v3/v2.
+let _rpcV4Available = true;
+
+// 42883 = undefined_function; PGRST202 = function not found en PostgREST
+function isMissingRpc(error, name) {
+    return !!error && (error.code === '42883' || error.code === 'PGRST202' ||
+        new RegExp(name).test(String(error.message || '')));
+}
 
 async function saveItemState({ category, itemId, fav = false, viewed = false, meta = {}, watchStatus }) {
     const user = await getCurrentUserAsync();
@@ -278,14 +297,29 @@ async function saveItemState({ category, itemId, fav = false, viewed = false, me
         p_item_data: itemData
     };
 
+    const total = Number(meta && meta.total);
+    if (_rpcV4Available && Number.isFinite(total) && total > 0) {
+        const { error } = await supabase.rpc('save_item_state_v4', {
+            ...baseParams,
+            // null = no tocar el estado guardado (ver 016_item_states_total.sql)
+            p_watch_status: watchStatus === undefined ? null : String(watchStatus || ""),
+            p_total: Math.floor(total)
+        });
+        if (!error) return;
+        if (isMissingRpc(error, 'save_item_state_v4')) {
+            _rpcV4Available = false;
+        } else {
+            throw error;
+        }
+    }
+
     if (_rpcV3Available && watchStatus !== undefined) {
         const { error } = await supabase.rpc('save_item_state_v3', {
             ...baseParams,
             p_watch_status: String(watchStatus || "")
         });
         if (!error) return;
-        // 42883 = undefined_function; PGRST202 = function not found en PostgREST
-        if (error.code === '42883' || error.code === 'PGRST202' || /save_item_state_v3/.test(String(error.message || ''))) {
+        if (isMissingRpc(error, 'save_item_state_v3')) {
             _rpcV3Available = false;
         } else {
             throw error;
@@ -302,29 +336,52 @@ async function loadItemStates(category = "") {
 
     // watch_status solo existe si se aplicó la migración; si la columna
     // no está en la vista, reintentar sin ella.
-    const buildQuery = (withWatchStatus) => {
-        const cols = "id, category, fav, viewed, titulo, img, info, status, updated_at"
-            + (withWatchStatus ? ", watch_status" : "");
-        let q = supabase.from("item_states_with_details").select(cols);
-        if (category) q = q.eq("category", category);
-        return q;
-    };
+    // "*" en vez de una lista fija: así, si una migración agrega a la vista
+    // watch_status, total o un JSON meta, llegan sin que la consulta falle
+    // por pedir una columna que todavía no existe (hoy la vista de
+    // 016_item_states_total.sql agrega total; sin 016 no viene y queda 0).
+    let q = supabase.from("item_states_with_details").select("*");
+    if (category) q = q.eq("category", category);
 
-    let { data, error } = await buildQuery(true);
-    if (error && /watch_status/.test(String(error.message || ''))) {
-        ({ data, error } = await buildQuery(false));
-    }
+    const { data, error } = await q;
     if (error) { console.warn("loadItemStates:", error.message); return []; }
 
-    return (data || []).map((row) => ({
+    return (data || []).map(mapItemStateRow);
+}
+
+// Total de episodios/volúmenes si la fila lo trae (columna total o meta.total).
+// 0 = desconocido.
+function itemStateTotal(row) {
+    const meta = row && row.meta && typeof row.meta === "object" ? row.meta : null;
+    const n = Number((row && row.total) ?? (meta && meta.total) ?? 0);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+
+function mapItemStateRow(row) {
+    const meta = { titulo: row.titulo, img: row.img, info: row.info, status: row.status };
+    const total = itemStateTotal(row);
+    if (total) meta.total = total;
+    return {
         item_id:   row.id,
         category:  row.category || '',
         fav:       row.fav    ? 1 : 0,
         viewed:    row.viewed ? 1 : 0,
         watch_status: row.watch_status || '',
-        meta:      { titulo: row.titulo, img: row.img, info: row.info, status: row.status },
+        meta,
         updated_at: row.updated_at
-    }));
+    };
+}
+
+// XP por marcar progreso: la misma regla que maybeGrantProgressXp de
+// js/detalle/render.js (XP_PROGRESS por marca activa + misión "progress"),
+// expuesta para que la home no la duplique. Devuelve la XP otorgada.
+function grantProgressXp(userId) {
+    if (!userId || userId === "Invitado" || typeof window.addUserPoints !== "function") return 0;
+    const C = (window.AnimeDestiny && window.AnimeDestiny.Constants) || {};
+    const xp = C.XP_PROGRESS || 2;
+    window.addUserPoints(userId, xp);
+    if (window.AppMissions && typeof window.AppMissions.track === "function") window.AppMissions.track("progress");
+    return xp;
 }
  
 async function addExperience(delta) {
@@ -713,6 +770,8 @@ const AppSupabase = Object.freeze({
     signOutGoogle,
     signInWithEmail,
     signUpWithEmail,
+    resendSignupEmail,
+    grantProgressXp,
 
     onAuthChange(listener) {
         if (typeof listener !== "function") return () => {};

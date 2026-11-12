@@ -157,7 +157,9 @@
     }
 
     // status: '' para quitar. meta opcional {titulo, img, info, total, __category}.
-    function setWatchStatus(itemId, status, meta) {
+    // opts.silent: no mostrar el toast "Estado: …" (lo usa la ficha al marcar el
+    // primer episodio, que avisa el cambio dentro del toast del progreso).
+    function setWatchStatus(itemId, status, meta, opts) {
         const userId = getCurrentUserId();
         if (userId === 'Invitado') {
             if (typeof window.pedirLogin === 'function') window.pedirLogin(); else window.location.href = 'Login.html';
@@ -197,7 +199,7 @@
             String(itemId), fav, viewed, metaObj, clean
         );
 
-        if (window.Toast) {
+        if (window.Toast && !(opts && opts.silent)) {
             if (clean) window.Toast.success(stTr('toast.estado', 'Estado: {label}', { label: WATCH_STATUS_LABELS[clean] }));
             else window.Toast.info(stTr('toast.estado_quitado', 'Estado de seguimiento quitado'));
         }

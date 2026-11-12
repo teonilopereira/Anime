@@ -7,7 +7,8 @@
  *             exclusión de episodios ya vistos y de estrenos ya marcados,
  *             solo títulos seguidos (no "abandonado")
  *  - render:  sin sesión / sin seguidos → false y host oculto; con datos pinta,
- *             enlaza a la ficha y cachea en sessionStorage (no repite AniList)
+ *             enlaza a la ficha y cachea en sessionStorage (no repite AniList);
+ *             con opts.states / opts.progress no vuelve a llamar a Supabase
  */
 
 import { beforeAll, beforeEach, describe, it, expect, vi } from 'vitest';
@@ -139,5 +140,38 @@ describe('AppNovedades.render', () => {
     expect(await N().render(host)).toBe(true);
     expect(window.getAiringSchedule).toHaveBeenCalledTimes(1);
     expect(window.getTopAnimes).toHaveBeenCalledTimes(1);
+  });
+  it('con opts.states y opts.progress no vuelve a llamar a Supabase', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const c = client([]);
+    window.AppSupabase = c;
+    window.getAiringSchedule = vi.fn(async () => [{ id: 7, title: 'Siete', img: '', episode: 4, airingAt: now + DAY }]);
+    window.getTopAnimes = vi.fn(async () => []);
+    const progress = [{ category: 'anime', item_id: '7', pkey: 's:1|ep:3', value: 1 }];
+
+    expect(await N().render(host, { states: [st(7)], progress })).toBe(true);
+    expect(c.loadItemStates).not.toHaveBeenCalled();
+    expect(c.loadAllProgress).not.toHaveBeenCalled();
+    // El ep. 3 ya está visto: queda solo "sale el ep. 4", no "ya salió el 3".
+    expect(host.querySelectorAll('a.wcard')).toHaveLength(1);
+    expect(host.querySelector('.wcard-pill').textContent).toMatch(/Pronto/);
+  });
+
+  it('si solo llega opts.states, carga el progreso como siempre', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    const c = client([]);
+    window.AppSupabase = c;
+    window.getAiringSchedule = vi.fn(async () => [{ id: 7, title: 'Siete', img: '', episode: 4, airingAt: now + DAY }]);
+    window.getTopAnimes = vi.fn(async () => []);
+
+    expect(await N().render(host, { states: [st(7)] })).toBe(true);
+    expect(c.loadItemStates).not.toHaveBeenCalled();
+    expect(c.loadAllProgress).toHaveBeenCalledTimes(1);
+  });
+
+  it('opts.states sin sesión no pinta nada', async () => {
+    window.AppSupabase = null;
+    expect(await N().render(host, { states: [st(7)], progress: [] })).toBe(false);
+    expect(host.hidden).toBe(true);
   });
 });

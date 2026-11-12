@@ -4,8 +4,10 @@
  *
  * Cubre:
  *  - recordActivity:  primer día, idempotencia intradía, día consecutivo,
- *                     reinicio tras un hueco, récord histórico
- *  - getStreak:       racha viva vs rota, countedToday, atRisk
+ *                     día de gracia (faltar uno no corta), reinicio tras dos
+ *                     días sin actividad, récord histórico
+ *  - getStreak:       racha viva vs rota, countedToday, atRisk (segundo día
+ *                     sin actividad), daysLeft
  *  - bonusForStreak:  escalado y tope
  *  - invitado:        no rompe ni persiste
  */
@@ -62,15 +64,32 @@ describe('AppStreak.recordActivity', () => {
     expect(r.best).toBe(3);
   });
 
-  it('se reinicia a 1 tras saltarse un día', () => {
+  it('faltar un solo día no corta la racha (día de gracia)', () => {
     setDay('2026-01-01');
     AS().recordActivity(UID);
     setDay('2026-01-02');
     AS().recordActivity(UID); // count = 2
     setDay('2026-01-04'); // faltó el 03
     const r = AS().recordActivity(UID);
+    expect(r.count).toBe(3);
+    expect(r.best).toBe(3);
+    expect(r.incremented).toBe(true);
+  });
+
+  it('se reinicia a 1 tras dos días sin actividad y conserva el récord', () => {
+    setDay('2026-01-01');
+    AS().recordActivity(UID);
+    setDay('2026-01-02');
+    AS().recordActivity(UID); // count = 2
+    setDay('2026-01-05'); // faltaron el 03 y el 04
+    const r = AS().recordActivity(UID);
     expect(r.count).toBe(1);
     expect(r.best).toBe(2); // el récord se conserva
+    expect(r.isNewRecord).toBe(false);
+  });
+
+  it('expone un solo día de gracia', () => {
+    expect(AS().GRACE_DAYS).toBe(1);
   });
 });
 
@@ -84,23 +103,37 @@ describe('AppStreak.getStreak', () => {
     expect(s.atRisk).toBe(false);
   });
 
-  it('marca atRisk cuando la última cuenta fue ayer', () => {
+  it('ayer activo: racha viva, sin riesgo, quedan hoy o mañana', () => {
     setDay('2026-01-01');
     AS().recordActivity(UID);
     setDay('2026-01-02');
     const s = AS().getStreak(UID);
     expect(s.count).toBe(1);
     expect(s.countedToday).toBe(false);
-    expect(s.atRisk).toBe(true);
+    expect(s.atRisk).toBe(false);
+    expect(s.daysLeft).toBe(2);
   });
 
-  it('reporta count 0 cuando la racha ya está rota (más de un día)', () => {
+  it('marca atRisk recién el segundo día sin actividad', () => {
     setDay('2026-01-01');
     AS().recordActivity(UID);
-    setDay('2026-01-05');
+    setDay('2026-01-03');
+    const s = AS().getStreak(UID);
+    expect(s.count).toBe(1);
+    expect(s.countedToday).toBe(false);
+    expect(s.atRisk).toBe(true);
+    expect(s.daysLeft).toBe(1);
+  });
+
+  it('reporta count 0 cuando la racha ya está rota (dos días o más sin actividad)', () => {
+    setDay('2026-01-01');
+    AS().recordActivity(UID);
+    setDay('2026-01-04');
     const s = AS().getStreak(UID);
     expect(s.count).toBe(0);
     expect(s.atRisk).toBe(false);
+    expect(s.daysLeft).toBe(0);
+    expect(s.best).toBe(1);
   });
 });
 

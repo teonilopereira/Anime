@@ -123,6 +123,30 @@ body.login-page {
     color: rgba(var(--ink-rgb), 0.82);
 }
 
+/* Reenvío del correo de confirmación (después de registrarse). */
+.login-resend {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+
+.login-resend[hidden] {
+    display: none;
+}
+
+.login-resend-note {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.login-resend-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .login-actions {
     display: grid;
     gap: 10px;

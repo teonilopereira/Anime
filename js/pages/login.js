@@ -100,8 +100,99 @@
         status.textContent = message || "";
     }
 
+    // ── Reenvío del correo de confirmación ─────────────────────────────
+    // Tras registrarse sin sesión (hay que confirmar el correo) aparece un
+    // botón "Reenviar correo" con espera entre intentos y la nota de spam.
+    const RESEND_WAIT_S = 60;
+    let resendBox = null;
+    let resendTimer = null;
+    let resendEmail = "";
+
+    function notify(kind, message) {
+        if (window.Toast && typeof window.Toast[kind] === "function") window.Toast[kind](message);
+        else setStatus(message);
+    }
+
+    function stopResendTimer() {
+        if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+    }
+
+    function hideResend() {
+        stopResendTimer();
+        if (resendBox) resendBox.hidden = true;
+    }
+
+    function startResendWait(btn) {
+        stopResendTimer();
+        let left = RESEND_WAIT_S;
+        const paint = () => {
+            btn.disabled = left > 0;
+            btn.textContent = left > 0
+                ? loginTr('login.resend.espera', "Reenviar en {s} s", { s: left }).replace('{s}', String(left))
+                : loginTr('login.resend.boton', "Reenviar correo");
+        };
+        paint();
+        resendTimer = setInterval(() => {
+            left -= 1;
+            paint();
+            if (left <= 0) stopResendTimer();
+        }, 1000);
+    }
+
+    function ensureResendBox() {
+        if (resendBox) return resendBox;
+        resendBox = document.createElement("div");
+        resendBox.className = "login-resend";
+        resendBox.id = "loginResend";
+        resendBox.hidden = true;
+        const note = document.createElement("p");
+        note.className = "login-resend-note";
+        note.textContent = loginTr('login.resend.nota', "¿No te llegó? Mirá en spam o correo no deseado.");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "login-btn login-resend-btn";
+        btn.id = "resendBtn";
+        btn.addEventListener("click", () => resendConfirmation(btn));
+        resendBox.appendChild(note);
+        resendBox.appendChild(btn);
+        status.insertAdjacentElement("afterend", resendBox);
+        return resendBox;
+    }
+
+    function showResend(email) {
+        resendEmail = email;
+        const box = ensureResendBox();
+        box.hidden = false;
+        // El correo recién se mandó: la primera espera arranca ya.
+        startResendWait(box.querySelector("button"));
+    }
+
+    async function resendConfirmation(btn) {
+        if (!resendEmail || btn.disabled) return;
+        const client = await getClient();
+        if (!client || typeof client.resendSignupEmail !== "function") {
+            notify("error", describeSupabaseUnavailableReason());
+            return;
+        }
+        btn.disabled = true;
+        btn.textContent = loginTr('login.resend.enviando', "Reenviando...");
+        try {
+            await client.resendSignupEmail(resendEmail);
+            notify("success", loginTr('login.resend.ok', "Te reenviamos el correo de confirmación a {email}.", { email: resendEmail })
+                .replace('{email}', resendEmail));
+        } catch (error) {
+            const message = String(error?.message || "");
+            notify("error", loginTr('login.resend.error', "No se pudo reenviar el correo: {message}", { message: message })
+                .replace('{message}', message));
+        } finally {
+            // Con éxito o con error (p. ej. límite de envíos), otra espera.
+            startResendWait(btn);
+        }
+    }
+
     function setMode(nextMode) {
         mode = nextMode;
+        hideResend();
         const isRegister = mode === "register";
         tabLogin.classList.toggle("is-active", !isRegister);
         tabRegister.classList.toggle("is-active", isRegister);
@@ -141,6 +232,7 @@
         logoutBtn.style.display = loggedIn ? "" : "none";
 
         if (loggedIn) {
+            hideResend();
             title.textContent = loginTr('login.msg.tu_cuenta', "Tu cuenta");
             setStatus(loginTr('login.msg.conectado', "Conectado como {name}.", { name: userDisplayName(user) }));
         } else {
@@ -238,6 +330,7 @@
                     goHomeSoon();
                 } else {
                     setStatus(loginTr('login.msg.cuenta_confirmar', "Cuenta creada. Revisá tu correo para confirmarla."));
+                    showResend(email);
                 }
             } else {
                 const data = await client.signInWithEmail(email, password);
@@ -327,6 +420,9 @@
         document.addEventListener("DOMContentLoaded", () => setMode(initialMode), { once: true });
     }
     applyAuthState(null); // por defecto: vista de invitado (oculta "Cerrar sesión")
+
+    // Para tests: estado del bloque de reenvío.
+    window.__loginResend = { show: showResend, hide: hideResend, waitSeconds: RESEND_WAIT_S };
 })();
 
 

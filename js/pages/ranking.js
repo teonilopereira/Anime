@@ -78,14 +78,17 @@
                 '<span class="rank-h-exp">EXP TOTAL</span>' +
             '</div>';
 
-        // Nombre con enlace al perfil público (usuario.html?u=) si hay username.
-        // Si la persona tiene el perfil privado, esa página muestra un estado
-        // vacío: el ranking no sabe la visibilidad y no hace falta que la sepa.
+        // Nombre con enlace al perfil público (usuario.html?u=) SOLO si la base
+        // dice que es público (is_public === true, migración 015). Si el campo
+        // no viene (015 sin aplicar) o es privado, el nombre va sin enlace: no
+        // se manda a nadie a un estado vacío.
         function nickHtml(p, name) {
             var uname = String(p.username || '').trim();
-            if (!uname) return '<span class="rank-player-nick" title="' + name + '">' + name + '</span>';
-            return '<a class="rank-player-nick" href="usuario.html?u=' + encodeURIComponent(uname) + '"' +
-                ' title="Ver perfil de ' + name + '" style="color:inherit;text-decoration:none">' + name + '</a>';
+            if (!uname || p.is_public !== true) {
+                return '<span class="rank-player-nick" title="' + name + '">' + name + '</span>';
+            }
+            return '<a class="rank-player-nick rank-player-link" href="usuario.html?u=' + encodeURIComponent(uname) + '"' +
+                ' title="Ver perfil de ' + name + '">' + name + '</a>';
         }
 
         for (var i = 0; i < players.length; i++) {

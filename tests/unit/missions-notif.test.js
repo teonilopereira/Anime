@@ -1,7 +1,8 @@
 /**
  * tests/unit/missions-notif.test.js
  * Tests para js/core/missions.js → el aviso de misión cumplida respeta
- * window.AppNotifPrefs (categoría 'retos') y cuenta en el límite diario.
+ * window.AppNotifPrefs (categoría 'retos') (apagada o en pausa) pero no gasta el límite diario
+ * (no llama a recordSent).
  */
 import { beforeAll, beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
 
@@ -24,20 +25,37 @@ afterEach(() => {
 });
 
 describe('aviso de misión cumplida', () => {
-  it('con "retos" bloqueado da la EXP pero no muestra el aviso', () => {
-    window.AppNotifPrefs = { isAllowed: vi.fn(() => false), recordSent: vi.fn() };
+  it('con "retos" apagado da la EXP pero no muestra el aviso', () => {
+    window.AppNotifPrefs = { isEnabled: vi.fn(() => false), isPaused: vi.fn(() => false), recordSent: vi.fn() };
     window.AppMissions.track('quiz_play');
     expect(window.addUserPoints).toHaveBeenCalledWith('teo', 10);
-    expect(window.AppNotifPrefs.isAllowed).toHaveBeenCalledWith('retos');
+    expect(window.AppNotifPrefs.isEnabled).toHaveBeenCalledWith('retos');
     expect(window.Toast.success).not.toHaveBeenCalled();
     expect(window.AppNotifPrefs.recordSent).not.toHaveBeenCalled();
   });
 
-  it('si se permite, lo muestra y lo registra', () => {
-    window.AppNotifPrefs = { isAllowed: vi.fn(() => true), recordSent: vi.fn() };
+  it('en pausa da la EXP pero no muestra el aviso', () => {
+    window.AppNotifPrefs = { isEnabled: vi.fn(() => true), isPaused: vi.fn(() => true), recordSent: vi.fn() };
+    window.AppMissions.track('quiz_play');
+    expect(window.addUserPoints).toHaveBeenCalledWith('teo', 10);
+    expect(window.Toast.success).not.toHaveBeenCalled();
+  });
+
+  it('si se permite, lo muestra sin gastar el límite diario', () => {
+    window.AppNotifPrefs = { isEnabled: vi.fn(() => true), isPaused: vi.fn(() => false), isAllowed: vi.fn(() => false), recordSent: vi.fn() };
     window.AppMissions.track('quiz_play');
     expect(window.Toast.success).toHaveBeenCalledTimes(1);
-    expect(window.AppNotifPrefs.recordSent).toHaveBeenCalledWith('retos');
+    expect(window.AppNotifPrefs.recordSent).not.toHaveBeenCalled();
+    // isAllowed incluye el límite diario: aunque esté agotado, el toast sale.
+    expect(window.AppNotifPrefs.isAllowed).not.toHaveBeenCalled();
+  });
+
+  it('con notif-prefs real no suma al contador del día', async () => {
+    await import('../../js/core/notif-prefs.js');
+    const before = window.AppNotifPrefs.sentToday();
+    window.AppMissions.track('quiz_play');
+    expect(window.Toast.success).toHaveBeenCalledTimes(1);
+    expect(window.AppNotifPrefs.sentToday()).toBe(before);
   });
 
   it('sin notif-prefs cargado muestra el aviso como antes', () => {

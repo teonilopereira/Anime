@@ -30,6 +30,12 @@
         return 'detalle.html?cat=' + encodeURIComponent(cat) + '&id=' + encodeURIComponent(id);
     }
 
+    // Desde "Seguí donde lo dejaste" la ficha abre con la grilla de
+    // episodios/tomos a la vista (#epGrid; el scroll y foco los hace la ficha).
+    function progressUrl(cat, id) {
+        return detailUrl(cat, id) + '#epGrid';
+    }
+
     // ─────────────────────────────────────────────────────────────
     // 1. Widget de racha
     // ─────────────────────────────────────────────────────────────
@@ -60,7 +66,7 @@
         }
 
         var riskMsg = s.atRisk
-            ? '<span class="streak-risk">¡Entrá hoy para no perderla!</span>'
+            ? '<span class="streak-risk">Hoy todavía no sumaste; cuando quieras.</span>'
             : (s.countedToday ? '<span class="streak-ok">Sumada hoy ✓</span>' : '');
 
         host.hidden = false;
@@ -372,7 +378,7 @@
         var img = item.img
             ? '<img src="' + esc(item.img) + '" alt="" loading="lazy">'
             : '<span aria-hidden="true">' + esc(String(item.titulo || '?').charAt(0)) + '</span>';
-        return '<li class="home-stage-row"><a class="home-stage-mini" href="' + esc(detailUrl(item.category, item.id)) + '">' +
+        return '<li class="home-stage-row"><a class="home-stage-mini" href="' + esc(progressUrl(item.category, item.id)) + '">' +
                     '<span class="home-stage-thumb">' + img + '</span>' +
                     '<span class="home-stage-mini-copy">' +
                         '<strong>' + esc(item.titulo) + '</strong>' +
@@ -412,7 +418,7 @@
                     '<p class="home-stage-step">' + esc(stepTexto(main)) + '</p>' +
                     (main.visto > 0 ? '<p class="home-stage-progress">' + esc(progresoTexto(main)) + '</p>' : '') +
                     '<div class="home-stage-actions">' +
-                        '<a class="home-stage-btn" href="' + esc(detailUrl(main.category, main.id)) + '">' + cta + '</a>' +
+                        '<a class="home-stage-btn" href="' + esc(progressUrl(main.category, main.id)) + '">' + cta + '</a>' +
                         plusBtnHtml(main) +
                         bar +
                     '</div>' +
@@ -448,14 +454,47 @@
         try { localStorage.setItem(PROGRESS_SYNC_KEY, JSON.stringify(q)); return true; } catch (e) { return false; }
     }
 
+    // Dueño de cada op encolada: misma regla que progressQueueOwner de
+    // js/detalle/progress.js (id de Supabase si hay sesión, si no el usuario local).
+    function queueOwner(client) {
+        try {
+            var user = client && typeof client.getCurrentUserSync === 'function' ? client.getCurrentUserSync() : null;
+            if (user && user.id) return String(user.id);
+        } catch (e) { /* cliente roto: usuario local */ }
+        var uid = (typeof getCurrentUserIdSafe === 'function') ? getCurrentUserIdSafe() : 'Invitado';
+        return uid && uid !== 'Invitado' ? String(uid) : '';
+    }
+
+    function hasSession(client) {
+        if (!client) return false;
+        try {
+            if (typeof client.isSignedIn === 'function') return !!client.isSignedIn();
+            if (typeof client.getCurrentUserSync === 'function') return !!client.getCurrentUserSync();
+        } catch (e) { return false; }
+        return !!queueOwner(null);
+    }
+
+    // ¿La op es de esta cuenta? Las viejas sin owner cuentan para quien tenga sesión.
+    function ownsOp(op, owner) {
+        return !(op && op.owner && owner && String(op.owner) !== owner);
+    }
+
     async function drainQueue() {
+        // Si la ficha cargó su módulo de progreso, la cola la vacía él (misma lógica).
+        if (window.DetalleProgress && typeof window.DetalleProgress.drain === 'function') {
+            return window.DetalleProgress.drain();
+        }
         var client = window.AppSupabase;
         if (!client || typeof client.setProgress !== 'function') return;
+        // Sin sesión no se intenta: la cola queda intacta hasta que alguien entre.
+        if (!hasSession(client)) return;
         var queue = readQueue();
         if (!queue.length) return;
+        var owner = queueOwner(client);
         var remaining = [];
         for (var i = 0; i < queue.length; i++) {
             var op = queue[i];
+            if (!ownsOp(op, owner)) { remaining.push(op); continue; }
             try {
                 await client.setProgress({ category: op.category, itemId: op.itemId, key: op.key, value: op.value });
             } catch (e) {
@@ -473,6 +512,19 @@
         if (item.category === 'anime') return 'u:' + userId + '|anime:' + item.id + '|s:' + step.season + '|ep:' + step.number;
         var catSingular = item.category === 'novelas' ? 'novela' : item.category;
         return 'u:' + userId + '|' + catSingular + ':' + item.id + '|' + (step.unit === 'cap' ? 'ch' : 'vol') + ':' + step.number;
+    }
+
+    // Usa AppSupabase.grantProgressXp (api/supabase-client.js), que replica
+    // la regla de js/detalle/render.js; si no está, la misma ruta a mano.
+    function grantProgressXp(userId) {
+        var client = window.AppSupabase;
+        if (client && typeof client.grantProgressXp === 'function') return client.grantProgressXp(userId);
+        if (!userId || userId === 'Invitado' || typeof window.addUserPoints !== 'function') return 0;
+        var C = (window.AnimeDestiny && window.AnimeDestiny.Constants) || {};
+        var xp = C.XP_PROGRESS || 2;
+        window.addUserPoints(userId, xp);
+        if (window.AppMissions && typeof window.AppMissions.track === 'function') window.AppMissions.track('progress');
+        return xp;
     }
 
     async function plusOne(cat, id, btn) {
@@ -500,6 +552,9 @@
         _continueItems.sort(function (a, b) { return b._ts - a._ts; });
         renderStage(_continueItems);
 
+        // Misma XP que marcar el paso desde la ficha (maybeGrantProgressXp).
+        grantProgressXp(userId);
+
         var op = { category: item.category, itemId: item.id, key: step.pkey, value: true };
         var client = window.AppSupabase;
         try {
@@ -510,7 +565,10 @@
         } catch (e) {
             console.warn('[inicio] +1 progreso:', e);
             var q = readQueue();
-            q.push({ category: op.category, itemId: op.itemId, key: op.key, value: op.value, ts: Date.now() });
+            var queued = { category: op.category, itemId: op.itemId, key: op.key, value: op.value, ts: Date.now() };
+            var owner = queueOwner(client);
+            if (owner) queued.owner = owner;
+            q.push(queued);
             writeQueue(q);
             toast('warning', label + ' guardado en este dispositivo. Se sincroniza cuando vuelva la conexión.');
         }
@@ -562,14 +620,38 @@
         }
     }
 
+    // Novedades (js/core/novedades.js) es opcional; si no está o falla, el
+    // contenedor queda oculto y la home sigue. Le pasamos lo que ya cargó la
+    // home para no repetir loadItemStates/loadAllProgress (sin sesión el
+    // módulo no muestra nada, así que no se llama).
+    function renderNovedades(data) {
+        try {
+            if (window.AppNovedades && typeof window.AppNovedades.render === 'function') {
+                var p = window.AppNovedades.render(document.getElementById('homeNovedades'), data);
+                if (p && typeof p.catch === 'function') p.catch(function (e) { console.warn('[inicio] novedades:', e); });
+            }
+        } catch (e) {
+            console.warn('[inicio] novedades:', e);
+        }
+    }
+
+    // supabase-auth-changed llega varias veces por carga (ready, getUser,
+    // INITIAL_SESSION): para el mismo usuario se carga una sola vez.
+    var _homeLoadedFor = '';
+
     async function loadHomeData() {
         syncJoin();
         var client = window.AppSupabase;
         if (!client || !client.isSignedIn || !client.isSignedIn()) {
+            _homeLoadedFor = '';
             renderStage([]);
             return;
         }
         if (typeof client.loadItemStates !== 'function' || typeof client.loadAllProgress !== 'function') return;
+        var sessionUser = typeof client.getCurrentUserSync === 'function' ? client.getCurrentUserSync() : null;
+        var loadKey = String((sessionUser && sessionUser.id) || 'signed-in');
+        if (_homeLoadedFor === loadKey) return;
+        _homeLoadedFor = loadKey;
 
         var states = [];
         var progress = [];
@@ -579,8 +661,10 @@
             progress = Array.isArray(res[1]) ? res[1] : [];
         } catch (e) {
             console.warn('[inicio] carga de datos de home:', e);
+            _homeLoadedFor = ''; // reintentar en el próximo evento
             return;
         }
+        renderNovedades({ states: states, progress: progress });
 
         var progressByItem = {};
         function addKey(cat, itemId, pkey, ts) {
@@ -595,8 +679,9 @@
             addKey(row.category, row.item_id, String(row.pkey || ''), tsNum(row.updated_at));
         });
         // Lo que quedó pendiente de sincronizar (+1 sin conexión) también cuenta.
+        var queueOwnerId = queueOwner(client);
         readQueue().forEach(function (op) {
-            if (op && op.value) addKey(op.category, op.itemId, String(op.key || ''), Number(op.ts) || 0);
+            if (op && op.value && ownsOp(op, queueOwnerId)) addKey(op.category, op.itemId, String(op.key || ''), Number(op.ts) || 0);
         });
 
         var ownedIds = new Set();
@@ -638,18 +723,15 @@
         });
         bindStage();
         window.addEventListener('online', function () { drainQueue().catch(function () {}); });
-
-        // Novedades: el módulo (js/core/novedades.js) es opcional; si no está o
-        // falla, el contenedor queda oculto y la home sigue.
-        try {
-            if (window.AppNovedades) window.AppNovedades.render(document.getElementById('homeNovedades'));
-        } catch (e) {
-            console.warn('[inicio] novedades:', e);
-        }
     }
 
     // Expuesto para tests y para quien quiera reutilizar el cálculo.
-    window.AppInicio = { nextStep: nextStep, buildContinueWatching: buildContinueWatching };
+    window.AppInicio = {
+        nextStep: nextStep,
+        buildContinueWatching: buildContinueWatching,
+        progressUrl: progressUrl,
+        grantProgressXp: grantProgressXp
+    };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);
