@@ -22,15 +22,15 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-        <link rel="stylesheet" href="css/bundle.min.css?v=e5dc889a">
+        <link rel="stylesheet" href="css/bundle.min.css?v=b518f02b">
 
-    <link rel="stylesheet" href="css/detalle.min.css?v=e5dc889a">
+    <link rel="stylesheet" href="css/detalle.min.css?v=b518f02b">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=e5dc889a">
+    <link rel="stylesheet" href="css/fonts.css?v=b518f02b">
 
-    <script src="js/vendor/lucide.min.js?v=e5dc889a" defer></script>
-    <script src="js/core/theme.js?v=e5dc889a"></script>
+    <script src="js/vendor/lucide.min.js?v=b518f02b" defer></script>
+    <script src="js/core/theme.js?v=b518f02b"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="detalle">
@@ -115,7 +115,7 @@
                     <div class="sinopsis-bloque">
                         <h3 data-i18n="detail.sinopsis_h3">SINOPSIS</h3>
                         <p class="sinopsis-texto" id="detail-sinopsis">?</p>
-                        <a href="#" class="btn-ver-mas" id="detail-ver-mas" data-i18n="detail.ver_mas">Ver más</a>
+                        <button type="button" class="btn-ver-mas" id="detail-ver-mas" data-i18n="detail.ver_mas">Ver más</button>
                     </div>
                     <div class="generos-bloque">
                         <h3 data-i18n="detail.generos_h3">GÉNEROS</h3>
@@ -172,7 +172,7 @@
 
     <div id="footer-container"></div>
 <div id="resumenModal" class="modal-overlay" style="display:none;">
-    <div class="modal-content">
+    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
         <div class="modal-header">
             <h3 id="modalTitle" data-i18n="detail.modal.info">Información</h3>
             <button class="modal-close-btn" type="button" data-close-modal="resumen" data-i18n="detail.modal.cerrar" data-i18n-attr="aria-label" aria-label="Cerrar modal">×</button>
@@ -183,23 +183,23 @@
         </div>
     </div>
 </div>
-    <script src="js/core/config.js?v=e5dc889a"></script>
-    <script src="js/core/i18n.min.js?v=e5dc889a"></script>
-    <script src="js/core/namespace.js?v=e5dc889a"></script>
-    <script type="module" src="api/supabase-config.js?v=e5dc889a" async></script>
-    <script src="js/core-bundle.min.js?v=e5dc889a" defer></script>
-    <script src="js/core/mangadex-api.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/data.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/progress.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/seasons.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/themes.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/mal-stats.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/watch-links.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/info.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/render-sections.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/render.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/interactions.js?v=e5dc889a" defer></script>
-    <script src="js/detalle/comments.js?v=e5dc889a" defer></script>
+    <script src="js/core/config.js?v=b518f02b"></script>
+    <script src="js/core/i18n.min.js?v=b518f02b"></script>
+    <script src="js/core/namespace.js?v=b518f02b"></script>
+    <script type="module" src="api/supabase-config.js?v=b518f02b" async></script>
+    <script src="js/core-bundle.min.js?v=b518f02b" defer></script>
+    <script src="js/core/mangadex-api.js?v=b518f02b" defer></script>
+    <script src="js/detalle/data.js?v=b518f02b" defer></script>
+    <script src="js/detalle/progress.js?v=b518f02b" defer></script>
+    <script src="js/detalle/seasons.js?v=b518f02b" defer></script>
+    <script src="js/detalle/themes.js?v=b518f02b" defer></script>
+    <script src="js/detalle/mal-stats.js?v=b518f02b" defer></script>
+    <script src="js/detalle/watch-links.js?v=b518f02b" defer></script>
+    <script src="js/detalle/info.js?v=b518f02b" defer></script>
+    <script src="js/detalle/render-sections.js?v=b518f02b" defer></script>
+    <script src="js/detalle/render.js?v=b518f02b" defer></script>
+    <script src="js/detalle/interactions.js?v=b518f02b" defer></script>
+    <script src="js/detalle/comments.js?v=b518f02b" defer></script>
 </body>
 </html>
 

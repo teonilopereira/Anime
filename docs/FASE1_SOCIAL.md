@@ -114,3 +114,36 @@ todo con `textContent`. Tests: `tests/unit/usuario-publico.test.js`.
 - Muro «Muro de la comunidad» al pie de `usuario.html` (con y sin sesión): pide
   21 filas para mostrar 20 y saber si hay más; botón «Cargar más». Se carga
   recién cuando la sección entra en pantalla.
+
+## Migración 014 — log de actividad y topes
+
+Aplicar después de 013, en Supabase → SQL Editor (requiere la extensión
+`pg_cron`, igual que 010):
+
+```
+server/migrations/014_activity_log_hardening.sql
+```
+
+- **Sin INSERT directo en `user_activity_log`**: se borra la policy
+  `activity: insert own` y se revoca `INSERT` a `anon`/`authenticated`. Antes
+  cualquier usuario podía fabricar un `liked` que salía en el muro. El log lo
+  siguen escribiendo los triggers `log_item_state_change()` y
+  `log_progress_activity()` (SECURITY DEFINER). El cliente no inserta directo
+  (no hay referencias a `user_activity_log` en `js/` ni `api/`). Es el único
+  cambio no aditivo: quita un permiso.
+- **Limpieza programada**: job pg_cron `activity-cleanup` (diario 04:30 UTC) que
+  corre `cleanup_old_activity()` (borra lo de más de 90 días).
+- **`get_profiles_by_ids`**: usa como máximo los primeros 200 ids (misma firma).
+- No existe una migración 011: el orden es 001…010, 012, 013, 014.
+  `server/schema.sql` quedó sincronizado con 013/014, pero si difiere de una
+  migración, manda la migración.
+
+## Enlaces al perfil público
+
+- Ranking (`js/pages/ranking.js`, `nickHtml`): el nombre de cada jugador enlaza
+  a `usuario.html?u=<username>`.
+- Comentarios (`js/detalle/comments.js`, `renderComment`): el autor enlaza al
+  mismo destino.
+- Sin `username` (perfil no cargado) queda el texto sin enlace, como antes. El
+  ranking y los comentarios no conocen `is_public`: si el perfil es privado, el
+  enlace abre el estado vacío «Este perfil no está disponible».

@@ -105,6 +105,8 @@
         const isRegister = mode === "register";
         tabLogin.classList.toggle("is-active", !isRegister);
         tabRegister.classList.toggle("is-active", isRegister);
+        tabLogin.setAttribute("aria-pressed", isRegister ? "false" : "true");
+        tabRegister.setAttribute("aria-pressed", isRegister ? "true" : "false");
         usernameField.classList.toggle("is-hidden", !isRegister);
         usernameInput.required = isRegister;
         passwordInput.autocomplete = isRegister ? "new-password" : "current-password";
@@ -312,7 +314,18 @@
         }
     });
 
-    setMode("login");
+    // Login.html?modo=registro (CTA "Crear cuenta" de la home) abre directo en registro.
+    let initialMode = "login";
+    try {
+        const modo = new URLSearchParams(window.location.search).get("modo") || "";
+        if (modo === "registro" || modo === "register") initialMode = "register";
+    } catch { /* URL rara: queda en login */ }
+    setMode(initialMode);
+    // i18n reescribe título y botón en DOMContentLoaded con los textos de
+    // "Iniciar sesión": reaplicar el modo después para no mezclar.
+    if (initialMode === "register" && document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => setMode(initialMode), { once: true });
+    }
     applyAuthState(null); // por defecto: vista de invitado (oculta "Cerrar sesión")
 })();
 

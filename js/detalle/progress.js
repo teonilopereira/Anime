@@ -107,7 +107,44 @@ function showProgressToast(message, type) {
     }, 5000);
 }
 
+// ─── Sesión y estado "Viendo" al marcar progreso ───────────────
+function progressCurrentUserId() {
+    return typeof getCurrentUserIdSafe === 'function' ? getCurrentUserIdSafe() : 'Invitado';
+}
+
+// Invitado: pedir login en vez de marcar progreso local que después se
+// mandaría (vía la cola de reintentos) a la cuenta que inicie sesión.
+function progressRequireSession() {
+    var uid = progressCurrentUserId();
+    if (uid && uid !== 'Invitado') return true;
+    if (typeof window.pedirLogin === 'function') window.pedirLogin();
+    else window.location.href = 'Login.html';
+    return false;
+}
+
+// Al marcar un episodio/tomo sin estado de seguimiento guardado, deja la obra
+// en "Viendo" para que aparezca en "Seguir viendo" de la home. No pisa otro
+// estado elegido a mano (pendiente, pausado, abandonado).
+function ensureWatchingOnProgress(item, meta) {
+    if (!item || typeof window.getWatchStatus !== 'function' || typeof window.setWatchStatus !== 'function') return false;
+    var uid = progressCurrentUserId();
+    if (!uid || uid === 'Invitado') return false;
+    if (window.getWatchStatus(uid, item.id)) return false;
+    return window.setWatchStatus(item.id, 'viendo', meta) === 'viendo';
+}
+
+function progressToastLabel(key, value) {
+    var k = String(key || '');
+    var vol = k.match(/^vol:(\d+)$/);
+    var ep = k.match(/\|ep:(\d+)$/);
+    var base = vol ? 'Volumen ' + vol[1] : (ep ? 'Episodio ' + ep[1] : 'Progreso');
+    return base + (value ? ' marcado' : ' desmarcado');
+}
+
 async function saveProgressToSupabase(category, itemId, key, value) {
+    // Sin sesión no se encola: la cola se drenaría en la próxima cuenta que entre.
+    var uid = progressCurrentUserId();
+    if (!uid || uid === 'Invitado') return;
     await drainProgressQueue();
     const client = window.AppSupabase;
     if (!client?.setProgress) {
@@ -116,15 +153,9 @@ async function saveProgressToSupabase(category, itemId, key, value) {
     }
     client.setProgress({ category, itemId, key, value }).then(() => {
         if (window.Toast) {
-            if (value) {
-                const isVol = key.startsWith("vol:");
-                const label = isVol ? `Volumen ${key.split(":")[1]} marcado` : `Capítulo marcado`;
-                window.Toast.success(`¡${label}! 🎯`);
-            } else {
-                const isVol = key.startsWith("vol:");
-                const label = isVol ? `Volumen ${key.split(":")[1]} desmarcado` : `Capítulo desmarcado`;
-                window.Toast.info(label);
-            }
+            const label = progressToastLabel(key, value);
+            if (value) window.Toast.success(`¡${label}! 🎯`);
+            else window.Toast.info(label);
         }
     }).catch((error) => {
         if (isProgressSessionExpired(error)) {
@@ -143,3 +174,11 @@ window.addEventListener('supabase-auth-changed', function () {
     drainProgressQueue();
 });
 window.addEventListener('online', drainProgressQueue);
+
+// Expuesto para tests (tests/unit/detalle-progress.test.js).
+window.DetalleProgress = {
+    requireSession: progressRequireSession,
+    ensureWatching: ensureWatchingOnProgress,
+    toastLabel: progressToastLabel,
+    save: saveProgressToSupabase
+};

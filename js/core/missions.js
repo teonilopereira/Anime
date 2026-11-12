@@ -146,9 +146,15 @@
         });
     }
 
+    // La EXP se da siempre; el aviso respeta las preferencias de la categoría
+    // 'retos' (apagada, pausa, silencio nocturno, límite diario) de notif-prefs.js.
     function grant(uid, xp, message) {
         if (typeof window.addUserPoints === 'function') window.addUserPoints(uid, xp);
-        if (window.Toast) window.Toast.success(message + ' (+' + xp + ' EXP)', 5000);
+        if (!window.Toast) return;
+        var prefs = window.AppNotifPrefs;
+        if (prefs && typeof prefs.isAllowed === 'function' && !prefs.isAllowed('retos')) return;
+        window.Toast.success(message + ' (+' + xp + ' EXP)', 5000);
+        if (prefs && typeof prefs.recordSent === 'function') prefs.recordSent('retos');
     }
 
     function notify() {

@@ -667,6 +667,7 @@ body.reduce-motion .catalog-neon-card {
 .catalog-rail-card .crail-status[data-tone="hiatus"] { --crail-tone: #f5b83d; }
 .catalog-rail-card .crail-status[data-tone="cancelled"] { --crail-tone: #f43f5e; }
 .catalog-rail-card .crail-status[data-tone="upcoming"] { --crail-tone: var(--neon-purple); }
+.catalog-rail-card .crail-status[data-tone="unknown"] { --crail-tone: var(--text-muted); }
 
 .catalog-rail-card .crail-dot {
     flex: 0 0 auto;

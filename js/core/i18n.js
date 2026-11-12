@@ -18,6 +18,8 @@
             "nav.mis_listas":     "Mis Listas",
             "nav.listas":         "Listas",
             "nav.mas":            "Más",
+            // ── mejora (experiencia y accesibilidad) ──
+            "nav.aria_principal": "Navegación principal",
             "nav.configuracion":  "Configuración",
             "nav.cuenta":         "Cuenta",
             "nav.ingresar":       "Ingresar",
@@ -122,6 +124,10 @@
             "card.status.upcoming":     "Próximamente",
             "card.status.cancelled":    "Cancelado",
             "card.status.hiatus":       "En pausa",
+            // -- agente descubrimiento-contenido (catálogo): estado y total desconocidos --
+            "card.status.unknown":      "Sin estado",
+            "card.unit.sin_total":      "sin total",
+            // -- fin agente descubrimiento-contenido --
             "card.btn.detalle":         "DETALLE",
             "card.btn.ver_episodios":   "Ver episodios",
             "card.btn.ver_vols":        "Ver volúmenes y capítulos",

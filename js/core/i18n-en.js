@@ -25,6 +25,8 @@
         "nav.mis_listas":     "My Lists",
         "nav.listas":         "Lists",
         "nav.mas":            "More",
+        // ── mejora (experiencia y accesibilidad) ──
+        "nav.aria_principal": "Main navigation",
         "nav.configuracion":  "Settings",
         "nav.cuenta":         "Account",
         "nav.ingresar":       "Log In",
@@ -129,6 +131,10 @@
         "card.status.upcoming":     "Upcoming",
         "card.status.cancelled":    "Cancelled",
         "card.status.hiatus":       "On hiatus",
+        // -- agente descubrimiento-contenido (catálogo): estado y total desconocidos --
+        "card.status.unknown":      "No status",
+        "card.unit.sin_total":      "no total yet",
+        // -- fin agente descubrimiento-contenido --
         "card.btn.detalle":         "DETAILS",
         "card.btn.ver_episodios":   "View episodes",
         "card.btn.ver_vols":        "View volumes and chapters",

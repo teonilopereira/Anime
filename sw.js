@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Mirudoku */
-const CACHE_NAME = 'anime-destiny-e5dc889a';
+const CACHE_NAME = 'anime-destiny-b518f02b';
 // v2: descarta las respuestas de error opacas que guardaba la v1.
 const IMG_CACHE_NAME = 'anime-destiny-img-v2';
 const IMG_CACHE_MAX = 120;

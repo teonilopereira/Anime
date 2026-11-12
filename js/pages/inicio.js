@@ -10,7 +10,8 @@
  *   3. "Porque viste…": recomendaciones por el género más frecuente en lo que
  *      el usuario marcó como visto/favorito.
  *
- * Además oculta la invitación a crear cuenta (#homeJoin) cuando hay sesión.
+ * Además muestra la invitación a crear cuenta (#homeJoin, oculta en el HTML)
+ * solo cuando se confirma que no hay sesión, para que no parpadee al entrar.
  *
  * Todo es best-effort: si no hay sesión, si Supabase no cargó o si la API
  * falla, cada bloque se queda oculto sin romper el resto de la home.
@@ -530,11 +531,35 @@
         });
     }
 
+    // Si Supabase no carga (sin config, red caída) la invitación se muestra
+    // igual pasado este tiempo: sin cuenta no hay otra forma de guardar nada.
+    var JOIN_FALLBACK_MS = 1500;
+    var _joinTimer = null;
+
     function syncJoin() {
         var join = document.getElementById('homeJoin');
         if (!join) return;
         var client = window.AppSupabase;
-        join.hidden = !!(client && client.isSignedIn && client.isSignedIn());
+        if (client && typeof client.getCurrentUser === 'function') {
+            if (_joinTimer) { clearTimeout(_joinTimer); _joinTimer = null; }
+            // getCurrentUser espera a que la sesión esté resuelta (no da
+            // "invitado" mientras se restaura el token guardado).
+            Promise.resolve(client.getCurrentUser()).then(function (user) {
+                join.hidden = !!user;
+            }).catch(function () { join.hidden = false; });
+            return;
+        }
+        if (client && typeof client.isSignedIn === 'function') {
+            join.hidden = !!client.isSignedIn();
+            return;
+        }
+        if (!_joinTimer) {
+            _joinTimer = setTimeout(function () {
+                _joinTimer = null;
+                var c = window.AppSupabase;
+                if (!c || typeof c.getCurrentUser !== 'function') join.hidden = false;
+            }, JOIN_FALLBACK_MS);
+        }
     }
 
     async function loadHomeData() {
@@ -596,6 +621,7 @@
 
     function start() {
         renderTop();
+        syncJoin();
         window.addEventListener('streak-updated', renderTop);
         window.addEventListener('missions-updated', renderTop);
 

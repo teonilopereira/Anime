@@ -279,6 +279,32 @@
 .btn-ver-mas:hover {
     opacity: 0.8;
 }
+button.btn-ver-mas {
+    background: none;
+    border: 0;
+    padding: 0;
+    min-height: 44px;
+}
+
+/* Sinopsis de la ficha: recortada hasta "Ver más" (render.js). */
+.detail-synopsis-text.is-clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+    overflow: hidden;
+}
+button.detail-see-more {
+    background: none;
+    border: 0;
+    padding: 0 2px;
+    min-height: 44px;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+}
+button.detail-see-more[hidden] {
+    display: none;
+}
 .generos-bloque {
     display: flex;
     flex-direction: column;
@@ -540,8 +566,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: none;
     background: rgba(var(--ink-rgb),0.06);

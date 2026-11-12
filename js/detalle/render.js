@@ -448,8 +448,8 @@ function renderDetalle(item, nombreUrl, categoria) {
                 <div class="detail-section detail-section-synopsis vn-panel vn-synopsis">
                     <h2 class="detail-section-title">SINOPSIS</h2>
                     <div class="vn-bubble">
-                        <p class="detail-synopsis-text">${escapeHtml(String(summaryText))}</p>
-                        <a href="#" class="detail-see-more">Ver más</a>
+                        <p class="detail-synopsis-text is-clamped" id="detailSynopsisText">${escapeHtml(String(summaryText))}</p>
+                        <button type="button" class="detail-see-more" aria-expanded="false" aria-controls="detailSynopsisText" hidden>Ver más</button>
                     </div>
                     <h2 class="detail-section-title">GÉNEROS</h2>
                     <div class="detail-chips">${generosHtml}</div>
@@ -509,9 +509,22 @@ function renderDetalle(item, nombreUrl, categoria) {
     }
 
     // ── Estado de seguimiento (pills) ──
+    // syncWatchPills queda accesible para que marcar progreso (que puede
+    // crear el estado "viendo") refresque las pills.
+    let syncWatchPills = () => {};
+    const watchStatusMeta = () => ({
+        titulo: item.titulo,
+        img: item.img,
+        info: item.info || '',
+        total: totalVols || item.episodes || 0,
+        __category: categoria || 'manga'
+    });
+    const markWatchingIfNeeded = () => {
+        if (typeof ensureWatchingOnProgress === 'function' && ensureWatchingOnProgress(item, watchStatusMeta())) syncWatchPills();
+    };
     const wsBar = localLayout.querySelector('.watch-status-bar');
     if (wsBar && typeof window.getWatchStatus === 'function') {
-        const syncPills = () => {
+        const syncPills = syncWatchPills = () => {
             const current = window.getWatchStatus(getCurrentUserIdSafe(), item.id);
             wsBar.querySelectorAll('.watch-status-pill').forEach(p => {
                 const on = p.getAttribute('data-wstatus') === current;
@@ -525,13 +538,7 @@ function renderDetalle(item, nombreUrl, categoria) {
             if (!pill) return;
             const status = pill.getAttribute('data-wstatus');
             const current = window.getWatchStatus(getCurrentUserIdSafe(), item.id);
-            window.setWatchStatus(item.id, current === status ? '' : status, {
-                titulo: item.titulo,
-                img: item.img,
-                info: item.info || '',
-                total: totalVols || item.episodes || 0,
-                __category: categoria || 'manga'
-            });
+            window.setWatchStatus(item.id, current === status ? '' : status, watchStatusMeta());
             syncPills();
         });
     }
@@ -541,6 +548,22 @@ function renderDetalle(item, nombreUrl, categoria) {
     // compartir, favorito, visto, puntuacion...).
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
         try { window.lucide.createIcons(); } catch (e) { /* no bloquear el render */ }
+    }
+
+    // ── Sinopsis: "Ver más" solo si el texto quedó recortado ──
+    const synopsisEl = localLayout.querySelector('#detailSynopsisText');
+    const seeMoreBtn = localLayout.querySelector('.detail-see-more');
+    if (synopsisEl && seeMoreBtn) {
+        const overflows = () => synopsisEl.scrollHeight > synopsisEl.clientHeight + 2;
+        requestAnimationFrame(() => {
+            if (overflows()) seeMoreBtn.hidden = false;
+            else synopsisEl.classList.remove('is-clamped');
+        });
+        seeMoreBtn.addEventListener('click', () => {
+            const expanded = synopsisEl.classList.toggle('is-clamped') === false;
+            seeMoreBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            seeMoreBtn.textContent = expanded ? 'Ver menos' : 'Ver más';
+        });
     }
 
     // ── Ver todos los personajes ──
@@ -919,6 +942,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                 if (checkBtn) {
                     const vol = Number.parseInt(checkBtn.getAttribute('data-vol') || '', 10);
                     if (!Number.isFinite(vol) || vol <= 0) return;
+                    if (!progressRequireSession()) return;
                     const key = volumeStorageKey(getCurrentUserIdSafe(), item.id, vol, categoria);
                     const isActive = !UserStore.getItem(key);
                     if (isActive) UserStore.setItem(key, '1');
@@ -929,6 +953,7 @@ function renderDetalle(item, nombreUrl, categoria) {
                     const tomo = wrapper ? wrapper.querySelector('button.vol-btn') : null;
                     if (tomo) tomo.classList.toggle('is-active', isActive);
                     saveProgressToSupabase(categoria, item.id, progressSqlKeyVolume(vol), isActive);
+                    if (isActive) markWatchingIfNeeded();
                     renderProgressPanel();
                     maybeGrantProgressXp(isActive);
                     maybeGrantCompletionBonus();
@@ -1069,12 +1094,14 @@ function renderDetalle(item, nombreUrl, categoria) {
                 const seasonIndex = Number.parseInt(btn.getAttribute('data-season') || '0', 10);
                 const ep = Number.parseInt(btn.getAttribute('data-ep') || '0', 10);
                 if (!Number.isFinite(seasonIndex) || !Number.isFinite(ep) || ep <= 0) return;
+                if (!progressRequireSession()) return;
 
                 const key = episodeStorageKey(getCurrentUserIdSafe(), item.id, seasonIndex, ep);
                 const isActive = btn.classList.toggle('is-active');
                 if (isActive) UserStore.setItem(key, '1');
                 else UserStore.removeItem(key);
                 saveProgressToSupabase('anime', item.id, progressSqlKeyEpisode(seasonIndex, ep), isActive);
+                if (isActive) markWatchingIfNeeded();
                 renderProgressPanel();
                 maybeGrantProgressXp(isActive);
                 maybeGrantCompletionBonus();

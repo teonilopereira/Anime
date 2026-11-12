@@ -1,6 +1,6 @@
 # MAPEO DE ARCHIVOS — Mirudoku
 
-> Referencia del árbol real del repositorio (actualizada el 2026-10-03). Sitio
+> Referencia del árbol real del repositorio (actualizada el 2026-11-12). Sitio
 > **estático** publicado en GitHub Pages y Netlify **sin paso de build remoto**: los artefactos (`css/bundle*.css`,
 > `js/core-bundle*.js`, `js/vendor/*`) se generan con `npm run build` y **se
 > versionan en git** a propósito. El CI verifica que estén al día.
@@ -125,6 +125,9 @@ páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 | `theme.js` | Tema automático / claro / oscuro. Se carga sincrónico en `<head>`. |
 | `streak.js` | Racha diaria (`window.AppStreak`). |
 | `missions.js` | Misiones diarias y semanales (`window.AppMissions`). |
+| `recommend.js` | Motor puro de recomendaciones (`window.AppRecommend`): perfil de gustos, puntaje y motivo visible. Lo usa `mis-listas.js`. |
+| `notif-prefs.js` | Preferencias de avisos por categoría, pausa, silencio nocturno y tope diario (`window.AppNotifPrefs`). También se carga suelto en `configuracion.html`. |
+| `novedades.js` | "Novedades para vos" de la home (`window.AppNovedades`): episodios nuevos de lo seguido y estrenos afines. |
 | `reminders.js` | Recordatorios dentro de la app (`window.AppReminders`). |
 | `push.js` | Notificaciones push de nuevos episodios (lado del navegador). |
 | `storage.js` | Wrapper sobre `window.UserStore` (`read`/`write`/`readJson`/`remove`). |
@@ -140,7 +143,7 @@ páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 | `pagination.js` | Scroll infinito con `IntersectionObserver`; memoria de posición. |
 | `search.js` | Búsqueda en vivo (debounce), sugerencias, chips de género, age-gate NSFW. |
 | `chapters-modal.js` | Vista rápida de episodios/volúmenes de una card. |
-| `states.js` | Favoritos/vistos, cola de sincronización con Supabase, XP/niveles, watch-status. |
+| `states.js` | Favoritos/vistos, cola de sincronización con Supabase (`syncQueue`), XP/niveles, watch-status. Contadores locales de sync en `ad:metrics:sync` (`window.AppSyncMetrics`). |
 
 ---
 
@@ -231,7 +234,7 @@ páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 | `build.js` | Pipeline de build: genera `css/bundle*.css`, `js/core-bundle*.js`, `js/vendor/*` y estampa versión. |
 | `generate-config.cjs` | Lee `.env` y genera `js/core/config.js` con credenciales de Supabase. |
 | `code-map.js` | Genera `code-map.json` (mapa de archivos/exports/métricas). `npm run map`. |
-| `check-quality.js` | Chequeos de calidad del código. |
+| `check-quality.js` | `npm run check`: mojibake, sintaxis JS, CSP, y en todos los HTML enlaces internos rotos, ids duplicados y claves `data-i18n` inexistentes. |
 | `lucide-entry.js` | Punto de entrada del bundle reducido de Lucide. |
 | `serve.cjs` | Servidor HTTP estático local para desarrollo. |
 | `fix_encoding.js` | Corrige caracteres corruptos (mojibake). |
@@ -250,6 +253,9 @@ páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 |---|---|
 | `schema.sql` | Schema consolidado v2 (reemplaza versiones anteriores). Ejecutar en el SQL Editor. |
 | `migrations/001_…` a `010_…` | Migraciones incrementales: comentarios, referencias, watch-status, apodos, ranking, spoilers, hardening, push, social, cron de push. |
+| `migrations/012_profiles_exp_hardening.sql` | Impide inflar nivel/EXP desde el cliente (grants por columna, tope de `p_delta`). No existe 011. |
+| `migrations/013_social_privacy_public_profile.sql` | `profiles.is_public` (default `false`): muro y perfil público solo con opt-in. |
+| `migrations/014_activity_log_hardening.sql` | `user_activity_log` solo lo escriben los triggers; topes de lectura. |
 | `functions/notify-new-episodes/` | Edge function de Supabase que manda los push de nuevos episodios (ver su README). |
 
 ---
@@ -267,6 +273,11 @@ páginas cargan el `.min`) y `mascot.min.js` (la mascota, cargada aparte).
 | Archivo | Propósito |
 |---|---|
 | `MAPEO_ARCHIVOS.md` | Este documento. |
+| `ARQUITECTURA.md` | Orden de carga, qué entra al bundle, módulos grandes, cortes propuestos con riesgo y módulos nuevos. |
+| `AGENTES.md` | Mapa de los agentes de `.claude/agents/`. |
+| `BACKLOG.md` | Backlog del Plan 1 (mejora), ordenado por impacto ÷ esfuerzo. |
+| `FASE1_SOCIAL.md` | Diseño de la capa social (muro, perfil público, likes de comentarios). |
+| `RETENCION.md` | Plan 2 (retención): síntesis de los informes `retencion-*` y `mejora-*`. |
 | `README_ESTADISTICAS.md` | Sistema de estadísticas (nivel, XP, likes, vistos, triggers). |
 | `SETUP_SUPABASE.md` | Guía de configuración de Supabase. |
 | `segundo-cerebro.md` | Mapa del proyecto por dominios, generado desde `code-map.json`. |
@@ -288,10 +299,12 @@ No forman parte de la app de usuario; están excluidas del indexado en `robots.t
 
 ## `tests/` — Vitest
 
-`tests/setup.js` + `tests/unit/*.test.js` (seasons, themes, sanitizer, toast,
-validator, ranking-top, storage, i18n, user-store, api-multipage, utils,
-import-mal, missions, push, streak, supabase-client, supabase-config,
-watch-links).
+`tests/setup.js` + `tests/unit/*.test.js` (uno por módulo; ver la carpeta). Los
+agregados el 2026-11-12: `supabase-load-progress` (`loadAllProgress` pide
+`updated_at`, con el SDK simulado), `states-sync-queue` (cola `syncQueue` y
+métricas `ad:metrics:sync`), `progress-sync-queue` (cola `progressSyncQueue` de
+`js/detalle/progress.js`), además de `recommend-core`, `notif-prefs`,
+`novedades` y `detalle-progress`. `tests/e2e/` tiene el humo de Playwright.
 Se ejecutan con `npm test`.
 
 ---

@@ -208,6 +208,17 @@
         return out;
     }
 
+    // Texto único para la sinopsis vacía: lo comparten api.js (AniList),
+    // este archivo y mangadex-api.js (ficha de MangaDex).
+    var SIN_SINOPSIS = 'Sin sinopsis disponible.';
+
+    // Estado de MangaDex → el de AniList que entienden las cards y la ficha.
+    // "cancelled" antes caía en UNKNOWN y se mostraba con tono de "en emisión".
+    var MD_STATUS = { completed: 'FINISHED', ongoing: 'RELEASING', hiatus: 'HIATUS', cancelled: 'CANCELLED' };
+    function mdStatusToLocal(status) {
+        return MD_STATUS[String(status || '').toLowerCase()] || 'UNKNOWN';
+    }
+
     function mdItemToCard(data) {
         if (!data?.attributes) return null;
         var a = data.attributes;
@@ -222,7 +233,7 @@
         var genres = (a.tags || []).filter(function (t) { return t.attributes?.group === 'genre' || t.attributes?.group === 'theme'; }).map(function (t) { return { name: (t.attributes?.name?.en || '') }; }).filter(function (g) { return g.name; });
         var chCnt = a.lastChapter ? Math.ceil(Number(a.lastChapter)) || 0 : 0;
         var volCnt = a.lastVolume ? Math.ceil(Number(a.lastVolume)) || 0 : 0;
-        var status = a.status === 'completed' ? 'FINISHED' : (a.status === 'ongoing' ? 'RELEASING' : (a.status === 'hiatus' ? 'HIATUS' : 'UNKNOWN'));
+        var status = mdStatusToLocal(a.status);
         var friendlyType = 'Manga';
         var lang = String(a.originalLanguage || '').toLowerCase();
         if (lang === 'ko') friendlyType = 'Manhwa';
@@ -234,11 +245,14 @@
             else if (hasO) friendlyType = 'One-shot';
         }
         return {
-            id: id, mal_id: null, title: title, title_english: title, synopsis: desc || 'Sin sinopsis.',
+            id: id, mal_id: null, title: title, title_english: title, synopsis: desc || SIN_SINOPSIS,
             status: status, type: friendlyType, episodes: 0, chapters: chCnt, volumes: volCnt, score: null,
             images: { webp: { large_image_url: coverUrl, image_url: coverUrl }, jpg: { large_image_url: coverUrl, image_url: coverUrl } },
             genres: genres, themes: [], studios: [], relations: [],
-            season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null
+            season: null, seasonYear: null, source: null, duration: null, countryOfOrigin: a.originalLanguage || null,
+            // Año de publicación (attributes.year); sin esto las cards de
+            // MangaDex quedaban sin año en silencio. null si no viene.
+            startYear: Number(a.year) || null
         };
     }
 
@@ -300,5 +314,8 @@
     window.fetchMangaDexStats = fetchMangaDexStats;
     window.mergeAnilistAndMd = mergeAnilistAndMd;
     window.mdTagUuidsFromKeys = mdTagUuidsFromKeys;
+    window.mdItemToCard = mdItemToCard;
+    window.mdStatusToLocal = mdStatusToLocal;
+    window.SIN_SINOPSIS = SIN_SINOPSIS;
 
 })();

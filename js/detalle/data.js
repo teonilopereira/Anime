@@ -173,11 +173,20 @@ function saveDetailStateToSupabase(category, item, fav, viewed) {
     } else if (typeof item.generos === 'string') {
         genreStr = item.generos;
     }
+    var itemId = String(item.id || item.mal_id || '');
+    // Mandar el estado de seguimiento actual: sin él, quitar fav/visto hacía
+    // que el servidor borrara la fila (y con ella "Viendo"). undefined = no se
+    // conoce (states.js no cargó) y se usa la RPC vieja como antes.
+    var watchStatus;
+    if (typeof window.getWatchStatus === 'function' && typeof getCurrentUserIdSafe === 'function') {
+        watchStatus = window.getWatchStatus(getCurrentUserIdSafe(), itemId) || '';
+    }
     window.AppSupabase.saveItemState({
         category: category,
-        itemId: String(item.id || item.mal_id || ''),
+        itemId: itemId,
         fav: !!fav,
         viewed: !!viewed,
+        watchStatus: watchStatus,
         meta: {
             titulo: item.titulo || item.title || '',
             img: item.img || item.image || '',
@@ -214,3 +223,8 @@ function parseVolumenes(volumenes) {
     var n = Number(volumenes);
     return Number.isFinite(n) && n > 0 ? n : 0;
 }
+
+// Expuesto para tests (tests/unit/detalle-progress.test.js).
+window.DetalleData = Object.assign(window.DetalleData || {}, {
+    saveDetailStateToSupabase: saveDetailStateToSupabase
+});

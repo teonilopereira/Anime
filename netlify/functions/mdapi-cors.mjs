@@ -64,15 +64,26 @@ export default async (req) => {
     params.delete('path');
     const query = params.toString();
 
-    const upstream = await fetch('https://api.mangadex.org' + path + (query ? '?' + query : ''), {
-        headers: { 'Accept': 'application/json', 'User-Agent': UA }
-    });
+    let upstream;
+    try {
+        upstream = await fetch('https://api.mangadex.org' + path + (query ? '?' + query : ''), {
+            headers: { 'Accept': 'application/json', 'User-Agent': UA }
+        });
+    } catch (e) {
+        // MangaDex caído o sin red: 502 sin cachear, el cliente ya degrada.
+        return new Response('MangaDex no respondió', {
+            status: 502,
+            headers: { ...corsHeaders(origin), 'Cache-Control': 'no-store' }
+        });
+    }
     return new Response(upstream.body, {
         status: upstream.status,
         headers: {
             ...corsHeaders(origin),
             'Content-Type': upstream.headers.get('content-type') || 'application/json',
-            'Cache-Control': 'public, max-age=300'
+            // Solo se cachea una respuesta buena: un 429 o 5xx cacheado 5 min
+            // en el CDN dejaba la ficha sin datos aunque MangaDex ya respondiera.
+            'Cache-Control': upstream.ok ? 'public, max-age=300' : 'no-store'
         }
     });
 };

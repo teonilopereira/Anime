@@ -434,7 +434,9 @@ async function loadAllProgress() {
 
     const { data, error } = await supabase
         .from("progress_keys")
-        .select("category, item_id, pkey, value")
+        // updated_at alimenta "seguir viendo" en inicio.js y el orden por
+        // actividad en mis-listas.js (ambos lo usan solo si llega).
+        .select("category, item_id, pkey, value, updated_at")
         .eq("user_id", user.id)
         .eq("value", true);
 

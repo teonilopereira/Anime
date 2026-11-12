@@ -1,6 +1,18 @@
 -- ════════════════════════════════════════════════════════════════
 -- SCHEMA OPTIMIZADO — Mirudoku v2
 -- ────────────────────────────────────────────────────────────────
+-- ⚠ FUENTE DE VERDAD: server/migrations/001 … 014 (no existe 011).
+--   Si este archivo y una migración difieren, MANDA LA MIGRACIÓN.
+--   Este script es una foto de referencia para proyectos NUEVOS: empieza
+--   con DROP TABLE … CASCADE, así que NO correrlo sobre una base con datos.
+--   Para una base nueva: correr este archivo y después TODAS las
+--   migraciones en orden (son idempotentes). Sincronizado a mano con
+--   013 (profiles.is_public, muro/perfil público filtrados) y 014 (log de
+--   actividad sin INSERT del cliente, cron de limpieza, tope en
+--   get_profiles_by_ids). Lo de 001-012 que no está acá (comment_likes,
+--   push_subscriptions, push_sent, save_item_state_v3, grants por
+--   columna de 007/012, etc.) sale solo de las migraciones.
+-- ────────────────────────────────────────────────────────────────
 -- Este script reemplaza TODAS las versiones anteriores de SQL.
 -- Ejecutar en SQL Editor de Supabase (proyecto nuevo o existente).
 --
@@ -68,6 +80,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     total_likes      INT         NOT NULL DEFAULT 0,
     total_viewed     INT         NOT NULL DEFAULT 0,
     apodo            TEXT        DEFAULT 'novato',
+    -- 013: opt-in del perfil público / muro. Default conservador (privado).
+    is_public        BOOLEAN     NOT NULL DEFAULT false,
     updated_stats_at TIMESTAMPTZ,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -255,7 +269,7 @@ CREATE POLICY "progress_keys: delete own"
 -- 5. USER_ACTIVITY_LOG
 --    Auditoría de acciones. Poda automática:
 --    - Máx 500 filas por usuario (pruning eficiente con ROW_NUMBER)
---    - Cleanup manual via cleanup_old_activity() (>90 días)
+--    - cleanup_old_activity() (>90 días), job pg_cron diario 'activity-cleanup' (014)
 -- ════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS public.user_activity_log (
     id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -274,10 +288,11 @@ CREATE POLICY "activity: read own"
     ON public.user_activity_log FOR SELECT
     USING (auth.uid() = user_id);
 
+-- 014: sin policy de INSERT. El log lo escribe solo el trigger
+-- log_item_state_change() y log_progress_activity() (SECURITY
+-- DEFINER); si el cliente pudiera
+-- insertar, podría fabricar acciones que aparecerían en el muro público.
 DROP POLICY IF EXISTS "activity: insert own" ON public.user_activity_log;
-CREATE POLICY "activity: insert own"
-    ON public.user_activity_log FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -596,9 +611,15 @@ CREATE OR REPLACE FUNCTION public.get_profiles_by_ids(
     username     TEXT,
     display_name TEXT,
     photo_url    TEXT
-) LANGUAGE plpgsql SECURITY DEFINER
+) LANGUAGE plpgsql STABLE SECURITY DEFINER
 SET search_path = public AS $$
+DECLARE
+    MAX_IDS CONSTANT INT := 200;  -- 014: tope anti-volcado
 BEGIN
+    IF p_ids IS NULL OR cardinality(p_ids) = 0 THEN
+        RETURN;
+    END IF;
+
     RETURN QUERY
     SELECT
         p.id,
@@ -606,7 +627,7 @@ BEGIN
         p.display_name,
         p.photo_url
     FROM public.profiles p
-    WHERE p.id = ANY(p_ids);
+    WHERE p.id = ANY(p_ids[1:MAX_IDS]);
 END;
 $$;
 
@@ -715,8 +736,7 @@ CREATE TRIGGER trg_log_progress
 
 -- ────────────────────────────────────────────────────────────────
 -- cleanup_old_activity() — Limpieza manual (>90 días)
---    Ejecutar periódicamente: SELECT cleanup_old_activity();
---    Ideal: configurar como pg_cron job si disponible.
+--    Programada por 014 como job pg_cron 'activity-cleanup' (diario 04:30 UTC).
 -- ────────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.cleanup_old_activity()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER
@@ -824,7 +844,7 @@ GRANT SELECT, INSERT, UPDATE        ON public.profiles          TO authenticated
 GRANT SELECT                        ON public.catalog_items     TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.item_states       TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.progress_keys     TO authenticated;
-GRANT SELECT, INSERT                ON public.user_activity_log  TO authenticated;
+GRANT SELECT                        ON public.user_activity_log  TO authenticated;  -- 014: sin INSERT
 
 -- Vistas
 GRANT SELECT ON public.item_states_with_details TO authenticated;
@@ -842,7 +862,8 @@ GRANT EXECUTE ON FUNCTION public.get_profiles_by_ids   TO authenticated;
 REVOKE EXECUTE ON FUNCTION public.add_user_exp FROM anon;
 REVOKE EXECUTE ON FUNCTION public.save_item_state_v2 FROM anon;
 REVOKE EXECUTE ON FUNCTION public.upsert_catalog_item FROM anon;
-REVOKE EXECUTE ON FUNCTION public.get_profiles_by_ids FROM anon;
+-- get_profiles_by_ids: 002 la habilita para anon (comentarios sin login).
+GRANT EXECUTE ON FUNCTION public.get_profiles_by_ids TO anon;
 REVOKE EXECUTE ON FUNCTION public.cleanup_old_activity FROM anon;
 
 -- REVOKE: funciones internas (triggers) que no deben ser llamables vía RPC
@@ -854,6 +875,87 @@ REVOKE EXECUTE ON FUNCTION public.set_updated_at FROM anon, authenticated;
 
 -- Anon (para ranking sin login — vía función SECURITY DEFINER)
 GRANT SELECT ON public.catalog_items   TO anon;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- CAPA SOCIAL (009 + 013) — muro y perfil público, solo is_public
+--    Versión vigente: 013_social_privacy_public_profile.sql.
+-- ════════════════════════════════════════════════════════════════
+GRANT UPDATE (is_public) ON public.profiles TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.get_activity_feed(
+    p_limit  INT DEFAULT 30,
+    p_offset INT DEFAULT 0
+) RETURNS TABLE (
+    actor_id     UUID,
+    username     TEXT,
+    display_name TEXT,
+    photo_url    TEXT,
+    action       TEXT,
+    category     TEXT,
+    item_id      TEXT,
+    titulo       TEXT,
+    img          TEXT,
+    created_at   TIMESTAMPTZ
+) LANGUAGE plpgsql STABLE SECURITY DEFINER
+SET search_path = public AS $$
+DECLARE
+    v_limit  INT := LEAST(GREATEST(COALESCE(p_limit, 30), 1), 100);
+    v_offset INT := LEAST(GREATEST(COALESCE(p_offset, 0), 0), 1000);
+BEGIN
+    RETURN QUERY
+    SELECT a.user_id, p.username, p.display_name, p.photo_url,
+           a.action, a.category, a.item_id, c.titulo, c.img, a.created_at
+    FROM public.user_activity_log a
+    JOIN public.profiles p ON p.id = a.user_id
+    LEFT JOIN public.catalog_items c ON c.category = a.category AND c.id = a.item_id
+    WHERE a.action IN ('liked', 'viewed')
+      AND a.item_id IS NOT NULL
+      AND p.is_public IS TRUE
+    ORDER BY a.created_at DESC
+    LIMIT v_limit OFFSET v_offset;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_public_profile(
+    p_username TEXT
+) RETURNS TABLE (
+    id           UUID,
+    username     TEXT,
+    display_name TEXT,
+    photo_url    TEXT,
+    level        INT,
+    exp          INT,
+    apodo        TEXT,
+    total_likes  INT,
+    total_viewed INT,
+    created_at   TIMESTAMPTZ
+) LANGUAGE plpgsql STABLE SECURITY DEFINER
+SET search_path = public AS $$
+BEGIN
+    IF p_username IS NULL OR length(btrim(p_username)) = 0 OR length(p_username) > 128 THEN
+        RETURN;
+    END IF;
+    RETURN QUERY
+    SELECT p.id, p.username, p.display_name, p.photo_url, p.level, p.exp,
+           p.apodo, p.total_likes, p.total_viewed, p.created_at
+    FROM public.profiles p
+    WHERE lower(p.username) = lower(btrim(p_username))
+      AND p.is_public IS TRUE
+    ORDER BY p.created_at ASC
+    LIMIT 1;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_activity_feed(INT, INT) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.get_public_profile(TEXT)    TO authenticated, anon;
+
+CREATE INDEX IF NOT EXISTS idx_activity_feed_recent
+    ON public.user_activity_log (created_at DESC)
+    WHERE action IN ('liked', 'viewed') AND item_id IS NOT NULL;
+
+-- El job pg_cron 'activity-cleanup' NO se crea acá (requiere la extensión):
+-- lo programa 014_activity_log_hardening.sql.
 
 
 -- ════════════════════════════════════════════════════════════════
