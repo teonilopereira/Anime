@@ -477,6 +477,8 @@
             "retos.tab_misiones":      "Misiones",
             "retos.versus":            "¿Cuál es más popular?",
             "retos.deque":             "¿De qué anime es?",
+            "retos.tab_citas":         "¿Quién lo dijo?",
+            "retos.citas":             "¿Quién lo dijo?",
             "retos.cargando_juego":    "Cargando…",
             "retos.resumen":           "Tu mes en Mirudoku",
             "retos.este_mes":          "Este mes",

@@ -23,17 +23,17 @@
     <meta property="og:image" content="https://mirudoku.netlify.app/images/brand/mirudoku-icon-512.png">
     <meta name="twitter:card" content="summary">
 
-    <link rel="stylesheet" href="css/bundle.min.css?v=7be696ad">
-    <link rel="stylesheet" href="css/retos.css?v=7be696ad">
+    <link rel="stylesheet" href="css/bundle.min.css?v=e10d1bb2">
+    <link rel="stylesheet" href="css/retos.css?v=e10d1bb2">
 
     <link rel="preconnect" href="https://graphql.anilist.co" crossorigin>
     <link rel="preconnect" href="https://s4.anilist.co">
     <link rel="preload" href="fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="css/fonts.css?v=7be696ad">
+    <link rel="stylesheet" href="css/fonts.css?v=e10d1bb2">
 
-    <script src="js/vendor/lucide.min.js?v=7be696ad" defer></script>
-    <script src="js/core/theme.js?v=7be696ad"></script>
+    <script src="js/vendor/lucide.min.js?v=e10d1bb2" defer></script>
+    <script src="js/core/theme.js?v=e10d1bb2"></script>
     <meta name="google-site-verification" content="x6Ye451jPznGAmYSkuq4o_Q50Bn_wR8mI1nRVHGq2F0">
 </head>
 <body data-page="retos">
@@ -57,6 +57,7 @@
             <button type="button" role="tab" class="retos-tab" id="tab-personajes" data-tab="personajes" aria-controls="chars"><i data-lucide="users"></i> <span data-i18n="retos.tab_personajes">Personajes</span></button>
             <button type="button" role="tab" class="retos-tab" id="tab-popular" data-tab="popular" aria-controls="versus"><i data-lucide="arrow-left-right"></i> <span data-i18n="retos.tab_popular">Más popular</span></button>
             <button type="button" role="tab" class="retos-tab" id="tab-deque" data-tab="deque" aria-controls="deque"><i data-lucide="clapperboard"></i> <span data-i18n="retos.tab_deque">¿De qué anime?</span></button>
+            <button type="button" role="tab" class="retos-tab" id="tab-citas" data-tab="citas" aria-controls="citas"><i data-lucide="quote"></i> <span data-i18n="retos.tab_citas">¿Quién lo dijo?</span></button>
             <button type="button" role="tab" class="retos-tab" id="tab-misiones" data-tab="misiones" aria-controls="missions"><i data-lucide="swords"></i> <span data-i18n="retos.tab_misiones">Misiones</span></button>
         </div>
 
@@ -99,6 +100,16 @@
             </div>
         </section>
 
+        <!-- ¿Quién lo dijo? (js/pages/retos-citas.js; citas de data/quotes.json) -->
+        <section class="reto-card" id="citas" data-tab-panel="citas" role="tabpanel" aria-labelledby="citasTitle">
+            <div class="reto-head">
+                <h2 id="citasTitle" class="reto-title"><i data-lucide="quote"></i> <span data-i18n="retos.citas">¿Quién lo dijo?</span></h2>
+            </div>
+            <div id="citasBody" aria-live="polite">
+                <p class="reto-loading" data-i18n="retos.cargando_juego">Cargando…</p>
+            </div>
+        </section>
+
         <!-- Misiones -->
         <section class="reto-card" id="missions" data-tab-panel="misiones" role="tabpanel" aria-labelledby="missionsTitle">
             <div class="reto-head">
@@ -131,14 +142,15 @@
     </main>
 
     <div id="footer-container"></div>
-    <script src="js/core/config.js?v=7be696ad"></script>
-    <script src="js/core/i18n.min.js?v=7be696ad"></script>
-    <script src="js/core/namespace.js?v=7be696ad"></script>
-    <script type="module" src="api/supabase-config.js?v=7be696ad" async></script>
-    <script src="js/core-bundle.min.js?v=7be696ad" defer></script>
-    <script src="js/pages/script.js?v=7be696ad" defer></script>
-    <script src="js/core/push.js?v=7be696ad" defer></script>
-    <script src="js/pages/retos.js?v=7be696ad" defer></script>
-    <script src="js/pages/retos-juegos.js?v=7be696ad" defer></script>
+    <script src="js/core/config.js?v=e10d1bb2"></script>
+    <script src="js/core/i18n.min.js?v=e10d1bb2"></script>
+    <script src="js/core/namespace.js?v=e10d1bb2"></script>
+    <script type="module" src="api/supabase-config.js?v=e10d1bb2" async></script>
+    <script src="js/core-bundle.min.js?v=e10d1bb2" defer></script>
+    <script src="js/pages/script.js?v=e10d1bb2" defer></script>
+    <script src="js/core/push.js?v=e10d1bb2" defer></script>
+    <script src="js/pages/retos.js?v=e10d1bb2" defer></script>
+    <script src="js/pages/retos-juegos.js?v=e10d1bb2" defer></script>
+    <script src="js/pages/retos-citas.js?v=e10d1bb2" defer></script>
 </body>
 </html>

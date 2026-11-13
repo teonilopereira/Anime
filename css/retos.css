@@ -547,3 +547,16 @@
 .reto-pill:empty {
     display: none;
 }
+
+/* ── ¿Quién lo dijo? (retos-citas.js) ── */
+.citas-quote {
+    margin: 0 0 16px;
+    padding: 16px 18px;
+    border-left: 4px solid var(--neon-purple);
+    border-radius: var(--radius-md, 12px);
+    background: rgba(var(--ink-rgb), 0.05);
+    color: var(--text-main);
+}
+.citas-quote p { margin: 0; font-size: 1.15rem; line-height: 1.5; font-style: italic; overflow-wrap: anywhere; }
+.citas-quote footer { margin-top: 8px; font-size: 0.9rem; opacity: 0.75; }
+.citas-lang { opacity: 0.7; font-size: 0.85em; }

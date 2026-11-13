@@ -484,6 +484,8 @@
         "retos.tab_misiones":      "Missions",
         "retos.versus":            "Which is more popular?",
         "retos.deque":             "Which anime is it from?",
+        "retos.tab_citas":         "Who said it?",
+        "retos.citas":             "Who said it?",
         "retos.cargando_juego":    "Loading…",
         "retos.resumen":           "Your month on Mirudoku",
         "retos.este_mes":          "This month",
