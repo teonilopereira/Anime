@@ -726,18 +726,28 @@
             var covers = {};
             try { covers = await getCoverUrlMapCached(mdId); } catch (_) { covers = {}; }
 
-            var out = {};
+            // MangaDex deja el campo volumen libre: "1" y "01" llegan como
+            // claves distintas pero normalizan igual. Antes la segunda pisaba a
+            // la primera y el tomo perdía capítulos; ahora se juntan (sin
+            // contar dos veces el mismo capítulo).
+            var capsPorVol = {};
             Object.keys(volumes).forEach(function (volKey) {
                 var volNum = normalizeVolKey(volKey);
                 if (!volNum || volNum === 'none') return;
                 var caps = volumes[volKey]?.chapters || {};
-                var capNums = Object.keys(caps)
+                var acc = capsPorVol[volNum] || (capsPorVol[volNum] = {});
+                Object.keys(caps).forEach(function (c) { acc[normalizeVolKey(c)] = 1; });
+            });
+            var out = {};
+            Object.keys(capsPorVol).forEach(function (volNum) {
+                var capKeys = Object.keys(capsPorVol[volNum]);
+                var capNums = capKeys
                     .map(function (c) { return Number(c); })
                     .filter(function (c) { return Number.isFinite(c); })
                     .sort(function (a, b) { return a - b; });
                 var file = covers[volNum];
                 out[volNum] = {
-                    count: Object.keys(caps).length,
+                    count: capKeys.length,
                     first: capNums.length ? capNums[0] : null,
                     last: capNums.length ? capNums[capNums.length - 1] : null,
                     cover: file || null

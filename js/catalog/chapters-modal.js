@@ -70,24 +70,40 @@
         return el;
     }
 
-    // Devuelve el conjunto de números (episodios/volúmenes) ya marcados por el
-    // usuario para este ítem, reutilizando el mismo formato de claves de
-    // UserStore que usa el resto de la app.
-    function watchedSet(userId, id, category) {
+    function reEsc(s) {
+        return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Devuelve el conjunto de números (episodios/volúmenes/capítulos) ya
+    // marcados por el usuario para este ítem, reutilizando el mismo formato de
+    // claves de UserStore que usa el resto de la app. Solo claves de ESTE
+    // usuario y de la unidad mostrada (`vol:` o `ch:`), igual que
+    // js/pages/volumenes.js.
+    function watchedSet(userId, id, category, prefix) {
         var set = new Set();
         if (!window.UserStore || typeof UserStore.keys !== 'function') return set;
         var catS = category === 'novelas' ? 'novela' : (category === 'anime' ? 'anime' : 'manga');
-        var reAnime = new RegExp('\\|anime:' + id + '\\|s:\\d+\\|ep:(\\d+)$');
-        var reOther = new RegExp('\\|' + catS + ':' + id + '\\|(?:ch|vol):(\\d+)$');
-        var re = category === 'anime' ? reAnime : reOther;
+        var unitKey = prefix === 'CH' ? 'ch' : 'vol';
+        var userPrefix = 'u:' + userId + '|';
+        var re = category === 'anime'
+            ? new RegExp('^anime:' + reEsc(id) + '\\|s:\\d+\\|ep:(\\d+)$')
+            : new RegExp('^' + catS + ':' + reEsc(id) + '\\|' + unitKey + ':(\\d+)$');
         var keys = UserStore.keys();
         for (var i = 0; i < keys.length; i++) {
             var k = keys[i];
-            if (!k) continue;
-            var m = k.match(re);
+            if (!k || k.indexOf(userPrefix) !== 0) continue;
+            var m = k.slice(userPrefix.length).match(re);
             if (m && UserStore.getItem(k)) set.add(Number(m[1]));
         }
         return set;
+    }
+
+    // Marcados dentro de 1..total (lo mismo que pinta la grilla).
+    function countInRange(set, total) {
+        var c = 0;
+        if (!set) return c;
+        set.forEach(function (n) { if (n >= 1 && n <= total) c++; });
+        return c;
     }
 
     function unitWord(category, prefix) {
@@ -189,7 +205,8 @@
         var titleAlt = card.getAttribute('data-title-alt') || '';
         var img = card.getAttribute('data-img') || '';
         var progBox = card.querySelector('[data-progress]');
-        var total = Number(card.getAttribute('data-total') || (progBox && progBox.getAttribute('data-total')) || 0);
+        var total = Math.floor(Number(card.getAttribute('data-total') || (progBox && progBox.getAttribute('data-total')) || 0));
+        if (!Number.isFinite(total) || total < 0) total = 0;
         var prefix = (progBox && progBox.getAttribute('data-prefix')) || (category === 'anime' ? 'EP' : 'VOL');
         var estado = (card.querySelector('.cband-status') && card.querySelector('.cband-status').textContent.trim()) || '';
         var tipoLinea = (card.querySelector('.cband-info') && card.querySelector('.cband-info').textContent.trim()) || '';
@@ -204,8 +221,8 @@
             viewedAll = !!(window.UserStore && UserStore.getItem(vk));
         } catch (e) {}
 
-        var watched = viewedAll ? null : watchedSet(userId, id, category);
-        var doneCount = viewedAll ? total : (watched ? Math.min(watched.size, total) : 0);
+        var watched = viewedAll ? null : watchedSet(userId, id, category, prefix);
+        var doneCount = viewedAll ? total : countInRange(watched, total);
         var pct = viewedAll ? 100 : (total ? Math.round((doneCount / total) * 100) : 0);
 
         // Cabecera
@@ -313,4 +330,5 @@
 
     window.AnimeDestiny = window.AnimeDestiny || {};
     window.AnimeDestiny.openChaptersModal = open;
+    window.AnimeDestiny.chaptersModalWatchedSet = watchedSet;
 })();

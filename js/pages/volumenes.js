@@ -24,24 +24,51 @@
         }
     }
 
+    function reEsc(s) {
+        return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     // Conjunto de números (episodios / volúmenes / capítulos) ya marcados por el
     // usuario para este ítem, con el mismo formato de claves de UserStore que usa
-    // el resto de la app.
-    function watchedSet(userId, id, category) {
+    // el resto de la app. Solo cuenta las claves de ESTE usuario y de la unidad
+    // que muestra la página (`vol:` en volúmenes, `ch:` en capítulos): antes se
+    // mezclaban las dos, así que el tomo 3 marcado en el detalle aparecía como
+    // "Capítulo 3 · Leído" (y los capítulos importados de MAL como tomos).
+    function watchedSet(userId, id, category, prefix) {
         var set = new Set();
         if (!window.UserStore || typeof UserStore.keys !== 'function') return set;
         var catS = category === 'novelas' ? 'novela' : (category === 'anime' ? 'anime' : 'manga');
-        var reAnime = new RegExp('\\|anime:' + id + '\\|s:\\d+\\|ep:(\\d+)$');
-        var reOther = new RegExp('\\|' + catS + ':' + id + '\\|(?:ch|vol):(\\d+)$');
-        var re = category === 'anime' ? reAnime : reOther;
+        var unitKey = prefix === 'CH' ? 'ch' : 'vol';
+        var userPrefix = 'u:' + userId + '|';
+        var re = category === 'anime'
+            ? new RegExp('^anime:' + reEsc(id) + '\\|s:\\d+\\|ep:(\\d+)$')
+            : new RegExp('^' + catS + ':' + reEsc(id) + '\\|' + unitKey + ':(\\d+)$');
         var keys = UserStore.keys();
         for (var i = 0; i < keys.length; i++) {
             var k = keys[i];
-            if (!k) continue;
-            var m = k.match(re);
+            if (!k || k.indexOf(userPrefix) !== 0) continue;
+            var m = k.slice(userPrefix.length).match(re);
             if (m && UserStore.getItem(k)) set.add(Number(m[1]));
         }
         return set;
+    }
+
+    // Marcados dentro de 1..total: lo mismo que pinta la lista (y que cuenta el
+    // detalle). Antes el hero usaba el tamaño del Set, que incluía tomos fuera
+    // de rango (p. ej. el 15 de una obra que ahora informa 12) y no coincidía
+    // con las filas marcadas.
+    function countInRange(set, total) {
+        var c = 0;
+        if (!set) return c;
+        set.forEach(function (n) { if (n >= 1 && n <= total) c++; });
+        return c;
+    }
+
+    // `total` llega por la URL: se acepta solo un entero >= 0 ("12.5" → 12,
+    // "abc" / "-3" → 0) para que el hero, la lista y el % usen el mismo número.
+    function parseTotal(raw) {
+        var n = Math.floor(Number(raw));
+        return Number.isFinite(n) && n > 0 ? n : 0;
     }
 
     function unitWord(category, prefix) {
@@ -127,7 +154,7 @@
         var title = param('nombre') || 'Sin título';
         var titleAlt = param('alt');
         var img = param('img');
-        var total = Number(param('total') || 0);
+        var total = parseTotal(param('total'));
         var prefix = param('prefix') || (category === 'anime' ? 'EP' : 'VOL');
         var estado = param('estado');
         var tipo = param('tipo');
@@ -171,8 +198,8 @@
                 : ('u:' + userId + '|item:' + id + '|viewed');
             viewedAll = !!(window.UserStore && UserStore.getItem(vk));
         } catch (e) {}
-        var watched = viewedAll ? null : watchedSet(userId, id, category);
-        var doneCount = viewedAll ? total : (watched ? Math.min(watched.size, total) : 0);
+        var watched = viewedAll ? null : watchedSet(userId, id, category, prefix);
+        var doneCount = viewedAll ? total : countInRange(watched, total);
         var pct = viewedAll ? 100 : (total ? Math.round((doneCount / total) * 100) : 0);
 
         // Hero
@@ -248,6 +275,9 @@
             }
         }
     }
+
+    // Expuesto para tests (tests/unit/volumenes.test.js).
+    window.VolumenesPage = { watchedSet: watchedSet, countInRange: countInRange, parseTotal: parseTotal, render: render };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', render);
