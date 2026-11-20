@@ -165,7 +165,10 @@ var _progressIndexUser = null;
 function _buildProgressIndex(userId) {
     if (_progressIndex && _progressIndexUser === userId) return _progressIndex;
     // Scan UserStore once, partition by item type
-    var index = { anime: new Map(), manga: new Map(), novelas: new Map() };
+    // manga guarda tomos (vol:) y mangaCh capítulos (ch:) por separado: mezclarlos
+    // hacía que el tomo 3 contara como capítulo 3 y que la card no coincidiera
+    // con volumenes.html.
+    var index = { anime: new Map(), manga: new Map(), mangaCh: new Map(), novelas: new Map() };
     try {
         var keys = UserStore.keys();
         for (var i = 0; i < keys.length; i++) {
@@ -182,11 +185,12 @@ function _buildProgressIndex(userId) {
                 continue;
             }
             // Manga chapters/vols: u:{uid}|manga:{id}|ch:{n} or |vol:{n}
-            var mgM = k.match(/\|manga:(\d+)\|(?:ch|vol):(\d+)$/);
+            var mgM = k.match(/\|manga:(\d+)\|(ch|vol):(\d+)$/);
             if (mgM) {
-                var mId = mgM[1], num = Number(mgM[2]);
-                if (!index.manga.has(mId)) index.manga.set(mId, new Set());
-                index.manga.get(mId).add(num);
+                var mId = mgM[1], num = Number(mgM[3]);
+                var bucket = mgM[2] === 'ch' ? index.mangaCh : index.manga;
+                if (!bucket.has(mId)) bucket.set(mId, new Set());
+                bucket.get(mId).add(num);
                 continue;
             }
             // Novels: u:{uid}|novela:{id}|vol:{n}
@@ -241,9 +245,11 @@ function resolveCatalogProgress(userId, category, itemId, card) {
         watched = countAnimeEpisodesWatched(userId, itemId, dataTotal);
     } else if (category === 'manga' || category === 'novelas') {
         var index = _buildProgressIndex(userId);
-        var items = index[category]?.get(String(itemId));
+        var prefix = box?.getAttribute('data-prefix') || '';
+        var bucketName = (category === 'manga' && prefix === 'CH') ? 'mangaCh' : category;
+        var items = index[bucketName]?.get(String(itemId));
         if (items) {
-            items.forEach(function(num) { if (num <= dataTotal) watched++; });
+            items.forEach(function(num) { if (num >= 1 && num <= dataTotal) watched++; });
         }
     }
 

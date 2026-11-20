@@ -1,5 +1,5 @@
 /* sw.js - Service Worker for Mirudoku */
-const CACHE_NAME = 'anime-destiny-674612d8';
+const CACHE_NAME = 'anime-destiny-f8b8bdad';
 // v2: descarta las respuestas de error opacas que guardaba la v1.
 const IMG_CACHE_NAME = 'anime-destiny-img-v2';
 // 300: la página de volúmenes de una serie larga (Detective Conan, 100+ tomos)
