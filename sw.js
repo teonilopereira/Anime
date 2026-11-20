@@ -1,8 +1,10 @@
 /* sw.js - Service Worker for Mirudoku */
-const CACHE_NAME = 'anime-destiny-7be696ad';
+const CACHE_NAME = 'anime-destiny-34c65695';
 // v2: descarta las respuestas de error opacas que guardaba la v1.
 const IMG_CACHE_NAME = 'anime-destiny-img-v2';
-const IMG_CACHE_MAX = 120;
+// 300: la página de volúmenes de una serie larga (Detective Conan, 100+ tomos)
+// pide más de 120 miniaturas y con el tope viejo se desalojaban entre sí.
+const IMG_CACHE_MAX = 300;
 // CDNs de portadas (cross-origin) que sí conviene cachear en runtime.
 // Deben coincidir con los hosts de portadas de connect-src en el CSP
 // (netlify.toml / vercel.json): el fetch() del service worker se rige por

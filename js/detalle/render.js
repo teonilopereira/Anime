@@ -274,7 +274,7 @@ function renderDetalle(item, nombreUrl, categoria) {
         return `
                 <div class="cuadrado-wrapper cuadrado-wrapper--tomo">
                     <button class="vol-btn cuadrado-item has-cover vol-tomo${active}" type="button" data-vol-ver="${v}" aria-label="Ver portada del volumen ${v}">
-                        <img class="vol-cover" data-vol="${v}" src="${safeUrl(item.img)}" alt="Portada del volumen ${v}" loading="lazy" referrerpolicy="no-referrer">
+                        <img class="vol-cover" data-vol="${v}" src="${safeUrl(item.img)}" alt="Portada del volumen ${v}" width="160" height="240" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fallback-catalog="1" data-title="${escapeHtml(item.titulo || item.title || '')}" data-subtitle="Volumen ${v}">
                         <span class="num-cap">${String(v).padStart(2, '0')}</span>
                         <span class="vol-leido-badge" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                     </button>

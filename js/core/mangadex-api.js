@@ -349,8 +349,12 @@
         return typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
     }
 
+    // "1", "01", "1.0" y " 1 " son el mismo tomo → "1". Vacío o solo espacios
+    // es "sin tomo": antes Number('') daba 0 y esas portadas sueltas quedaban
+    // cargadas como si fueran del tomo "0".
     function normalizeVolKey(value) {
         if (value === null || value === undefined) return '';
+        if (String(value).trim() === '') return '';
         var num = Number(value);
         if (!isNaN(num)) return String(num);
         return String(value).trim().toLowerCase();
@@ -721,10 +725,16 @@
         var mdId = await resolveMangaDexId(item);
         if (!mdId) return null;
         try {
-            var json = await mdFetch('/manga/' + encodeURIComponent(mdId) + '/aggregate');
-            var volumes = json?.volumes || {};
             var covers = {};
             try { covers = await getCoverUrlMapCached(mdId); } catch (_) { covers = {}; }
+            var volumes = {};
+            try {
+                var json = await mdFetch('/manga/' + encodeURIComponent(mdId) + '/aggregate');
+                volumes = json?.volumes || {};
+            } catch (aggErr) {
+                // Sin aggregate igual se pintan las portadas por tomo.
+                if (!mapHasEntries(covers)) throw aggErr;
+            }
 
             var out = {};
             Object.keys(volumes).forEach(function (volKey) {
@@ -742,6 +752,15 @@
                     last: capNums.length ? capNums[capNums.length - 1] : null,
                     cover: file || null
                 };
+            });
+            // Tomos con portada pero sin capítulos en MangaDex (licenciados o
+            // retirados): el aggregate no los lista. Bleach trae portadas de los
+            // 74 tomos pero el aggregate solo los tomos 1 y 39, así que los otros
+            // 72 se quedaban con la tapa de la serie. Van sin datos de capítulos.
+            Object.keys(covers).forEach(function (volNum) {
+                if (!(volNum in out) && covers[volNum]) {
+                    out[volNum] = { count: 0, first: null, last: null, cover: covers[volNum] };
+                }
             });
             return out;
         } catch (err) {
@@ -878,6 +897,12 @@
         for (var w = 0; w < concurrency; w++) workers.push(worker());
         return Promise.all(workers);
     }
+
+    // La página de volúmenes pinta sus filas con el mismo criterio (miniatura
+    // de 256 px y, si falta, el original) en vez de bajar la tapa completa.
+    window.paintMangaDexCovers = function (targets) {
+        return paintCoversProgressively(targets || [], 4);
+    };
 
     // Pinta la portada REAL de cada volumen (MangaDex) sobre las <img data-vol>
     // que haya dentro de `grid`. Best-effort y silencioso: si el título no
