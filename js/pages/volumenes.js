@@ -89,13 +89,14 @@
                 .then(function (details) {
                     if (!details) return;
                     var rows = list.querySelectorAll('.vols-row[data-vol]');
+                    var covers = [];
                     for (var i = 0; i < rows.length; i++) {
                         var vol = String(parseInt(rows[i].getAttribute('data-vol'), 10));
                         var info = details[vol];
                         if (!info) continue;
                         if (info.cover) {
                             var img = rows[i].querySelector('.vols-row-cover');
-                            if (img) img.src = info.cover;
+                            if (img) covers.push({ img: img, url: info.cover });
                         }
                         var metaEl = rows[i].querySelector('[data-vol-meta]');
                         if (metaEl) {
@@ -111,9 +112,34 @@
                             if (parts.length) metaEl.textContent = parts.join(' · ');
                         }
                     }
+                    paintCovers(covers);
                 })
                 .catch(function () {});
         } catch (e) {}
+    }
+
+    // Antes se ponía la tapa original (1-3 MB por tomo) en una miniatura de
+    // 62 px. paintMangaDexCovers usa la miniatura de 256 px de MangaDex y cae
+    // al original si no existe.
+    function paintCovers(targets) {
+        if (!targets.length) return;
+        if (typeof window.paintMangaDexCovers === 'function') {
+            window.paintMangaDexCovers(targets);
+            return;
+        }
+        for (var i = 0; i < targets.length; i++) targets[i].img.src = targets[i].url;
+    }
+
+    // Solo URLs http(s) o rutas del propio sitio: el parámetro `img` llega de
+    // la query string y se usa dentro de url("...") en el fondo del hero.
+    function safeImg(url) {
+        var u = String(url || '').trim();
+        if (/^https?:\/\//i.test(u) || /^(?:\/(?!\/)|images\/)/.test(u) || /^data:image\//i.test(u)) return u;
+        return '';
+    }
+
+    function cssUrl(url) {
+        return 'url("' + url.replace(/["\\\n\r]/g, function (c) { return encodeURIComponent(c); }) + '")';
     }
 
     // Portada del volumen que contiene cada capítulo (MangaDex no tiene portada
@@ -153,7 +179,7 @@
         var category = param('cat') || 'manga';
         var title = param('nombre') || 'Sin título';
         var titleAlt = param('alt');
-        var img = param('img');
+        var img = safeImg(param('img'));
         var total = parseTotal(param('total'));
         var prefix = param('prefix') || (category === 'anime' ? 'EP' : 'VOL');
         var estado = param('estado');
@@ -203,9 +229,15 @@
         var pct = viewedAll ? 100 : (total ? Math.round((doneCount / total) * 100) : 0);
 
         // Hero
-        if (q('[data-hero-bg]')) q('[data-hero-bg]').style.backgroundImage = img ? ('url("' + img + '")') : 'none';
+        if (q('[data-hero-bg]')) q('[data-hero-bg]').style.backgroundImage = img ? cssUrl(img) : 'none';
         var coverImg = q('[data-hero-cover]');
-        if (coverImg) { coverImg.src = img || ''; coverImg.alt = 'Portada de ' + title; }
+        if (coverImg) {
+            // Sin portada (o si no carga) el manejador global de common-ui la
+            // reemplaza por el póster generado con el título, una sola vez.
+            coverImg.setAttribute('data-title', title);
+            coverImg.alt = 'Portada de ' + title;
+            coverImg.src = img;
+        }
         var tipoTxt = (isAnime ? 'Anime' : (category === 'novelas' ? 'Novela' : 'Manga')) + (tipo ? (' · ' + tipo) : '');
         if (q('[data-hero-tipo]')) q('[data-hero-tipo]').textContent = tipoTxt;
         if (q('[data-hero-title]')) q('[data-hero-title]').textContent = title;
@@ -241,7 +273,7 @@
                 // capítulo). En anime se muestra el número del episodio.
                 var numAttr = isChapter ? ' data-chap="' + n + '"' : ' data-vol="' + n + '"';
                 var thumb = isManga
-                    ? '<img class="vols-row-cover"' + numAttr + ' src="' + esc(img) + '" alt="' + esc(word + ' ' + n) + '" loading="lazy" referrerpolicy="no-referrer">'
+                    ? '<img class="vols-row-cover"' + numAttr + ' src="' + esc(img) + '" alt="' + esc('Portada del ' + word.toLowerCase() + ' ' + n) + '" width="62" height="93" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-fallback-catalog="1" data-title="' + esc(title) + '" data-subtitle="' + esc(word + ' ' + n) + '">'
                     : '<span class="vols-row-num">' + nn + '</span>';
                 // Meta: en volúmenes de manga se rellena luego con los capítulos
                 // reales del tomo (loadVolumeDetails); mientras tanto y en el

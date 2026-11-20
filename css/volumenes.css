@@ -75,6 +75,7 @@
 .vols-portada img {
     display: block;
     width: 100%;
+    height: auto;
     aspect-ratio: 2 / 3;
     object-fit: cover;
     background: rgba(var(--ink-rgb, 255, 255, 255), 0.04);
@@ -271,7 +272,8 @@
 .vols-row-cover {
     flex: none;
     width: 62px;
-    height: 88px;
+    height: auto;
+    aspect-ratio: 2 / 3;
     object-fit: cover;
     border-radius: var(--radius-sm, 10px);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -341,6 +343,15 @@
 @media (prefers-reduced-motion: reduce) {
     .vols-row { transition: none; }
 }
+
+/* Tema claro: el fondo negro translúcido de las filas quedaba gris barroso
+   sobre el fondo claro (portadas y textos sin contraste). */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .vols-row:not(.vista) { background: rgba(var(--surface-card-rgb, 255, 255, 255), 0.85); }
+    :root:not([data-theme="dark"]) .vols-row-cover { border-color: rgba(var(--ink-rgb), 0.14); box-shadow: 0 4px 12px rgba(28, 22, 44, 0.16); }
+}
+:root[data-theme="light"] .vols-row:not(.vista) { background: rgba(var(--surface-card-rgb, 255, 255, 255), 0.85); }
+:root[data-theme="light"] .vols-row-cover { border-color: rgba(var(--ink-rgb), 0.14); box-shadow: 0 4px 12px rgba(28, 22, 44, 0.16); }
 
 /* Estado "No encontrado" (volumenes.html sin ?id=). */
 .vols-notfound {
